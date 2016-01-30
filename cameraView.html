@@ -17,6 +17,7 @@
             /*border: 1px solid red;*/
             top: -50px;
             left: -50px;
+            transition: transform 0.5s;
         }
     </style>
 </head>
@@ -30,32 +31,34 @@
     </script>
     
     <script type="text/javascript" src="src/scripts/jquery-2.1.4.min.js"></script>
-    <script type="text/javascript" src="src/scripts/underscore-min.js"></script>
+    <script type="text/javascript" src="src/scripts/lodash.min.js"></script>
     <script type="text/javascript" src="src/scripts/backbone-min.js"></script>
     <script>
-        var throttler = function () {
-            var instance = {};
-            
-            instance.throttle = function (handler) {
-                var isProcessing = false;
-                
-                return function (event) {
-                    if (!isProcessing) {
-                        isProcessing = true;
+        'use strict';
+        
+        /**
+        * @description Event throttling using requestAnimationFrame.
+        */    
+        var throttleEvent = function (handler) {
+            var isProcessing = false;
 
-                        window.requestAnimationFrame(function(timestamp) {
-                            handler(event, timestamp);
-                            isProcessing = false;
-                        });    
-                    }
-                };
+            return function (event) {
+                if (!isProcessing) {
+                    isProcessing = true;
+
+                    window.requestAnimationFrame(function(timestamp) {
+                        handler(event, timestamp);
+                        isProcessing = false;
+                    });    
+                }
             };
-            
-            return instance;
         };
         
-        // Fixed Height View Behavior
-        var fixedSizeView = function () {
+        /**
+        * @constructs ResizableView
+        * @description Height and width resizing functionality used for object composition.
+        */
+        var sizableView = function () {
             var instance = {};
             
             instance.setHeight = function (height) {
@@ -85,10 +88,23 @@
             return instance;
         };
         
-        // Message View
-        var cameraView = function (options) {
+        var constants = {};
+        constants.zoom = {
+            IN: 1,
+            OUT: 0,
+            IN_MULTIPLIER: 2,
+            OUT_MULTIPLIER: 0.5,
+            MIN: 0.5,
+            MAX: 4.0
+        };
+        
+        /**
+        * @constructs CameraView
+        * @description A camera to pan and zoom content.
+        */
+        var CameraView = function (options) {
             var instance = Object.create(Object.assign(
-                Backbone.View.prototype, fixedSizeView(), throttler()
+                Backbone.View.prototype, sizableView()
             ));
             
             Object.assign(instance, options);
@@ -101,12 +117,14 @@
                 instance.el.innerHTML = instance.template();
                 instance.content = instance.el.querySelector(':first-child');
                 instance.content.setAttribute('draggable', false);
+                instance.contentInitialWidth = instance.content.getBoundingClientRect().width;
+                instance.contentInitialHeight = instance.content.getBoundingClientRect().height;
                 instance.update();
             };
             
             instance.update = function () {
-                instance.setHeight(instance.height);
                 instance.setWidth(instance.width);
+                instance.setHeight(instance.height);
             };
             
             instance.events = function () {
@@ -115,7 +133,7 @@
                     'mouseleave' : 'onMouseLeave',
                     'mousemove'  : 'onMouseMove',
                     'mouseup'    : 'onMouseUp',
-                    'wheel'      : instance.throttle(instance.onWheel)
+                    'wheel'      : _.throttle(instance.onWheel, 400)
                 };
             };
             
@@ -123,7 +141,7 @@
                 instance.isActive = false;
             };
             
-            instance.onMouseDown = function (event) {
+            instance.onMouseDown = function ($event) {
                 //console.log(event);
                 instance.moveStartX = event.clientX;
                 instance.moveStartY = event.clientY;
@@ -146,11 +164,11 @@
                 //console.log('content startY: ', instance.content.getBoundingClientRect().top - instance.el.getBoundingClientRect().top);
             };
             
-            instance.onMouseLeave = function (event) {
+            instance.onMouseLeave = function ($event) {
                 instance.stop();
             };
             
-            instance.onMouseMove = function (event) {
+            instance.onMouseMove = function ($event) {
                 // Handle vertical bounds
                 if (instance.isActive) {
                     if (instance.contentStartX + event.clientX - instance.moveStartX < 0) {
@@ -184,12 +202,48 @@
                 }
             };
             
-            instance.onMouseUp = function (event) {
+            instance.onMouseUp = function ($event) {
                 instance.stop();
             };
             
-            instance.onWheel = function (event, timestamp) {
-                instance.content.style.transform = 'scale(' + 1.5 + ')';
+            instance.onWheel = function ($event) {
+                instance.wheelZoom($event.originalEvent, instance.content);
+            };
+            
+            instance.wheelZoom = function (event, el) {
+                if (event.deltaY) {
+                    var _zoomDirection = event.deltaY > 0 ? constants.zoom.OUT : constants.zoom.IN;
+                    var _zoomMultiplier = _zoomDirection === constants.zoom.IN ? constants.zoom.IN_MULTIPLIER : constants.zoom.OUT_MULTIPLIER;
+                    instance.zoom(el, _zoomMultiplier, constants.zoom.MIN, constants.zoom.MAX);
+                }
+            };
+            
+            instance.zoom = function (el, multiplier, min, max) {
+                if (!instance.zoomElInitialWidth) {
+                    instance.zoomElInitialWidth = el.getBoundingClientRect().width;
+                }
+                
+                var _currentZoom = instance.getZoom(el);
+                var _newZoom = _currentZoom * multiplier;
+                
+                if (_newZoom <= min) {
+                    _newZoom = min;
+                }
+                else if (_newZoom >= max) {
+                    _newZoom = max;
+                }
+
+                if (_currentZoom !== _newZoom) {
+                    // TODO: Remove when development is complete
+                    console.log('currentScale: ', _currentZoom);
+                    console.log('zoom: ', _newZoom);
+
+                    instance.content.style.transform = 'scale(' + _newZoom + ')';
+                }
+            };
+            
+            instance.getZoom = function (el) {
+                return _.round(1 / (instance.zoomElInitialWidth / el.getBoundingClientRect().width), 1);
             };
             
             Backbone.View.call(instance, options);
@@ -203,7 +257,7 @@
         
         app.initialize = function () {
             // Views
-            var camera = cameraView({
+            var camera = CameraView({
                 el: document.getElementById('camera'),
                 template: _.template(document.getElementById('cameraTemplate').innerHTML),
                 height: 500,
