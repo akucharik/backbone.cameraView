@@ -13,8 +13,7 @@
         .bcv-camera > :first-child {
             position: absolute;
             
-            background-color: blue;
-            /*border: 1px solid red;*/
+            background-color: lightgray;
             top: -50px;
             left: -50px;
             transition: transform 0.5s;
@@ -37,8 +36,8 @@
         'use strict';
         
         /**
-        * @description Event throttling using requestAnimationFrame.
-        */    
+        * Event throttling using requestAnimationFrame.
+        */
         var throttleEvent = function (handler) {
             var isProcessing = false;
 
@@ -55,10 +54,10 @@
         };
         
         /**
-        * @constructs ResizableView
-        * @description Height and width resizing functionality used for object composition.
+        * Height and width resizing functionality used for object composition.
+        * @constructs SizableView
         */
-        var sizableView = function () {
+        var SizableView = function () {
             var instance = {};
             
             instance.setHeight = function (height) {
@@ -91,34 +90,85 @@
         var constants = {};
         constants.zoom = {
             IN: 1,
-            OUT: 0,
-            IN_MULTIPLIER: 2,
-            OUT_MULTIPLIER: 0.5,
-            MIN: 0.5,
-            MAX: 4.0
+            OUT: 0
         };
         
         /**
+        * A CameraView's model.
+        * @constructs CameraModel
+        */
+        var CameraModel = function (options) {
+            var instance = Object.create(Object.assign(
+                Backbone.Model.prototype, {
+                    defaults: {
+                        /**
+                        * The current zoom value.
+                        * @property {Number}
+                        */
+                        zoom: 1,
+                        /**
+                        * The maximum number of times content can be zoomed in.
+                        * @property {Number}
+                        */
+                        zoomInCount: 2,
+                        /**
+                        * The maximum number of times content can be zoomed out.
+                        * @property {Number}
+                        */
+                        zoomOutCount: 2,
+                        /**
+                        * The multiplier used to zoom content in.
+                        * @property {Number}
+                        */
+                        zoomInMultiplier: 2,
+                        /**
+                        * The multiplier used to zoom content out.
+                        * @property {Number}
+                        */
+                        zoomOutMultiplier: 0.5,
+                        /**
+                        * The minimum allowed zoom value.
+                        * @property {Number}
+                        */
+                        zoomMin: null,
+                        /**
+                        * The maximum allowed zoom value.
+                        * @property {Number}
+                        */
+                        zoomMax: null
+                    }
+                }
+            ));
+            
+            instance.initialize = function () {
+                instance.set('zoomMin', Math.pow(instance.get('zoomOutMultiplier'), instance.get('zoomOutCount')));
+                instance.set('zoomMax', Math.pow(instance.get('zoomInMultiplier'), instance.get('zoomInCount')));
+            };
+            
+            Backbone.Model.call(instance, options);
+            
+            return instance;
+        };
+        
+        /**
+        * A camera to pan and zoom content.
         * @constructs CameraView
-        * @description A camera to pan and zoom content.
         */
         var CameraView = function (options) {
             var instance = Object.create(Object.assign(
-                Backbone.View.prototype, sizableView()
+                Backbone.View.prototype, SizableView()
             ));
             
             Object.assign(instance, options);
             
             instance.initialize = function () {
-                
+                instance.listenTo(instance.model, 'change:zoom', instance.zoom);
             };
             
             instance.render = function () {
                 instance.el.innerHTML = instance.template();
                 instance.content = instance.el.querySelector(':first-child');
                 instance.content.setAttribute('draggable', false);
-                instance.contentInitialWidth = instance.content.getBoundingClientRect().width;
-                instance.contentInitialHeight = instance.content.getBoundingClientRect().height;
                 instance.update();
             };
             
@@ -142,6 +192,7 @@
             };
             
             instance.onMouseDown = function ($event) {
+                // TODO: Remove console.log() when development is complete.
                 //console.log(event);
                 instance.moveStartX = event.clientX;
                 instance.moveStartY = event.clientY;
@@ -169,8 +220,9 @@
             };
             
             instance.onMouseMove = function ($event) {
-                // Handle vertical bounds
+                // TODO: Refactor. Add drag-ability of content when zoomed in/out.
                 if (instance.isActive) {
+                    // Handle vertical bounds
                     if (instance.contentStartX + event.clientX - instance.moveStartX < 0) {
                         instance.content.style.left = (instance.contentStartX + event.clientX - instance.moveStartX) + 'px';
                     }
@@ -206,44 +258,54 @@
                 instance.stop();
             };
             
+            /**
+            * Handles the wheel input.
+            * @public
+            * @param {$event} A jQuery event object.
+            */
             instance.onWheel = function ($event) {
-                instance.wheelZoom($event.originalEvent, instance.content);
+                instance.wheelZoom($event.originalEvent);
             };
             
-            instance.wheelZoom = function (event, el) {
+            /**
+            * Determines whether to zoom in or out based on the wheel input.
+            * @public
+            * @param {event} A mouse event object.
+            */
+            instance.wheelZoom = function (event) {
                 if (event.deltaY) {
                     var _zoomDirection = event.deltaY > 0 ? constants.zoom.OUT : constants.zoom.IN;
-                    var _zoomMultiplier = _zoomDirection === constants.zoom.IN ? constants.zoom.IN_MULTIPLIER : constants.zoom.OUT_MULTIPLIER;
-                    instance.zoom(el, _zoomMultiplier, constants.zoom.MIN, constants.zoom.MAX);
+                    var _zoomMultiplier = _zoomDirection === constants.zoom.IN ? instance.model.get('zoomInMultiplier') : instance.model.get('zoomOutMultiplier');
+                    instance.setWheelZoom(_zoomMultiplier);
                 }
             };
             
-            instance.zoom = function (el, multiplier, min, max) {
-                if (!instance.zoomElInitialWidth) {
-                    instance.zoomElInitialWidth = el.getBoundingClientRect().width;
-                }
+            /**
+            * Sets the zoom value.
+            * @public
+            * @param {number} The multiplier which will be applied to the content to determine the new zoom value.
+            */
+            instance.setWheelZoom = function (multiplier) {
+                var _newZoomValue = instance.model.get('zoom') * multiplier;
                 
-                var _currentZoom = instance.getZoom(el);
-                var _newZoom = _currentZoom * multiplier;
-                
-                if (_newZoom <= min) {
-                    _newZoom = min;
+                if (_newZoomValue <= instance.model.get('zoomMin')) {
+                    _newZoomValue = instance.model.get('zoomMin');
                 }
-                else if (_newZoom >= max) {
-                    _newZoom = max;
+                else if (_newZoomValue >= instance.model.get('zoomMax')) {
+                    _newZoomValue = instance.model.get('zoomMax');
                 }
 
-                if (_currentZoom !== _newZoom) {
-                    // TODO: Remove when development is complete
-                    console.log('currentScale: ', _currentZoom);
-                    console.log('zoom: ', _newZoom);
-
-                    instance.content.style.transform = 'scale(' + _newZoom + ')';
+                if (instance.model.get('zoom') !== _newZoomValue) {
+                    instance.model.set('zoom', _newZoomValue);
                 }
             };
             
-            instance.getZoom = function (el) {
-                return _.round(1 / (instance.zoomElInitialWidth / el.getBoundingClientRect().width), 1);
+            /**
+            * Zooms content in or out.
+            * @public
+            */
+            instance.zoom = function () {
+                instance.content.style.transform = 'scale(' + instance.model.get('zoom') + ')';
             };
             
             Backbone.View.call(instance, options);
@@ -257,9 +319,16 @@
         
         app.initialize = function () {
             // Views
-            var camera = CameraView({
+            var cameraView = CameraView({
                 el: document.getElementById('camera'),
                 template: _.template(document.getElementById('cameraTemplate').innerHTML),
+                model: CameraModel({
+                    zoom: 1,
+                    zoomInCount: 2,
+                    zoomOutCount: 2,
+                    zoomInMultiplier: 2,
+                    zoomOutMultiplier: 0.5
+                }),
                 height: 500,
                 width: 1000
             }).render();
