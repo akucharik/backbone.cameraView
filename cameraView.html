@@ -51,7 +51,7 @@
         /**
         * Event throttling using requestAnimationFrame.
         */
-        var throttleEvent = function (handler) {
+        var frameThrottle = function (func) {
             var isProcessing = false;
 
             return function (event) {
@@ -59,7 +59,7 @@
                     isProcessing = true;
 
                     window.requestAnimationFrame(function(timestamp) {
-                        handler(event, timestamp);
+                        func(timestamp, event);
                         isProcessing = false;
                     });    
                 }
@@ -143,19 +143,19 @@
                         * The minimum allowed zoom value.
                         * @property {Number}
                         */
-                        zoomMin: 0.25,
+                        zoomMin: 0.5,
                         /**
                         * The maximum allowed zoom value.
                         * @property {Number}
                         */
-                        zoomMax: 4.0,
+                        zoomMax: 4,
                         /**
                         * The zoom origin coordinates.
                         * @property {Number}
                         */
                         zoomOrigin: null,
                         initialZoomOrigin: null,
-                        zoomIncrement: 0.1
+                        zoomIncrement: 0.01
                     }
                 }
             ));
@@ -204,7 +204,8 @@
                     'mouseleave' : 'onMouseLeave',
                     'mousemove'  : 'onMouseMove',
                     'mouseup'    : 'onMouseUp',
-                    'wheel'      : _.throttle(instance.onWheel, 500)
+                    'wheel'      : frameThrottle(instance.onWheel)
+                    //'wheel'      : _.throttle(instance.onWheel, 20)
                     //'wheel'      : _.throttle(instance.onWheel, 400)
                 };
             };
@@ -298,8 +299,11 @@
             * @public
             * @param {$event} A jQuery event object.
             */
-            instance.onWheel = function ($event) {
-                instance.wheelZoom($event.originalEvent);
+            instance.onWheel = function (timestamp, $event) {
+                var event = $event.originalEvent;
+                
+                event.preventDefault();
+                instance.wheelZoom(event);
             };
             
             /**
@@ -309,19 +313,38 @@
             */
             instance.wheelZoom = function (event) {
                 if (event.deltaY) {
-                    var _direction = event.deltaY > 0 ? constants.zoom.OUT : constants.zoom.IN;
-                    var _newValue = instance.model.get('zoom') + instance.model.get('zoomIncrement') * (_direction === constants.zoom.IN ? 1 : -1);
+                    var _direction = null,
+                        _delta = 0,
+                        _newZoom = 1;
+                    
+                    if (event.deltaY) {
+                        _direction = event.deltaY > 0 ? constants.zoom.OUT : constants.zoom.IN;
+                    } 
+                    else if (event.wheelDelta) {
+                        _direction = event.deltaY > 0 ? constants.zoom.OUT : constants.zoom.IN;
+                    } 
+                    else if (event.detail) {
+                        _direction = event.detail > 0 ? constants.zoom.OUT : constants.zoom.IN;
+                    }
+                    
+                    // limit max zoom speed
+                    _delta = Math.min(Math.abs(event.deltaY), 30) * (_direction === constants.zoom.IN ? 1 : -1);
+                    
+                    // calculate zoom
+                    _newZoom = _.round(instance.model.get('zoom') + instance.model.get('zoomIncrement') * _delta, 2);
                     //var _multiplier = _direction === constants.zoom.IN ? instance.model.get('zoomInMultiplier') : instance.model.get('zoomOutMultiplier');
-                    //var _newValue = instance.model.get('zoom') * _multiplier;
+                    //var _newZoom = instance.model.get('zoom') * _multiplier;
                 
-                    if (_newValue < instance.model.get('zoomMin')) {
-                        _newValue = instance.model.get('zoomMin');
+                    if (_newZoom < instance.model.get('zoomMin')) {
+                        _newZoom = instance.model.get('zoomMin');
                     }
-                    else if (_newValue > instance.model.get('zoomMax')) {
-                        _newValue = instance.model.get('zoomMax');
+                    else if (_newZoom > instance.model.get('zoomMax')) {
+                        _newZoom = instance.model.get('zoomMax');
                     }
+                    
+                    _delta = _newZoom - instance.model.get('zoom');
 
-                    if (instance.model.get('zoom') !== _newValue) {
+                    if (instance.model.get('zoom') !== _newZoom) {
                         console.log('zoom: ', instance.model.get('zoom'));
                         
                         instance.model.set('zoomOrigin', {
@@ -329,135 +352,18 @@
                             y: (event.clientY - instance.content.getBoundingClientRect().top + window.scrollY) / instance.model.get('zoom')
                         });
                         
-                        if (!instance.model.get('initialZoomOrigin')) {
-                            instance.model.set('initialZoomOrigin', instance.model.get('zoomOrigin'));
-                        }
-                        
-                        //var _prevZoomOrigin = instance.model.previous('zoomOrigin') || instance.model.get('zoomOrigin');
-                        var _prevZoomOrigin = instance.model.get('initialZoomOrigin');
-                        
-                        var _originDiff = {
-                            x: instance.model.get('zoomOrigin').x - _prevZoomOrigin.x,
-                            y: instance.model.get('zoomOrigin').y - _prevZoomOrigin.y
-                        };
-                        
-                        console.log('prevOrigin: ', _prevZoomOrigin);
-                        console.log('origin: ', instance.model.get('zoomOrigin'));
-                        console.log('originDiff: ', _originDiff);
-                        
-                        var _prevZoomOriginScaled = {
-                            x: _prevZoomOrigin.x * instance.model.get('zoom'),
-                            y: _prevZoomOrigin.y * instance.model.get('zoom')
-                        };
-                        
-                        var _zoomOriginScaled = {
-                            x: (event.clientX - instance.content.getBoundingClientRect().left + window.scrollX),
-                            y: (event.clientY - instance.content.getBoundingClientRect().top + window.scrollY)
-                        }
-                        
-                        var _zoomOriginScaledDiff = {
-                            x: _zoomOriginScaled.x - _prevZoomOriginScaled.x,
-                            y: _zoomOriginScaled.y - _prevZoomOriginScaled.y,
-                        };
-                        
-                        console.log('prevOriginScaled: ', _prevZoomOriginScaled);
-                        console.log('originScaled: ', _zoomOriginScaled);
-                        //console.log('initialOrigin: ', instance.content.getBoundingClientRect().width / 2 / instance.model.get('zoom'), ', ', instance.content.getBoundingClientRect().height / 2 / instance.model.get('zoom'));
-                        console.log('originScaledDiff: ', {
-                            x: _zoomOriginScaledDiff.x, 
-                            y: _zoomOriginScaledDiff.y
-                        });
-                        
-                        var _contentPosition = {
-                            x: parseFloat(window.getComputedStyle(instance.content).getPropertyValue('left')),
-                            y: parseFloat(window.getComputedStyle(instance.content).getPropertyValue('top'))
-                        };
-                        
-                        if (_direction === constants.zoom.OUT) {
-                            var _originXDifference = _prevZoomOrigin.x - instance.model.get('zoomOrigin').x;
-                            var _originYDifference = _prevZoomOrigin.y - instance.model.get('zoomOrigin').y;
-                        }
-                        else {
-                            var _originXDifference = instance.model.get('zoomOrigin').x - _prevZoomOrigin.x;
-                            var _originYDifference = instance.model.get('zoomOrigin').y - _prevZoomOrigin.y;
-                        }
-                        
-                        //var _originXDifference = instance.model.get('zoomOrigin').x - _prevZoomOrigin.x;
-                        //var _originYDifference = instance.model.get('zoomOrigin').y - _prevZoomOrigin.y;
-                        
-                        //console.log('originDifference: ', _originXDifference, ',', _originYDifference);
-
-
-                        //console.log('originDifference: ', _originXDifference, ',', _originYDifference);
-
                         var _contentX = parseFloat(window.getComputedStyle(instance.content).getPropertyValue('left'));
                         var _contentY = parseFloat(window.getComputedStyle(instance.content).getPropertyValue('top'));
                         
-                        if (_direction === constants.zoom.OUT) {
-                            console.log('zoom out');
-                            _contentX = _contentX + _originXDifference * instance.model.get('zoom'); //+ (event.clientX - instance.el.getBoundingClientRect().left + window.scrollX);
-                            _contentY = _contentY + _originYDifference * instance.model.get('zoom'); //+ (event.clientY - instance.el.getBoundingClientRect().top + window.scrollY);
-                        }
-                        else {
-                            
-                            
-                            
-                            
-                            
-                            // origin must be 0, 0 for this algorithm
-                            // current.left - (origin x / current image width) * (new image width - current image width)
-                            var _contentWidth = instance.content.getBoundingClientRect().width;
-                            var _contentHeight = instance.content.getBoundingClientRect().height;
-                            var _initialContentWidth = instance.content.getBoundingClientRect().width / instance.model.get('zoom');
-                            var _initialContentHeight = instance.content.getBoundingClientRect().height / instance.model.get('zoom');
-                            var _originPercent = {
-                                x: _zoomOriginScaled.x / _contentWidth,
-                                y: _zoomOriginScaled.y / _contentHeight
-                            };
-                                
-                            
-                            
-                            console.log('origin %: ', {
-                                x: _originPercent.x,
-                                y: _originPercent.y
-                            });
-                            console.log('size diff: ', { 
-                                x: (_initialContentWidth * _newValue - _initialContentWidth),
-                                y: (_initialContentHeight * _newValue - _initialContentHeight)
-                            });
-                            console.log('original size: ', { 
-                                x: _initialContentWidth, 
-                                y:  _initialContentHeight 
-                            });
-                            console.log('origin diff offset: ', { 
-                                x: (_zoomOriginScaledDiff.x / (instance.model.get('zoom') / instance.model.get('zoomIncrement'))), 
-                                y: (_zoomOriginScaledDiff.y / (instance.model.get('zoom') / instance.model.get('zoomIncrement'))) 
-                            });
-                            
-                            _contentX = _originPercent.x * (_initialContentWidth * _newValue - _initialContentWidth) * -1 + (_zoomOriginScaledDiff.x / (instance.model.get('zoom') / instance.model.get('zoomIncrement')));
-                            _contentY = _originPercent.y * (_initialContentHeight * _newValue - _initialContentHeight) * -1 + (_zoomOriginScaledDiff.y / (instance.model.get('zoom') / instance.model.get('zoomIncrement')));
-                            
-                            
-                            
-                            //var _contentX = Math.round(_zoomOriginScaledDiff.x * (_newValue - 1) ); // + _originXDifference; //+ (event.clientX - instance.el.getBoundingClientRect().left + window.scrollX);
-                            //var _contentY = Math.round(_zoomOriginScaledDiff.y * (_newValue - 1) ); // + _originYDifference; //+ (event.clientY - instance.el.getBoundingClientRect().top + window.scrollY);
-                        }
-
-                        console.log('coords: ', _contentX, ',', _contentY);
+                        _contentX = _contentX + -1 * instance.model.get('zoomOrigin').x * _delta;
+                        _contentY = _contentY + -1 * instance.model.get('zoomOrigin').y * _delta;
 
                         instance.content.style.left = _contentX + 'px';
                         instance.content.style.top = _contentY + 'px';
                         
-                        instance.model.set('zoom', _newValue);
-                        
-                        //instance.setZoomOrigin(event);
-                        
+                        instance.model.set('zoom', _newZoom);
                     }
                 }
-            };
-            
-            instance.setZoomOrigin = function (event) {
-                
             };
             
             /**
@@ -465,10 +371,9 @@
             * @public
             */
             instance.zoom = function () {
-                //instance.content.style.transformOrigin =  instance.model.get('zoomOrigin').x + 'px ' + instance.model.get('zoomOrigin').y + 'px';
+                // TODO: Remove when development is complete
                 console.log('zoomed to: ', instance.model.get('zoom'));
                 instance.content.style.transform = 'scale(' + instance.model.get('zoom') + ')';
-                
             };
             
             Backbone.View.call(instance, options);
@@ -491,7 +396,7 @@
                     zoomOutCount: 3,
                     zoomInMultiplier: 2,
                     zoomOutMultiplier: 0.5,
-                    zoomIncrement: 0.5
+                    zoomIncrement: 0.01
                 }),
                 height: 500,
                 width: 1000
