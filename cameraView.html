@@ -52,15 +52,20 @@
         * Event throttling using requestAnimationFrame.
         */
         var throttleToFrame = function (func) {
-            var isProcessing = false;
+            var _this = null,
+                _arguments = null,
+                _isProcessing = false;
 
-            return function (event) {
-                if (!isProcessing) {
-                    isProcessing = true;
+            return function () {
+                _this = this;
+                _arguments = arguments;
+                
+                if (!_isProcessing) {
+                    _isProcessing = true;
 
-                    window.requestAnimationFrame(function(timestamp) {
-                        func(event, timestamp);
-                        isProcessing = false;
+                    window.requestAnimationFrame(function() {
+                        func.apply(_this, _arguments);
+                        _isProcessing = false;
                     });    
                 }
             };
