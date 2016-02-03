@@ -4,7 +4,7 @@
 	<title>Backbone Camera View</title>
     <style>
         body {
-            overflow: hidden;
+            /*overflow: hidden;*/
         }
         
         .bcv-camera {
@@ -12,7 +12,7 @@
             height: 500px;
             overflow: hidden;
             position: relative;
-            width: 500px;
+            width: 1000px;
         }
         .bcv-camera > :first-child {
             position: absolute;
@@ -49,7 +49,7 @@
         'use strict';
         
         /**
-        * Event throttling using requestAnimationFrame.
+        * Throttling using requestAnimationFrame.
         */
         var throttleToFrame = function (func) {
             var _this = null,
@@ -125,6 +125,11 @@
                         */
                         zoom: 1,
                         /**
+                        * The base zoom increment.
+                        * @property {Number}
+                        */
+                        increment: 0.02,
+                        /**
                         * The minimum allowed zoom value.
                         * @property {Number}
                         */
@@ -133,20 +138,13 @@
                         * The maximum allowed zoom value.
                         * @property {Number}
                         */
-                        zoomMax: 4,
-                        /**
-                        * The zoom origin coordinates.
-                        * @property {Number}
-                        */
-                        zoomOrigin: null,
-                        zoomIncrement: 0.02
+                        zoomMax: 4
                     }
                 }
             ));
             
             instance.initialize = function () {
-                //instance.set('zoomMin', Math.pow(instance.get('zoomOutMultiplier'), instance.get('zoomOutCount')));
-                //instance.set('zoomMax', Math.pow(instance.get('zoomInMultiplier'), instance.get('zoomInCount')));
+                
             };
             
             Backbone.Model.call(instance, options);
@@ -167,6 +165,8 @@
             
             instance.initialize = function () {
                 instance.listenTo(instance.model, 'change:zoom', instance.zoom);
+                
+                return instance;
             };
             
             instance.render = function () {
@@ -181,11 +181,14 @@
             instance.update = function () {
                 instance.setWidth(instance.width);
                 instance.setHeight(instance.height);
+                
+                return instance;
             };
             
             instance.events = function () {
                 return {
                     'click'      : 'onClick',
+                    'mouseenter' : 'onMouseEnter',
                     'mousedown'  : 'onMouseDown',
                     'mouseleave' : 'onMouseLeave',
                     'mousemove'  : 'onMouseMove',
@@ -195,7 +198,6 @@
             };
             
             instance.onClick = function ($event) {
-                //instance.setZoomOrigin($event.originalEvent);
                 var event = $event.originalEvent;
                 console.log({ 
                     x: event.clientX - instance.content.getBoundingClientRect().left + window.scrollX,
@@ -234,8 +236,14 @@
                 //console.log('content startY: ', instance.content.getBoundingClientRect().top - instance.el.getBoundingClientRect().top);
             };
             
+            instance.onMouseEnter = function ($event) {
+                $('body').css('overflow', 'hidden');
+            };
+            
             instance.onMouseLeave = function ($event) {
                 instance.stop();
+                // TODO: Instead of reverting to 'auto' remove the inline style rule to let any applied stylesheet rule kick in. 
+                $('body').css('overflow', 'auto');
             };
             
             instance.onMouseMove = function ($event) {
@@ -297,10 +305,18 @@
             */
             instance.wheelZoom = function (event) {
                 if (event.deltaY) {
-                    var _direction = null,
-                        _delta = 0,
-                        _newZoom = 1,
-                        _zoomPrecision = 3;
+                    var _precision = 2;
+                    var _direction = null;
+                    var _delta = 0;
+                    var _zoom = instance.model.get('zoom');
+                    var _newZoom = _zoom;
+                    var _increment = instance.model.get('increment');
+                    var _min = instance.model.get('zoomMin');
+                    var _max = instance.model.get('zoomMax');
+                    var _originX = (event.clientX - instance.content.getBoundingClientRect().left) / _zoom;
+                    var _originY = (event.clientY - instance.content.getBoundingClientRect().top) / _zoom;
+                    var _contentX = parseFloat(window.getComputedStyle(instance.content).getPropertyValue('left'));
+                    var _contentY = parseFloat(window.getComputedStyle(instance.content).getPropertyValue('top'));
                     
                     if (event.deltaY) {
                         _direction = event.deltaY > 0 ? constants.zoom.OUT : constants.zoom.IN;
@@ -312,37 +328,37 @@
                         _direction = event.detail > 0 ? constants.zoom.OUT : constants.zoom.IN;
                     }
                     
-                    // limit max zoom speed
-                    _delta = Math.min(Math.abs(event.deltaY), 20) * (_direction === constants.zoom.IN ? 1 : -1);
+                    // TODO: Use of '_delta' and 'increment' are sloppy and confusing. Clean up.
+                    // Limit max zoom speed
+                    _delta = Math.min(Math.abs(event.deltaY), 10) * (_direction === constants.zoom.IN ? 1 : -1);
                     console.log(_delta);
                     
-                    // calculate zoom increment
-                    var _zoomIncrement = _.round(instance.model.get('zoomIncrement') * instance.model.get('zoom'), _zoomPrecision);
-                    console.log('zIncrement: ', _zoomIncrement);
+                    // Calculate progressive zoom increment
+                    if (_zoom <= 2) {
+                        _increment = _.round(_increment * _zoom, _precision);
+                    }
+                    else {
+                        _increment = _.round(_increment + (Math.round(_zoom) / 100), _precision);
+                    }
                     
-                    // determine zoom
-                    _newZoom = _.round(instance.model.get('zoom') + _zoomIncrement * _delta, _zoomPrecision);
+                    console.log('zIncrement: ', _increment);
+                    
+                    // Determine zoom
+                    _newZoom = _.round(_zoom + _increment * _delta, _precision);
                 
-                    if (_newZoom < instance.model.get('zoomMin')) {
-                        _newZoom = instance.model.get('zoomMin');
+                    if (_newZoom < _min) {
+                        _newZoom = _min;
                     }
-                    else if (_newZoom > instance.model.get('zoomMax')) {
-                        _newZoom = instance.model.get('zoomMax');
+                    else if (_newZoom > _max) {
+                        _newZoom = _max;
                     }
                     
-                    _delta = _newZoom - instance.model.get('zoom');
+                    // Prevent zooming beyond limits
+                    _delta = _newZoom - _zoom;
 
-                    if (instance.model.get('zoom') !== _newZoom) {
-                        instance.model.set('zoomOrigin', {
-                            x: (event.clientX - instance.content.getBoundingClientRect().left + window.scrollX) / instance.model.get('zoom'),
-                            y: (event.clientY - instance.content.getBoundingClientRect().top + window.scrollY) / instance.model.get('zoom')
-                        });
-                        
-                        var _contentX = parseFloat(window.getComputedStyle(instance.content).getPropertyValue('left'));
-                        var _contentY = parseFloat(window.getComputedStyle(instance.content).getPropertyValue('top'));
-                        
-                        _contentX = _contentX + -1 * instance.model.get('zoomOrigin').x * _delta;
-                        _contentY = _contentY + -1 * instance.model.get('zoomOrigin').y * _delta;
+                    if (_zoom !== _newZoom) {
+                        _contentX = _.round(_contentX + -1 * _originX * _delta, _precision);
+                        _contentY = _.round(_contentY + -1 * _originY * _delta, _precision);
 
                         instance.content.style.left = _contentX + 'px';
                         instance.content.style.top = _contentY + 'px';
@@ -378,12 +394,10 @@
                 template: _.template(document.getElementById('cameraTemplate').innerHTML),
                 model: CameraModel({
                     zoom: 1,
-                    zoomIncrement: 0.02,
+                    increment: 0.02,
                     zoomMin: 0.25,
-                    zoomMax: 4
-                }),
-                height: 500,
-                width: 1000
+                    zoomMax: 6
+                })
             }).render();
             
             window.cameraView = cameraView;
