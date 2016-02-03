@@ -51,7 +51,7 @@
         /**
         * Event throttling using requestAnimationFrame.
         */
-        var frameThrottle = function (func) {
+        var throttleToFrame = function (func) {
             var isProcessing = false;
 
             return function (event) {
@@ -59,7 +59,7 @@
                     isProcessing = true;
 
                     window.requestAnimationFrame(function(timestamp) {
-                        func(timestamp, event);
+                        func(event, timestamp);
                         isProcessing = false;
                     });    
                 }
@@ -120,30 +120,10 @@
                         */
                         zoom: 1,
                         /**
-                        * The maximum number of times content can be zoomed in.
-                        * @property {Number}
-                        */
-                        zoomInCount: 3,
-                        /**
-                        * The maximum number of times content can be zoomed out.
-                        * @property {Number}
-                        */
-                        zoomOutCount: 3,
-                        /**
-                        * The multiplier used to zoom content in.
-                        * @property {Number}
-                        */
-                        zoomInMultiplier: 2,
-                        /**
-                        * The multiplier used to zoom content out.
-                        * @property {Number}
-                        */
-                        zoomOutMultiplier: 0.5,
-                        /**
                         * The minimum allowed zoom value.
                         * @property {Number}
                         */
-                        zoomMin: 0.5,
+                        zoomMin: 0.1,
                         /**
                         * The maximum allowed zoom value.
                         * @property {Number}
@@ -154,8 +134,7 @@
                         * @property {Number}
                         */
                         zoomOrigin: null,
-                        initialZoomOrigin: null,
-                        zoomIncrement: 0.01
+                        zoomIncrement: 0.02
                     }
                 }
             ));
@@ -190,6 +169,8 @@
                 instance.content = instance.el.querySelector(':first-child');
                 instance.content.setAttribute('draggable', false);
                 instance.update();
+                
+                return instance;
             };
             
             instance.update = function () {
@@ -204,9 +185,7 @@
                     'mouseleave' : 'onMouseLeave',
                     'mousemove'  : 'onMouseMove',
                     'mouseup'    : 'onMouseUp',
-                    'wheel'      : frameThrottle(instance.onWheel)
-                    //'wheel'      : _.throttle(instance.onWheel, 20)
-                    //'wheel'      : _.throttle(instance.onWheel, 400)
+                    'wheel'      : throttleToFrame(instance.onWheel)
                 };
             };
             
@@ -299,7 +278,7 @@
             * @public
             * @param {$event} A jQuery event object.
             */
-            instance.onWheel = function (timestamp, $event) {
+            instance.onWheel = function ($event) {
                 var event = $event.originalEvent;
                 
                 event.preventDefault();
@@ -315,7 +294,8 @@
                 if (event.deltaY) {
                     var _direction = null,
                         _delta = 0,
-                        _newZoom = 1;
+                        _newZoom = 1,
+                        _zoomPrecision = 3;
                     
                     if (event.deltaY) {
                         _direction = event.deltaY > 0 ? constants.zoom.OUT : constants.zoom.IN;
@@ -328,12 +308,15 @@
                     }
                     
                     // limit max zoom speed
-                    _delta = Math.min(Math.abs(event.deltaY), 30) * (_direction === constants.zoom.IN ? 1 : -1);
+                    _delta = Math.min(Math.abs(event.deltaY), 20) * (_direction === constants.zoom.IN ? 1 : -1);
+                    console.log(_delta);
                     
-                    // calculate zoom
-                    _newZoom = _.round(instance.model.get('zoom') + instance.model.get('zoomIncrement') * _delta, 2);
-                    //var _multiplier = _direction === constants.zoom.IN ? instance.model.get('zoomInMultiplier') : instance.model.get('zoomOutMultiplier');
-                    //var _newZoom = instance.model.get('zoom') * _multiplier;
+                    // calculate zoom increment
+                    var _zoomIncrement = _.round(instance.model.get('zoomIncrement') * instance.model.get('zoom'), _zoomPrecision);
+                    console.log('zIncrement: ', _zoomIncrement);
+                    
+                    // determine zoom
+                    _newZoom = _.round(instance.model.get('zoom') + _zoomIncrement * _delta, _zoomPrecision);
                 
                     if (_newZoom < instance.model.get('zoomMin')) {
                         _newZoom = instance.model.get('zoomMin');
@@ -345,8 +328,6 @@
                     _delta = _newZoom - instance.model.get('zoom');
 
                     if (instance.model.get('zoom') !== _newZoom) {
-                        console.log('zoom: ', instance.model.get('zoom'));
-                        
                         instance.model.set('zoomOrigin', {
                             x: (event.clientX - instance.content.getBoundingClientRect().left + window.scrollX) / instance.model.get('zoom'),
                             y: (event.clientY - instance.content.getBoundingClientRect().top + window.scrollY) / instance.model.get('zoom')
@@ -392,15 +373,15 @@
                 template: _.template(document.getElementById('cameraTemplate').innerHTML),
                 model: CameraModel({
                     zoom: 1,
-                    zoomInCount: 3,
-                    zoomOutCount: 3,
-                    zoomInMultiplier: 2,
-                    zoomOutMultiplier: 0.5,
-                    zoomIncrement: 0.01
+                    zoomIncrement: 0.02,
+                    zoomMin: 0.25,
+                    zoomMax: 4
                 }),
                 height: 500,
                 width: 1000
             }).render();
+            
+            window.cameraView = cameraView;
         };
         
         app.initialize();
