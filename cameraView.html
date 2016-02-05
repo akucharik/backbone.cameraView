@@ -47,9 +47,17 @@
     <script type="text/javascript" src="src/scripts/backbone-min.js"></script>
     <script>
         'use strict';
+        /**
+        * @author       Adam Kucharik <akucharik@gmail.com>
+        * @copyright    Adam Kucharik
+        * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
+        */
         
         /**
         * Throttling using requestAnimationFrame.
+        *
+        * @param {Function} func - The function to throttle.
+        * @returns {Function} The new function throttled to the next Animation Frame.
         */
         var throttleToFrame = function (func) {
             var _this = null,
@@ -73,7 +81,9 @@
         
         /**
         * Height and width resizing functionality used for object composition.
+        *
         * @constructs SizableView
+        * @returns {SizableView} The newly created SizableView object.
         */
         var SizableView = function () {
             var instance = {};
@@ -107,13 +117,27 @@
         
         var constants = {};
         constants.zoom = {
+            /** @constant {number}
+                @default
+            */
             IN: 1,
+            /** @constant {number}
+                @default
+            */
             OUT: 0
         };
         
         /**
         * A CameraView's model.
+        *
         * @constructs CameraModel
+        * @param {Object} [options] The options object.
+        * @param {number} [options.zoom=1] The starting zoom of the view's content. 
+        * @param {number} [options.increment=0.02] The base increment at which the content will be zoomed.
+        * @param {number} [options.zoomMin=0.1] The minimum value the content can be zoomed.
+        * @param {number} [options.zoomMax=4.0] The maximum value the content can be zoomed.
+        
+        * @returns {CameraModel} The newly created CameraModel object.
         */
         var CameraModel = function (options) {
             var instance = Object.create(Object.assign(
@@ -121,24 +145,24 @@
                     defaults: {
                         /**
                         * The current zoom value.
-                        * @property {Number}
+                        * @property {number}
                         */
                         zoom: 1,
                         /**
-                        * The base zoom increment.
-                        * @property {Number}
+                        * The base increment at which the content will be zoomed.
+                        * @property {number}
                         */
                         increment: 0.02,
                         /**
-                        * The minimum allowed zoom value.
-                        * @property {Number}
+                        * The minimum value the content can be zoomed.
+                        * @property {number}
                         */
                         zoomMin: 0.1,
                         /**
-                        * The maximum allowed zoom value.
-                        * @property {Number}
+                        * The maximum value the content can be zoomed.
+                        * @property {number}
                         */
-                        zoomMax: 4
+                        zoomMax: 4.0
                     }
                 }
             ));
@@ -154,7 +178,21 @@
         
         /**
         * A camera to pan and zoom content.
+        *
         * @constructs CameraView
+        * @param {Object} An object of options.
+        * @param {Object} [options] The options object.
+        * @param {CameraModel} [options.model] The view's model.
+        * @param {number|string|HTMLElement} [options.width] The view's width. A number will be converted to pixels. A valid CSS string may also be used. If an HTMLElement is provided, the view will size the dimension to match the HTMLElement.
+        * @param {number|string|HTMLElement} [options.height] The view's height. A number will be converted to pixels. A valid CSS string may also be used. If an HTMLElement is provided, the view will size the dimension to match the HTMLElement.
+        * @param {string|HTMLElement} [options.el] A Backbone.View parameter. See http://backbonejs.org/#View
+        * @param {string|Object} [options.template] A Backbone.View parameter. See http://backbonejs.org/#View
+        * @param {string} [options.id] A Backbone.View parameter. See http://backbonejs.org/#View
+        * @param {string} [options.className] A Backbone.View parameter. See http://backbonejs.org/#View
+        * @param {string} [options.tagName] A Backbone.View parameter. See http://backbonejs.org/#View
+        * @param {Object|Function} [options.attributes] A Backbone.View parameter. See http://backbonejs.org/#View
+        * @param {Object|Function} [options.events] A Backbone.View parameter. See http://backbonejs.org/#View
+        * @returns {CameraView} The newly created CameraView object.
         */
         var CameraView = function (options) {
             var instance = Object.create(Object.assign(
@@ -288,7 +326,7 @@
             
             /**
             * Handles the wheel input.
-            * @public
+            *
             * @param {$event} A jQuery event object.
             */
             instance.onWheel = function ($event) {
@@ -300,8 +338,8 @@
             
             /**
             * Determines whether to zoom in or out based on the wheel input.
-            * @public
-            * @param {event} A mouse event object.
+            *
+            * @param {MouseEvent} A MouseEvent object.
             */
             instance.wheelZoom = function (event) {
                 if (event.deltaY) {
@@ -370,7 +408,8 @@
             
             /**
             * Zooms content in or out.
-            * @public
+            *
+            * @returns {CameraView} The view object. 
             */
             instance.zoom = function () {
                 // TODO: Remove when development is complete
