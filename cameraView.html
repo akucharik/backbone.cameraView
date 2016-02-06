@@ -209,7 +209,7 @@
             Object.assign(instance, options);
             
             instance.initialize = function () {
-                instance.listenTo(instance.model, 'change:zoom', instance.zoom);
+                //instance.listenTo(instance.model, 'change:zoom', instance.zoom);
                 
                 return instance;
             };
@@ -410,6 +410,7 @@
                         instance.content.style.top = _contentY + 'px';
                         
                         instance.model.set('zoom', _newZoom);
+                        instance.content.style.transform = 'scale(' + instance.model.get('zoom') + ')';
                     }
                 }
             };
@@ -419,54 +420,67 @@
             *
             * @returns {CameraView} The view. 
             */
-            instance.zoom = function () {
-                // TODO: Remove when development is complete
-                console.log('zoomed to: ', instance.model.get('zoom'));
+            instance.zoom = function (scale, duration) {
+                var _duration = duration || constants.TRANSITION_DURATION;
+                
+                instance.content.style.transitionProperty = 'left, top, transform';
+                instance.content.style.transitionDuration = _duration;
+                instance.content.style.transitionTimingFunction = 'ease-out';
+                
+                instance.model.set('zoom', scale);
                 instance.content.style.transform = 'scale(' + instance.model.get('zoom') + ')';
             };
             
-            // TODO: Proof of concept - refactor!
-            instance.zoomTo = function (scale, x, y, duration) {
-                var _x = x || 0;
-                var _y = y || 0;
+            // TODO: Proof of concept - get it working correctly!
+            /**
+            * Zoom at a particular point.
+            *
+            * @param {number} The scale to zoom to.
+            * @param {Object} The position at which to anchor the zoom.
+            * @param {string} A valid CSS transition-duration value.
+            * @returns {CameraView} The view.
+            */
+            instance.zoomAt = function (scale, position, duration) {
+                var _position = { x: 0, y: 0 };
                 
-                var _originX = _x * scale - _x * instance.model.get('zoom');
-                var _originY = _y * scale - _y * instance.model.get('zoom');
+                var _originX = position.x;
+                var _originY = position.y;
                 
-                var _duration = duration || '500ms';
-                
-                var _precision = 2;
                 var _contentX = parseFloat(window.getComputedStyle(instance.content).getPropertyValue('left'));
                 var _contentY = parseFloat(window.getComputedStyle(instance.content).getPropertyValue('top'));
                 
-                instance.content.style.transition = 'all ' + _duration;
-                instance.content.style.transitionTimingFunction = 'ease-out';
+                var _offset = { x: 0, y: 0 };
+                _offset.x = instance.el.getBoundingClientRect().width / 2 - _originX;
+                _offset.y = instance.el.getBoundingClientRect().width / 2 - _originY;
                 
-                // top/left solution
-                //_contentX = _.round(-1 * _originX, _precision);
-                //_contentY = _.round(-1 * _originY, _precision);
-                //instance.content.style.left = _contentX + 'px';
-                //instance.content.style.top = _contentY + 'px';
+                _position.x = _.round(_offset.x, constants.PIXEL_PRECISION);
+                _position.y = _.round(_offset.y, constants.PIXEL_PRECISION);
                 
+                console.log('Position: ', _position);
                 
-                // translate solution
-                _contentX = _.round(-1 * (_x / scale), _precision);
-                _contentY = _.round(-1 * (_y / scale), _precision);
-                instance.content.style.transform = 'scale(' + scale + ') translateX(' + _contentX + 'px) translateY(' + _contentY + 'px)';
-                
-                // Transform Origin solution
-                //_contentX = _.round(_contentX + -1 * _x, _precision);
-                //_contentY = _.round(_contentY + -1 * _y, _precision);
-                //instance.content.style.transformOrigin = _x + 'px ' + _y + 'px';
-                //instance.content.style.transform = 'scale(' + scale + ')';
-                
-                //instance.model.set('zoom', scale);
+                instance.zoom(scale, duration);
+                instance.focus(_position, duration);
                 
                 return instance;
             };
             
             /**
-            * Focus the camera on a particular point of the content.
+            * Zoom and focus the camera on a particular point.
+            *
+            * @param {number} The scale to zoom to.
+            * @param {Object} The position to bring to focus.
+            * @param {string} A valid CSS transition-duration value.
+            * @returns {CameraView} The view.
+            */
+            instance.zoomTo = function (scale, position, duration) {
+                instance.zoom(scale, duration);
+                instance.focus(position, duration);
+                
+                return instance;
+            };
+            
+            /**
+            * Focus the camera on a particular point.
             *
             * @param {Object} The position to bring to focus.
             * @param {string} A valid CSS transition-duration value.
@@ -475,7 +489,6 @@
             instance.focus = function (position, duration) {
                 var _position, _offsetX, _offsetY;
                 var _duration = duration || constants.TRANSITION_DURATION;
-                var _precision = constants.PIXEL_PRECISION;
 
                 if (position && (position.x || position.y)) {
                     _position = position;
@@ -484,19 +497,19 @@
                     _position = {};
                 }
                 
-                instance.content.style.transitionProperty = 'left, top';
+                instance.content.style.transitionProperty = 'left, top, transform';
                 instance.content.style.transitionDuration = _duration;
                 instance.content.style.transitionTimingFunction = 'ease-out';
 
                 if (_.isFinite(_position.x)) {
                     _offsetX = instance.el.getBoundingClientRect().width / 2 - _position.x * instance.model.get('zoom');
-                    instance.content.style.left = _.round(_offsetX, _precision) + 'px';
+                    instance.content.style.left = _.round(_offsetX, constants.PIXEL_PRECISION) + 'px';
                 }
                 if (_.isFinite(_position.y)) {
                     _offsetY = instance.el.getBoundingClientRect().height / 2 - _position.y * instance.model.get('zoom');
-                    instance.content.style.top = _.round(_offsetY, _precision) + 'px';
+                    instance.content.style.top = _.round(_offsetY, constants.PIXEL_PRECISION) + 'px';
                 }
-                    
+                
                 return instance;
             };
             
@@ -509,116 +522,6 @@
                 el.style.transition = '';
                 el.style.transitionProperty = '';
                 el.style.transitionDuration = '';
-                
-                return instance;
-            };
-            
-            // TODO: Proof of concept - refactor!
-            instance.zoomToAndCenter = function (scale, x, y, duration) {
-                var _x = x || 0;
-                var _y = y || 0;
-                
-                var _centerX = instance.el.getBoundingClientRect().width / 2;
-                var _centerY = instance.el.getBoundingClientRect().height / 2;
-                
-                var _offsetX = _centerX - _x * scale;
-                var _offsetY = _centerY - _y * scale;
-                
-                var _originX = _x * scale - _x * instance.model.get('zoom');
-                var _originY = _y * scale - _y * instance.model.get('zoom');
-                
-                var _duration = duration || '500ms';
-                
-                var _precision = 2;
-                var _contentX = parseFloat(window.getComputedStyle(instance.content).getPropertyValue('left'));
-                var _contentY = parseFloat(window.getComputedStyle(instance.content).getPropertyValue('top'));
-                
-                
-
-                instance.content.style.transition = 'all ' + _duration;
-                instance.content.style.transitionTimingFunction = 'ease-out';
-                
-                // top/left solution
-                _contentX = _.round(_offsetX, _precision);
-                _contentY = _.round(_offsetY, _precision);
-                instance.content.style.left = _contentX + 'px';
-                instance.content.style.top = _contentY + 'px';
-                instance.content.style.transform = 'scale(' + scale + ')';
-                
-                // translate solution
-                //_contentX = _.round(_offsetX / scale, _precision);
-                //_contentY = _.round(_offsetY / scale, _precision);
-                //instance.content.style.transform = 'scale(' + scale + ') translateX(' + _contentX + 'px) translateY(' + _contentY + 'px)';
-                
-                // Transform Origin solution
-                //_contentX = _.round(_contentX + -1 * _x, _precision);
-                //_contentY = _.round(_contentY + -1 * _y, _precision);
-                //instance.content.style.transformOrigin = _x + 'px ' + _y + 'px';
-                //instance.content.style.transform = 'scale(' + scale + ')';
-                
-                //instance.model.set('zoom', scale);
-                
-                return instance;
-            };
-            
-            
-            // TODO: Proof of concept - remove!
-            instance.zoomAndMoveTo = function (scale, x, y, duration) {
-                var _x = x || 0;
-                var _y = y || 0;
-                
-                var _centerX = instance.el.getBoundingClientRect().width / 2;
-                var _centerY = instance.el.getBoundingClientRect().height / 2;
-                
-                var _offsetX = _centerX - _x * scale;
-                var _offsetY = _centerY - _y * scale;
-                
-                var _originX = _x * scale - _x * instance.model.get('zoom');
-                var _originY = _y * scale - _y * instance.model.get('zoom');
-                
-                var _duration = duration || '500ms';
-                
-                var _precision = constant.PIXEL_PRECISION;
-                var _contentX = parseFloat(window.getComputedStyle(instance.content).getPropertyValue('left'));
-                var _contentY = parseFloat(window.getComputedStyle(instance.content).getPropertyValue('top'));
-                
-                
-
-                instance.content.style.transition = 'all ' + _duration;
-                instance.content.style.transitionTimingFunction = 'ease-out';
-                
-                // top/left solution
-                _contentX = _.round(_offsetX, _precision);
-                _contentY = _.round(_offsetY, _precision);
-                //instance.content.style.left = _contentX + 'px';
-                //instance.content.style.top = _contentY + 'px';
-                
-                instance.content.style.transform = 'scale(' + scale + ')';
-                instance.content.addEventListener('transitionend', _.once(function () {
-                    instance.content.style.transitionTimingFunction = 'ease-in';
-                    instance.content.style.left = _contentX + 'px';
-                    instance.content.style.top = _contentY + 'px';
-                    instance.content.removeEventListener('transitionend');
-                }));
-                
-                // translate solution
-//                _contentX = _.round(_offsetX, _precision);
-//                _contentY = _.round(_offsetY, _precision);
-//                
-//                instance.content.style.transform = 'translateX(' + _contentX + 'px) translateY(' + _contentY + 'px)';
-//                instance.content.addEventListener('transitionend', _.once(function () {
-//                    instance.content.style.transform = 'scale(' + scale + ')';
-//                    instance.content.removeEventListener('transitionend');
-//                }));
-                
-                
-                // Transform Origin solution
-                //_contentX = _.round(_contentX + -1 * _x, _precision);
-                //_contentY = _.round(_contentY + -1 * _y, _precision);
-                //instance.content.style.transformOrigin = _x + 'px ' + _y + 'px';
-                //instance.content.style.transform = 'scale(' + scale + ')';
-                
-                //instance.model.set('zoom', scale);
                 
                 return instance;
             };
