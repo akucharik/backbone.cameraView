@@ -441,7 +441,6 @@
             * @returns {CameraView} The view.
             */
             instance.zoomAt = function (scale, position, duration) {
-                var _position = { x: 0, y: 0 };
                 
                 var _originX = position.x;
                 var _originY = position.y;
@@ -450,16 +449,19 @@
                 var _contentY = parseFloat(window.getComputedStyle(instance.content).getPropertyValue('top'));
                 
                 var _offset = { x: 0, y: 0 };
-                _offset.x = instance.el.getBoundingClientRect().width / 2 - _originX;
-                _offset.y = instance.el.getBoundingClientRect().width / 2 - _originY;
+                _offset.x = (_contentX * -1) + (instance.el.getBoundingClientRect().width / 2) / (instance.el.getBoundingClientRect().width * scale) * instance.el.getBoundingClientRect().width;
+                _offset.y = (_contentX * -1) + (instance.el.getBoundingClientRect().height / 2) / (instance.el.getBoundingClientRect().height * scale) * instance.el.getBoundingClientRect().height;
                 
-                _position.x = _.round(_offset.x, constants.PIXEL_PRECISION);
-                _position.y = _.round(_offset.y, constants.PIXEL_PRECISION);
+                // current offset   + center of viewport / new width * old width
+                // (_contentX * -1) + (instance.el.getBoundingClientRect().width / 2) / (instance.el.getBoundingClientRect().width * scale) * (instance.el.getBoundingClientRect().width 
                 
-                console.log('Position: ', _position);
+                //_position.x = _.round(_offset.x, constants.PIXEL_PRECISION);
+                //_position.y = _.round(_offset.y, constants.PIXEL_PRECISION);
+                
+                console.log('Offset: ', _offset);
                 
                 instance.zoom(scale, duration);
-                instance.focus(_position, duration);
+                instance.focus(_offset, duration);
                 
                 return instance;
             };
@@ -487,10 +489,14 @@
             * @returns {CameraView} The view.
             */
             instance.focus = function (position, duration) {
-                var _position, _offsetX, _offsetY;
+                var _offsetX, _offsetY;
+                var _position = { x: null, y: null };
                 var _duration = duration || constants.TRANSITION_DURATION;
+                var _frameCenterX = instance.el.getBoundingClientRect().width / 2;
+                var _frameCenterY = instance.el.getBoundingClientRect().height / 2;
 
-                if (position && (position.x || position.y)) {
+                // TODO: handle setup of _position better. Default to currently focused spot.
+                if (position) {
                     _position = position;
                 }
                 else {
@@ -501,14 +507,17 @@
                 instance.content.style.transitionDuration = _duration;
                 instance.content.style.transitionTimingFunction = 'ease-out';
 
+                // TODO: handle setup of _position better so _.isFinite check isn't necessary here.
                 if (_.isFinite(_position.x)) {
-                    _offsetX = instance.el.getBoundingClientRect().width / 2 - _position.x * instance.model.get('zoom');
+                    _offsetX = _frameCenterX + (_position.x * instance.model.get('zoom') * -1);
                     instance.content.style.left = _.round(_offsetX, constants.PIXEL_PRECISION) + 'px';
                 }
                 if (_.isFinite(_position.y)) {
-                    _offsetY = instance.el.getBoundingClientRect().height / 2 - _position.y * instance.model.get('zoom');
+                    _offsetY = _frameCenterY + (_position.y * instance.model.get('zoom') * -1);
                     instance.content.style.top = _.round(_offsetY, constants.PIXEL_PRECISION) + 'px';
                 }
+                
+                console.log('Focus at: ', _position);
                 
                 return instance;
             };
