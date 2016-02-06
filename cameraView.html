@@ -169,11 +169,7 @@
                         * The maximum value the content can be zoomed.
                         * @property {number}
                         */
-                        zoomMax: 4.0,
-                        focus: {
-                            x: 0,
-                            y: 0
-                        },
+                        zoomMax: 4.0
                     }
                 }
             ));
@@ -214,7 +210,6 @@
             
             instance.initialize = function () {
                 instance.listenTo(instance.model, 'change:zoom', instance.zoom);
-                instance.listenTo(instance.model, 'change:focus', instance.focus);
                 
                 return instance;
             };
@@ -410,6 +405,7 @@
                         _contentX = _.round(_contentX + -1 * _originX * _delta, _precision);
                         _contentY = _.round(_contentY + -1 * _originY * _delta, _precision);
 
+                        instance.clearTransition(instance.content);
                         instance.content.style.left = _contentX + 'px';
                         instance.content.style.top = _contentY + 'px';
                         
@@ -472,23 +468,35 @@
             /**
             * Focus the camera on a particular point of the content.
             *
-            * @param {CameraModel} The view's model.
-            * @param {Object} The position of focus.
+            * @param {Object} The position to bring to focus.
+            * @param {string} A valid CSS transition-duration value.
             * @returns {CameraView} The view.
             */
-            instance.focus = function (model, position) {
-                var _offsetX = instance.el.getBoundingClientRect().width / 2 - position.x * model.get('zoom');
-                var _offsetY = instance.el.getBoundingClientRect().height / 2 - position.y * model.get('zoom');
-                var _duration = constants.TRANSITION_DURATION;
+            instance.focus = function (position, duration) {
+                var _position, _offsetX, _offsetY;
+                var _duration = duration || constants.TRANSITION_DURATION;
                 var _precision = constants.PIXEL_PRECISION;
 
-                instance.clearTransition(instance.content);
+                if (position && (position.x || position.y)) {
+                    _position = position;
+                }
+                else {
+                    _position = {};
+                }
+                
                 instance.content.style.transitionProperty = 'left, top';
                 instance.content.style.transitionDuration = _duration;
                 instance.content.style.transitionTimingFunction = 'ease-out';
-                instance.content.style.left = _.round(_offsetX, _precision) + 'px';
-                instance.content.style.top = _.round(_offsetY, _precision) + 'px';
-                
+
+                if (_.isFinite(_position.x)) {
+                    _offsetX = instance.el.getBoundingClientRect().width / 2 - _position.x * instance.model.get('zoom');
+                    instance.content.style.left = _.round(_offsetX, _precision) + 'px';
+                }
+                if (_.isFinite(_position.y)) {
+                    _offsetY = instance.el.getBoundingClientRect().height / 2 - _position.y * instance.model.get('zoom');
+                    instance.content.style.top = _.round(_offsetY, _precision) + 'px';
+                }
+                    
                 return instance;
             };
             
