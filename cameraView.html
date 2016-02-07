@@ -32,17 +32,17 @@
     <script id="cameraTemplate" type="text/template">
         <div>
             <img src="images/FFL-Spritesheet-White-1827x1215.png" alt="Final Fantasy Legend Sprites" width="1827" height="1215" />
-            <div style="position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid green;"></div>
-            <div style="position: absolute; top: 0; left: 0; width: 200px; height: 200px; border: 1px solid green;"></div>
+            <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid green;"></div>
+            <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 200px; height: 200px; border: 1px solid green;"></div>
         </div>
-        <div style="position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid blue;"></div>
-        <div style="position: absolute; top: 0; left: 0; width: 200px; height: 200px; border: 1px solid red;"></div>
+        <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid blue;"></div>
+        <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 200px; height: 200px; border: 1px solid red;"></div>
         
-        <div style="position: absolute; top: 105px; left: 180px; width: 3px; height: 3px; background-color: red;"></div>
-        <div style="position: absolute; top: 249px; left: 615px; width: 3px; height: 3px; background-color: red;"></div>
+        <div style="box-sizing: border-box; position: absolute; top: 105px; left: 180px; width: 3px; height: 3px; background-color: red;"></div>
+        <div style="box-sizing: border-box; position: absolute; top: 249px; left: 615px; width: 3px; height: 3px; background-color: red;"></div>
         
-        <div style="position: absolute; top: 249px; left: 475px; width: 50px; height: 2px; background-color: red;"></div>
-        <div style="position: absolute; top: 225px; left: 499px; width: 2px; height: 50px; background-color: red;"></div>
+        <div style="box-sizing: border-box; position: absolute; top: 249px; left: 475px; width: 50px; height: 2px; background-color: red;"></div>
+        <div style="box-sizing: border-box; position: absolute; top: 225px; left: 499px; width: 2px; height: 50px; background-color: red;"></div>
         
     </script>
     
@@ -120,15 +120,25 @@
         };
         
         var constants = {
-            PIXEL_PRECISION: 2,
-            TRANSITION_DURATION: '500ms',
-            zoom: {
+            defaults: {
                 /** @constant {number}
                     @default
                 */
+                PIXEL_PRECISION: 2,
+                /** @constant {string}
+                    @default
+                */
+                TRANSITION_DURATION: '500ms',
+                /** @constant {string}
+                    @default
+                */
+                TRANSITION_TIMING_FUNCTION: 'ease-out'
+            },
+            zoom: {
+                /** @constant {number}
+                */
                 IN: 1,
                 /** @constant {number}
-                    @default
                 */
                 OUT: 0
             }
@@ -187,18 +197,10 @@
         * A camera to pan and zoom content.
         *
         * @constructs CameraView
-        * @param {Object} An object of options.
-        * @param {Object} [options] The options object.
+        * @param {Object} An object of options. Includes all Backbone.View options. See http://backbonejs.org/#View
         * @param {CameraModel} [options.model] The view's model.
         * @param {number|string|HTMLElement} [options.width] The view's width. A number will be converted to pixels. A valid CSS string may also be used. If an HTMLElement is provided, the view will size the dimension to match the HTMLElement.
         * @param {number|string|HTMLElement} [options.height] The view's height. A number will be converted to pixels. A valid CSS string may also be used. If an HTMLElement is provided, the view will size the dimension to match the HTMLElement.
-        * @param {string|HTMLElement} [options.el] A Backbone.View parameter. See http://backbonejs.org/#View
-        * @param {string|Object} [options.template] A Backbone.View parameter. See http://backbonejs.org/#View
-        * @param {string} [options.id] A Backbone.View parameter. See http://backbonejs.org/#View
-        * @param {string} [options.className] A Backbone.View parameter. See http://backbonejs.org/#View
-        * @param {string} [options.tagName] A Backbone.View parameter. See http://backbonejs.org/#View
-        * @param {Object|Function} [options.attributes] A Backbone.View parameter. See http://backbonejs.org/#View
-        * @param {Object|Function} [options.events] A Backbone.View parameter. See http://backbonejs.org/#View
         * @returns {CameraView} The newly created CameraView object.
         */
         var CameraView = function (options) {
@@ -332,7 +334,7 @@
             };
             
             /**
-            * Handles the wheel input.
+            * Handle wheel input.
             *
             * @param {$event} A jQuery event object.
             */
@@ -344,13 +346,13 @@
             };
             
             /**
-            * Determines whether to zoom in or out based on the wheel input.
+            * Zoom in/out based on wheel input.
             *
             * @param {MouseEvent} A MouseEvent object.
             */
             instance.wheelZoom = function (event) {
                 if (event.deltaY) {
-                    var _precision = constants.PIXEL_PRECISION;
+                    var _precision = constants.defaults.PIXEL_PRECISION;
                     var _direction = null;
                     var _delta = 0;
                     var _zoom = instance.model.get('zoom');
@@ -416,24 +418,28 @@
             };
             
             /**
-            * Zooms content in or out.
+            * Zoom in/out.
             *
-            * @returns {CameraView} The view. 
+            * @param {number} The scale to zoom to.
+            * @param {string} A valid CSS transition-duration value.
+            * @returns {CameraView} The view.
             */
             instance.zoom = function (scale, duration) {
-                var _duration = duration || constants.TRANSITION_DURATION;
+                var _duration = duration || constants.defaults.TRANSITION_DURATION;
                 
+                // TODO: just add necessary transition properties for this piece of functionality.
                 instance.content.style.transitionProperty = 'left, top, transform';
                 instance.content.style.transitionDuration = _duration;
-                instance.content.style.transitionTimingFunction = 'ease-out';
+                instance.content.style.transitionTimingFunction = constants.defaults.TRANSITION_TIMING_FUNCTION;
                 
                 instance.model.set('zoom', scale);
                 instance.content.style.transform = 'scale(' + instance.model.get('zoom') + ')';
+                
+                return instance;
             };
             
-            // TODO: Proof of concept - get it working correctly!
             /**
-            * Zoom at a particular point.
+            * Zoom in/out at a specific point.
             *
             * @param {number} The scale to zoom to.
             * @param {Object} The position at which to anchor the zoom.
@@ -441,36 +447,27 @@
             * @returns {CameraView} The view.
             */
             instance.zoomAt = function (scale, position, duration) {
-                
-                var _originX = position.x;
-                var _originY = position.y;
-                
-                var _contentX = parseFloat(window.getComputedStyle(instance.content).getPropertyValue('left'));
-                var _contentY = parseFloat(window.getComputedStyle(instance.content).getPropertyValue('top'));
-                
-                var _offset = { x: 0, y: 0 };
-                _offset.x = (_contentX * -1) + (instance.el.getBoundingClientRect().width / 2) / (instance.el.getBoundingClientRect().width * scale) * instance.el.getBoundingClientRect().width;
-                _offset.y = (_contentX * -1) + (instance.el.getBoundingClientRect().height / 2) / (instance.el.getBoundingClientRect().height * scale) * instance.el.getBoundingClientRect().height;
-                
-                // current offset   + center of viewport / new width * old width
-                // (_contentX * -1) + (instance.el.getBoundingClientRect().width / 2) / (instance.el.getBoundingClientRect().width * scale) * (instance.el.getBoundingClientRect().width 
-                
-                //_position.x = _.round(_offset.x, constants.PIXEL_PRECISION);
-                //_position.y = _.round(_offset.y, constants.PIXEL_PRECISION);
-                
-                console.log('Offset: ', _offset);
+                // TODO: Decide whether to use separate x/y variables or objects that have x/y properties.
+                var _frameCenterX = instance.el.getBoundingClientRect().width / 2;
+                var _frameCenterY = instance.el.getBoundingClientRect().height / 2;
+                var _positionDeltaX = position.x * scale - position.x;
+                var _positionDeltaY = position.y * scale - position.y;
+                var _focus = {
+                    x: _.round((_frameCenterX + _positionDeltaX) / scale, constants.defaults.PIXEL_PRECISION),
+                    y: _.round((_frameCenterY + _positionDeltaY) / scale, constants.defaults.PIXEL_PRECISION)
+                };
                 
                 instance.zoom(scale, duration);
-                instance.focus(_offset, duration);
+                instance.focus(_focus, duration);
                 
                 return instance;
             };
             
             /**
-            * Zoom and focus the camera on a particular point.
+            * Zoom in/out and focus the camera on a specific point.
             *
             * @param {number} The scale to zoom to.
-            * @param {Object} The position to bring to focus.
+            * @param {Object} The position to focus on.
             * @param {string} A valid CSS transition-duration value.
             * @returns {CameraView} The view.
             */
@@ -482,42 +479,44 @@
             };
             
             /**
-            * Focus the camera on a particular point.
+            * Focus the camera on a specific point.
             *
-            * @param {Object} The position to bring to focus.
+            * @param {Object} The position to focus on.
             * @param {string} A valid CSS transition-duration value.
             * @returns {CameraView} The view.
             */
             instance.focus = function (position, duration) {
-                var _offsetX, _offsetY;
-                var _position = { x: null, y: null };
-                var _duration = duration || constants.TRANSITION_DURATION;
+                duration = duration || constants.defaults.TRANSITION_DURATION;
+                
+                var _position, _offsetX, _offsetY; 
                 var _frameCenterX = instance.el.getBoundingClientRect().width / 2;
                 var _frameCenterY = instance.el.getBoundingClientRect().height / 2;
-
-                // TODO: handle setup of _position better. Default to currently focused spot.
-                if (position) {
-                    _position = position;
+                
+                if (_.isElement(position)) {
+                    // TODO: Handle HTMLElement
+                    _position = {
+                        x: 0, // TODO: logic to get centerX of element
+                        y: 0  // TODO: logic to get centerY of element
+                    };
                 }
                 else {
-                    _position = {};
+                    _position = position;
                 }
                 
+                // TODO: just add necessary transition properties for this piece of functionality.
                 instance.content.style.transitionProperty = 'left, top, transform';
-                instance.content.style.transitionDuration = _duration;
-                instance.content.style.transitionTimingFunction = 'ease-out';
+                instance.content.style.transitionDuration = duration;
+                instance.content.style.transitionTimingFunction = constants.defaults.TRANSITION_TIMING_FUNCTION;
 
                 // TODO: handle setup of _position better so _.isFinite check isn't necessary here.
                 if (_.isFinite(_position.x)) {
                     _offsetX = _frameCenterX + (_position.x * instance.model.get('zoom') * -1);
-                    instance.content.style.left = _.round(_offsetX, constants.PIXEL_PRECISION) + 'px';
+                    instance.content.style.left = _.round(_offsetX, constants.defaults.PIXEL_PRECISION) + 'px';
                 }
                 if (_.isFinite(_position.y)) {
                     _offsetY = _frameCenterY + (_position.y * instance.model.get('zoom') * -1);
-                    instance.content.style.top = _.round(_offsetY, constants.PIXEL_PRECISION) + 'px';
+                    instance.content.style.top = _.round(_offsetY, constants.defaults.PIXEL_PRECISION) + 'px';
                 }
-                
-                console.log('Focus at: ', _position);
                 
                 return instance;
             };
