@@ -33,7 +33,10 @@
         <div>
             <img src="images/FFL-Spritesheet-White-1827x1215.png" alt="Final Fantasy Legend Sprites" width="1827" height="1215" />
             <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid green;"></div>
+            <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 150px; height: 150px; border: 1px solid green;"></div>
             <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 200px; height: 200px; border: 1px solid green;"></div>
+            <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 250px; height: 250px; border: 1px solid green;"></div>
+            <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 300px; height: 300px; border: 1px solid green;"></div>
         </div>
         <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid blue;"></div>
         <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 200px; height: 200px; border: 1px solid red;"></div>
@@ -179,7 +182,15 @@
                         * The maximum value the content can be zoomed.
                         * @property {number}
                         */
-                        zoomMax: 4.0
+                        zoomMax: 4.0,
+                        /**
+                        * The camera's focal point.
+                        * @property {Object}
+                        */
+                        focalPoint: {
+                            x: 500,
+                            y: 250
+                        }
                     }
                 }
             ));
@@ -228,6 +239,9 @@
             instance.update = function () {
                 instance.setWidth(instance.width);
                 instance.setHeight(instance.height);
+                
+                instance.zoom(instance.model.get('zoom'), '0ms');
+                instance.focus(instance.model.get('focalPoint'), '0ms');
                 
                 return instance;
             };
@@ -420,8 +434,8 @@
             /**
             * Zoom in/out.
             *
-            * @param {number} The scale to zoom to.
-            * @param {string} A valid CSS transition-duration value.
+            * @param {number} scale The scale to zoom to.
+            * @param {string} duration A valid CSS transition-duration value.
             * @returns {CameraView} The view.
             */
             instance.zoom = function (scale, duration) {
@@ -441,24 +455,47 @@
             /**
             * Zoom in/out at a specific point.
             *
-            * @param {number} The scale to zoom to.
-            * @param {Object} The position at which to anchor the zoom.
-            * @param {string} A valid CSS transition-duration value.
+            * @param {number} scale The scale to zoom to.
+            * @param {Object} anchor The point or object at which to anchor the zoom.
+            * @param {string} duration A valid CSS transition-duration value.
             * @returns {CameraView} The view.
             */
-            instance.zoomAt = function (scale, position, duration) {
+            instance.zoomAt = function (scale, anchor, duration) {
                 // TODO: Decide whether to use separate x/y variables or objects that have x/y properties.
-                var _frameCenterX = instance.el.getBoundingClientRect().width / 2;
-                var _frameCenterY = instance.el.getBoundingClientRect().height / 2;
-                var _positionDeltaX = position.x * scale - position.x;
-                var _positionDeltaY = position.y * scale - position.y;
-                var _focus = {
-                    x: _.round((_frameCenterX + _positionDeltaX) / scale, constants.defaults.PIXEL_PRECISION),
-                    y: _.round((_frameCenterY + _positionDeltaY) / scale, constants.defaults.PIXEL_PRECISION)
+                var _cameraFocalPoint = instance.model.get('focalPoint');
+                var _deltaX = _cameraFocalPoint.x - anchor.x;
+                var _deltaY = _cameraFocalPoint.y - anchor.y;
+                var _scaleRatio = instance.model.get('zoom') / scale;
+                
+                var _newCameraFocalPoint = {
+                    x: _.round(_cameraFocalPoint.x - _deltaX + (_deltaX * _scaleRatio), constants.defaults.PIXEL_PRECISION),
+                    y: _.round(_cameraFocalPoint.y - _deltaY + (_deltaY * _scaleRatio), constants.defaults.PIXEL_PRECISION)
                 };
                 
+                // TODO: Remove after testing is complete
+                //console.log('x = ', instance.model.get('focalPoint').x, ' - ', _focalPointDeltaX, ' + ', _focalPointDeltaX, ' * ', instance.model.get('zoom'), ' / ', scale);
+                //console.log('y = ', instance.model.get('focalPoint').y, ' - ', _focalPointDeltaY, ' + ', _focalPointDeltaY, ' * ', instance.model.get('zoom'), ' / ', scale);
+                
+                // Start Zoom - 1
+                // Focal Point - {x: 500, y: 250}
+                // zoomAt(3, {x: 250, y: 250})
+                // Focal Point - {x: 333, y: 250}
+                // Focal Point Delta - 250
+                
+                // Start Zoom - 1.25
+                // Focal Point - {x: 500, y: 250}
+                // zoomAt(3, {x: 250, y: 250})
+                // Focal Point - {x: 354, y: 250}
+                // Focal Point Delta - 250
+                
+                // Start Zoom - 1.5
+                // Focal Point - {x: 500, y: 250}
+                // zoomAt(3, {x: 250, y: 250})
+                // Focal Point - {x: 375, y: 250}
+                // Focal Point Delta - 250
+                
                 instance.zoom(scale, duration);
-                instance.focus(_focus, duration);
+                instance.focus(_newCameraFocalPoint, duration);
                 
                 return instance;
             };
@@ -466,14 +503,14 @@
             /**
             * Zoom in/out and focus the camera on a specific point.
             *
-            * @param {number} The scale to zoom to.
-            * @param {Object} The position to focus on.
-            * @param {string} A valid CSS transition-duration value.
+            * @param {number} scale  The scale to zoom to.
+            * @param {Object} focus The point or object to focus on.
+            * @param {string} duration A valid CSS transition-duration value.
             * @returns {CameraView} The view.
             */
-            instance.zoomTo = function (scale, position, duration) {
+            instance.zoomTo = function (scale, focus, duration) {
                 instance.zoom(scale, duration);
-                instance.focus(position, duration);
+                instance.focus(focus, duration);
                 
                 return instance;
             };
@@ -481,18 +518,26 @@
             /**
             * Focus the camera on a specific point.
             *
-            * @param {Object} The position to focus on.
-            * @param {string} A valid CSS transition-duration value.
+            * @param {Object} focus The point or object to focus on.
+            * @param {string} duration A valid CSS transition-duration value.
             * @returns {CameraView} The view.
             */
-            instance.focus = function (position, duration) {
-                duration = duration || constants.defaults.TRANSITION_DURATION;
+            instance.focus = function (focus, duration) {
                 
+                console.log('focal point: ', focus);
+                // TODO: Temporarily set focalPoint here. Perhaps it's set elsewhere and has a change listener.
+                instance.model.set('focalPoint', {
+                    x: focus.x,
+                    y: focus.y
+                });
+
+                duration = duration || constants.defaults.TRANSITION_DURATION;
+
                 var _position, _offsetX, _offsetY; 
                 var _frameCenterX = instance.el.getBoundingClientRect().width / 2;
                 var _frameCenterY = instance.el.getBoundingClientRect().height / 2;
                 
-                if (_.isElement(position)) {
+                if (_.isElement(focus)) {
                     // TODO: Handle HTMLElement
                     _position = {
                         x: 0, // TODO: logic to get centerX of element
@@ -500,7 +545,7 @@
                     };
                 }
                 else {
-                    _position = position;
+                    _position = focus;
                 }
                 
                 // TODO: just add necessary transition properties for this piece of functionality.
@@ -508,6 +553,7 @@
                 instance.content.style.transitionDuration = duration;
                 instance.content.style.transitionTimingFunction = constants.defaults.TRANSITION_TIMING_FUNCTION;
 
+                // TODO: Try using CSS translate instead of top left for smoother rendering.
                 // TODO: handle setup of _position better so _.isFinite check isn't necessary here.
                 if (_.isFinite(_position.x)) {
                     _offsetX = _frameCenterX + (_position.x * instance.model.get('zoom') * -1);
@@ -552,7 +598,11 @@
                     zoom: 1,
                     increment: 0.02,
                     zoomMin: 0.25,
-                    zoomMax: 6
+                    zoomMax: 4,
+                    focalPoint: {
+                        x: 500,
+                        y: 250
+                    }
                 })
             }).render();
             
