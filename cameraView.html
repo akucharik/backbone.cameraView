@@ -210,8 +210,8 @@
         * @constructs CameraView
         * @param {Object} An object of options. Includes all Backbone.View options. See http://backbonejs.org/#View
         * @param {CameraModel} [options.model] The view's model.
-        * @param {number|string|HTMLElement} [options.width] The view's width. A number will be converted to pixels. A valid CSS string may also be used. If an HTMLElement is provided, the view will size the dimension to match the HTMLElement.
-        * @param {number|string|HTMLElement} [options.height] The view's height. A number will be converted to pixels. A valid CSS string may also be used. If an HTMLElement is provided, the view will size the dimension to match the HTMLElement.
+        * @param {number|string|Element} [options.width] The view's width. A number will be converted to pixels. A valid CSS string may also be used. If an Element is provided, the view will size the dimension to match the Element.
+        * @param {number|string|Element} [options.height] The view's height. A number will be converted to pixels. A valid CSS string may also be used. If an Element is provided, the view will size the dimension to match the Element.
         * @returns {CameraView} The newly created CameraView object.
         */
         var CameraView = function (options) {
@@ -244,6 +244,75 @@
                 instance.focus(instance.model.get('focalPoint'), '0ms');
                 
                 return instance;
+            };
+            
+            /**
+            * Get the CSS transform value for an element.
+            *
+            * @param {Element} The element for which to get the CSS transform value.
+            * @returns {string} The CSS transform value.
+            */
+            instance.getCssTransform = function (el) {
+                let _value = window.getComputedStyle(el).getPropertyValue('transform');
+                
+                _value = _value.replace(/^\w+\(/,'').replace(/\)$/,'').split(', ');
+                
+                // TODO: Put this logic into the set method.
+                if (_value[0] === 'none') {
+                    _value = [1, 0, 0, 1, 0, 0];
+                }
+                
+                return _value;
+            };
+            
+            
+            /**
+            * Set the CSS transform value for an element.
+            *
+            * @param {Element} The element for which to set the CSS transform value.
+            * @returns {string} The element.
+            */
+            
+            // TODO: This is a very simplistic solution.
+            // Ideally would handle 'rotate' option.
+            // Ideally would handle 3D Matrix.
+            instance.setCssTransform = function (el, options) {
+                let _value = instance.getCssTransform(el);
+                const MATRIX_2D = {
+                    scaleX: 0,
+                    scaleY: 3,
+                    skewY: 1,
+                    skewX: 2,
+                    translateX: 4,
+                    translateY: 5
+                };
+                
+                if (options.scale) {
+                    options.scaleX = options.scaleY = options.scale;
+                }
+                
+                if (options.translate) {
+                    options.translateX = options.translateY = options.translate;
+                }
+                
+                console.log('matrix before value: ', _value);
+                console.log('options: ', options);
+                for (let key in MATRIX_2D) {
+                    if (options[key]) {
+                        if (_.isFinite(options[key])) {
+                            console.log(key, options[key]);
+                            _value[MATRIX_2D[key]] = options[key];
+                        }
+                        else {
+                            throw new Error('Cannot set an invalid CSS matrix value');
+                        }
+                        
+                    }
+                }
+                console.log('matrix value after: ', _value.join(', '));
+                el.style.transform = 'matrix(' + _value.join(', ') + ')';
+                
+                return el;
             };
             
             instance.events = function () {
@@ -447,7 +516,10 @@
                 instance.content.style.transitionTimingFunction = constants.defaults.TRANSITION_TIMING_FUNCTION;
                 
                 instance.model.set('zoom', scale);
-                instance.content.style.transform = 'scale(' + instance.model.get('zoom') + ')';
+                //instance.content.style.transform = 'scale(' + instance.model.get('zoom') + ')';
+                instance.setCssTransform(instance.content, {
+                    scale: instance.model.get('zoom')
+                });
                 
                 return instance;
             };
@@ -494,8 +566,26 @@
                 // Focal Point - {x: 375, y: 250}
                 // Focal Point Delta - 250
                 
-                instance.zoom(scale, duration);
-                instance.focus(_newCameraFocalPoint, duration);
+                //instance.zoom(scale, duration);
+                //instance.focus(_newCameraFocalPoint, duration);
+                
+                
+                instance.model.set('zoom', scale);
+                instance.model.set('focalPoint', _newCameraFocalPoint);
+                
+                var _focalOffset = instance.getFocalOffset(_newCameraFocalPoint);
+                
+                // TODO: just add necessary transition properties for this piece of functionality.
+                instance.content.style.transitionProperty = 'transform';
+                instance.content.style.transitionDuration = constants.defaults.TRANSITION_DURATION;
+                instance.content.style.transitionTimingFunction = constants.defaults.TRANSITION_TIMING_FUNCTION;
+                
+                instance.setCssTransform(instance.content, {
+                    scale: instance.model.get('zoom'),
+                    translateX: _focalOffset.x,
+                    translateY: _focalOffset.y
+                });
+                
                 
                 return instance;
             };
@@ -509,8 +599,26 @@
             * @returns {CameraView} The view.
             */
             instance.zoomTo = function (scale, focus, duration) {
-                instance.zoom(scale, duration);
-                instance.focus(focus, duration);
+                //instance.zoom(scale, duration);
+                //instance.focus(focus, duration);
+                
+                instance.model.set('zoom', scale);
+                instance.model.set('focalPoint', focus);
+                
+                var _focalOffset = instance.getFocalOffset(focus);
+                
+                // TODO: just add necessary transition properties for this piece of functionality.
+                instance.content.style.transitionProperty = 'transform';
+                instance.content.style.transitionDuration = constants.defaults.TRANSITION_DURATION;
+                instance.content.style.transitionTimingFunction = constants.defaults.TRANSITION_TIMING_FUNCTION;
+                
+                instance.setCssTransform(instance.content, {
+                    scale: instance.model.get('zoom'),
+                    translateX: _focalOffset.x,
+                    translateY: _focalOffset.y
+                });
+                
+                
                 
                 return instance;
             };
@@ -538,7 +646,7 @@
                 var _frameCenterY = instance.el.getBoundingClientRect().height / 2;
                 
                 if (_.isElement(focus)) {
-                    // TODO: Handle HTMLElement
+                    // TODO: Handle Element
                     _position = {
                         x: 0, // TODO: logic to get centerX of element
                         y: 0  // TODO: logic to get centerY of element
@@ -555,16 +663,51 @@
 
                 // TODO: Try using CSS translate instead of top left for smoother rendering.
                 // TODO: handle setup of _position better so _.isFinite check isn't necessary here.
-                if (_.isFinite(_position.x)) {
+                if (_.isFinite(_position.x) && _.isFinite(_position.y)) {
                     _offsetX = _frameCenterX + (_position.x * instance.model.get('zoom') * -1);
-                    instance.content.style.left = _.round(_offsetX, constants.defaults.PIXEL_PRECISION) + 'px';
-                }
-                if (_.isFinite(_position.y)) {
                     _offsetY = _frameCenterY + (_position.y * instance.model.get('zoom') * -1);
-                    instance.content.style.top = _.round(_offsetY, constants.defaults.PIXEL_PRECISION) + 'px';
+                    //instance.content.style.left = _.round(_offsetX, constants.defaults.PIXEL_PRECISION) + 'px';
+                    //instance.content.style.top = _.round(_offsetY, constants.defaults.PIXEL_PRECISION) + 'px';
+                    instance.setCssTransform(instance.content, {
+                        translateX: _.round(_offsetX, constants.defaults.PIXEL_PRECISION),
+                        translateY: _.round(_offsetY, constants.defaults.PIXEL_PRECISION)
+                    });
                 }
                 
                 return instance;
+            };
+            
+            
+            
+            
+            
+            
+            
+            instance.getFocalOffset = function (focus) {
+                var _offset = {};
+                var _position;
+                var _frameCenterX = instance.el.getBoundingClientRect().width / 2;
+                var _frameCenterY = instance.el.getBoundingClientRect().height / 2;
+                
+                if (_.isElement(focus)) {
+                    // TODO: Handle Element
+                    _position = {
+                        x: 0, // TODO: logic to get centerX of element
+                        y: 0  // TODO: logic to get centerY of element
+                    };
+                }
+                else {
+                    _position = focus;
+                }
+
+                // TODO: Try using CSS translate instead of top left for smoother rendering.
+                // TODO: handle setup of _position better so _.isFinite check isn't necessary here.
+                if (_.isFinite(_position.x) && _.isFinite(_position.y)) {
+                    _offset.x = _frameCenterX + (_position.x * instance.model.get('zoom') * -1);
+                    _offset.y = _frameCenterY + (_position.y * instance.model.get('zoom') * -1);
+                }
+                
+                return _offset;
             };
             
             /**
