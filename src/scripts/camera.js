@@ -6,36 +6,10 @@
 */
 
 /**
-* Throttling using requestAnimationFrame.
-*
-* @function throttleToFrame
-* @param {Function} func The function to throttle.
-* @returns {Function} A new function throttled to the next Animation Frame.
-*/
-var throttleToFrame = function (func) {
-    var _this = null,
-        _arguments = null,
-        _isProcessing = false;
-
-    return function () {
-        _this = this;
-        _arguments = arguments;
-
-        if (!_isProcessing) {
-            _isProcessing = true;
-
-            window.requestAnimationFrame(function() {
-                func.apply(_this, _arguments);
-                _isProcessing = false;
-            });    
-        }
-    };
-};
-
-/**
 * Factory: Creates {@link http://backbonejs.org/#View|Backbone.View} height and width sizing functionality used for object composition.
 *
 * @constructs SizableView
+* @extends Backbone.View
 * @returns {SizableView} A new SizableView object.
 */
 var SizableView = function () {
@@ -111,9 +85,8 @@ var constants = {
     },
     /**
     * Enum for zoom direction.
-    * @namespace
-    * @memberof constants
     * @enum {number}
+    * @memberof constants
     */
     zoom: {
         /**
@@ -130,14 +103,15 @@ var constants = {
 };
 
 /**
-* A CameraView's model.
+* Factory: Creates a CameraView's model.
 *
 * @constructs CameraModel
-* @param {Object} [options] The options object.
-* @param {number} [options.zoom=1] The starting zoom of the view's content. 
-* @param {number} [options.increment=0.02] The base increment at which the content will be zoomed.
-* @param {number} [options.zoomMin=0.1] The minimum value the content can be zoomed.
-* @param {number} [options.zoomMax=4.0] The maximum value the content can be zoomed.
+* @extends Backbone.Model
+* @param {Object} [options] - The options object.
+* @param {number} [options.zoom=1] - The starting zoom of the view's content. 
+* @param {number} [options.increment=0.02] - The base increment at which the content will be zoomed.
+* @param {number} [options.zoomMin=0.1] - The minimum value the content can be zoomed.
+* @param {number} [options.zoomMax=4.0] - The maximum value the content can be zoomed.
 * @returns {CameraModel} A new CameraModel object.
 */
 var CameraModel = function (options) {
@@ -186,16 +160,20 @@ var CameraModel = function (options) {
 };
 
 /**
-* A camera to pan and zoom content.
+* Factory: Creates a camera to pan and zoom content.
 *
 * @constructs CameraView
-* @param {Object} [options] An object of options. Includes all Backbone.View options. See {@link http://backbonejs.org/#View|Backbone.View}
-* @param {CameraModel} [options.model] The view's model.
-* @param {number|string|Element} [options.width] The view's width. A number will be converted to pixels. A valid CSS string may also be used. If an Element is provided, the dimension will be sized to match the Element.
-* @param {number|string|Element} [options.height] The view's height. A number will be converted to pixels. A valid CSS string may also be used. If an Element is provided, the dimension will be sized to match the Element.
+* @extends Backbone.View
+* @param {Object} [options] - An object of options. Includes all Backbone.View options. See {@link http://backbonejs.org/#View|Backbone.View}
+* @param {CameraModel} [options.model] - The view's model.
+* @param {number|string|Element} [options.width] - The view's width. A number will be converted to pixels. A valid CSS string may also be used. If an Element is provided, the dimension will be sized to match the Element.
+* @param {number|string|Element} [options.height] - The view's height. A number will be converted to pixels. A valid CSS string may also be used. If an Element is provided, the dimension will be sized to match the Element.
 * @returns {CameraView} The newly created CameraView object.
 */
 var CameraView = function (options) {
+    /**
+    * @lends CameraView.prototype
+    */
     var instance = Object.create(Object.assign(
         Backbone.View.prototype, SizableView()
     ));
@@ -227,75 +205,6 @@ var CameraView = function (options) {
         return instance;
     };
 
-    /**
-    * Get the CSS transform value for an element.
-    *
-    * @param {Element} The element for which to get the CSS transform value.
-    * @returns {string} The CSS transform value.
-    */
-    instance.getCssTransform = function (el) {
-        let _value = window.getComputedStyle(el).getPropertyValue('transform');
-
-        _value = _value.replace(/^\w+\(/,'').replace(/\)$/,'').split(', ');
-
-        // TODO: Put this logic into the set method.
-        if (_value[0] === 'none') {
-            _value = [1, 0, 0, 1, 0, 0];
-        }
-
-        return _value;
-    };
-
-
-    /**
-    * Set the CSS transform value for an element.
-    *
-    * @param {Element} The element for which to set the CSS transform value.
-    * @returns {string} The element.
-    */
-
-    // TODO: This is a very simplistic solution.
-    // Ideally would handle 'rotate' option.
-    // Ideally would handle 3D Matrix.
-    instance.setCssTransform = function (el, options) {
-        let _value = instance.getCssTransform(el);
-        const MATRIX_2D = {
-            scaleX: 0,
-            scaleY: 3,
-            skewY: 1,
-            skewX: 2,
-            translateX: 4,
-            translateY: 5
-        };
-
-        if (options.scale) {
-            options.scaleX = options.scaleY = options.scale;
-        }
-
-        if (options.translate) {
-            options.translateX = options.translateY = options.translate;
-        }
-
-        console.log('matrix before value: ', _value);
-        console.log('options: ', options);
-        for (let key in MATRIX_2D) {
-            if (options[key]) {
-                if (_.isFinite(options[key])) {
-                    console.log(key, options[key]);
-                    _value[MATRIX_2D[key]] = options[key];
-                }
-                else {
-                    throw new Error('Cannot set an invalid CSS matrix value');
-                }
-
-            }
-        }
-        console.log('matrix value after: ', _value.join(', '));
-        el.style.transform = 'matrix(' + _value.join(', ') + ')';
-
-        return el;
-    };
-
     instance.events = function () {
         return {
             'click'      : 'onClick',
@@ -304,7 +213,7 @@ var CameraView = function (options) {
             'mouseleave' : 'onMouseLeave',
             'mousemove'  : 'onMouseMove',
             'mouseup'    : 'onMouseUp',
-            'wheel'      : throttleToFrame(instance.onWheel)
+            'wheel'      : utils.throttleToFrame(instance.onWheel)
         };
     };
 
@@ -400,7 +309,7 @@ var CameraView = function (options) {
     /**
     * Handle wheel input.
     *
-    * @param {$event} A jQuery event object.
+    * @param {$event} $event - A jQuery event object.
     */
     instance.onWheel = function ($event) {
         var event = $event.originalEvent;
@@ -412,7 +321,7 @@ var CameraView = function (options) {
     /**
     * Zoom in/out based on wheel input.
     *
-    * @param {MouseEvent} A MouseEvent object.
+    * @param {MouseEvent} event - A MouseEvent object.
     */
     instance.wheelZoom = function (event) {
         if (event.deltaY) {
@@ -471,7 +380,7 @@ var CameraView = function (options) {
                 _contentX = _.round(_contentX + -1 * _originX * _delta, _precision);
                 _contentY = _.round(_contentY + -1 * _originY * _delta, _precision);
 
-                instance.clearTransition(instance.content);
+                utils.clearTransition(instance.content);
                 instance.content.style.left = _contentX + 'px';
                 instance.content.style.top = _contentY + 'px';
 
@@ -484,8 +393,8 @@ var CameraView = function (options) {
     /**
     * Zoom in/out.
     *
-    * @param {number} scale The scale to zoom to.
-    * @param {string} duration A valid CSS transition-duration value.
+    * @param {number} scale - The scale to zoom to.
+    * @param {string} [duration] - A valid CSS transition-duration value.
     * @returns {CameraView} The view.
     */
     instance.zoom = function (scale, duration) {
@@ -498,7 +407,7 @@ var CameraView = function (options) {
 
         instance.model.set('zoom', scale);
         //instance.content.style.transform = 'scale(' + instance.model.get('zoom') + ')';
-        instance.setCssTransform(instance.content, {
+        utils.setCssTransform(instance.content, {
             scale: instance.model.get('zoom')
         });
 
@@ -508,9 +417,9 @@ var CameraView = function (options) {
     /**
     * Zoom in/out at a specific point.
     *
-    * @param {number} scale The scale to zoom to.
-    * @param {Object} anchor The point or object at which to anchor the zoom.
-    * @param {string} duration A valid CSS transition-duration value.
+    * @param {number} scale - The scale to zoom to.
+    * @param {Object} anchor - The point or object at which to anchor the zoom.
+    * @param {string} [duration] - A valid CSS transition-duration value.
     * @returns {CameraView} The view.
     */
     instance.zoomAt = function (scale, anchor, duration) {
@@ -561,7 +470,7 @@ var CameraView = function (options) {
         instance.content.style.transitionDuration = constants.defaults.TRANSITION_DURATION;
         instance.content.style.transitionTimingFunction = constants.defaults.TRANSITION_TIMING_FUNCTION;
 
-        instance.setCssTransform(instance.content, {
+        utils.setCssTransform(instance.content, {
             scale: instance.model.get('zoom'),
             translateX: _focalOffset.x,
             translateY: _focalOffset.y
@@ -574,9 +483,9 @@ var CameraView = function (options) {
     /**
     * Zoom in/out and focus the camera on a specific point.
     *
-    * @param {number} scale  The scale to zoom to.
-    * @param {Object} focus The point or object to focus on.
-    * @param {string} duration A valid CSS transition-duration value.
+    * @param {number} scale - The scale to zoom to.
+    * @param {Object} focus - The point or object to focus on.
+    * @param {string} [duration] - A valid CSS transition-duration value.
     * @returns {CameraView} The view.
     */
     instance.zoomTo = function (scale, focus, duration) {
@@ -593,7 +502,7 @@ var CameraView = function (options) {
         instance.content.style.transitionDuration = constants.defaults.TRANSITION_DURATION;
         instance.content.style.transitionTimingFunction = constants.defaults.TRANSITION_TIMING_FUNCTION;
 
-        instance.setCssTransform(instance.content, {
+        utils.setCssTransform(instance.content, {
             scale: instance.model.get('zoom'),
             translateX: _focalOffset.x,
             translateY: _focalOffset.y
@@ -607,8 +516,8 @@ var CameraView = function (options) {
     /**
     * Focus the camera on a specific point.
     *
-    * @param {Object} focus The point or object to focus on.
-    * @param {string} duration A valid CSS transition-duration value.
+    * @param {Object} focus - The point or object to focus on.
+    * @param {string} [duration] - A valid CSS transition-duration value.
     * @returns {CameraView} The view.
     */
     instance.focus = function (focus, duration) {
@@ -649,7 +558,7 @@ var CameraView = function (options) {
             _offsetY = _frameCenterY + (_position.y * instance.model.get('zoom') * -1);
             //instance.content.style.left = _.round(_offsetX, constants.defaults.PIXEL_PRECISION) + 'px';
             //instance.content.style.top = _.round(_offsetY, constants.defaults.PIXEL_PRECISION) + 'px';
-            instance.setCssTransform(instance.content, {
+            utils.setCssTransform(instance.content, {
                 translateX: _.round(_offsetX, constants.defaults.PIXEL_PRECISION),
                 translateY: _.round(_offsetY, constants.defaults.PIXEL_PRECISION)
             });
@@ -691,20 +600,126 @@ var CameraView = function (options) {
         return _offset;
     };
 
+    Backbone.View.call(instance, options);
+
+    return instance;
+};
+
+/**
+* @namespace utils
+* @static
+*/
+var utils = {
     /**
     * Clears transition CSS. Another feature may need different or no transition properties.
     *
-    * @returns {CameraView} The view.
+    * @method utils.clearTransition
+    * @param {Element} el - The element on which to clear the CSS transform value.
+    * @returns {Element} The element.
     */
-    instance.clearTransition = function (el) {
+    clearTransition: function (el) {
         el.style.transition = '';
         el.style.transitionProperty = '';
         el.style.transitionDuration = '';
 
         return instance;
-    };
+    },
+    
+    /**
+    * Get the CSS transform value for an element.
+    *
+    * @method utils.getCssTransform
+    * @param {Element} el - The element for which to get the CSS transform value.
+    * @returns {string} The CSS transform value.
+    */
+    getCssTransform: function (el) {
+        let _value = window.getComputedStyle(el).getPropertyValue('transform');
 
-    Backbone.View.call(instance, options);
+        _value = _value.replace(/^\w+\(/,'').replace(/\)$/,'').split(', ');
 
-    return instance;
+        // TODO: Put this logic into the set method.
+        if (_value[0] === 'none') {
+            _value = [1, 0, 0, 1, 0, 0];
+        }
+
+        return _value;
+    },
+
+    /**
+    * Set the CSS transform value for an element.
+    *
+    * @method utils.setCssTransform
+    * @param {Element} el - The element for which to set the CSS transform value.
+    * @param {Object} options - An object of CSS transform values.
+    * @returns {Element} The element.
+    */
+
+    // TODO: This is a very simplistic solution.
+    // Ideally would handle 'rotate' option.
+    // Ideally would handle 3D Matrix.
+    setCssTransform: function (el, options) {
+        let _value = utils.getCssTransform(el);
+        const MATRIX_2D = {
+            scaleX: 0,
+            scaleY: 3,
+            skewY: 1,
+            skewX: 2,
+            translateX: 4,
+            translateY: 5
+        };
+
+        if (options.scale) {
+            options.scaleX = options.scaleY = options.scale;
+        }
+
+        if (options.translate) {
+            options.translateX = options.translateY = options.translate;
+        }
+
+        console.log('matrix before value: ', _value);
+        console.log('options: ', options);
+        for (let key in MATRIX_2D) {
+            if (options[key]) {
+                if (_.isFinite(options[key])) {
+                    console.log(key, options[key]);
+                    _value[MATRIX_2D[key]] = options[key];
+                }
+                else {
+                    throw new Error('Cannot set an invalid CSS matrix value');
+                }
+
+            }
+        }
+        console.log('matrix value after: ', _value.join(', '));
+        el.style.transform = 'matrix(' + _value.join(', ') + ')';
+
+        return el;
+    },
+    
+    /**
+    * Throttling using requestAnimationFrame.
+    *
+    * @method utils.throttleToFrame
+    * @param {Function} func - The function to throttle.
+    * @returns {Function} A new function throttled to the next Animation Frame.
+    */
+    throttleToFrame: function (func) {
+        var _this = null,
+            _arguments = null,
+            _isProcessing = false;
+
+        return function () {
+            _this = this;
+            _arguments = arguments;
+
+            if (!_isProcessing) {
+                _isProcessing = true;
+
+                window.requestAnimationFrame(function() {
+                    func.apply(_this, _arguments);
+                    _isProcessing = false;
+                });    
+            }
+        };
+    }
 };
