@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Backbone Camera View Demo</title>
+    <style>
+        .bcv-camera {
+            border: 1px solid gray;
+            height: 500px;
+            overflow: hidden;
+            position: relative;
+            width: 1000px;
+        }
+        .bcv-camera > :first-child {
+            position: absolute;
+            transform-origin: 0 0;
+            
+            background-color: lightgray;
+            top: 0px;
+            left: 0px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Backbone Camera View</h1>
+    
+    <div id="camera" class="bcv-camera"></div>
+    
+    <script id="cameraTemplate" type="text/template">
+        <div>
+            <img src="images/FFL-Spritesheet-White-1827x1215.png" alt="Final Fantasy Legend Sprites" width="1827" height="1215" />
+            <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid green;"></div>
+            <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 150px; height: 150px; border: 1px solid green;"></div>
+            <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 200px; height: 200px; border: 1px solid green;"></div>
+            <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 250px; height: 250px; border: 1px solid green;"></div>
+            <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 300px; height: 300px; border: 1px solid green;"></div>
+        </div>
+        <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid blue;"></div>
+        <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 200px; height: 200px; border: 1px solid red;"></div>
+        
+        <div style="box-sizing: border-box; position: absolute; top: 105px; left: 180px; width: 3px; height: 3px; background-color: red;"></div>
+        <div style="box-sizing: border-box; position: absolute; top: 249px; left: 615px; width: 3px; height: 3px; background-color: red;"></div>
+        
+        <div style="box-sizing: border-box; position: absolute; top: 249px; left: 475px; width: 50px; height: 2px; background-color: red;"></div>
+        <div style="box-sizing: border-box; position: absolute; top: 225px; left: 499px; width: 2px; height: 50px; background-color: red;"></div>
+    </script>
+    
+    <script type="text/javascript" src="scripts/lib/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="scripts/lib/lodash.min.js"></script>
+    <script type="text/javascript" src="scripts/lib/backbone-min.js"></script>
+    <script type="text/javascript" src="../src/scripts/camera.js"></script>
+    
+    <script type="text/javascript">
+        // App
+        var app = Object.assign({}, Backbone.Events);
+
+        app.initialize = function () {
+            // Views
+            var cameraView = CameraView({
+                el: document.getElementById('camera'),
+                template: _.template(document.getElementById('cameraTemplate').innerHTML),
+                model: CameraModel({
+                    zoom: 1,
+                    increment: 0.02,
+                    zoomMin: 0.25,
+                    zoomMax: 4,
+                    focalPoint: {
+                        x: 500,
+                        y: 250
+                    }
+                })
+            }).render();
+
+            window.cameraView = cameraView;
+        };
+
+        app.initialize();
+    </script>
+    
+</body>
+</html>
