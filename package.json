@@ -1,0 +1,26 @@
+{
+  "name": "backbone.cameraView",
+  "description": "An HTML5 camera for modern web browsers.",
+  "author": "Adam Kucharik <akucharik@gmail.com>",
+  "homepage": "",
+  "license": "MIT",
+  "licenseUrl": "http://www.opensource.org/licenses/mit-license.php",
+  "main": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/akucharik/backbone.cameraView.git"
+  },
+  "keywords": [
+    "HTML5",
+    "javascript",
+    "camera",
+    "backbone",
+    "view",
+    "zoom",
+    "focus",
+    "pan"
+  ],
+  "devDependencies": {
+    "jsdoc": "^3.4.0"
+  }
+}

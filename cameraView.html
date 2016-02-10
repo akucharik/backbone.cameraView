@@ -63,8 +63,9 @@
         /**
         * Throttling using requestAnimationFrame.
         *
-        * @param {Function} func - The function to throttle.
-        * @returns {Function} The new function throttled to the next Animation Frame.
+        * @function throttleToFrame
+        * @param {Function} func The function to throttle.
+        * @returns {Function} A new function throttled to the next Animation Frame.
         */
         var throttleToFrame = function (func) {
             var _this = null,
@@ -87,14 +88,22 @@
         };
         
         /**
-        * Height and width resizing functionality used for object composition.
+        * Factory: Creates {@link http://backbonejs.org/#View|Backbone.View} height and width sizing functionality used for object composition.
         *
         * @constructs SizableView
-        * @returns {SizableView} The newly created SizableView object.
+        * @returns {SizableView} A new SizableView object.
         */
         var SizableView = function () {
+            /**
+            * @lends SizableView.prototype
+            */
             var instance = {};
             
+            /**
+            * Sets the height of the view.
+            *
+            * @param {number|string|Element} height - A number will be converted to pixels. A valid CSS string may also be used. If an Element is provided, the dimension will be sized to match the Element.
+            */
             instance.setHeight = function (height) {
                 if (_.isNumber(height)) {
                     this.$el.height(height);
@@ -107,6 +116,11 @@
                 }
             };
             
+            /**
+            * Sets the width of the view.
+            *
+            * @param {number|string|Element} width - A number will be converted to pixels. A valid CSS string may also be used. If an Element is provided, the dimension will be sized to match the Element.
+            */
             instance.setWidth = function (width) {
                 if (_.isNumber(width)) {
                     this.$el.width(width);
@@ -122,26 +136,49 @@
             return instance;
         };
         
+        /**
+        * @namespace constants
+        */
         var constants = {
+            /**
+            * @namespace
+            * @memberof constants
+            */
             defaults: {
-                /** @constant {number}
-                    @default
+                /**
+                * @readonly
+                * @constant {number}
+                * @default
                 */
                 PIXEL_PRECISION: 2,
-                /** @constant {string}
-                    @default
+                /**
+                * @readonly
+                * @constant {string}
+                * @default
                 */
                 TRANSITION_DURATION: '500ms',
-                /** @constant {string}
-                    @default
+                /**
+                * @readonly
+                * @constant {string}
+                * @default
                 */
                 TRANSITION_TIMING_FUNCTION: 'ease-out'
             },
+            /**
+            * Enum for zoom direction.
+            * @namespace
+            * @memberof constants
+            * @enum {number}
+            */
             zoom: {
-                /** @constant {number}
+                /**
+                * Zoom in.
+                * @readonly
                 */
                 IN: 1,
-                /** @constant {number}
+                /**
+                * Zoom out.
+                * @readonly
                 */
                 OUT: 0
             }
@@ -156,8 +193,7 @@
         * @param {number} [options.increment=0.02] The base increment at which the content will be zoomed.
         * @param {number} [options.zoomMin=0.1] The minimum value the content can be zoomed.
         * @param {number} [options.zoomMax=4.0] The maximum value the content can be zoomed.
-        
-        * @returns {CameraModel} The newly created CameraModel object.
+        * @returns {CameraModel} A new CameraModel object.
         */
         var CameraModel = function (options) {
             var instance = Object.create(Object.assign(
@@ -208,10 +244,10 @@
         * A camera to pan and zoom content.
         *
         * @constructs CameraView
-        * @param {Object} An object of options. Includes all Backbone.View options. See http://backbonejs.org/#View
+        * @param {Object} [options] An object of options. Includes all Backbone.View options. See {@link http://backbonejs.org/#View|Backbone.View}
         * @param {CameraModel} [options.model] The view's model.
-        * @param {number|string|Element} [options.width] The view's width. A number will be converted to pixels. A valid CSS string may also be used. If an Element is provided, the view will size the dimension to match the Element.
-        * @param {number|string|Element} [options.height] The view's height. A number will be converted to pixels. A valid CSS string may also be used. If an Element is provided, the view will size the dimension to match the Element.
+        * @param {number|string|Element} [options.width] The view's width. A number will be converted to pixels. A valid CSS string may also be used. If an Element is provided, the dimension will be sized to match the Element.
+        * @param {number|string|Element} [options.height] The view's height. A number will be converted to pixels. A valid CSS string may also be used. If an Element is provided, the dimension will be sized to match the Element.
         * @returns {CameraView} The newly created CameraView object.
         */
         var CameraView = function (options) {
