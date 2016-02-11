@@ -208,7 +208,9 @@ var CameraView = function (options) {
         instance.zoom(instance.model.get('zoom'), { 
             duration: '0ms'
         });
-        instance.focus(instance.model.get('focalPoint'), '0ms');
+        instance.focus(instance.model.get('focalPoint'), {
+            duration: '0ms'
+        });
 
         return instance;
     };
@@ -343,8 +345,6 @@ var CameraView = function (options) {
             var _max = instance.model.get('zoomMax');
             var _originX = (event.clientX - instance.content.getBoundingClientRect().left) / _zoom;
             var _originY = (event.clientY - instance.content.getBoundingClientRect().top) / _zoom;
-            var _contentX = parseFloat(window.getComputedStyle(instance.content).getPropertyValue('left'));
-            var _contentY = parseFloat(window.getComputedStyle(instance.content).getPropertyValue('top'));
 
             if (event.deltaY) {
                 _direction = event.deltaY > 0 ? constants.zoom.OUT : constants.zoom.IN;
@@ -385,15 +385,13 @@ var CameraView = function (options) {
             _delta = _newZoom - _zoom;
 
             if (_zoom !== _newZoom) {
-                _contentX = _.round(_contentX + -1 * _originX * _delta, _precision);
-                _contentY = _.round(_contentY + -1 * _originY * _delta, _precision);
-
-                utils.clearCssTransition(instance.content);
-                instance.content.style.left = _contentX + 'px';
-                instance.content.style.top = _contentY + 'px';
-
-                instance.model.set('zoom', _newZoom);
-                instance.content.style.transform = 'scale(' + instance.model.get('zoom') + ')';
+                instance.zoomAt(_newZoom, {
+                    x: _originX,
+                    y: _originY
+                }, {
+                    duration: '0s'
+                });
+                
             }
         }
     };
@@ -410,10 +408,7 @@ var CameraView = function (options) {
     */
     instance.zoom = function (scale, options) {
         options = options || {};
-        
-        Object.assign(options, {
-            transitionProperty: 'transform'
-        });
+        options.transitionProperty = 'transform';
         
         utils.setCssTransition(instance.content, options);
         
@@ -434,60 +429,27 @@ var CameraView = function (options) {
     * @param {string} [duration] - A valid CSS transition-duration value.
     * @returns {CameraView} The view.
     */
-    instance.zoomAt = function (scale, anchor, duration) {
+    instance.zoomAt = function (scale, anchor, options) {
+        options = options || {};
+        options.transitionProperty = 'transform';
+        
         // TODO: Decide whether to use separate x/y variables or objects that have x/y properties.
-        var _cameraFocalPoint = instance.model.get('focalPoint');
-        var _deltaX = _cameraFocalPoint.x - anchor.x;
-        var _deltaY = _cameraFocalPoint.y - anchor.y;
-        var _scaleRatio = instance.model.get('zoom') / scale;
-
-        var _newCameraFocalPoint = {
-            x: _.round(_cameraFocalPoint.x - _deltaX + (_deltaX * _scaleRatio), constants.defaults.PIXEL_PRECISION),
-            y: _.round(_cameraFocalPoint.y - _deltaY + (_deltaY * _scaleRatio), constants.defaults.PIXEL_PRECISION)
+        let focalPoint = instance.model.get('focalPoint');
+        let deltaX = focalPoint.x - anchor.x;
+        let deltaY = focalPoint.y - anchor.y;
+        let scaleRatio = instance.model.get('zoom') / scale;
+        let newFocalPoint = {
+            x: _.round(focalPoint.x - deltaX + (deltaX * scaleRatio), constants.defaults.PIXEL_PRECISION),
+            y: _.round(focalPoint.y - deltaY + (deltaY * scaleRatio), constants.defaults.PIXEL_PRECISION)
         };
 
-        // TODO: Remove after testing is complete
-        //console.log('x = ', instance.model.get('focalPoint').x, ' - ', _focalPointDeltaX, ' + ', _focalPointDeltaX, ' * ', instance.model.get('zoom'), ' / ', scale);
-        //console.log('y = ', instance.model.get('focalPoint').y, ' - ', _focalPointDeltaY, ' + ', _focalPointDeltaY, ' * ', instance.model.get('zoom'), ' / ', scale);
-
-        // Start Zoom - 1
-        // Focal Point - {x: 500, y: 250}
-        // zoomAt(3, {x: 250, y: 250})
-        // Focal Point - {x: 333, y: 250}
-        // Focal Point Delta - 250
-
-        // Start Zoom - 1.25
-        // Focal Point - {x: 500, y: 250}
-        // zoomAt(3, {x: 250, y: 250})
-        // Focal Point - {x: 354, y: 250}
-        // Focal Point Delta - 250
-
-        // Start Zoom - 1.5
-        // Focal Point - {x: 500, y: 250}
-        // zoomAt(3, {x: 250, y: 250})
-        // Focal Point - {x: 375, y: 250}
-        // Focal Point Delta - 250
-
-        //instance.zoom(scale, duration);
-        //instance.focus(_newCameraFocalPoint, duration);
-
+        utils.setCssTransition(instance.content, options);
 
         instance.model.set('zoom', scale);
-        instance.model.set('focalPoint', _newCameraFocalPoint);
-
-        var _focalOffset = instance.getFocalOffset(_newCameraFocalPoint, scale);
-
-        // TODO: just add necessary transition properties for this piece of functionality.
-        instance.content.style.transitionProperty = 'transform';
-        instance.content.style.transitionDuration = constants.defaults.TRANSITION_DURATION;
-        instance.content.style.transitionTimingFunction = constants.defaults.TRANSITION_TIMING_FUNCTION;
-
-        utils.setCssTransform(instance.content, {
-            scale: instance.model.get('zoom'),
-            translateX: _focalOffset.x,
-            translateY: _focalOffset.y
-        });
-
+        instance.model.set('focalPoint', newFocalPoint);
+        
+        instance.zoom(scale, options);
+        instance.focus(newFocalPoint, options);
 
         return instance;
     };
@@ -505,24 +467,16 @@ var CameraView = function (options) {
     */
     instance.zoomTo = function (scale, focus, options) {
         options = options || {};
-        
-        let focalOffset = instance.getFocalOffset(focus, scale);
-        
-        Object.assign(options, {
-            transitionProperty: 'transform'
-        });
+        options.transitionProperty = 'transform';
         
         utils.setCssTransition(instance.content, options);
         
-        utils.setCssTransform(instance.content, {
-            scale: scale,
-            translateX: focalOffset.x,
-            translateY: focalOffset.y
-        });
-        
         instance.model.set('zoom', scale);
         instance.model.set('focalPoint', focus);
-
+        
+        instance.zoom(scale, options);
+        instance.focus(focus, options);
+        
         return instance;
     };
 
@@ -533,58 +487,24 @@ var CameraView = function (options) {
     * @param {string} [duration] - A valid CSS transition-duration value.
     * @returns {CameraView} The view.
     */
-    instance.focus = function (focus, duration) {
+    instance.focus = function (focus, options) {
+        options = options || {};
+        options.transitionProperty = 'transform';        
+        
+        let focalOffset = instance.getFocalOffset(focus, instance.model.get('zoom'));
+        
+        utils.setCssTransition(instance.content, options);
 
-        console.log('focal point: ', focus);
-        // TODO: Temporarily set focalPoint here. Perhaps it's set elsewhere and has a change listener.
-        instance.model.set('focalPoint', {
-            x: focus.x,
-            y: focus.y
+        utils.setCssTransform(instance.content, {
+            scale: instance.model.get('zoom'),
+            translateX: focalOffset.x,
+            translateY: focalOffset.y
         });
-
-        duration = duration || constants.defaults.TRANSITION_DURATION;
-
-        var _position, _offsetX, _offsetY; 
-        var _frameCenterX = instance.el.getBoundingClientRect().width / 2;
-        var _frameCenterY = instance.el.getBoundingClientRect().height / 2;
-
-        if (_.isElement(focus)) {
-            // TODO: Handle Element
-            _position = {
-                x: 0, // TODO: logic to get centerX of element
-                y: 0  // TODO: logic to get centerY of element
-            };
-        }
-        else {
-            _position = focus;
-        }
-
-        // TODO: just add necessary transition properties for this piece of functionality.
-        instance.content.style.transitionProperty = 'left, top, transform';
-        instance.content.style.transitionDuration = duration;
-        instance.content.style.transitionTimingFunction = constants.defaults.TRANSITION_TIMING_FUNCTION;
-
-        // TODO: Try using CSS translate instead of top left for smoother rendering.
-        // TODO: handle setup of _position better so _.isFinite check isn't necessary here.
-        if (_.isFinite(_position.x) && _.isFinite(_position.y)) {
-            _offsetX = _frameCenterX + (_position.x * instance.model.get('zoom') * -1);
-            _offsetY = _frameCenterY + (_position.y * instance.model.get('zoom') * -1);
-            //instance.content.style.left = _.round(_offsetX, constants.defaults.PIXEL_PRECISION) + 'px';
-            //instance.content.style.top = _.round(_offsetY, constants.defaults.PIXEL_PRECISION) + 'px';
-            utils.setCssTransform(instance.content, {
-                translateX: _.round(_offsetX, constants.defaults.PIXEL_PRECISION),
-                translateY: _.round(_offsetY, constants.defaults.PIXEL_PRECISION)
-            });
-        }
-
+        
+        instance.model.set('focalPoint', focus);
+        
         return instance;
     };
-
-
-
-
-
-
 
     instance.getFocalOffset = function (focus, scale) {
         var _offset = {};
@@ -627,7 +547,7 @@ var utils = {
     * Clears inline transition styles.
     *
     * @method utils.clearTransition
-    * @param {Element} el - The element on which to clear the CSS transform value.
+    * @param {Element} el - The element on which to clear the inline transition styles.
     * @returns {Element} The element.
     */
     clearCssTransition: function (el) {
@@ -701,12 +621,9 @@ var utils = {
             options.translateX = options.translateY = options.translate;
         }
 
-        console.log('matrix before value: ', _value);
-        console.log('options: ', options);
         for (let key in MATRIX_2D) {
             if (options[key]) {
                 if (_.isFinite(options[key])) {
-                    console.log(key, options[key]);
                     _value[MATRIX_2D[key]] = options[key];
                 }
                 else {
@@ -715,9 +632,9 @@ var utils = {
 
             }
         }
-        console.log('matrix value after: ', _value.join(', '));
+        
         el.style.transform = 'matrix(' + _value.join(', ') + ')';
-
+        
         return el;
     },
     
