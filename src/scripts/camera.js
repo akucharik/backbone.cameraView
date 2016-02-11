@@ -75,6 +75,12 @@ var constants = {
         * @constant {string}
         * @default
         */
+        TRANSITION_DELAY: '0s',
+        /**
+        * @readonly
+        * @constant {string}
+        * @default
+        */
         TRANSITION_DURATION: '500ms',
         /**
         * @readonly
@@ -199,7 +205,9 @@ var CameraView = function (options) {
         instance.setWidth(instance.width);
         instance.setHeight(instance.height);
 
-        instance.zoom(instance.model.get('zoom'), '0ms');
+        instance.zoom(instance.model.get('zoom'), { 
+            duration: '0ms'
+        });
         instance.focus(instance.model.get('focalPoint'), '0ms');
 
         return instance;
@@ -257,13 +265,13 @@ var CameraView = function (options) {
     };
 
     instance.onMouseEnter = function ($event) {
-        $('body').css('overflow', 'hidden');
+        document.querySelector('body').style.overflow = 'hidden';
     };
 
     instance.onMouseLeave = function ($event) {
         instance.stop();
         // TODO: Instead of reverting to 'auto' remove the inline style rule to let any applied stylesheet rule kick in. 
-        $('body').css('overflow', 'auto');
+        document.querySelector('body').style.removeProperty('overflow');
     };
 
     instance.onMouseMove = function ($event) {
@@ -380,7 +388,7 @@ var CameraView = function (options) {
                 _contentX = _.round(_contentX + -1 * _originX * _delta, _precision);
                 _contentY = _.round(_contentY + -1 * _originY * _delta, _precision);
 
-                utils.clearTransition(instance.content);
+                utils.clearCssTransition(instance.content);
                 instance.content.style.left = _contentX + 'px';
                 instance.content.style.top = _contentY + 'px';
 
@@ -394,23 +402,27 @@ var CameraView = function (options) {
     * Zoom in/out.
     *
     * @param {number} scale - The scale to zoom to.
-    * @param {string} [duration] - A valid CSS transition-duration value.
+    * @param {Object} [options] - An object of transition options.
+    * @param {string} [options.delay] - A valid CSS transition-delay value.
+    * @param {string} [options.duration] - A valid CSS transition-duration value.
+    * @param {string} [options.timingFunction] - A valid CSS transition-timing-function value.
     * @returns {CameraView} The view.
     */
-    instance.zoom = function (scale, duration) {
-        var _duration = duration || constants.defaults.TRANSITION_DURATION;
-
-        // TODO: just add necessary transition properties for this piece of functionality.
-        instance.content.style.transitionProperty = 'left, top, transform';
-        instance.content.style.transitionDuration = _duration;
-        instance.content.style.transitionTimingFunction = constants.defaults.TRANSITION_TIMING_FUNCTION;
-
-        instance.model.set('zoom', scale);
-        //instance.content.style.transform = 'scale(' + instance.model.get('zoom') + ')';
+    instance.zoom = function (scale, options) {
+        options = options || {};
+        
+        Object.assign(options, {
+            transitionProperty: 'transform'
+        });
+        
+        utils.setCssTransition(instance.content, options);
+        
         utils.setCssTransform(instance.content, {
-            scale: instance.model.get('zoom')
+            scale: scale
         });
 
+        instance.model.set('zoom', scale);
+        
         return instance;
     };
 
@@ -463,7 +475,7 @@ var CameraView = function (options) {
         instance.model.set('zoom', scale);
         instance.model.set('focalPoint', _newCameraFocalPoint);
 
-        var _focalOffset = instance.getFocalOffset(_newCameraFocalPoint);
+        var _focalOffset = instance.getFocalOffset(_newCameraFocalPoint, scale);
 
         // TODO: just add necessary transition properties for this piece of functionality.
         instance.content.style.transitionProperty = 'transform';
@@ -485,30 +497,31 @@ var CameraView = function (options) {
     *
     * @param {number} scale - The scale to zoom to.
     * @param {Object} focus - The point or object to focus on.
-    * @param {string} [duration] - A valid CSS transition-duration value.
+    * @param {Object} [options] - An object of transition options.
+    * @param {string} [options.delay] - A valid CSS transition-delay value.
+    * @param {string} [options.duration] - A valid CSS transition-duration value.
+    * @param {string} [options.timingFunction] - A valid CSS transition-timing-function value.
     * @returns {CameraView} The view.
     */
-    instance.zoomTo = function (scale, focus, duration) {
-        //instance.zoom(scale, duration);
-        //instance.focus(focus, duration);
-
+    instance.zoomTo = function (scale, focus, options) {
+        options = options || {};
+        
+        let focalOffset = instance.getFocalOffset(focus, scale);
+        
+        Object.assign(options, {
+            transitionProperty: 'transform'
+        });
+        
+        utils.setCssTransition(instance.content, options);
+        
+        utils.setCssTransform(instance.content, {
+            scale: scale,
+            translateX: focalOffset.x,
+            translateY: focalOffset.y
+        });
+        
         instance.model.set('zoom', scale);
         instance.model.set('focalPoint', focus);
-
-        var _focalOffset = instance.getFocalOffset(focus);
-
-        // TODO: just add necessary transition properties for this piece of functionality.
-        instance.content.style.transitionProperty = 'transform';
-        instance.content.style.transitionDuration = constants.defaults.TRANSITION_DURATION;
-        instance.content.style.transitionTimingFunction = constants.defaults.TRANSITION_TIMING_FUNCTION;
-
-        utils.setCssTransform(instance.content, {
-            scale: instance.model.get('zoom'),
-            translateX: _focalOffset.x,
-            translateY: _focalOffset.y
-        });
-
-
 
         return instance;
     };
@@ -573,7 +586,7 @@ var CameraView = function (options) {
 
 
 
-    instance.getFocalOffset = function (focus) {
+    instance.getFocalOffset = function (focus, scale) {
         var _offset = {};
         var _position;
         var _frameCenterX = instance.el.getBoundingClientRect().width / 2;
@@ -593,8 +606,8 @@ var CameraView = function (options) {
         // TODO: Try using CSS translate instead of top left for smoother rendering.
         // TODO: handle setup of _position better so _.isFinite check isn't necessary here.
         if (_.isFinite(_position.x) && _.isFinite(_position.y)) {
-            _offset.x = _frameCenterX + (_position.x * instance.model.get('zoom') * -1);
-            _offset.y = _frameCenterY + (_position.y * instance.model.get('zoom') * -1);
+            _offset.x = _frameCenterX + (_position.x * scale * -1);
+            _offset.y = _frameCenterY + (_position.y * scale * -1);
         }
 
         return _offset;
@@ -611,18 +624,20 @@ var CameraView = function (options) {
 */
 var utils = {
     /**
-    * Clears transition CSS. Another feature may need different or no transition properties.
+    * Clears inline transition styles.
     *
     * @method utils.clearTransition
     * @param {Element} el - The element on which to clear the CSS transform value.
     * @returns {Element} The element.
     */
-    clearTransition: function (el) {
-        el.style.transition = '';
-        el.style.transitionProperty = '';
-        el.style.transitionDuration = '';
+    clearCssTransition: function (el) {
+        el.style.removeProperty('transition');
+        el.style.removeProperty('transitionDelay');
+        el.style.removeProperty('transitionDuration');
+        el.style.removeProperty('transitionProperty');
+        el.style.removeProperty('transitionTimingFunction');
 
-        return instance;
+        return el;
     },
     
     /**
@@ -651,6 +666,14 @@ var utils = {
     * @method utils.setCssTransform
     * @param {Element} el - The element for which to set the CSS transform value.
     * @param {Object} options - An object of CSS transform values.
+    * @param {string} [options.scale] - A valid CSS transform 'scale' function value to apply to both X and Y axes.
+    * @param {string} [options.scaleX] - A valid CSS transform 'scale' function value to apply to the X axis.
+    * @param {string} [options.scaleY] - A valid CSS transform 'scale' function value to apply to the Y axis.
+    * @param {string} [options.skewX] - A valid CSS transform 'skew' function value to apply to the X axis.
+    * @param {string} [options.skewY] - A valid CSS transform 'skew' function value to apply to the Y axis.
+    * @param {string} [options.translate] - A valid CSS transform 'translate' function value to apply to both X and Y axes.
+    * @param {string} [options.translateX] - A valid CSS transform 'translate' function value to apply to the X axis.
+    * @param {string} [options.translateY] - A valid CSS transform 'translate' function value to apply to the Y axis.
     * @returns {Element} The element.
     */
 
@@ -658,6 +681,8 @@ var utils = {
     // Ideally would handle 'rotate' option.
     // Ideally would handle 3D Matrix.
     setCssTransform: function (el, options) {
+        options = options || {};
+        
         let _value = utils.getCssTransform(el);
         const MATRIX_2D = {
             scaleX: 0,
@@ -694,6 +719,32 @@ var utils = {
         el.style.transform = 'matrix(' + _value.join(', ') + ')';
 
         return el;
+    },
+    
+    /**
+    * Set the CSS transition properties for an element.
+    *
+    * @method utils.setCssTransition
+    * @param {Element} el - The element for which to set the CSS transition properties.
+    * @param {Object} options - An object of CSS transition properties.
+    * @param {string} [options.delay] - A valid CSS transition-delay value.
+    * @param {string} [options.duration] - A valid CSS transition-duration value.
+    * @param {string} [options.property] - A valid CSS transition-property value.
+    * @param {string} [options.timingFunction] - A valid CSS transition-timing-function value.
+    * @returns {Element} The element.
+    */
+    setCssTransition: function (el, options) {
+        options = options || {};
+        
+        let transitionOptions = {
+            transitionDelay: options.delay || constants.defaults.TRANSITION_DELAY,
+            transitionDuration: options.duration || constants.defaults.TRANSITION_DURATION,
+            transitionTimingFunction: options.timingFunction || constants.defaults.TRANSITION_TIMING_FUNCTION
+        };
+        
+        for (let key in transitionOptions) {
+            el.style[key] = transitionOptions[key];
+        }
     },
     
     /**
