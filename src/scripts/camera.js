@@ -70,24 +70,27 @@ var constants = {
         * @default
         */
         PIXEL_PRECISION: 2,
-        /**
-        * @readonly
-        * @constant {string}
-        * @default
-        */
-        TRANSITION_DELAY: '0s',
-        /**
-        * @readonly
-        * @constant {string}
-        * @default
-        */
-        TRANSITION_DURATION: '500ms',
-        /**
-        * @readonly
-        * @constant {string}
-        * @default
-        */
-        TRANSITION_TIMING_FUNCTION: 'ease-out'
+        TRANSITION: {
+            /**
+            * @readonly
+            * @constant {string}
+            * @default
+            */
+            DELAY: '0s',
+            /**
+            * @readonly
+            * @constant {string}
+            * @default
+            */
+            DURATION: '500ms',
+            PROPERTY: 'transform',
+            /**
+            * @readonly
+            * @constant {string}
+            * @default
+            */
+            TIMING_FUNCTION: 'ease-out'
+        }
     },
     /**
     * Enum for zoom direction.
@@ -151,6 +154,18 @@ var CameraModel = function (options) {
                 focalPoint: {
                     x: 500,
                     y: 250
+                },
+                transition: {
+                    delay: '0s',
+                    duration: '500ms',
+                    property: 'transform',
+                    timingFunction: 'ease-out'
+                },
+                defaultTransition: {
+                    delay: '0s',
+                    duration: '500ms',
+                    property: 'transform',
+                    timingFunction: 'ease-out'
                 }
             }
         }
@@ -187,8 +202,16 @@ var CameraView = function (options) {
     Object.assign(instance, options);
 
     instance.initialize = function () {
-        //instance.listenTo(instance.model, 'change:zoom', instance.zoom);
-
+        instance.listenTo(instance.model, 'change:zoom', function (model, value) { 
+            instance.focus(instance.model.get('focalPoint'), value, instance.model.get('transition'));
+        });
+        instance.listenTo(instance.model, 'change:focalPoint', function (model, value) { 
+            instance.focus(value, instance.model.get('zoom'), instance.model.get('transition'));
+        });
+        instance.listenTo(instance.model, 'change:transition', function (model, value) { 
+            utils.setCssTransition(instance.content, value);
+        });
+        
         return instance;
     };
 
@@ -205,12 +228,8 @@ var CameraView = function (options) {
         instance.setWidth(instance.width);
         instance.setHeight(instance.height);
 
-        instance.zoom(instance.model.get('zoom'), { 
-            duration: '0ms'
-        });
-        instance.focus(instance.model.get('focalPoint'), {
-            duration: '0ms'
-        });
+        utils.setCssTransition(instance.content, instance.model.get('transition'));
+        instance.focus(instance.model.get('focalPoint'), instance.model.get('zoom'), { duration: '1s'});
 
         return instance;
     };
@@ -397,31 +416,6 @@ var CameraView = function (options) {
     };
 
     /**
-    * Zoom in/out.
-    *
-    * @param {number} scale - The scale to zoom to.
-    * @param {Object} [options] - An object of transition options.
-    * @param {string} [options.delay] - A valid CSS transition-delay value.
-    * @param {string} [options.duration] - A valid CSS transition-duration value.
-    * @param {string} [options.timingFunction] - A valid CSS transition-timing-function value.
-    * @returns {CameraView} The view.
-    */
-    instance.zoom = function (scale, options) {
-        options = options || {};
-        options.transitionProperty = 'transform';
-        
-        utils.setCssTransition(instance.content, options);
-        
-        utils.setCssTransform(instance.content, {
-            scale: scale
-        });
-
-        instance.model.set('zoom', scale);
-        
-        return instance;
-    };
-
-    /**
     * Zoom in/out at a specific point.
     *
     * @param {number} scale - The scale to zoom to.
@@ -430,9 +424,9 @@ var CameraView = function (options) {
     * @returns {CameraView} The view.
     */
     instance.zoomAt = function (scale, anchor, options) {
-        options = options || {};
-        options.transitionProperty = 'transform';
-        
+        console.log('zoomAt');
+        options = options ? Object.assign({}, instance.model.get('transition'), options) : instance.model.get('defaultTransition');
+        console.log(options);
         // TODO: Decide whether to use separate x/y variables or objects that have x/y properties.
         let focalPoint = instance.model.get('focalPoint');
         let deltaX = focalPoint.x - anchor.x;
@@ -442,14 +436,12 @@ var CameraView = function (options) {
             x: _.round(focalPoint.x - deltaX + (deltaX * scaleRatio), constants.defaults.PIXEL_PRECISION),
             y: _.round(focalPoint.y - deltaY + (deltaY * scaleRatio), constants.defaults.PIXEL_PRECISION)
         };
-
-        utils.setCssTransition(instance.content, options);
-
-        instance.model.set('zoom', scale);
-        instance.model.set('focalPoint', newFocalPoint);
         
-        instance.zoom(scale, options);
-        instance.focus(newFocalPoint, options);
+        instance.model.set({
+            transition: options,
+            zoom: scale,
+            focalPoint: newFocalPoint
+        });
 
         return instance;
     };
@@ -466,16 +458,14 @@ var CameraView = function (options) {
     * @returns {CameraView} The view.
     */
     instance.zoomTo = function (scale, focus, options) {
-        options = options || {};
-        options.transitionProperty = 'transform';
+        console.log('zoomTo');
+        options = options ? Object.assign({}, instance.model.get('transition'), options) : instance.model.get('defaultTransition');
         
-        utils.setCssTransition(instance.content, options);
-        
-        instance.model.set('zoom', scale);
-        instance.model.set('focalPoint', focus);
-        
-        instance.zoom(scale, options);
-        instance.focus(focus, options);
+        instance.model.set({
+            transition: options,
+            zoom: scale,
+            focalPoint: focus
+        });
         
         return instance;
     };
@@ -487,21 +477,21 @@ var CameraView = function (options) {
     * @param {string} [duration] - A valid CSS transition-duration value.
     * @returns {CameraView} The view.
     */
-    instance.focus = function (focus, options) {
-        options = options || {};
-        options.transitionProperty = 'transform';        
+    instance.focus = function (focus, scale, options) {
+        console.log('focus');
+        options = options ? Object.assign({}, instance.model.get('transition'), options) : instance.model.get('defaultTransition');
         
-        let focalOffset = instance.getFocalOffset(focus, instance.model.get('zoom'));
-        
-        utils.setCssTransition(instance.content, options);
+        let focalOffset = instance.getFocalOffset(focus, scale);
 
+        instance.model.set({
+            transition: options
+        });
+        
         utils.setCssTransform(instance.content, {
-            scale: instance.model.get('zoom'),
+            scale: scale,
             translateX: focalOffset.x,
             translateY: focalOffset.y
         });
-        
-        instance.model.set('focalPoint', focus);
         
         return instance;
     };
@@ -651,12 +641,14 @@ var utils = {
     * @returns {Element} The element.
     */
     setCssTransition: function (el, options) {
+        console.log('transition CSS set');
         options = options || {};
         
         let transitionOptions = {
-            transitionDelay: options.delay || constants.defaults.TRANSITION_DELAY,
-            transitionDuration: options.duration || constants.defaults.TRANSITION_DURATION,
-            transitionTimingFunction: options.timingFunction || constants.defaults.TRANSITION_TIMING_FUNCTION
+            transitionDelay: options.delay || constants.defaults.TRANSITION.DELAY,
+            transitionDuration: options.duration || constants.defaults.TRANSITION.DURATION,
+            transitionProperty: options.property || constants.defaults.TRANSITION.PROPERTY,
+            transitionTimingFunction: options.timingFunction || constants.defaults.TRANSITION.TIMING_FUNCTION
         };
         
         for (let key in transitionOptions) {
