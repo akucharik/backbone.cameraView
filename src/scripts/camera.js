@@ -356,6 +356,8 @@ var CameraView = function (options) {
     * @param {MouseEvent} event - A MouseEvent object.
     */
     instance.wheelZoom = function (event) {
+        // TODO: Figure out current scale and offset and set them here to stop the transition at this point in time.
+        // Then add a transition duration to smooth out the zoom.
         if (event.deltaY) {
             var _precision = constants.defaults.PIXEL_PRECISION;
             var _direction = null;
@@ -565,16 +567,11 @@ var utils = {
     * @returns {string} The CSS transform value.
     */
     getCssTransform: function (el) {
-        let _value = window.getComputedStyle(el).getPropertyValue('transform');
+        let value = window.getComputedStyle(el).getPropertyValue('transform');
 
-        _value = _value.replace(/^\w+\(/,'').replace(/\)$/,'').split(', ');
+        value = value.replace(/^\w+\(/,'').replace(/\)$/,'').split(', ');
 
-        // TODO: Put this logic into the set method.
-        if (_value[0] === 'none') {
-            _value = [1, 0, 0, 1, 0, 0];
-        }
-
-        return _value;
+        return value;
     },
 
     /**
@@ -600,7 +597,9 @@ var utils = {
     setCssTransform: function (el, options) {
         options = options || {};
         
-        let _value = utils.getCssTransform(el);
+        let value = utils.getCssTransform(el);
+        const CSS_TRANSFORM_KEYWORDS = ['inherit', 'initial', 'none', 'unset'];
+        const DEFAULT_MATRIX_2D = [1, 0, 0, 1, 0, 0];
         const MATRIX_2D = {
             scaleX: 0,
             scaleY: 3,
@@ -618,10 +617,15 @@ var utils = {
             options.translateX = options.translateY = options.translate;
         }
 
+        // If the transform value is a keyword, use a default matrix.
+        if (CSS_TRANSFORM_KEYWORDS.indexOf(value[0])) {
+            value = DEFAULT_MATRIX_2D;
+        }
+        
         for (let key in MATRIX_2D) {
             if (options[key]) {
                 if (_.isFinite(options[key])) {
-                    _value[MATRIX_2D[key]] = options[key];
+                    value[MATRIX_2D[key]] = options[key];
                 }
                 else {
                     throw new Error('Cannot set an invalid CSS matrix value');
@@ -630,7 +634,7 @@ var utils = {
             }
         }
         
-        el.style.transform = 'matrix(' + _value.join(', ') + ')';
+        el.style.transform = 'matrix(' + value.join(', ') + ')';
         
         return el;
     },
