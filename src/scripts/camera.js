@@ -640,26 +640,25 @@ var utils = {
     *
     * @method utils.setCssTransition
     * @param {Element} el - The element for which to set the CSS transition properties.
-    * @param {Object} options - An object of CSS transition properties.
-    * @param {string} [options.delay] - A valid CSS transition-delay value.
-    * @param {string} [options.duration] - A valid CSS transition-duration value.
-    * @param {string} [options.property] - A valid CSS transition-property value.
-    * @param {string} [options.timingFunction] - A valid CSS transition-timing-function value.
+    * @param {Object} properties - An object of CSS transition properties.
+    * @param {string} [properties.delay] - A valid CSS transition-delay value.
+    * @param {string} [properties.duration] - A valid CSS transition-duration value.
+    * @param {string} [properties.property] - A valid CSS transition-property value.
+    * @param {string} [properties.timingFunction] - A valid CSS transition-timing-function value.
     * @returns {Element} The element.
     */
-    setCssTransition: function (el, options) {
-        console.log('transition CSS set');
-        options = options || {};
+    setCssTransition: function (el, properties) {
+        properties = properties || {};
         
-        let transitionOptions = {
-            transitionDelay: options.delay || constants.defaults.TRANSITION.DELAY,
-            transitionDuration: options.duration || constants.defaults.TRANSITION.DURATION,
-            transitionProperty: options.property || constants.defaults.TRANSITION.PROPERTY,
-            transitionTimingFunction: options.timingFunction || constants.defaults.TRANSITION.TIMING_FUNCTION
+        let cssTransitionProperties = {
+            transitionDelay: properties.delay || constants.defaults.TRANSITION.DELAY,
+            transitionDuration: properties.duration || constants.defaults.TRANSITION.DURATION,
+            transitionProperty: properties.property || constants.defaults.TRANSITION.PROPERTY,
+            transitionTimingFunction: properties.timingFunction || constants.defaults.TRANSITION.TIMING_FUNCTION
         };
         
-        for (let key in transitionOptions) {
-            el.style[key] = transitionOptions[key];
+        for (let key in cssTransitionProperties) {
+            el.style[key] = cssTransitionProperties[key];
         }
     },
     
