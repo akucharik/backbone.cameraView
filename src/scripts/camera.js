@@ -670,20 +670,19 @@ var utils = {
     * @returns {Function} A new function throttled to the next Animation Frame.
     */
     throttleToFrame: function (func) {
-        var _this = null,
-            _arguments = null,
-            _isProcessing = false;
+        let _this, args;
+        let isProcessing = false;
 
         return function () {
             _this = this;
-            _arguments = arguments;
+            args = arguments;
 
-            if (!_isProcessing) {
-                _isProcessing = true;
+            if (!isProcessing) {
+                isProcessing = true;
 
                 window.requestAnimationFrame(function() {
-                    func.apply(_this, _arguments);
-                    _isProcessing = false;
+                    func.apply(_this, args);
+                    isProcessing = false;
                 });    
             }
         };
