@@ -188,6 +188,7 @@ var CameraModel = function (options) {
 *
 * @constructs CameraView
 * @extends Backbone.View
+* @extends SizableView
 * @param {Object} [options] - An object of options. Includes all Backbone.View options. See {@link http://backbonejs.org/#View|Backbone.View}
 * @param {CameraModel} [options.model] - The view's model.
 * @param {number|string|Element} [options.width] - The view's width. A number will be converted to pixels. A valid CSS string may also be used. If an Element is provided, the dimension will be sized to match the Element.
@@ -508,7 +509,7 @@ var CameraView = function (options) {
     * @param {string} [options.timingFunction] - A valid CSS transition-timing-function value.
     * @returns {CameraView} The view.
     */
-    instance._focus = function (options) { console.log('_focus called');
+    instance._focus = function (options) {
         options = options || {};
         
         let focalOffset = instance._getFocalOffset(instance.model.get('focus'), instance.model.get('scale'));
@@ -545,7 +546,6 @@ var CameraView = function (options) {
         if (options.preventScaleEvent) {
             return;
         }
-        console.log('_zoom called');
         
         instance._focus(options);
         
