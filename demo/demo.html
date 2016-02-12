@@ -59,11 +59,11 @@
                 el: document.getElementById('camera'),
                 template: _.template(document.getElementById('cameraTemplate').innerHTML),
                 model: CameraModel({
-                    zoom: 1,
+                    scale: 1,
                     increment: 0.02,
-                    zoomMin: 0.25,
-                    zoomMax: 6,
-                    focalPoint: {
+                    minScale: 0.25,
+                    maxScale: 6,
+                    focus: {
                         x: 501,
                         y: 251
                     }
