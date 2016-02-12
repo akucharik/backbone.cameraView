@@ -254,10 +254,9 @@ var CameraView = function (options) {
     * Handle click event.
     *
     * @private
-    * @param {$event} $event - A jQuery event object.
+    * @param {MouseEvent} event - The mouse event.
     */
-    instance._onClick = function ($event) {
-        var event = $event.originalEvent;
+    instance._onClick = function (event) {
         console.log({ 
             x: event.clientX - instance.content.getBoundingClientRect().left + window.scrollX,
             y: event.clientY - instance.content.getBoundingClientRect().top + window.scrollX
@@ -277,12 +276,9 @@ var CameraView = function (options) {
     * Handle mousedown event.
     *
     * @private
-    * @param {$event} $event - A jQuery event object.
+    * @param {MouseEvent} event - The mouse event.
     */
-    instance._onMouseDown = function ($event) {
-        // TODO: Remove console.log() when development is complete.
-        //console.log($event.originalEvent);
-
+    instance._onMouseDown = function (event) {
         //console.log(instance.el.getBoundingClientRect());
         //console.log('top: ', instance.el.getBoundingClientRect().top + window.scrollY);
         instance.moveStartX = event.clientX;
@@ -310,9 +306,9 @@ var CameraView = function (options) {
     * Handle mouseenter event.
     *
     * @private
-    * @param {$event} $event - A jQuery event object.
+    * @param {MouseEvent} event - The mouse event.
     */
-    instance._onMouseEnter = function ($event) {
+    instance._onMouseEnter = function (event) {
         document.querySelector('body').style.overflow = 'hidden';
     };
 
@@ -320,9 +316,9 @@ var CameraView = function (options) {
     * Handle mouseleave event.
     *
     * @private
-    * @param {$event} $event - A jQuery event object.
+    * @param {MouseEvent} event - The mouse event.
     */
-    instance._onMouseLeave = function ($event) {
+    instance._onMouseLeave = function (event) {
         instance._stop();
         // TODO: Instead of reverting to 'auto' remove the inline style rule to let any applied stylesheet rule kick in. 
         document.querySelector('body').style.removeProperty('overflow');
@@ -332,9 +328,9 @@ var CameraView = function (options) {
     * Handle mousemove event.
     *
     * @private
-    * @param {$event} $event - A jQuery event object.
+    * @param {MouseEvent} event - The mouse event.
     */
-    instance._onMouseMove = function ($event) {
+    instance._onMouseMove = function (event) {
         // TODO: Refactor. Add drag-ability of content when zoomed in/out.
         if (instance.isActive) {
             console.log('move');
@@ -374,9 +370,9 @@ var CameraView = function (options) {
     * Handle mouseup event.
     *
     * @private
-    * @param {$event} $event - A jQuery event object.
+    * @param {MouseEvent} event - The mouse event.
     */
-    instance._onMouseUp = function ($event) {
+    instance._onMouseUp = function (event) {
         instance._stop();
     };
 
@@ -384,11 +380,9 @@ var CameraView = function (options) {
     * Handle wheel event.
     *
     * @private
-    * @param {$event} $event - A jQuery event object.
+    * @param {WheelEvent} event - The wheel event.
     */
-    instance._onWheel = function ($event) {
-        var event = $event.originalEvent;
-
+    instance._onWheel = function (event) {
         event.preventDefault();
         instance._wheelZoom(event);
     };

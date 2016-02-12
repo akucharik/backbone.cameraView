@@ -22,5 +22,10 @@
   ],
   "devDependencies": {
     "jsdoc": "^3.4.0"
+  },
+  "dependencies": {
+    "backbone": "^1.2.3",
+    "lodash": "^4.3.0",
+    "npm-zepto": "^1.1.7"
   }
 }
