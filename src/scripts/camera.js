@@ -202,13 +202,13 @@ var CameraView = function (options) {
     Object.assign(instance, options);
 
     instance.initialize = function () {
-        instance.listenTo(instance.model, 'change:zoom', function (model, value) { 
-            instance.focus(instance.model.get('focalPoint'), value, instance.model.get('transition'));
+        instance.listenTo(instance.model, 'change:zoom', function (model, value, options) {
+            instance.focus(options);
         });
-        instance.listenTo(instance.model, 'change:focalPoint', function (model, value) { 
-            instance.focus(value, instance.model.get('zoom'), instance.model.get('transition'));
+        instance.listenTo(instance.model, 'change:focalPoint', function (model, value, options) { 
+            instance.focus(options);
         });
-        instance.listenTo(instance.model, 'change:transition', function (model, value) { 
+        instance.listenTo(instance.model, 'change:transition', function (model, value, options) { 
             utils.setCssTransition(instance.content, value);
         });
         
@@ -229,7 +229,7 @@ var CameraView = function (options) {
         instance.setHeight(instance.height);
 
         utils.setCssTransition(instance.content, instance.model.get('transition'));
-        instance.focus(instance.model.get('focalPoint'), instance.model.get('zoom'), { duration: '1s'});
+        instance.focus({ duration: '0s'});
 
         return instance;
     };
@@ -380,7 +380,7 @@ var CameraView = function (options) {
             _delta = Math.min(Math.abs(event.deltaY), 10) * (_direction === constants.zoom.IN ? 1 : -1);
             console.log(_delta);
 
-            // Calculate progressive zoom increment
+            // TODO: Calculate a smoother progressive zoom increment: see https://github.com/fengyuanchen/viewerjs/blob/master/src/js/methods.js "zoom" method
             if (_zoom <= 2) {
                 _increment = _.round(_increment * _zoom, _precision);
             }
@@ -419,18 +419,17 @@ var CameraView = function (options) {
     * Zoom in/out at a specific point.
     *
     * @param {number} scale - The scale to zoom to.
-    * @param {Object} anchor - The point or object at which to anchor the zoom.
+    * @param {Object} focus - The point or object at which to focus the zoom.
     * @param {string} [duration] - A valid CSS transition-duration value.
     * @returns {CameraView} The view.
     */
-    instance.zoomAt = function (scale, anchor, options) {
-        console.log('zoomAt');
-        options = options ? Object.assign({}, instance.model.get('transition'), options) : instance.model.get('defaultTransition');
-        console.log(options);
+    instance.zoomAt = function (scale, focus, options) {
+        options = options || {};
+        
         // TODO: Decide whether to use separate x/y variables or objects that have x/y properties.
         let focalPoint = instance.model.get('focalPoint');
-        let deltaX = focalPoint.x - anchor.x;
-        let deltaY = focalPoint.y - anchor.y;
+        let deltaX = focalPoint.x - focus.x;
+        let deltaY = focalPoint.y - focus.y;
         let scaleRatio = instance.model.get('zoom') / scale;
         let newFocalPoint = {
             x: _.round(focalPoint.x - deltaX + (deltaX * scaleRatio), constants.defaults.PIXEL_PRECISION),
@@ -438,9 +437,10 @@ var CameraView = function (options) {
         };
         
         instance.model.set({
-            transition: options,
             zoom: scale,
             focalPoint: newFocalPoint
+        }, {
+            transition: options
         });
 
         return instance;
@@ -458,13 +458,13 @@ var CameraView = function (options) {
     * @returns {CameraView} The view.
     */
     instance.zoomTo = function (scale, focus, options) {
-        console.log('zoomTo');
-        options = options ? Object.assign({}, instance.model.get('transition'), options) : instance.model.get('defaultTransition');
+        options = options || {};
         
         instance.model.set({
-            transition: options,
             zoom: scale,
             focalPoint: focus
+        }, {
+            transition: options
         });
         
         return instance;
@@ -477,18 +477,17 @@ var CameraView = function (options) {
     * @param {string} [duration] - A valid CSS transition-duration value.
     * @returns {CameraView} The view.
     */
-    instance.focus = function (focus, scale, options) {
-        console.log('focus');
-        options = options ? Object.assign({}, instance.model.get('transition'), options) : instance.model.get('defaultTransition');
+    instance.focus = function (options) {
+        options = options || {};
         
-        let focalOffset = instance.getFocalOffset(focus, scale);
+        let focalOffset = instance.getFocalOffset(instance.model.get('focalPoint'), instance.model.get('zoom'));
 
         instance.model.set({
-            transition: options
+            transition: Object.assign({}, instance.model.get('defaultTransition'), options.transition)
         });
         
         utils.setCssTransform(instance.content, {
-            scale: scale,
+            scale: instance.model.get('zoom'),
             translateX: focalOffset.x,
             translateY: focalOffset.y
         });
