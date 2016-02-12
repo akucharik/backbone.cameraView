@@ -206,10 +206,10 @@ var CameraView = function (options) {
 
     instance.initialize = function () {
         instance.listenTo(instance.model, 'change:scale', function (model, value, options) {
-            instance.focus(options);
+            instance._zoom(options);
         });
         instance.listenTo(instance.model, 'change:focus', function (model, value, options) { 
-            instance.focus(options);
+            instance._focus(options);
         });
         instance.listenTo(instance.model, 'change:transition', function (model, value, options) { 
             utils.setCssTransition(instance.content, value);
@@ -232,7 +232,7 @@ var CameraView = function (options) {
         instance.setHeight(instance.height);
 
         utils.setCssTransition(instance.content, instance.model.get('transition'));
-        instance.focus({ duration: '0s'});
+        instance._focus({ duration: '0s'});
 
         return instance;
     };
@@ -421,6 +421,139 @@ var CameraView = function (options) {
     };
 
     /**
+    * Get the x/y offset in order to focus on a specific point.
+    *
+    * @private
+    * @param {Object|Element} focus - The point or object to focus on.
+    * @param {number} scale - The scale.
+    * @returns {Object} The focal offset.
+    */
+    instance._getFocalOffset = function (focus, scale) {
+        var _offset = {};
+        var _position;
+        var _frameCenterX = instance.el.getBoundingClientRect().width / 2;
+        var _frameCenterY = instance.el.getBoundingClientRect().height / 2;
+
+        if (_.isElement(focus)) {
+            // TODO: Handle Element
+            _position = {
+                x: 0, // TODO: logic to get centerX of element
+                y: 0  // TODO: logic to get centerY of element
+            };
+        }
+        else {
+            _position = focus;
+        }
+
+        // TODO: Try using CSS translate instead of top left for smoother rendering.
+        // TODO: handle setup of _position better so _.isFinite check isn't necessary here.
+        if (_.isFinite(_position.x) && _.isFinite(_position.y)) {
+            _offset.x = _frameCenterX + (_position.x * scale * -1);
+            _offset.y = _frameCenterY + (_position.y * scale * -1);
+        }
+
+        return _offset;
+    };
+    
+    /**
+    * Focus the camera on a specific point.
+    *
+    * @private
+    * @param {Object} [options] - An object of transition options.
+    * @param {string} [options.delay] - A valid CSS transition-delay value.
+    * @param {string} [options.duration] - A valid CSS transition-duration value.
+    * @param {string} [options.timingFunction] - A valid CSS transition-timing-function value.
+    * @returns {CameraView} The view.
+    */
+    instance._focus = function (options) { console.log('_focus called');
+        options = options || {};
+        
+        let focalOffset = instance._getFocalOffset(instance.model.get('focus'), instance.model.get('scale'));
+
+        instance.model.set({
+            transition: Object.assign({}, instance.model.get('defaultTransition'), options.transition)
+        });
+        
+        utils.setCssTransform(instance.content, {
+            scale: instance.model.get('scale'),
+            translateX: focalOffset.x,
+            translateY: focalOffset.y
+        });
+        
+        return instance;
+    };
+    
+    /**
+    * Zoom in/out at the current focus.
+    *
+    * @private
+    * @param {Object} [options] - An object of options.
+    * @param {boolean} [options.preventScaleEvent] - Prevent zoom if true.
+    * @param {Object} [options.transition] - An object of transition options.
+    * @param {string} [options.transition.delay] - A valid CSS transition-delay value.
+    * @param {string} [options.transition.duration] - A valid CSS transition-duration value.
+    * @param {string} [options.transition.timingFunction] - A valid CSS transition-timing-function value.
+    * @returns {CameraView} The view.
+    */
+    instance._zoom = function (options) {
+        options = options || {};
+        
+        // Prevent 'focus()' from being called multiple times when 'scale' and 'focus' data are updated.
+        if (options.preventScaleEvent) {
+            return;
+        }
+        console.log('_zoom called');
+        
+        instance._focus(options);
+        
+        return instance;
+    };
+    
+    /**
+    * Focus the camera on a specific point.
+    *
+    * @param {Object|Element} focus - The point or object to focus on.
+    * @param {Object} [options] - An object of transition options.
+    * @param {string} [options.delay] - A valid CSS transition-delay value.
+    * @param {string} [options.duration] - A valid CSS transition-duration value.
+    * @param {string} [options.timingFunction] - A valid CSS transition-timing-function value.
+    * @returns {CameraView} The view.
+    */
+    instance.focus = function (focus, options) {
+        options = options || {};
+        
+        instance.model.set({
+            focus: focus
+        }, {
+            transition: options
+        });
+        
+        return instance;
+    };
+    
+    /**
+    * Zoom in/out at the current focus.
+    *
+    * @param {number} scale - The scale to zoom to.
+    * @param {Object} [options] - An object of transition options.
+    * @param {string} [options.delay] - A valid CSS transition-delay value.
+    * @param {string} [options.duration] - A valid CSS transition-duration value.
+    * @param {string} [options.timingFunction] - A valid CSS transition-timing-function value.
+    * @returns {CameraView} The view.
+    */
+    instance.zoom = function (scale, options) {
+        options = options || {};
+        
+        instance.model.set({
+            scale: scale
+        }, {
+            transition: options
+        });
+        
+        return instance;
+    };
+    
+    /**
     * Zoom in/out at a specific point.
     *
     * @param {number} scale - The scale to zoom to.
@@ -448,6 +581,7 @@ var CameraView = function (options) {
             scale: scale,
             focus: newFocalPoint
         }, {
+            preventScaleEvent: true,
             transition: options
         });
 
@@ -472,64 +606,11 @@ var CameraView = function (options) {
             scale: scale,
             focus: focus
         }, {
+            preventScaleEvent: true,
             transition: options
         });
         
         return instance;
-    };
-
-    /**
-    * Focus the camera on a specific point.
-    *
-    * @param {Object} [options] - An object of transition options.
-    * @param {string} [options.delay] - A valid CSS transition-delay value.
-    * @param {string} [options.duration] - A valid CSS transition-duration value.
-    * @param {string} [options.timingFunction] - A valid CSS transition-timing-function value.
-    * @returns {CameraView} The view.
-    */
-    instance.focus = function (options) {
-        options = options || {};
-        
-        let focalOffset = instance.getFocalOffset(instance.model.get('focus'), instance.model.get('scale'));
-
-        instance.model.set({
-            transition: Object.assign({}, instance.model.get('defaultTransition'), options.transition)
-        });
-        
-        utils.setCssTransform(instance.content, {
-            scale: instance.model.get('scale'),
-            translateX: focalOffset.x,
-            translateY: focalOffset.y
-        });
-        
-        return instance;
-    };
-
-    instance.getFocalOffset = function (focus, scale) {
-        var _offset = {};
-        var _position;
-        var _frameCenterX = instance.el.getBoundingClientRect().width / 2;
-        var _frameCenterY = instance.el.getBoundingClientRect().height / 2;
-
-        if (_.isElement(focus)) {
-            // TODO: Handle Element
-            _position = {
-                x: 0, // TODO: logic to get centerX of element
-                y: 0  // TODO: logic to get centerY of element
-            };
-        }
-        else {
-            _position = focus;
-        }
-
-        // TODO: Try using CSS translate instead of top left for smoother rendering.
-        // TODO: handle setup of _position better so _.isFinite check isn't necessary here.
-        if (_.isFinite(_position.x) && _.isFinite(_position.y)) {
-            _offset.x = _frameCenterX + (_position.x * scale * -1);
-            _offset.y = _frameCenterY + (_position.y * scale * -1);
-        }
-
-        return _offset;
     };
 
     Backbone.View.call(instance, options);
@@ -545,7 +626,6 @@ var utils = {
     /**
     * Clears inline transition styles.
     *
-    * @method utils.clearTransition
     * @param {Element} el - The element on which to clear the inline transition styles.
     * @returns {Element} The element.
     */
@@ -562,7 +642,6 @@ var utils = {
     /**
     * Get the CSS transform value for an element.
     *
-    * @method utils.getCssTransform
     * @param {Element} el - The element for which to get the CSS transform value.
     * @returns {string} The CSS transform value.
     */
@@ -577,7 +656,6 @@ var utils = {
     /**
     * Set the CSS transform value for an element.
     *
-    * @method utils.setCssTransform
     * @param {Element} el - The element for which to set the CSS transform value.
     * @param {Object} options - An object of CSS transform values.
     * @param {string} [options.scale] - A valid CSS transform 'scale' function value to apply to both X and Y axes.
@@ -642,7 +720,6 @@ var utils = {
     /**
     * Set the CSS transition properties for an element.
     *
-    * @method utils.setCssTransition
     * @param {Element} el - The element for which to set the CSS transition properties.
     * @param {Object} properties - An object of CSS transition properties.
     * @param {string} [properties.delay] - A valid CSS transition-delay value.
@@ -669,7 +746,6 @@ var utils = {
     /**
     * Throttling using requestAnimationFrame.
     *
-    * @method utils.throttleToFrame
     * @param {Function} func - The function to throttle.
     * @returns {Function} A new function throttled to the next Animation Frame.
     */
