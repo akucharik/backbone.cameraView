@@ -239,17 +239,23 @@ var CameraView = function (options) {
 
     instance.events = function () {
         return {
-            'click'      : 'onClick',
-            'mouseenter' : 'onMouseEnter',
-            'mousedown'  : 'onMouseDown',
-            'mouseleave' : 'onMouseLeave',
-            'mousemove'  : 'onMouseMove',
-            'mouseup'    : 'onMouseUp',
-            'wheel'      : utils.throttleToFrame(instance.onWheel)
+            'click'      : '_onClick',
+            'mouseenter' : '_onMouseEnter',
+            'mousedown'  : '_onMouseDown',
+            'mouseleave' : '_onMouseLeave',
+            'mousemove'  : '_onMouseMove',
+            'mouseup'    : '_onMouseUp',
+            'wheel'      : utils.throttleToFrame(instance._onWheel)
         };
     };
 
-    instance.onClick = function ($event) {
+    /**
+    * Handle click event.
+    *
+    * @private
+    * @param {$event} $event - A jQuery event object.
+    */
+    instance._onClick = function ($event) {
         var event = $event.originalEvent;
         console.log({ 
             x: event.clientX - instance.content.getBoundingClientRect().left + window.scrollX,
@@ -257,11 +263,22 @@ var CameraView = function (options) {
         });
     };
 
-    instance.stop = function () {
+    /**
+    * Prevent mousemove event from doing anything.
+    *
+    * @private
+    */
+    instance._stop = function () {
         instance.isActive = false;
     };
 
-    instance.onMouseDown = function ($event) {
+    /**
+    * Handle mousedown event.
+    *
+    * @private
+    * @param {$event} $event - A jQuery event object.
+    */
+    instance._onMouseDown = function ($event) {
         // TODO: Remove console.log() when development is complete.
         //console.log($event.originalEvent);
 
@@ -288,17 +305,35 @@ var CameraView = function (options) {
         //console.log('content startY: ', instance.content.getBoundingClientRect().top - instance.el.getBoundingClientRect().top);
     };
 
-    instance.onMouseEnter = function ($event) {
+    /**
+    * Handle mouseenter event.
+    *
+    * @private
+    * @param {$event} $event - A jQuery event object.
+    */
+    instance._onMouseEnter = function ($event) {
         document.querySelector('body').style.overflow = 'hidden';
     };
 
-    instance.onMouseLeave = function ($event) {
-        instance.stop();
+    /**
+    * Handle mouseleave event.
+    *
+    * @private
+    * @param {$event} $event - A jQuery event object.
+    */
+    instance._onMouseLeave = function ($event) {
+        instance._stop();
         // TODO: Instead of reverting to 'auto' remove the inline style rule to let any applied stylesheet rule kick in. 
         document.querySelector('body').style.removeProperty('overflow');
     };
 
-    instance.onMouseMove = function ($event) {
+    /**
+    * Handle mousemove event.
+    *
+    * @private
+    * @param {$event} $event - A jQuery event object.
+    */
+    instance._onMouseMove = function ($event) {
         // TODO: Refactor. Add drag-ability of content when zoomed in/out.
         if (instance.isActive) {
             console.log('move');
@@ -334,28 +369,36 @@ var CameraView = function (options) {
         }
     };
 
-    instance.onMouseUp = function ($event) {
-        instance.stop();
+    /**
+    * Handle mouseup event.
+    *
+    * @private
+    * @param {$event} $event - A jQuery event object.
+    */
+    instance._onMouseUp = function ($event) {
+        instance._stop();
     };
 
     /**
-    * Handle wheel input.
+    * Handle wheel event.
     *
+    * @private
     * @param {$event} $event - A jQuery event object.
     */
-    instance.onWheel = function ($event) {
+    instance._onWheel = function ($event) {
         var event = $event.originalEvent;
 
         event.preventDefault();
-        instance.wheelZoom(event);
+        instance._wheelZoom(event);
     };
 
     /**
     * Zoom in/out based on wheel input.
     *
+    * @private
     * @param {MouseEvent} event - A MouseEvent object.
     */
-    instance.wheelZoom = function (event) {
+    instance._wheelZoom = function (event) {
         // TODO: Figure out current scale and offset and set them here to stop the transition at this point in time.
         // Then add a transition duration to smooth out the zoom.
         if (event.deltaY) {
