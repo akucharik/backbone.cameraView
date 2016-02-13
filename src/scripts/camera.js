@@ -185,6 +185,13 @@ var CameraModel = function (options) {
                 * @default
                 */
                 duration: '500ms',
+                /**
+                * The default transition property.
+                * @private
+                * @property {string} - A valid CSS transition-property value.
+                * @memberOf CameraModel.defaults.transition
+                * @default
+                */
                 property: 'transform',
                 /**
                 * The default transition timing function.
