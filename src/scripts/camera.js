@@ -116,67 +116,124 @@ var constants = {
 *
 * @constructs CameraModel
 * @extends Backbone.Model
-* @param {Object} [options] - The options object.
-* @param {number} [options.scale=1] - The starting zoom of the view's content. 
+* @param {Object} [options] - An object of options. See {@link http://backbonejs.org/#Model|Backbone.Model}.
 * @param {number} [options.increment=0.02] - The base increment at which the content will be zoomed.
 * @param {number} [options.minScale=0.1] - The minimum value the content can be zoomed.
 * @param {number} [options.maxScale=4.0] - The maximum value the content can be zoomed.
-* @param {number} [options.focus]
-* @param {number} [options.transition]
-* @param {number} [options.defaultTransition]
+* @param {Object} [options.transition] - The default transition.
+* @param {string} [options.transition.delay] - A valid CSS transition-delay value.
+* @param {string} [options.transition.duration] - A valid CSS transition-duration value.
+* @param {string} [options.transition.timingFunction] - A valid CSS transition-timing-function value.
+* @param {Object} [options.state] - The camera's starting state. 
+* @param {number} [options.state.scale=1] - The starting zoom.
+* @param {Object|Element} [options.state.focus={ x: 501, y: 251 }] - The starting focus.
+
 * @returns {CameraModel} A new CameraModel object.
 */
 var CameraModel = function (options) {
-    var instance = Object.create(Object.assign(
-        Backbone.Model.prototype, {
-            defaults: {
+    /**
+    * @lends CameraModel.prototype
+    */
+    let prototype = {
+        /**
+        * The default camera properties.
+        * @namespace CameraModel.defaults
+        */
+        defaults: {
+            /**
+            * The base increment at which the content will be zoomed.
+            * @property {number}
+            * @memberOf CameraModel.defaults
+            */
+            increment: 0.02,
+            /**
+            * The minimum value the content can be zoomed.
+            * @property {number}
+            * @memberOf CameraModel.defaults
+            */
+            minScale: 0.25,
+            /**
+            * The maximum value the content can be zoomed.
+            * @property {number}
+            * @memberOf CameraModel.defaults
+            */
+            maxScale: 6.0,
+            /**
+            * The default transition.
+            * @property {Object}
+            * @memberOf CameraModel.defaults
+            */
+            transition: {
+                delay: '0s',
+                duration: '500ms',
+                property: 'transform',
+                timingFunction: 'ease-out'
+            },
+            /**
+            * The camera's current state.
+            * @property {Object}
+            * @memberOf CameraModel.defaults
+            * @namespace CameraModel.defaults.state
+            */
+            state: {
                 /**
-                * The current zoom value.
+                * The current zoom.
                 * @property {number}
+                * @memberOf CameraModel.defaults.state
                 */
                 scale: 1,
                 /**
-                * The base increment at which the content will be zoomed.
-                * @property {number}
-                */
-                increment: 0.02,
-                /**
-                * The minimum value the content can be zoomed.
-                * @property {number}
-                */
-                minScale: 0.1,
-                /**
-                * The maximum value the content can be zoomed.
-                * @property {number}
-                */
-                maxScale: 4.0,
-                /**
-                * The camera's focal point.
+                * The current focus.
                 * @property {Object}
+                * @memberOf CameraModel.defaults.state
                 */
                 focus: {
-                    x: 500,
-                    y: 250
+                    x: 501,
+                    y: 251
                 },
+                /**
+                * The current transition.
+                * @property {Object}
+                * @memberOf CameraModel.defaults.state
+                */
                 transition: {
-                    delay: '0s',
-                    duration: '500ms',
-                    property: 'transform',
-                    timingFunction: 'ease-out'
-                },
-                defaultTransition: {
                     delay: '0s',
                     duration: '500ms',
                     property: 'transform',
                     timingFunction: 'ease-out'
                 }
             }
+        },
+        
+        /**
+        * Sets the camera's state.
+        *
+        * @param {Object} state - An object of camera state data.
+        * @param {number} [state.scale] - The scale.
+        * @param {Object|Element} [state.focus] - The focus.
+        * @param {Object} [transition] - An object of transition options.
+        * @param {string} [transition.delay] - A valid CSS transition-delay value.
+        * @param {string} [transition.duration] - A valid CSS transition-duration value.
+        * @param {string} [transition.timingFunction] - A valid CSS transition-timing-function value.
+        * @returns {CameraView} The view.
+        */
+        setState: function (state, transition) {
+            console.log('state set');
+            instance.set({
+                state: Object.assign({}, 
+                    instance.get('state'), 
+                    _.pick(state, ['scale', 'focus']),
+                    {
+                        transition: _.pick(transition, ['delay', 'duration', 'timingFunction'])
+                })
+            });
         }
-    ));
-
-    instance.initialize = function () {
-
     };
+    
+    let instance = Object.create(Object.assign(
+        Backbone.Model.prototype, 
+        prototype
+    ));
 
     Backbone.Model.call(instance, options);
 
@@ -189,7 +246,7 @@ var CameraModel = function (options) {
 * @constructs CameraView
 * @extends Backbone.View
 * @extends SizableView
-* @param {Object} [options] - An object of options. Includes all Backbone.View options. See {@link http://backbonejs.org/#View|Backbone.View}
+* @param {Object} [options] - An object of options. Includes all Backbone.View options. See {@link http://backbonejs.org/#View|Backbone.View}.
 * @param {CameraModel} [options.model] - The view's model.
 * @param {number|string|Element} [options.width] - The view's width. A number will be converted to pixels. A valid CSS string may also be used. If an Element is provided, the dimension will be sized to match the Element.
 * @param {number|string|Element} [options.height] - The view's height. A number will be converted to pixels. A valid CSS string may also be used. If an Element is provided, the dimension will be sized to match the Element.
@@ -199,42 +256,138 @@ var CameraView = function (options) {
     /**
     * @lends CameraView.prototype
     */
-    var instance = Object.create(Object.assign(
-        Backbone.View.prototype, SizableView()
+    let prototype = {
+        /**
+        * Focus the camera on a specific point.
+        *
+        * @param {Object|Element} focus - The point or object to focus on.
+        * @param {Object} [options] - An object of transition options.
+        * @param {string} [options.delay] - A valid CSS transition-delay value.
+        * @param {string} [options.duration] - A valid CSS transition-duration value.
+        * @param {string} [options.timingFunction] - A valid CSS transition-timing-function value.
+        * @returns {CameraView} The view.
+        */
+        focus: function (focus, options) {
+            options = options || {};
+
+            instance.model.setState({
+                focus: focus
+            }, options);
+
+            return instance;
+        },
+
+        /**
+        * Called on the view instance when the view has been initialized.
+        *
+        * @returns {CameraView} The view.
+        */
+        onInitialize: function () {
+
+            return instance;
+        },
+
+        /**
+        * Zoom in/out at the current focus.
+        *
+        * @param {number} scale - The scale to zoom to.
+        * @param {Object} [options] - An object of transition options.
+        * @param {string} [options.delay] - A valid CSS transition-delay value.
+        * @param {string} [options.duration] - A valid CSS transition-duration value.
+        * @param {string} [options.timingFunction] - A valid CSS transition-timing-function value.
+        * @returns {CameraView} The view.
+        */
+        zoom: function (scale, options) {
+            options = options || {};
+
+            instance.model.setState({
+                scale: scale
+            }, options);
+
+            return instance;
+        },
+
+        /**
+        * Zoom in/out at a specific point.
+        *
+        * @param {number} scale - The scale to zoom to.
+        * @param {Object|Element} focus - The point or object at which to focus the zoom.
+        * @param {Object} [options] - An object of transition options.
+        * @param {string} [options.delay] - A valid CSS transition-delay value.
+        * @param {string} [options.duration] - A valid CSS transition-duration value.
+        * @param {string} [options.timingFunction] - A valid CSS transition-timing-function value.
+        * @returns {CameraView} The view.
+        */
+        zoomAt: function (scale, focus, options) {
+            options = options || {};
+
+            let state = instance.model.get('state');
+            // TODO: Decide whether to use separate x/y variables or objects that have x/y properties.
+            let deltaX = state.focus.x - focus.x;
+            let deltaY = state.focus.y - focus.y;
+            let scaleRatio = state.scale / scale;
+            let newFocalPoint = {
+                x: _.round(state.focus.x - deltaX + (deltaX * scaleRatio), constants.defaults.PIXEL_PRECISION),
+                y: _.round(state.focus.y - deltaY + (deltaY * scaleRatio), constants.defaults.PIXEL_PRECISION)
+            };
+
+            instance.model.setState({
+                scale: scale,
+                focus: newFocalPoint
+            }, options);
+
+            return instance;
+        },
+
+        /**
+        * Zoom in/out and focus the camera on a specific point.
+        *
+        * @param {number} scale - The scale to zoom to.
+        * @param {Object|Element} focus - The point or object to focus on.
+        * @param {Object} [options] - An object of transition options.
+        * @param {string} [options.delay] - A valid CSS transition-delay value.
+        * @param {string} [options.duration] - A valid CSS transition-duration value.
+        * @param {string} [options.timingFunction] - A valid CSS transition-timing-function value.
+        * @returns {CameraView} The view.
+        */
+        zoomTo: function (scale, focus, options) {
+            options = options || {};
+
+            instance.model.setState({
+                scale: scale,
+                focus: focus
+            }, options);
+
+            return instance;
+        }
+    };
+    
+    let instance = Object.create(Object.assign(
+        {},
+        Backbone.View.prototype, 
+        SizableView(), 
+        prototype
     ));
 
     Object.assign(instance, options);
 
     instance.initialize = function () {
-        instance.listenTo(instance.model, 'change:scale', function (model, value, options) {
-            instance._zoom(options);
-        });
-        instance.listenTo(instance.model, 'change:focus', function (model, value, options) { 
-            instance._focus(options);
-        });
-        instance.listenTo(instance.model, 'change:transition', function (model, value, options) { 
-            utils.setCssTransition(instance.content, value);
-        });
+        instance.listenTo(instance.model, 'change:state', instance._update);
+        
+        instance.el.innerHTML = instance.template();
+        instance.content = instance.el.querySelector(':first-child');
+        instance.content.setAttribute('draggable', false);
+        
+        instance.render();
+        instance.onInitialize();
         
         return instance;
     };
 
     instance.render = function () {
-        instance.el.innerHTML = instance.template();
-        instance.content = instance.el.querySelector(':first-child');
-        instance.content.setAttribute('draggable', false);
-        instance.update();
-
-        return instance;
-    };
-
-    instance.update = function () {
         instance.setWidth(instance.width);
         instance.setHeight(instance.height);
-
-        utils.setCssTransition(instance.content, instance.model.get('transition'));
-        instance._focus({ duration: '0s'});
-
+        
         return instance;
     };
 
@@ -400,7 +553,7 @@ var CameraView = function (options) {
             var _precision = constants.defaults.PIXEL_PRECISION;
             var _direction = null;
             var _delta = 0;
-            var _scale = instance.model.get('scale');
+            var _scale = instance.model.get('state').scale;
             var _newScale = _scale;
             var _increment = instance.model.get('increment');
             var _min = instance.model.get('minScale');
@@ -442,9 +595,6 @@ var CameraView = function (options) {
             else if (_newScale > _max) {
                 _newScale = _max;
             }
-
-            // Prevent zooming beyond limits
-            _delta = _newScale - _scale;
 
             if (_scale !== _newScale) {
                 instance.zoomAt(_newScale, {
@@ -493,158 +643,24 @@ var CameraView = function (options) {
         return _offset;
     };
     
+    
     /**
-    * Focus the camera on a specific point.
+    * Update camera to the current state.
     *
     * @private
-    * @param {Object} [options] - An object of transition options.
-    * @param {string} [options.delay] - A valid CSS transition-delay value.
-    * @param {string} [options.duration] - A valid CSS transition-duration value.
-    * @param {string} [options.timingFunction] - A valid CSS transition-timing-function value.
     * @returns {CameraView} The view.
     */
-    instance._focus = function (options) {
-        options = options || {};
+    instance._update = function (model, value, options) {
+        // TODO: Remove when development is complete
+        console.log('_update');
         
-        let focalOffset = instance._getFocalOffset(instance.model.get('focus'), instance.model.get('scale'));
-
-        instance.model.set({
-            transition: Object.assign({}, instance.model.get('defaultTransition'), options.transition)
-        });
+        let focalOffset = instance._getFocalOffset(value.focus, value.scale);
         
+        utils.setCssTransition(instance.content, value.transition);
         utils.setCssTransform(instance.content, {
-            scale: instance.model.get('scale'),
+            scale: value.scale,
             translateX: focalOffset.x,
             translateY: focalOffset.y
-        });
-        
-        return instance;
-    };
-    
-    /**
-    * Zoom in/out at the current focus.
-    *
-    * @private
-    * @param {Object} [options] - An object of options.
-    * @param {boolean} [options.preventScaleEvent] - Prevent zoom if true.
-    * @param {Object} [options.transition] - An object of transition options.
-    * @param {string} [options.transition.delay] - A valid CSS transition-delay value.
-    * @param {string} [options.transition.duration] - A valid CSS transition-duration value.
-    * @param {string} [options.transition.timingFunction] - A valid CSS transition-timing-function value.
-    * @returns {CameraView} The view.
-    */
-    instance._zoom = function (options) {
-        options = options || {};
-        
-        // Prevent 'focus()' from being called multiple times when 'scale' and 'focus' data are updated.
-        if (options.preventScaleEvent) {
-            return;
-        }
-        
-        instance._focus(options);
-        
-        return instance;
-    };
-    
-    /**
-    * Focus the camera on a specific point.
-    *
-    * @param {Object|Element} focus - The point or object to focus on.
-    * @param {Object} [options] - An object of transition options.
-    * @param {string} [options.delay] - A valid CSS transition-delay value.
-    * @param {string} [options.duration] - A valid CSS transition-duration value.
-    * @param {string} [options.timingFunction] - A valid CSS transition-timing-function value.
-    * @returns {CameraView} The view.
-    */
-    instance.focus = function (focus, options) {
-        options = options || {};
-        
-        instance.model.set({
-            focus: focus
-        }, {
-            transition: options
-        });
-        
-        return instance;
-    };
-    
-    /**
-    * Zoom in/out at the current focus.
-    *
-    * @param {number} scale - The scale to zoom to.
-    * @param {Object} [options] - An object of transition options.
-    * @param {string} [options.delay] - A valid CSS transition-delay value.
-    * @param {string} [options.duration] - A valid CSS transition-duration value.
-    * @param {string} [options.timingFunction] - A valid CSS transition-timing-function value.
-    * @returns {CameraView} The view.
-    */
-    instance.zoom = function (scale, options) {
-        options = options || {};
-        
-        instance.model.set({
-            scale: scale
-        }, {
-            transition: options
-        });
-        
-        return instance;
-    };
-    
-    /**
-    * Zoom in/out at a specific point.
-    *
-    * @param {number} scale - The scale to zoom to.
-    * @param {Object|Element} focus - The point or object at which to focus the zoom.
-    * @param {Object} [options] - An object of transition options.
-    * @param {string} [options.delay] - A valid CSS transition-delay value.
-    * @param {string} [options.duration] - A valid CSS transition-duration value.
-    * @param {string} [options.timingFunction] - A valid CSS transition-timing-function value.
-    * @returns {CameraView} The view.
-    */
-    instance.zoomAt = function (scale, focus, options) {
-        options = options || {};
-        
-        // TODO: Decide whether to use separate x/y variables or objects that have x/y properties.
-        let focalPoint = instance.model.get('focus');
-        let deltaX = focalPoint.x - focus.x;
-        let deltaY = focalPoint.y - focus.y;
-        let scaleRatio = instance.model.get('scale') / scale;
-        let newFocalPoint = {
-            x: _.round(focalPoint.x - deltaX + (deltaX * scaleRatio), constants.defaults.PIXEL_PRECISION),
-            y: _.round(focalPoint.y - deltaY + (deltaY * scaleRatio), constants.defaults.PIXEL_PRECISION)
-        };
-        
-        instance.model.set({
-            scale: scale,
-            focus: newFocalPoint
-        }, {
-            preventScaleEvent: true,
-            transition: options
-        });
-
-        return instance;
-    };
-
-    /**
-    * Zoom in/out and focus the camera on a specific point.
-    *
-    * @param {number} scale - The scale to zoom to.
-    * @param {Object|Element} focus - The point or object to focus on.
-    * @param {Object} [options] - An object of transition options.
-    * @param {string} [options.delay] - A valid CSS transition-delay value.
-    * @param {string} [options.duration] - A valid CSS transition-duration value.
-    * @param {string} [options.timingFunction] - A valid CSS transition-timing-function value.
-    * @returns {CameraView} The view.
-    */
-    instance.zoomTo = function (scale, focus, options) {
-        options = options || {};
-        
-        instance.model.set({
-            scale: scale,
-            focus: focus
-        }, {
-            preventScaleEvent: true,
-            transition: options
         });
         
         return instance;

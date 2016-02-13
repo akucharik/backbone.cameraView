@@ -59,16 +59,15 @@
                 el: document.getElementById('camera'),
                 template: _.template(document.getElementById('cameraTemplate').innerHTML),
                 model: CameraModel({
-                    scale: 1,
-                    increment: 0.05,
-                    minScale: 0.25,
-                    maxScale: 6,
-                    focus: {
-                        x: 501,
-                        y: 251
+                    state: {
+                        scale: 1,
+                        focus: {
+                            x: 501,
+                            y: 251
+                        }
                     }
                 })
-            }).render();
+            });
 
             window.cameraView = cameraView;
         };
