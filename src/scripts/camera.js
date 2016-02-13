@@ -7,6 +7,7 @@
 
 /**
 * Factory: Creates {@link http://backbonejs.org/#View|Backbone.View} height and width sizing functionality used for object composition.
+* Requires {@link http://lodash.com|lodash} or {@link http://underscorejs.org|underscore} and {@link http://jquery.com|jQuery} or {@link http://zeptojs.com|Zepto}.
 *
 * @constructs SizableView
 * @extends Backbone.View
@@ -22,6 +23,7 @@ var SizableView = function () {
     * Sets the height of the view.
     *
     * @param {number|string|Element} height - A number will be converted to pixels. A valid CSS string may also be used. If an Element is provided, the dimension will be sized to match the Element.
+    * @returns {this} The view.
     */
     instance.setHeight = function (height) {
         if (_.isNumber(height)) {
@@ -33,12 +35,15 @@ var SizableView = function () {
         else if (_.isFunction(height)) {
             this.$el.height(height());
         }
+        
+        return this;
     };
 
     /**
     * Sets the width of the view.
     *
     * @param {number|string|Element} width - A number will be converted to pixels. A valid CSS string may also be used. If an Element is provided, the dimension will be sized to match the Element.
+    * @returns {this} The view.
     */
     instance.setWidth = function (width) {
         if (_.isNumber(width)) {
@@ -50,6 +55,8 @@ var SizableView = function () {
         else if (_.isFunction(width)) {
             this.$el.width(width());
         }
+        
+        return this;
     };
 
     return instance;
@@ -113,20 +120,16 @@ var constants = {
 
 /**
 * Factory: Creates a CameraView's model.
+* Requires {@link http://lodash.com|lodash} or {@link http://underscorejs.org|underscore} and {@link http://jquery.com|jQuery} or {@link http://zeptojs.com|Zepto}.
 *
 * @constructs CameraModel
 * @extends Backbone.Model
 * @param {Object} [options] - An object of options. See {@link http://backbonejs.org/#Model|Backbone.Model}.
-* @param {number} [options.increment=0.02] - The base increment at which the content will be zoomed.
-* @param {number} [options.minScale=0.1] - The minimum value the content can be zoomed.
-* @param {number} [options.maxScale=4.0] - The maximum value the content can be zoomed.
-* @param {Object} [options.transition] - The default transition.
-* @param {string} [options.transition.delay] - A valid CSS transition-delay value.
-* @param {string} [options.transition.duration] - A valid CSS transition-duration value.
-* @param {string} [options.transition.timingFunction] - A valid CSS transition-timing-function value.
-* @param {Object} [options.state] - The camera's starting state. 
-* @param {number} [options.state.scale=1] - The starting zoom.
-* @param {Object|Element} [options.state.focus={ x: 501, y: 251 }] - The starting focus.
+* @param {number} [options.increment] - The base {@link CameraModel.defaults.increment|scale increment}.
+* @param {number} [options.minScale] - The {@link CameraModel.defaults.minScale|minimum scale}.
+* @param {number} [options.maxScale] - The {@link CameraModel.defaults.maxScale|maximum scale}.
+* @param {Object} [options.transition] - The default transition. A {@link CameraModel.defaults.transition|transition} object.
+* @param {Object} [options.state] - The starting state. A camera {@link CameraModel.defaults.state|state} object.
 
 * @returns {CameraModel} A new CameraModel object.
 */
@@ -141,51 +144,75 @@ var CameraModel = function (options) {
         */
         defaults: {
             /**
-            * The base increment at which the content will be zoomed.
-            * @property {number}
+            * The base increment at which the content will be scaled.
+            * @property {number} - See {@link CameraModel.defaults.state.scale|scale}.
             * @memberOf CameraModel.defaults
+            * @default
             */
             increment: 0.02,
             /**
-            * The minimum value the content can be zoomed.
-            * @property {number}
+            * The minimum value the content can be scaled.
+            * @property {number} - See {@link CameraModel.defaults.state.scale|scale}.
             * @memberOf CameraModel.defaults
+            * @default
             */
             minScale: 0.25,
             /**
-            * The maximum value the content can be zoomed.
-            * @property {number}
+            * The maximum value the content can be scaled.
+            * @property {number} - See {@link CameraModel.defaults.state.scale|scale}.
             * @memberOf CameraModel.defaults
+            * @default
             */
             maxScale: 6.0,
             /**
             * The default transition.
-            * @property {Object}
+            * @property {Object} - An object of transition properties.
             * @memberOf CameraModel.defaults
+            * @namespace CameraModel.defaults.transition
             */
             transition: {
+                /**
+                * The default transition delay.
+                * @property {string} - A valid CSS transition-delay value.
+                * @memberOf CameraModel.defaults.transition
+                * @default
+                */
                 delay: '0s',
+                /**
+                * The default transition duration.
+                * @property {string} - A valid CSS transition-duration value.
+                * @memberOf CameraModel.defaults.transition
+                * @default
+                */
                 duration: '500ms',
                 property: 'transform',
+                /**
+                * The default transition timing function.
+                * @property {string} - A valid CSS transition-timing-function value.
+                * @memberOf CameraModel.defaults.transition
+                * @default
+                */
                 timingFunction: 'ease-out'
             },
             /**
             * The camera's current state.
-            * @property {Object}
+            * @property {Object} - An object of camera state properties.
             * @memberOf CameraModel.defaults
             * @namespace CameraModel.defaults.state
             */
             state: {
                 /**
-                * The current zoom.
-                * @property {number}
+                * The current scale.
+                * @property {number} - A scale ratio where 1 = 100%;
                 * @memberOf CameraModel.defaults.state
+                * @default
                 */
                 scale: 1,
                 /**
                 * The current focus.
-                * @property {Object}
+                * @property {Object|Element} - An 'x' {number}, 'y' {number} pixel coordinate object or an Element.
                 * @memberOf CameraModel.defaults.state
+                * @default
                 */
                 focus: {
                     x: 501,
@@ -193,8 +220,9 @@ var CameraModel = function (options) {
                 },
                 /**
                 * The current transition.
-                * @property {Object}
+                * @property {Object} - A camera {@link CameraModel.defaults.transition|transition} object.
                 * @memberOf CameraModel.defaults.state
+                * @default See {@link CameraModel.defaults.transition|transition}.
                 */
                 transition: {
                     delay: '0s',
@@ -208,14 +236,8 @@ var CameraModel = function (options) {
         /**
         * Sets the camera's state.
         *
-        * @param {Object} state - An object of camera state data.
-        * @param {number} [state.scale] - The scale.
-        * @param {Object|Element} [state.focus] - The focus.
-        * @param {Object} [transition] - An object of transition options.
-        * @param {string} [transition.delay] - A valid CSS transition-delay value.
-        * @param {string} [transition.duration] - A valid CSS transition-duration value.
-        * @param {string} [transition.timingFunction] - A valid CSS transition-timing-function value.
-        * @returns {CameraView} The view.
+        * @param {Object} [state] - A camera {@link CameraModel.defaults.state|state} object.
+        * @param {Object} [transition] - A camera {@link CameraModel.defaults.transition|transition} object.
         */
         setState: function (state, transition) {
             console.log('state set');
@@ -223,9 +245,7 @@ var CameraModel = function (options) {
                 state: Object.assign({}, 
                     instance.get('state'), 
                     _.pick(state, ['scale', 'focus']),
-                    {
-                        transition: _.pick(transition, ['delay', 'duration', 'timingFunction'])
-                })
+                    { transition: _.pick(transition, ['delay', 'duration', 'timingFunction']) })
             });
         }
     };
@@ -242,14 +262,15 @@ var CameraModel = function (options) {
 
 /**
 * Factory: Creates a camera to pan and zoom content.
-*
+* Requires {@link http://lodash.com|lodash} or {@link http://underscorejs.org|underscore} and {@link http://jquery.com|jQuery} or {@link http://zeptojs.com|Zepto}.
+* 
 * @constructs CameraView
 * @extends Backbone.View
 * @extends SizableView
 * @param {Object} [options] - An object of options. Includes all Backbone.View options. See {@link http://backbonejs.org/#View|Backbone.View}.
 * @param {CameraModel} [options.model] - The view's model.
-* @param {number|string|Element} [options.width] - The view's width. A number will be converted to pixels. A valid CSS string may also be used. If an Element is provided, the dimension will be sized to match the Element.
-* @param {number|string|Element} [options.height] - The view's height. A number will be converted to pixels. A valid CSS string may also be used. If an Element is provided, the dimension will be sized to match the Element.
+* @param {number|string|Element} [options.width] - The view's width. See {@link SizableView#setWidth|SizableView.setWidth}.
+* @param {number|string|Element} [options.height] - The view's height. See {@link SizableView#setHeight|SizableView.setHeight}.
 * @returns {CameraView} The newly created CameraView object.
 */
 var CameraView = function (options) {
@@ -260,19 +281,16 @@ var CameraView = function (options) {
         /**
         * Focus the camera on a specific point.
         *
-        * @param {Object|Element} focus - The point or object to focus on.
-        * @param {Object} [options] - An object of transition options.
-        * @param {string} [options.delay] - A valid CSS transition-delay value.
-        * @param {string} [options.duration] - A valid CSS transition-duration value.
-        * @param {string} [options.timingFunction] - A valid CSS transition-timing-function value.
+        * @param {Object|Element} focus - A camera {@link CameraModel.defaults.state.focus|focus} object.
+        * @param {Object} [transition] - A camera {@link CameraModel.defaults.transition|transition} object.
         * @returns {CameraView} The view.
         */
-        focus: function (focus, options) {
-            options = options || {};
+        focus: function (focus, transition) {
+            transition = transition || {};
 
             instance.model.setState({
                 focus: focus
-            }, options);
+            }, transition);
 
             return instance;
         },
@@ -290,19 +308,16 @@ var CameraView = function (options) {
         /**
         * Zoom in/out at the current focus.
         *
-        * @param {number} scale - The scale to zoom to.
-        * @param {Object} [options] - An object of transition options.
-        * @param {string} [options.delay] - A valid CSS transition-delay value.
-        * @param {string} [options.duration] - A valid CSS transition-duration value.
-        * @param {string} [options.timingFunction] - A valid CSS transition-timing-function value.
+        * @param {number} scale - A {@link CameraModel.defaults.state.scale|scale} ratio.
+        * @param {Object} [transition] - A camera {@link CameraModel.defaults.transition|transition} object.
         * @returns {CameraView} The view.
         */
-        zoom: function (scale, options) {
-            options = options || {};
+        zoom: function (scale, transition) {
+            transition = transition || {};
 
             instance.model.setState({
                 scale: scale
-            }, options);
+            }, transition);
 
             return instance;
         },
@@ -310,16 +325,13 @@ var CameraView = function (options) {
         /**
         * Zoom in/out at a specific point.
         *
-        * @param {number} scale - The scale to zoom to.
-        * @param {Object|Element} focus - The point or object at which to focus the zoom.
-        * @param {Object} [options] - An object of transition options.
-        * @param {string} [options.delay] - A valid CSS transition-delay value.
-        * @param {string} [options.duration] - A valid CSS transition-duration value.
-        * @param {string} [options.timingFunction] - A valid CSS transition-timing-function value.
+        * @param {number} scale - A {@link CameraModel.defaults.state.scale|scale} ratio.
+        * @param {Object|Element} focus - A camera {@link CameraModel.defaults.state.focus|focus} object.
+        * @param {Object} [transition] - A camera {@link CameraModel.defaults.transition|transition} object.
         * @returns {CameraView} The view.
         */
-        zoomAt: function (scale, focus, options) {
-            options = options || {};
+        zoomAt: function (scale, focus, transition) {
+            transition = transition || {};
 
             let state = instance.model.get('state');
             // TODO: Decide whether to use separate x/y variables or objects that have x/y properties.
@@ -334,7 +346,7 @@ var CameraView = function (options) {
             instance.model.setState({
                 scale: scale,
                 focus: newFocalPoint
-            }, options);
+            }, transition);
 
             return instance;
         },
@@ -342,21 +354,18 @@ var CameraView = function (options) {
         /**
         * Zoom in/out and focus the camera on a specific point.
         *
-        * @param {number} scale - The scale to zoom to.
-        * @param {Object|Element} focus - The point or object to focus on.
-        * @param {Object} [options] - An object of transition options.
-        * @param {string} [options.delay] - A valid CSS transition-delay value.
-        * @param {string} [options.duration] - A valid CSS transition-duration value.
-        * @param {string} [options.timingFunction] - A valid CSS transition-timing-function value.
+        * @param {number} scale - A {@link CameraModel.defaults.state.scale|scale} ratio.
+        * @param {Object|Element} focus - A camera {@link CameraModel.defaults.state.focus|focus} object.
+        * @param {Object} [transition] - A camera {@link CameraModel.defaults.transition|transition} object.
         * @returns {CameraView} The view.
         */
-        zoomTo: function (scale, focus, options) {
-            options = options || {};
+        zoomTo: function (scale, focus, transition) {
+            transition = transition || {};
 
             instance.model.setState({
                 scale: scale,
                 focus: focus
-            }, options);
+            }, transition);
 
             return instance;
         }
@@ -774,11 +783,7 @@ var utils = {
     * Set the CSS transition properties for an element.
     *
     * @param {Element} el - The element for which to set the CSS transition properties.
-    * @param {Object} properties - An object of CSS transition properties.
-    * @param {string} [properties.delay] - A valid CSS transition-delay value.
-    * @param {string} [properties.duration] - A valid CSS transition-duration value.
-    * @param {string} [properties.property] - A valid CSS transition-property value.
-    * @param {string} [properties.timingFunction] - A valid CSS transition-timing-function value.
+    * @param {Object} properties - A camera {@link CameraModel.defaults.transition|transition} object.
     * @returns {Element} The element.
     */
     setCssTransition: function (el, properties) {
