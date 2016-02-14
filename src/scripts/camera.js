@@ -257,6 +257,7 @@ var CameraModel = function (options) {
         }
     };
     
+    // Compose the object.
     let instance = Object.create(Object.assign(
         Backbone.Model.prototype, 
         prototype
@@ -285,6 +286,62 @@ var CameraView = function (options) {
     * @lends CameraView.prototype
     */
     let prototype = {
+        /**
+        * Get the x/y offset in order to focus on a specific point.
+        *
+        * @private
+        * @param {Object|Element} focus - A camera {@link CameraModel.defaults.state.focus|focus} object.
+        * @param {number} scale - A {@link CameraModel.defaults.state.scale|scale} ratio.
+        * @returns {Object} The focal offset: an 'x' {number}, 'y' {number} pixel coordinate object.
+        */
+        _getFocalOffset: function (focus, scale) {
+            let offset = {};
+            let position;
+            let frameCenterX = instance.el.getBoundingClientRect().width / 2;
+            let frameCenterY = instance.el.getBoundingClientRect().height / 2;
+
+            if (_.isElement(focus)) {
+                // TODO: Handle Element
+                position = {
+                    x: 0, // TODO: logic to get centerX of element
+                    y: 0  // TODO: logic to get centerY of element
+                };
+            }
+            else {
+                position = focus;
+            }
+
+            // TODO: handle setup of 'position' better so _.isFinite check isn't necessary here.
+            if (_.isFinite(position.x) && _.isFinite(position.y)) {
+                offset.x = frameCenterX + (position.x * scale * -1);
+                offset.y = frameCenterY + (position.y * scale * -1);
+            }
+
+            return offset;
+        },
+
+        /**
+        * Update camera to the current state.
+        *
+        * @private
+        * @returns {CameraView} The view.
+        */
+        _update: function (model, value, options) {
+            // TODO: Remove when development is complete
+            console.log('_update');
+
+            let focalOffset = instance._getFocalOffset(value.focus, value.scale);
+
+            utils.setCssTransition(instance.content, value.transition);
+            utils.setCssTransform(instance.content, {
+                scale: value.scale,
+                translateX: focalOffset.x,
+                translateY: focalOffset.y
+            });
+
+            return instance;
+        },
+        
         /**
         * Focus the camera on a specific point.
         *
@@ -378,6 +435,7 @@ var CameraView = function (options) {
         }
     };
     
+    // Compose the object.
     let instance = Object.create(Object.assign(
         {},
         Backbone.View.prototype, 
@@ -419,6 +477,7 @@ var CameraView = function (options) {
         };
     };
 
+    // TODO: Refactor/clean up and move into prototype
     /**
     * Handle click event.
     *
@@ -432,6 +491,7 @@ var CameraView = function (options) {
         });
     };
 
+    // TODO: Refactor/clean up and move into prototype
     /**
     * Prevent mousemove event from doing anything.
     *
@@ -441,6 +501,7 @@ var CameraView = function (options) {
         instance.isActive = false;
     };
 
+    // TODO: Refactor/clean up and move into prototype
     /**
     * Handle mousedown event.
     *
@@ -471,6 +532,7 @@ var CameraView = function (options) {
         //console.log('content startY: ', instance.content.getBoundingClientRect().top - instance.el.getBoundingClientRect().top);
     };
 
+    // TODO: Refactor/clean up and move into prototype
     /**
     * Handle mouseenter event.
     *
@@ -481,6 +543,7 @@ var CameraView = function (options) {
         document.querySelector('body').style.overflow = 'hidden';
     };
 
+    // TODO: Refactor/clean up and move into prototype
     /**
     * Handle mouseleave event.
     *
@@ -493,6 +556,7 @@ var CameraView = function (options) {
         document.querySelector('body').style.removeProperty('overflow');
     };
 
+    // TODO: Refactor/clean up and move into prototype
     /**
     * Handle mousemove event.
     *
@@ -535,6 +599,7 @@ var CameraView = function (options) {
         }
     };
 
+    // TODO: Refactor/clean up and move into prototype
     /**
     * Handle mouseup event.
     *
@@ -545,6 +610,7 @@ var CameraView = function (options) {
         instance._stop();
     };
 
+    // TODO: Refactor/clean up and move into prototype
     /**
     * Handle wheel event.
     *
@@ -556,6 +622,7 @@ var CameraView = function (options) {
         instance._wheelZoom(event);
     };
 
+    // TODO: Refactor/clean up and move into prototype
     /**
     * Zoom in/out based on wheel input.
     *
@@ -622,64 +689,6 @@ var CameraView = function (options) {
                 
             }
         }
-    };
-
-    /**
-    * Get the x/y offset in order to focus on a specific point.
-    *
-    * @private
-    * @param {Object|Element} focus - The point or object to focus on.
-    * @param {number} scale - The scale.
-    * @returns {Object} The focal offset.
-    */
-    instance._getFocalOffset = function (focus, scale) {
-        var _offset = {};
-        var _position;
-        var _frameCenterX = instance.el.getBoundingClientRect().width / 2;
-        var _frameCenterY = instance.el.getBoundingClientRect().height / 2;
-
-        if (_.isElement(focus)) {
-            // TODO: Handle Element
-            _position = {
-                x: 0, // TODO: logic to get centerX of element
-                y: 0  // TODO: logic to get centerY of element
-            };
-        }
-        else {
-            _position = focus;
-        }
-
-        // TODO: Try using CSS translate instead of top left for smoother rendering.
-        // TODO: handle setup of _position better so _.isFinite check isn't necessary here.
-        if (_.isFinite(_position.x) && _.isFinite(_position.y)) {
-            _offset.x = _frameCenterX + (_position.x * scale * -1);
-            _offset.y = _frameCenterY + (_position.y * scale * -1);
-        }
-
-        return _offset;
-    };
-    
-    
-    /**
-    * Update camera to the current state.
-    *
-    * @private
-    * @returns {CameraView} The view.
-    */
-    instance._update = function (model, value, options) {
-        // TODO: Remove when development is complete
-        console.log('_update');
-        
-        let focalOffset = instance._getFocalOffset(value.focus, value.scale);
-        
-        utils.setCssTransition(instance.content, value.transition);
-        utils.setCssTransform(instance.content, {
-            scale: value.scale,
-            translateX: focalOffset.x,
-            translateY: focalOffset.y
-        });
-        
-        return instance;
     };
 
     Backbone.View.call(instance, options);
