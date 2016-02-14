@@ -448,7 +448,9 @@ var CameraView = function (options) {
     instance.initialize = function () {
         instance.listenTo(instance.model, 'change:state', instance._update);
         
-        instance.el.innerHTML = instance.template();
+        if (instance.template) {
+            instance.el.innerHTML = instance.template();
+        }
         instance.content = instance.el.querySelector(':first-child');
         instance.content.setAttribute('draggable', false);
         
@@ -726,7 +728,8 @@ var utils = {
     getCssTransform: function (el) {
         let value = window.getComputedStyle(el).getPropertyValue('transform');
 
-        value = value.replace(/^\w+\(/,'').replace(/\)$/,'').split(', ');
+        // Remove 'matrix()' and all whitespace. Then separate into an array.
+        value = value.replace(/^\w+\(/,'').replace(/\)$/,'').replace(/\s+/g, '').split(',');
 
         return value;
     },
