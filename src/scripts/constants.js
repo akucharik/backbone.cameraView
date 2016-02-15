@@ -19,28 +19,7 @@ var constants = {
         * @constant {number}
         * @default
         */
-        PIXEL_PRECISION: 2,
-        TRANSITION: {
-            /**
-            * @readonly
-            * @constant {string}
-            * @default
-            */
-            DELAY: '0s',
-            /**
-            * @readonly
-            * @constant {string}
-            * @default
-            */
-            DURATION: '500ms',
-            PROPERTY: 'transform',
-            /**
-            * @readonly
-            * @constant {string}
-            * @default
-            */
-            TIMING_FUNCTION: 'ease-out'
-        }
+        PIXEL_PRECISION: 2
     },
     /**
     * Enum for zoom direction.

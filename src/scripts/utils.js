@@ -116,10 +116,10 @@ var utils = {
         properties = properties || {};
         
         let cssTransitionProperties = {
-            transitionDelay: properties.delay || constants.defaults.TRANSITION.DELAY,
-            transitionDuration: properties.duration || constants.defaults.TRANSITION.DURATION,
-            transitionProperty: properties.property || constants.defaults.TRANSITION.PROPERTY,
-            transitionTimingFunction: properties.timingFunction || constants.defaults.TRANSITION.TIMING_FUNCTION
+            transitionDelay: properties.delay || '0s',
+            transitionDuration: properties.duration || '0s',
+            transitionProperty: properties.property || 'all',
+            transitionTimingFunction: properties.timingFunction || 'ease'
         };
         
         for (let key in cssTransitionProperties) {
