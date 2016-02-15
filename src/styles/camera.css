@@ -1,16 +1,9 @@
 .bcv-camera {
-    border: 1px solid gray;
-    height: 500px;
     overflow: hidden;
     position: relative;
-    width: 1000px;
 }
 
 .bcv-camera > :first-child {
     position: absolute;
     transform-origin: 0 0;
-
-    background-color: lightgray;
-    top: 0px;
-    left: 0px;
 }

@@ -3,25 +3,24 @@
 <head>
     <meta charset="utf-8">
     <title>Backbone.cameraView Unit Tests</title>
-    <link rel="stylesheet" href="qunit-1.21.0.css">
-    <style>
-        .bcv-camera {
-            overflow: hidden;
-            position: relative;
-        }
-        .bcv-camera > :first-child {
-            position: absolute;
-            transform-origin: 0 0;
-            width: 2000;
-            height: 1000;
-        }
-    </style>
+    
+    <!-- QUnit -->
+    <link type="text/css" href="qunit-1.21.0.css" rel="stylesheet" />
     <script type="text/javascript" src="qunit-1.21.0.js"></script>
-    <script type="text/javascript" src="scripts/lib/zepto.min.js"></script>
-    <script type="text/javascript" src="scripts/lib/lodash.min.js"></script>
-    <script type="text/javascript" src="scripts/lib/backbone-min.js"></script>
-    <script type="text/javascript" src="../src/scripts/camera.js"></script>
-    <script type="text/javascript" src="camera.js"></script>
+    
+    <!-- Camera -->
+    <link type="text/css" href="../src/styles/camera.css" rel="stylesheet" />
+    <script type="text/javascript" src="../src/scripts/lib/zepto.min.js"></script>
+    <script type="text/javascript" src="../src/scripts/lib/lodash.min.js"></script>
+    <script type="text/javascript" src="../src/scripts/lib/backbone-min.js"></script>
+    <script type="text/javascript" src="../src/scripts/constants.js"></script>
+    <script type="text/javascript" src="../src/scripts/utils.js"></script>
+    <script type="text/javascript" src="../src/scripts/cameraModel.js"></script>
+    <script type="text/javascript" src="../src/scripts/sizableView.js"></script>
+    <script type="text/javascript" src="../src/scripts/cameraView.js"></script>
+    
+    <!-- Tests -->
+    <script type="text/javascript" src="cameraView.js"></script>
     <script type="text/javascript" src="utils.js"></script>
 </head>
 <body>
