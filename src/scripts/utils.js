@@ -11,22 +11,6 @@
 */
 var utils = {
     /**
-    * Clears inline transition styles.
-    *
-    * @param {Element} el - The element on which to clear the inline transition styles.
-    * @returns {Element} The element.
-    */
-    clearCssTransition: function (el) {
-        el.style.removeProperty('transition');
-        el.style.removeProperty('transitionDelay');
-        el.style.removeProperty('transitionDuration');
-        el.style.removeProperty('transitionProperty');
-        el.style.removeProperty('transitionTimingFunction');
-
-        return el;
-    },
-    
-    /**
     * Get the CSS transform value for an element.
     *
     * @param {Element} el - The element for which to get the CSS transform value.
@@ -125,6 +109,8 @@ var utils = {
         for (let key in cssTransitionProperties) {
             el.style[key] = cssTransitionProperties[key];
         }
+        
+        return el;
     },
     
     /**
