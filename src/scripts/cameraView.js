@@ -140,8 +140,8 @@ var CameraView = function (options) {
             let deltaY = state.focus.y - focus.y;
             let scaleRatio = state.scale / scale;
             let newFocalPoint = {
-                x: _.round(state.focus.x - deltaX + (deltaX * scaleRatio), constants.defaults.PIXEL_PRECISION),
-                y: _.round(state.focus.y - deltaY + (deltaY * scaleRatio), constants.defaults.PIXEL_PRECISION)
+                x: state.focus.x - deltaX + (deltaX * scaleRatio),
+                y: state.focus.y - deltaY + (deltaY * scaleRatio)
             };
 
             instance.model.setState({
@@ -372,7 +372,6 @@ var CameraView = function (options) {
         // TODO: Figure out current scale and offset and set them here to stop the transition at this point in time.
         // Then add a transition duration to smooth out the zoom.
         if (event.deltaY) {
-            var _precision = constants.defaults.PIXEL_PRECISION;
             var _direction = null;
             var _delta = 0;
             var _scale = instance.model.get('state').scale;
@@ -400,16 +399,16 @@ var CameraView = function (options) {
 
             // TODO: Calculate a smoother progressive zoom increment: see https://github.com/fengyuanchen/viewerjs/blob/master/src/js/methods.js "zoom" method
             if (_scale <= 2) {
-                _increment = _.round(_increment * _scale, _precision);
+                _increment = _increment * _scale;
             }
             else {
-                _increment = _.round(_increment + (Math.round(_scale) / 100), _precision);
+                _increment = _increment + (Math.round(_scale) / 100);
             }
 
             console.log('zIncrement: ', _increment);
 
             // Determine zoom
-            _newScale = _.round(_scale + _increment * _delta, _precision);
+            _newScale = _scale + _increment * _delta;
 
             if (_newScale < _min) {
                 _newScale = _min;

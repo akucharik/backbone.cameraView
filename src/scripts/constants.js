@@ -10,18 +10,6 @@
 */
 var constants = {
     /**
-    * @namespace
-    * @memberof constants
-    */
-    defaults: {
-        /**
-        * @readonly
-        * @constant {number}
-        * @default
-        */
-        PIXEL_PRECISION: 2
-    },
-    /**
     * Enum for zoom direction.
     * @enum {number}
     * @memberof constants
