@@ -6,62 +6,6 @@
 */
 
 /**
-* @namespace constants
-*/
-var constants = {
-    /**
-    * @namespace
-    * @memberof constants
-    */
-    defaults: {
-        /**
-        * @readonly
-        * @constant {number}
-        * @default
-        */
-        PIXEL_PRECISION: 2,
-        TRANSITION: {
-            /**
-            * @readonly
-            * @constant {string}
-            * @default
-            */
-            DELAY: '0s',
-            /**
-            * @readonly
-            * @constant {string}
-            * @default
-            */
-            DURATION: '500ms',
-            PROPERTY: 'transform',
-            /**
-            * @readonly
-            * @constant {string}
-            * @default
-            */
-            TIMING_FUNCTION: 'ease-out'
-        }
-    },
-    /**
-    * Enum for zoom direction.
-    * @enum {number}
-    * @memberof constants
-    */
-    zoom: {
-        /**
-        * Zoom in.
-        * @readonly
-        */
-        IN: 1,
-        /**
-        * Zoom out.
-        * @readonly
-        */
-        OUT: 0
-    }
-};
-
-/**
 * Factory: Creates a CameraView's model.
 * Requires {@link http://lodash.com|lodash} or {@link http://underscorejs.org|underscore} and {@link http://jquery.com|jQuery} or {@link http://zeptojs.com|Zepto}.
 *
