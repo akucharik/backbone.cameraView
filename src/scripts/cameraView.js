@@ -69,7 +69,7 @@ var CameraView = function (options) {
 
             let focalOffset = instance._getFocalOffset(value.focus, value.scale);
 
-            utils.setCssTransition(instance.content, Object.assign({}, value.transition, this.model.get('transition')));
+            utils.setCssTransition(instance.content, Object.assign({}, this.model.get('transition'), value.transition));
             utils.setCssTransform(instance.content, {
                 scale: value.scale,
                 translateX: focalOffset.x,
