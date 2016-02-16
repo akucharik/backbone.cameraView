@@ -33,9 +33,9 @@ var CameraView = function (options) {
         */
         _getFocalOffset: function (focus, scale) {
             let offset = {};
-            let position;
-            let frameCenterX = instance.el.getBoundingClientRect().width / 2;
-            let frameCenterY = instance.el.getBoundingClientRect().height / 2;
+            let position = {};
+            let frameWidth = instance.el.getBoundingClientRect().width;
+            let frameHeight = instance.el.getBoundingClientRect().height;
 
             if (_.isElement(focus)) {
                 // TODO: Handle Element
@@ -50,8 +50,8 @@ var CameraView = function (options) {
 
             // TODO: handle setup of 'position' better so _.isFinite check isn't necessary here.
             if (_.isFinite(position.x) && _.isFinite(position.y)) {
-                offset.x = frameCenterX + (position.x * scale * -1);
-                offset.y = frameCenterY + (position.y * scale * -1);
+                offset.x = (frameWidth / 2) - (position.x * scale);
+                offset.y = (frameHeight / 2) - (position.y * scale);
             }
 
             return offset;
