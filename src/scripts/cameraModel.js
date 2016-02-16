@@ -141,6 +141,8 @@ var CameraModel = function (options) {
                     _.pick(state, ['scale', 'focus']),
                     { transition: _.pick(transition, ['delay', 'duration', 'timingFunction']) })
             });
+            
+            return this;
         }
     };
     
