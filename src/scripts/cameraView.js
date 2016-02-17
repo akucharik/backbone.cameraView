@@ -61,6 +61,9 @@ var CameraView = function (options) {
         * Update camera to the current state.
         *
         * @private
+        * @param {CameraModel} model - The camera's model.
+        * @param {Objecty} value - The updated value.
+        * @param {Object} options - An object of options.
         * @returns {CameraView} The view.
         */
         _update: function (model, value, options) {
@@ -74,8 +77,57 @@ var CameraView = function (options) {
                 scale: value.scale,
                 translateX: focalOffset.x,
                 translateY: focalOffset.y
-            }, this);
+            }, instance);
 
+            return instance;
+        },
+        
+        /**
+        * Zoom in/out based on wheel input.
+        *
+        * @private
+        * @param {MouseEvent} event - A MouseEvent object.
+        * @returns {CameraView} The view.
+        */
+        _wheelZoom: function (event) {
+            event.preventDefault();
+            document.querySelector('body').style.overflow = 'hidden';
+
+            if (event.deltaY) {
+                let direction = event.deltaY > 0 ? constants.zoom.OUT : constants.zoom.IN;
+                let scale = instance.model.get('state').scale;
+                let newScale = scale;
+                let min = instance.model.get('minScale');
+                let max = instance.model.get('maxScale');
+                let origin = null;
+
+                newScale = scale + instance.model.get('increment') * Math.abs(event.deltaY) * scale * (direction === constants.zoom.IN ? 1 : -1);
+
+                if (newScale < min) {
+                    newScale = min;
+                }
+                else if (newScale > max) {
+                    newScale = max;
+                }
+
+                // If scale has changed, it is within the min/max.
+                if (newScale !== scale) {
+                    if (!instance.isTransitioning) {
+                        origin = {
+                            x: (event.clientX - instance.content.getBoundingClientRect().left) / scale,
+                            y: (event.clientY - instance.content.getBoundingClientRect().top) / scale
+                        }
+                    }
+                    else {
+                        origin = instance.model.get('state').scaleOrigin;
+                    }
+
+                    instance.zoomAt(newScale, origin, {
+                        duration: '100ms'
+                    });
+                }
+            }
+            
             return instance;
         },
         
@@ -146,6 +198,7 @@ var CameraView = function (options) {
 
             instance.model.setState({
                 scale: scale,
+                scaleOrigin: focus,
                 focus: newFocalPoint
             }, transition);
 
@@ -209,12 +262,11 @@ var CameraView = function (options) {
     instance.events = function () {
         return {
             'click'         : '_onClick',
-            'mouseenter'    : '_onMouseEnter',
             'mousedown'     : '_onMouseDown',
             'mouseleave'    : '_onMouseLeave',
             'mousemove'     : '_onMouseMove',
             'mouseup'       : '_onMouseUp',
-            'wheel'         : utils.throttleToFrame(instance._onWheel),
+            'wheel'         : utils.throttleToFrame(instance._wheelZoom),
             'transitionend' : '_onTransitionEnd'
         };
     };
@@ -276,17 +328,6 @@ var CameraView = function (options) {
         //console.log('mouse startY: ', instance.startY);
         //console.log('content startX: ', instance.content.getBoundingClientRect().left - instance.el.getBoundingClientRect().left);
         //console.log('content startY: ', instance.content.getBoundingClientRect().top - instance.el.getBoundingClientRect().top);
-    };
-
-    // TODO: Refactor/clean up and move into prototype
-    /**
-    * Handle mouseenter event.
-    *
-    * @private
-    * @param {MouseEvent} event - The mouse event.
-    */
-    instance._onMouseEnter = function (event) {
-        
     };
 
     // TODO: Refactor/clean up and move into prototype
@@ -354,84 +395,6 @@ var CameraView = function (options) {
     */
     instance._onMouseUp = function (event) {
         instance._stop();
-    };
-
-    // TODO: Refactor/clean up and move into prototype
-    /**
-    * Handle wheel event.
-    *
-    * @private
-    * @param {WheelEvent} event - The wheel event.
-    */
-    instance._onWheel = function (event) {
-        event.preventDefault();
-        instance._wheelZoom(event);
-    };
-
-    // TODO: Refactor/clean up and move into prototype
-    /**
-    * Zoom in/out based on wheel input.
-    *
-    * @private
-    * @param {MouseEvent} event - A MouseEvent object.
-    */
-    instance._wheelZoom = function (event) {
-        document.querySelector('body').style.overflow = 'hidden';
-        if (event.deltaY) {
-            var _direction = null;
-            var _delta = 0;
-            var _scale = instance.model.get('state').scale;
-            var _newScale = _scale;
-            var _increment = instance.model.get('increment');
-            var _min = instance.model.get('minScale');
-            var _max = instance.model.get('maxScale');
-            var _originX = (event.clientX - instance.content.getBoundingClientRect().left) / _scale;
-            var _originY = (event.clientY - instance.content.getBoundingClientRect().top) / _scale;
-
-            if (event.deltaY) {
-                _direction = event.deltaY > 0 ? constants.zoom.OUT : constants.zoom.IN;
-            } 
-            else if (event.wheelDelta) {
-                _direction = event.deltaY > 0 ? constants.zoom.OUT : constants.zoom.IN;
-            } 
-            else if (event.detail) {
-                _direction = event.detail > 0 ? constants.zoom.OUT : constants.zoom.IN;
-            }
-
-            // TODO: Use of '_delta' and 'increment' are sloppy and confusing. Clean up.
-            // Limit max zoom speed
-            _delta = Math.min(Math.abs(event.deltaY), 10) * (_direction === constants.zoom.IN ? 1 : -1);
-
-            _newScale = _scale + _increment * _delta * _scale;
-
-            if (_newScale < _min) {
-                _newScale = _min;
-            }
-            else if (_newScale > _max) {
-                _newScale = _max;
-            }
-
-            if (_scale !== _newScale) {
-                if (!instance.isTransitioning) {
-                    // TODO: figure out a better way of handling storing the zoom point
-                    instance._zoomPoint = {
-                        x: _originX,
-                        y: _originY
-                    }
-                    instance.zoomAt(_newScale, {
-                        x: _originX,
-                        y: _originY
-                    }, {
-                        duration: '.2s'
-                    });
-                }
-                else {
-                    instance.zoomAt(_newScale, instance._zoomPoint, {
-                        duration: '.2s'
-                    });
-                }
-            }
-        }
     };
 
     Backbone.View.call(instance, options);

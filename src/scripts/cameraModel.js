@@ -97,11 +97,18 @@ var CameraModel = function (options) {
             state: {
                 /**
                 * The current scale.
-                * @property {number} - A scale ratio where 1 = 100%;
+                * @property {number} - A scale ratio where 1 = 100%.
                 * @memberOf CameraModel.defaults.state
                 * @default
                 */
                 scale: 1,
+                /**
+                * The current scale origin.
+                * @property {Object|Element} - An 'x' {number}, 'y' {number} pixel coordinate object or an Element.
+                * @memberOf CameraModel.defaults.state
+                * @default
+                */
+                scaleOrigin: null,
                 /**
                 * The current focus.
                 * @property {Object|Element} - An 'x' {number}, 'y' {number} pixel coordinate object or an Element.
@@ -141,15 +148,15 @@ var CameraModel = function (options) {
             console.log('state set');
             state = state || {};
             transition = transition || {};
-            
+
             instance.set({
                 state: Object.assign({}, 
                     instance.get('state'), 
-                    _.pick(state, ['scale', 'focus']),
+                    _.pick(state, Object.keys(this.defaults.state)),
                     { 
                         transition: Object.assign({}, 
                             this.get('transition'),
-                            _.pick(transition, ['delay', 'duration', 'timingFunction']))
+                            _.pick(transition, Object.keys(this.defaults.transition)))
                     })
             });
             
