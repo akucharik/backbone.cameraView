@@ -38,13 +38,14 @@ var utils = {
     * @param {string} [options.translate] - A valid CSS transform 'translate' function value to apply to both X and Y axes.
     * @param {string} [options.translateX] - A valid CSS transform 'translate' function value to apply to the X axis.
     * @param {string} [options.translateY] - A valid CSS transform 'translate' function value to apply to the Y axis.
+    * @param {Object} [tracker] - The object that is tracking the transition. 'isTransitioning' on the object will be set to 'true'.
     * @returns {Element} The element.
     */
 
     // TODO: This is a very simplistic solution.
     // Ideally would handle 'rotate' option.
     // Ideally would handle 3D Matrix.
-    setCssTransform: function (el, options) {
+    setCssTransform: function (el, options, tracker) {
         options = options || {};
         
         let value = utils.getCssTransform(el);
@@ -85,6 +86,10 @@ var utils = {
         }
         
         el.style.transform = 'matrix(' + value.join(', ') + ')';
+        
+        if (tracker) {
+            tracker.isTransitioning = true;
+        }
         
         return el;
     },

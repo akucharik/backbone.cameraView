@@ -36,7 +36,7 @@ var CameraModel = function (options) {
             * @memberOf CameraModel.defaults
             * @default
             */
-            increment: 0.02,
+            increment: 0.01,
             /**
             * The minimum value the content can be scaled.
             * @property {number} - See {@link CameraModel.defaults.state.scale|scale}.
@@ -127,6 +127,10 @@ var CameraModel = function (options) {
             }
         },
         
+        initialize: function () {
+            this.setState();
+        },
+        
         /**
         * Sets the camera's state.
         *
@@ -135,11 +139,18 @@ var CameraModel = function (options) {
         */
         setState: function (state, transition) {
             console.log('state set');
+            state = state || {};
+            transition = transition || {};
+            
             instance.set({
                 state: Object.assign({}, 
                     instance.get('state'), 
                     _.pick(state, ['scale', 'focus']),
-                    { transition: _.pick(transition, ['delay', 'duration', 'timingFunction']) })
+                    { 
+                        transition: Object.assign({}, 
+                            this.get('transition'),
+                            _.pick(transition, ['delay', 'duration', 'timingFunction']))
+                    })
             });
             
             return this;

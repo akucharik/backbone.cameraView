@@ -69,12 +69,12 @@ var CameraView = function (options) {
 
             let focalOffset = instance._getFocalOffset(value.focus, value.scale);
 
-            utils.setCssTransition(instance.content, Object.assign({}, this.model.get('transition'), value.transition));
+            utils.setCssTransition(instance.content, value.transition);
             utils.setCssTransform(instance.content, {
                 scale: value.scale,
                 translateX: focalOffset.x,
                 translateY: focalOffset.y
-            });
+            }, this);
 
             return instance;
         },
@@ -183,6 +183,7 @@ var CameraView = function (options) {
     Object.assign(instance, options);
 
     instance.initialize = function () {
+        instance.isTransitioning = false;
         instance.listenTo(instance.model, 'change:state', instance._update);
         
         if (instance.template) {
@@ -200,22 +201,28 @@ var CameraView = function (options) {
     instance.render = function () {
         instance.setWidth(instance.width);
         instance.setHeight(instance.height);
+        instance._update(instance.model, instance.model.get('state'), {});
         
         return instance;
     };
 
     instance.events = function () {
         return {
-            'click'      : '_onClick',
-            'mouseenter' : '_onMouseEnter',
-            'mousedown'  : '_onMouseDown',
-            'mouseleave' : '_onMouseLeave',
-            'mousemove'  : '_onMouseMove',
-            'mouseup'    : '_onMouseUp',
-            'wheel'      : utils.throttleToFrame(instance._onWheel)
+            'click'         : '_onClick',
+            'mouseenter'    : '_onMouseEnter',
+            'mousedown'     : '_onMouseDown',
+            'mouseleave'    : '_onMouseLeave',
+            'mousemove'     : '_onMouseMove',
+            'mouseup'       : '_onMouseUp',
+            'wheel'         : utils.throttleToFrame(instance._onWheel),
+            'transitionend' : '_onTransitionEnd'
         };
     };
 
+    instance._onTransitionEnd = function (event) {
+        instance.isTransitioning = false;
+    };
+    
     // TODO: Refactor/clean up and move into prototype
     /**
     * Handle click event.
@@ -279,7 +286,7 @@ var CameraView = function (options) {
     * @param {MouseEvent} event - The mouse event.
     */
     instance._onMouseEnter = function (event) {
-        document.querySelector('body').style.overflow = 'hidden';
+        
     };
 
     // TODO: Refactor/clean up and move into prototype
@@ -369,8 +376,7 @@ var CameraView = function (options) {
     * @param {MouseEvent} event - A MouseEvent object.
     */
     instance._wheelZoom = function (event) {
-        // TODO: Figure out current scale and offset and set them here to stop the transition at this point in time.
-        // Then add a transition duration to smooth out the zoom.
+        document.querySelector('body').style.overflow = 'hidden';
         if (event.deltaY) {
             var _direction = null;
             var _delta = 0;
@@ -395,20 +401,8 @@ var CameraView = function (options) {
             // TODO: Use of '_delta' and 'increment' are sloppy and confusing. Clean up.
             // Limit max zoom speed
             _delta = Math.min(Math.abs(event.deltaY), 10) * (_direction === constants.zoom.IN ? 1 : -1);
-            console.log(_delta);
 
-            // TODO: Calculate a smoother progressive zoom increment: see https://github.com/fengyuanchen/viewerjs/blob/master/src/js/methods.js "zoom" method
-            if (_scale <= 2) {
-                _increment = _increment * _scale;
-            }
-            else {
-                _increment = _increment + (Math.round(_scale) / 100);
-            }
-
-            console.log('zIncrement: ', _increment);
-
-            // Determine zoom
-            _newScale = _scale + _increment * _delta;
+            _newScale = _scale + _increment * _delta * _scale;
 
             if (_newScale < _min) {
                 _newScale = _min;
@@ -418,13 +412,24 @@ var CameraView = function (options) {
             }
 
             if (_scale !== _newScale) {
-                instance.zoomAt(_newScale, {
-                    x: _originX,
-                    y: _originY
-                }, {
-                    duration: '0s'
-                });
-                
+                if (!instance.isTransitioning) {
+                    // TODO: figure out a better way of handling storing the zoom point
+                    instance._zoomPoint = {
+                        x: _originX,
+                        y: _originY
+                    }
+                    instance.zoomAt(_newScale, {
+                        x: _originX,
+                        y: _originY
+                    }, {
+                        duration: '.2s'
+                    });
+                }
+                else {
+                    instance.zoomAt(_newScale, instance._zoomPoint, {
+                        duration: '.2s'
+                    });
+                }
             }
         }
     };
