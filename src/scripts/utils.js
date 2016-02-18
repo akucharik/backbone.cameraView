@@ -89,6 +89,11 @@ var utils = {
         
         if (tracker) {
             tracker.isTransitioning = true;
+            
+            // If transition duration is 0, 'transitionend' event which handles 'isTransitioning' will not fire.
+            if (parseFloat(window.getComputedStyle(el).getPropertyValue('transition-duration')) === 0) {
+                tracker.isTransitioning = false;
+            }
         }
         
         return el;

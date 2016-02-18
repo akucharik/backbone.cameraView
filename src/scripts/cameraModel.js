@@ -145,17 +145,17 @@ var CameraModel = function (options) {
         * @param {Object} [transition] - A camera {@link CameraModel.defaults.transition|transition} object.
         */
         setState: function (state, transition) {
-            console.log('state set');
             state = state || {};
             transition = transition || {};
 
             instance.set({
                 state: Object.assign({}, 
-                    instance.get('state'), 
+                    this.get('state'), 
                     _.pick(state, Object.keys(this.defaults.state)),
                     { 
                         transition: Object.assign({}, 
                             this.get('transition'),
+                            this.get('state').transition, 
                             _.pick(transition, Object.keys(this.defaults.transition)))
                     })
             });

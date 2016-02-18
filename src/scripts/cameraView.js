@@ -24,34 +24,48 @@ var CameraView = function (options) {
     */
     let prototype = {
         /**
+        * Get the x/y focus for an Element.
+        *
+        * @private
+        * @param {Element} el - The Element.
+        * @param {Element} content - The camera's main content Element.
+        * @param {number} scale - The current {@link CameraModel.defaults.state.scale|scale} ratio.
+        * @returns {Object} A camera {@link CameraModel.defaults.state.focus|focus} object representing the center point of the Element in relation to the camera's content.
+        */
+        _getElementFocus: function (el, content, scale) {
+            var focus = {};
+            var elRect = el.getBoundingClientRect();
+            var contentRect = content.getBoundingClientRect();
+            
+            focus.x = (elRect.width / scale / 2) + (elRect.left / scale + window.scrollX) - (contentRect.left / scale + window.scrollX);
+            focus.y = (elRect.height / scale / 2) + (elRect.top / scale + window.scrollY) - (contentRect.top / scale + window.scrollY);
+            
+            return focus;
+        },
+        
+        /**
         * Get the x/y offset in order to focus on a specific point.
         *
         * @private
         * @param {Object|Element} focus - A camera {@link CameraModel.defaults.state.focus|focus} object.
         * @param {number} scale - A {@link CameraModel.defaults.state.scale|scale} ratio.
-        * @returns {Object} The focal offset: an 'x' {number}, 'y' {number} pixel coordinate object.
+        * @returns {Object} The focus offset: an 'x' {number}, 'y' {number} pixel coordinate object.
         */
-        _getFocalOffset: function (focus, scale) {
-            let offset = {};
-            let position = {};
-            let frameWidth = instance.el.getBoundingClientRect().width;
-            let frameHeight = instance.el.getBoundingClientRect().height;
+        _getFocusOffset: function (focus, scale) {
+            var offset = {};
+            var frameWidth = instance.el.getBoundingClientRect().width;
+            var frameHeight = instance.el.getBoundingClientRect().height;
 
             if (_.isElement(focus)) {
-                // TODO: Handle Element
-                position = {
-                    x: 0, // TODO: logic to get centerX of element
-                    y: 0  // TODO: logic to get centerY of element
-                };
-            }
-            else {
-                position = focus;
+                focus = instance._getElementFocus(focus, instance.content, scale);
             }
 
-            // TODO: handle setup of 'position' better so _.isFinite check isn't necessary here.
-            if (_.isFinite(position.x) && _.isFinite(position.y)) {
-                offset.x = (frameWidth / 2) - (position.x * scale);
-                offset.y = (frameHeight / 2) - (position.y * scale);
+            if (_.isFinite(focus.x) && _.isFinite(focus.y)) {
+                offset.x = _.round((frameWidth / 2) - (focus.x * scale), 2);
+                offset.y = _.round((frameHeight / 2) - (focus.y * scale), 2);
+            }
+            else {
+                throw new Error('Cannot determine focus offset from invalid focus coordinates');
             }
 
             return offset;
@@ -67,16 +81,13 @@ var CameraView = function (options) {
         * @returns {CameraView} The view.
         */
         _update: function (model, value, options) {
-            // TODO: Remove when development is complete
-            console.log('_update');
-
-            let focalOffset = instance._getFocalOffset(value.focus, value.scale);
+            var focusOffset = instance._getFocusOffset(value.focus, value.scale);
 
             utils.setCssTransition(instance.content, value.transition);
             utils.setCssTransform(instance.content, {
                 scale: value.scale,
-                translateX: focalOffset.x,
-                translateY: focalOffset.y
+                translateX: focusOffset.x,
+                translateY: focusOffset.y
             }, instance);
 
             return instance;
@@ -94,12 +105,12 @@ var CameraView = function (options) {
             document.querySelector('body').style.overflow = 'hidden';
 
             if (event.deltaY) {
-                let direction = event.deltaY > 0 ? constants.zoom.OUT : constants.zoom.IN;
-                let scale = instance.model.get('state').scale;
-                let newScale = scale;
-                let min = instance.model.get('minScale');
-                let max = instance.model.get('maxScale');
-                let origin = null;
+                var direction = event.deltaY > 0 ? constants.zoom.OUT : constants.zoom.IN;
+                var scale = instance.model.get('state').scale;
+                var newScale = scale;
+                var min = instance.model.get('minScale');
+                var max = instance.model.get('maxScale');
+                var origin = null;
 
                 newScale = scale + instance.model.get('increment') * Math.abs(event.deltaY) * scale * (direction === constants.zoom.IN ? 1 : -1);
 
@@ -138,7 +149,7 @@ var CameraView = function (options) {
         * @param {Object} [transition] - A camera {@link CameraModel.defaults.transition|transition} object.
         * @returns {CameraView} The view.
         */
-        focus: function (focus, transition) {
+        focusOn: function (focus, transition) {
             transition = transition || {};
 
             instance.model.setState({
@@ -174,7 +185,7 @@ var CameraView = function (options) {
 
             return instance;
         },
-
+        
         /**
         * Zoom in/out at a specific point.
         *
@@ -185,21 +196,32 @@ var CameraView = function (options) {
         */
         zoomAt: function (scale, focus, transition) {
             transition = transition || {};
-
-            let state = instance.model.get('state');
-            // TODO: Decide whether to use separate x/y variables or objects that have x/y properties.
-            let deltaX = state.focus.x - focus.x;
-            let deltaY = state.focus.y - focus.y;
-            let scaleRatio = state.scale / scale;
-            let newFocalPoint = {
-                x: state.focus.x - deltaX + (deltaX * scaleRatio),
-                y: state.focus.y - deltaY + (deltaY * scaleRatio)
-            };
-
+            var currentFocus, scaleRatio, state;
+            var delta = {};
+            var newFocus = {};
+            
+            state = instance.model.get('state');
+            scaleRatio = state.scale / scale;
+            currentFocus = state.focus;
+            
+            if (_.isElement(focus)) {
+                focus = instance._getElementFocus(focus, instance.content, state.scale);
+            }
+            
+            if (_.isElement(currentFocus)) {
+                currentFocus = instance._getElementFocus(currentFocus, instance.content, state.scale);
+            }
+            
+            delta.x = currentFocus.x - focus.x;
+            delta.y = currentFocus.y - focus.y;
+            
+            newFocus.x = currentFocus.x - delta.x + (delta.x * scaleRatio);
+            newFocus.y = currentFocus.y - delta.y + (delta.y * scaleRatio);
+            
             instance.model.setState({
                 scale: scale,
                 scaleOrigin: focus,
-                focus: newFocalPoint
+                focus: newFocus
             }, transition);
 
             return instance;
