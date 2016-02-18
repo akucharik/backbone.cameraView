@@ -4,6 +4,7 @@
     },
     "source": {
         "include": [ "src/scripts" ],
+        "exlude": [ "src/scripts/lib" ],
         "includePattern": ".+\\.js(doc|x)?$",
         "excludePattern": "(^|\\/|\\\\)_"
     },
