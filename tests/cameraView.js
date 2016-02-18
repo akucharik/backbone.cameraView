@@ -18,6 +18,9 @@ QUnit.module('camera', function () {
                         }
                     }
                 }),
+                onBeforeRender: function () {
+                    this.el.innerHTML = this.template();
+                },
                 width: 1000,
                 height: 500
             }).render();

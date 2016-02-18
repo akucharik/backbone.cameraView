@@ -70,7 +70,10 @@
                             duration: '0s' 
                         }
                     }
-                })
+                }),
+                onBeforeRender: function () {
+                    this.el.innerHTML = this.template();
+                }
             }).render();
 
             window.cameraView = cameraView;

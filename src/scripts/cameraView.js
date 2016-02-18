@@ -72,27 +72,6 @@ var CameraView = function (options) {
         },
         
         /**
-        * Initialize the camera.
-        *
-        * @private
-        * @param {Object} [options] - An object of options. Includes all Backbone.View options. See {@link http://backbonejs.org/#View|Backbone.View}.
-        * @returns {CameraView} The view.
-        */
-        _initialize: function (options) {
-            instance.isTransitioning = false;
-            instance.listenTo(instance.model, 'change:state', instance._update);
-
-            if (_.isFunction(instance.template)) {
-                instance.el.innerHTML = instance.template();
-            }
-            
-            instance.content = instance.el.querySelector(':first-child');
-            instance.content.setAttribute('draggable', false);
-
-            return instance;
-        },
-        
-        /**
         * Track when a camera transition is over.
         *
         * @private
@@ -194,17 +173,59 @@ var CameraView = function (options) {
         },
 
         /**
-        * Called on the view instance when the view has been created. If you overwrite this method with a custom method, you must call "this._initialize([options])" before proceeding with your custom code.
+        * Called on the view instance when the view has been created. This method is not meant to be overridden.
         *
         * @param {Object} [options] - An object of options. Includes all Backbone.View options. See {@link http://backbonejs.org/#View|Backbone.View}.
         * @returns {CameraView} The view.
         */
         initialize: function (options) {
-            instance._initialize();
+            instance.isTransitioning = false;
+            instance.listenTo(instance.model, 'change:state', instance._update);
+            instance.onInitialize(options);
 
             return instance;
         },
 
+        /**
+        * Triggered before the camera has rendered.
+        */
+        onBeforeRender: function () {
+            
+        },
+        
+        /**
+        * Triggered after the camera has intialized.
+        *
+        * @param {Object} [options] - An object of options. Includes all Backbone.View options. See {@link http://backbonejs.org/#View|Backbone.View}.
+        */
+        onInitialize: function (options) {
+            
+        },
+        
+        /**
+        * Triggered after the camera has rendered.
+        */
+        onRender: function () {
+            
+        },
+        
+        /**
+        * Render the camera view. This method is not meant to be overridden. If you need manipulate how the camera renders, use {@link CameraView#onBeforeRender|onBeforeRender} and {@link CameraView#onRender|onRender}.
+        *
+        * @returns {CameraView} The view.
+        */
+        render: function () {
+            instance.onBeforeRender();
+            instance.content = instance.el.querySelector(':first-child');
+            instance.content.setAttribute('draggable', false);
+            instance.setWidth(instance.width);
+            instance.setHeight(instance.height);
+            instance.onRender();
+            instance._update(instance.model, instance.model.get('state'), {});
+
+            return instance;
+        },
+        
         /**
         * Zoom in/out at the current focus.
         *
@@ -291,16 +312,8 @@ var CameraView = function (options) {
         prototype
     ));
 
+    // TODO: don't merge all the options onto the view. Figure out something better.
     Object.assign(instance, options);
-
-    // TODO: Refactor/clean up and move into prototype as '_render'
-    instance.render = function () {
-        instance.setWidth(instance.width);
-        instance.setHeight(instance.height);
-        instance._update(instance.model, instance.model.get('state'), {});
-        
-        return instance;
-    };
 
     // TODO: Refactor/clean up and move baked-in events into '_initialize'. Use 'listenTo' to attach events so 'remove' will unattach them.
     instance.events = function () {
