@@ -20,7 +20,7 @@ QUnit.module('camera', function () {
                 }),
                 width: 1000,
                 height: 500
-            });
+            }).render();
             document.getElementById('qunit-fixture').appendChild(this.view.el);
             
             this.focusPoint = { x: 300, y: 150};

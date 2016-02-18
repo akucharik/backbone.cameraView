@@ -70,6 +70,40 @@ var CameraView = function (options) {
 
             return offset;
         },
+        
+        /**
+        * Initialize the camera.
+        *
+        * @private
+        * @param {Object} [options] - An object of options. Includes all Backbone.View options. See {@link http://backbonejs.org/#View|Backbone.View}.
+        * @returns {CameraView} The view.
+        */
+        _initialize: function (options) {
+            instance.isTransitioning = false;
+            instance.listenTo(instance.model, 'change:state', instance._update);
+
+            if (_.isFunction(instance.template)) {
+                instance.el.innerHTML = instance.template();
+            }
+            
+            instance.content = instance.el.querySelector(':first-child');
+            instance.content.setAttribute('draggable', false);
+
+            return instance;
+        },
+        
+        /**
+        * Track when a camera transition is over.
+        *
+        * @private
+        * @param {Event} event - The event object.
+        * @returns {CameraView} The view.
+        */
+        _onTransitionEnd: function (event) {
+            instance.isTransitioning = false;
+            
+            return instance;
+        },
 
         /**
         * Update camera to the current state.
@@ -160,11 +194,13 @@ var CameraView = function (options) {
         },
 
         /**
-        * Called on the view instance when the view has been initialized.
+        * Called on the view instance when the view has been created. If you overwrite this method with a custom method, you must call "this._initialize([options])" before proceeding with your custom code.
         *
+        * @param {Object} [options] - An object of options. Includes all Backbone.View options. See {@link http://backbonejs.org/#View|Backbone.View}.
         * @returns {CameraView} The view.
         */
-        onInitialize: function () {
+        initialize: function (options) {
+            instance._initialize();
 
             return instance;
         },
@@ -257,22 +293,7 @@ var CameraView = function (options) {
 
     Object.assign(instance, options);
 
-    instance.initialize = function () {
-        instance.isTransitioning = false;
-        instance.listenTo(instance.model, 'change:state', instance._update);
-        
-        if (instance.template) {
-            instance.el.innerHTML = instance.template();
-        }
-        instance.content = instance.el.querySelector(':first-child');
-        instance.content.setAttribute('draggable', false);
-        
-        instance.render();
-        instance.onInitialize();
-        
-        return instance;
-    };
-
+    // TODO: Refactor/clean up and move into prototype as '_render'
     instance.render = function () {
         instance.setWidth(instance.width);
         instance.setHeight(instance.height);
@@ -281,6 +302,7 @@ var CameraView = function (options) {
         return instance;
     };
 
+    // TODO: Refactor/clean up and move baked-in events into '_initialize'. Use 'listenTo' to attach events so 'remove' will unattach them.
     instance.events = function () {
         return {
             'click'         : '_onClick',
@@ -291,10 +313,6 @@ var CameraView = function (options) {
             'wheel'         : utils.throttleToFrame(instance._wheelZoom),
             'transitionend' : '_onTransitionEnd'
         };
-    };
-
-    instance._onTransitionEnd = function (event) {
-        instance.isTransitioning = false;
     };
     
     // TODO: Refactor/clean up and move into prototype
