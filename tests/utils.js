@@ -1,191 +1,160 @@
 'use strict';
 
-QUnit.module('utils', function () {
-    QUnit.module('css', {
+QUnit.module('utils', {
+    beforeEach: function() {
+        this.el = document.createElement('div');
+        document.getElementById('qunit-fixture').appendChild(this.el);
+    }}, function () {
+    QUnit.module('getCssTransform', function () {
+        
+        QUnit.test('none', function(assert) {
+            assert.deepEqual(utils.getCssTransform(this.el), ['none']);
+        });
+            
+        QUnit.test('matrix', function(assert) {
+            this.el.style.transform = 'matrix(2, 0, 0, 2, 200, 200)';
+            assert.deepEqual(utils.getCssTransform(this.el), ['2','0','0','2','200','200']);
+        });
+    });
+    
+    QUnit.module('setCssTransform', {
         beforeEach: function() {
-            this.el = document.createElement('div');
-            document.getElementById('qunit-fixture').appendChild(this.el);
+            this.transitionTracker = {};
         }}, function () {
         
-        QUnit.test('getCssTransform', function(assert) {
-            let _this = this;
-            let expected;
-
-            function clean () {
-                _this.el.style.removeProperty('transform');
-            }
-            
-            function run (expected) {
-                assert.deepEqual(utils.getCssTransform(_this.el), expected);
-                clean();
-            }
-
-            // Case: None
-            expected = ['none'];
-            run(expected);
-            
-            // Case: Matrix
-            _this.el.style.transform = 'matrix(2, 0, 0, 2, 200, 200)';
-            expected = ['2','0','0','2','200','200'];
-            run(expected);
+        QUnit.test('scaleX', function(assert) {
+            utils.setCssTransform(this.el, {
+                scaleX: 2
+            });
+            assert.equal(this.el.style.transform, 'matrix(2, 0, 0, 1, 0, 0)');
         });
         
-        
-        // TODO: Write separate test for - assert.equal(tracker.isTransitioning, true);
-        QUnit.test('setCssTransform', function(assert) {
-            let _this = this;
-            let expected, options;
-            let tracker = {};
-
-            function clean () {
-                _this.el.style.removeProperty('transform');
-            }
-            
-            function run (options, expected) {
-                utils.setCssTransform(_this.el, options, tracker);
-                assert.equal(_this.el.style.transform, expected);
-                clean();
-            }
-
-            // Case: scaleX
-            options = {
-                scaleX: 2
-            };
-            expected = 'matrix(2, 0, 0, 1, 0, 0)';
-            run(options, expected);
-            
-            // Case: scaleY
-            options = {
+        QUnit.test('scaleY', function(assert) {
+            utils.setCssTransform(this.el, {
                 scaleY: 2
-            };
-            expected = 'matrix(1, 0, 0, 2, 0, 0)';
-            run(options, expected);
-            
-            // Case: translateX
-            options = {
+            });
+            assert.equal(this.el.style.transform, 'matrix(1, 0, 0, 2, 0, 0)');
+        });
+
+        QUnit.test('translateX', function(assert) {
+            utils.setCssTransform(this.el, {
                 translateX: 200
-            };
-            expected = 'matrix(1, 0, 0, 1, 200, 0)';
-            run(options, expected);
+            });
+            assert.equal(this.el.style.transform, 'matrix(1, 0, 0, 1, 200, 0)');
+        });
             
-            // Case: translateY
-            options = {
+        QUnit.test('translateY', function(assert) {
+            utils.setCssTransform(this.el, {
                 translateY: 200
-            };
-            expected = 'matrix(1, 0, 0, 1, 0, 200)';
-            run(options, expected);
+            });
+            assert.equal(this.el.style.transform, 'matrix(1, 0, 0, 1, 0, 200)');
+        });
             
-            // Case: All paired properties
-            options = {
+        QUnit.test('scale, translate', function(assert) {
+            utils.setCssTransform(this.el, {
                 scale: 2,
                 translate: 200
-            };
-            expected = 'matrix(2, 0, 0, 2, 200, 200)';
-            run(options, expected);
+            });
+            assert.equal(this.el.style.transform, 'matrix(2, 0, 0, 2, 200, 200)');
+        });
             
-            // Case: All individual properties
-            options = {
+        QUnit.test('scaleX, scaleY, translateX, translateY', function(assert) {
+            utils.setCssTransform(this.el, {
                 scaleX: 1,
                 scaleY: 2,
                 translateX: 3,
                 translateY: 4
-            };
-            expected = 'matrix(1, 0, 0, 2, 3, 4)';
-            run(options, expected);
+            });
+            assert.equal(this.el.style.transform, 'matrix(1, 0, 0, 2, 3, 4)');
         });
         
-        QUnit.test('setCssTransition', function(assert) {
-            let _this = this;
-            let expected, options;
+        QUnit.test('transition > 0s', function(assert) {
+            this.el.style.transitionDuration = '1s';
+            utils.setCssTransform(this.el, {}, this.transitionTracker);
+            assert.equal(this.transitionTracker.isTransitioning, true);
+        });
+        
+        QUnit.test('transition === 0s', function(assert) {
+            utils.setCssTransform(this.el, {}, this.transitionTracker);
+            assert.equal(this.transitionTracker.isTransitioning, false);
+        });
 
-            function clean () {
-                _this.el.style.removeProperty('transition-delay');
-                _this.el.style.removeProperty('transition-duration');
-                _this.el.style.removeProperty('transition-property');
-                _this.el.style.removeProperty('transition-timing-function');
-            }
-            
-            function run (options, expected) {
-                utils.setCssTransition(_this.el, options);
-                assert.equal(_this.el.style.transitionDelay, expected.delay);
-                assert.equal(_this.el.style.transitionDuration, expected.duration);
-                assert.equal(_this.el.style.transitionProperty, expected.property);
-                assert.equal(_this.el.style.transitionTimingFunction, expected.timingFunction);
-                clean();
-            }
-
-            // Case: None
-            options = {};
-            expected = {
-                delay: '0s',
-                duration: '0s',
-                property: 'all',
-                timingFunction: 'ease'
-            };
-            run(options, expected);
-            
-            // Case: Delay
-            options = {
+    });
+    
+    QUnit.module('setCssTransition', function () {
+        QUnit.test('no transition', function(assert) {
+            utils.setCssTransition(this.el, {});
+            assert.equal(this.el.style.transitionDelay, '0s');
+            assert.equal(this.el.style.transitionDuration, '0s');
+            assert.equal(this.el.style.transitionProperty, 'all');
+            assert.equal(this.el.style.transitionTimingFunction, 'ease');
+        });
+        
+        QUnit.test('delay', function(assert) {
+            utils.setCssTransition(this.el, {
                 delay: '1s'
-            };
-            expected = {
-                delay: '1s',
-                duration: '0s',
-                property: 'all',
-                timingFunction: 'ease'
-            };
-            run(options, expected);
-            
-            // Case: Duration
-            options = {
+            });
+            assert.equal(this.el.style.transitionDelay, '1s');
+            assert.equal(this.el.style.transitionDuration, '0s');
+            assert.equal(this.el.style.transitionProperty, 'all');
+            assert.equal(this.el.style.transitionTimingFunction, 'ease');
+        });
+        
+        QUnit.test('duration', function(assert) {
+            utils.setCssTransition(this.el, {
                 duration: '200ms'
-            };
-            expected = {
-                delay: '0s',
-                duration: '200ms',
-                property: 'all',
-                timingFunction: 'ease'
-            };
-            run(options, expected);
-            
-            // Case: Property
-            options = {
+            });
+            assert.equal(this.el.style.transitionDelay, '0s');
+            assert.equal(this.el.style.transitionDuration, '200ms');
+            assert.equal(this.el.style.transitionProperty, 'all');
+            assert.equal(this.el.style.transitionTimingFunction, 'ease');
+        });
+        
+        QUnit.test('property', function(assert) {
+            utils.setCssTransition(this.el, {
                 property: 'transform'
-            };
-            expected = {
-                delay: '0s',
-                duration: '0s',
-                property: 'transform',
-                timingFunction: 'ease'
-            };
-            run(options, expected);
-            
-            // Case: All
-            options = {
+            });
+            assert.equal(this.el.style.transitionDelay, '0s');
+            assert.equal(this.el.style.transitionDuration, '0s');
+            assert.equal(this.el.style.transitionProperty, 'transform');
+            assert.equal(this.el.style.transitionTimingFunction, 'ease');
+        });
+        
+        QUnit.test('timingFunction', function(assert) {
+            utils.setCssTransition(this.el, {
+                timingFunction: 'ease-out'
+            });
+            assert.equal(this.el.style.transitionDelay, '0s');
+            assert.equal(this.el.style.transitionDuration, '0s');
+            assert.equal(this.el.style.transitionProperty, 'all');
+            assert.equal(this.el.style.transitionTimingFunction, 'ease-out');
+        });
+
+        QUnit.test('delay, duration, property, timingFunction', function(assert) {
+            utils.setCssTransition(this.el, {
                 delay: '1s',
                 duration: '200ms',
                 property: 'transform',
                 timingFunction: 'ease-out'
-            };
-            expected = options;
-            run(options, expected);
-            
-            // Case: Bogus
-            options = {
+            });
+            assert.equal(this.el.style.transitionDelay, '1s');
+            assert.equal(this.el.style.transitionDuration, '200ms');
+            assert.equal(this.el.style.transitionProperty, 'transform');
+            assert.equal(this.el.style.transitionTimingFunction, 'ease-out');
+        });
+        
+        QUnit.test('delay, duration, property, timingFunction (bogus values)', function(assert) {
+            utils.setCssTransition(this.el, {
                 bogus: 'bogus',
                 delay: '1',
                 duration: 1,
                 property: 'bogus',
                 timingFunction: 'bogus'
-            };
-            expected = {
-                delay: '',
-                duration: '',
-                property: 'bogus',
-                timingFunction: ''
-            };
-            run(options, expected);
+            });
+            assert.equal(this.el.style.transitionDelay, '');
+            assert.equal(this.el.style.transitionDuration, '');
+            assert.equal(this.el.style.transitionProperty, 'bogus');
+            assert.equal(this.el.style.transitionTimingFunction, '');
         });
-        
     });
 });
