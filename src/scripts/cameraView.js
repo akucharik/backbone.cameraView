@@ -97,6 +97,38 @@ var CameraView = function (options) {
             
             return instance;
         },
+        
+        /**
+        * Set the camera's height.
+        *
+        * @private
+        * @param {CameraModel} model - The camera's model.
+        * @param {Objecty} value - The updated value.
+        * @param {Object} options - An object of options.
+        * @returns {CameraView} The view.
+        */
+        _setHeight: function (model, value, options) {
+            instance.setHeight(value);
+            // TODO: Ideally the camera will keep the current focus in the center after the height change.
+            
+            return instance;
+        },
+        
+        /**
+        * Set the camera's width.
+        *
+        * @private
+        * @param {CameraModel} model - The camera's model.
+        * @param {Objecty} value - The updated value.
+        * @param {Object} options - An object of options.
+        * @returns {CameraView} The view.
+        */
+        _setWidth: function (model, value, options) {
+            instance.setWidth(value);
+            // TODO: Ideally the camera will keep the current focus in the center after the width change.
+            
+            return instance;
+        },
 
         /**
         * Update camera to the current state.
@@ -200,6 +232,8 @@ var CameraView = function (options) {
             instance.$el.on('mouseup', instance._onMouseUp);
             instance.$el.on('transitionend', instance._onTransitionEnd);
             instance.$el.on('wheel', utils.throttleToFrame(instance._onWheel));
+            instance.listenTo(instance.model, 'change:height', instance._setHeight);
+            instance.listenTo(instance.model, 'change:width', instance._setWidth);
             instance.listenTo(instance.model, 'change:state', instance._update);
             instance.onInitialize(options);
 
@@ -238,8 +272,9 @@ var CameraView = function (options) {
             instance.onBeforeRender();
             instance.content = instance.el.querySelector(':first-child');
             instance.content.setAttribute('draggable', false);
-            instance.setWidth(instance.width);
-            instance.setHeight(instance.height);
+            instance.setHeight(instance.model.get('height'));
+            instance.setWidth(instance.model.get('width'));
+            // TODO: Ideally the camera's focus will default to the center of the content
             instance.onRender();
             instance._update(instance.model, instance.model.get('state'), {});
 

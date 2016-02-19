@@ -26,14 +26,11 @@ var SizableView = function () {
     * @returns {this} The view.
     */
     instance.setHeight = function (height) {
-        if (_.isNumber(height)) {
+        if (_.isElement(height)) {
+            this.$el.height($(height).height());
+        }
+        else {
             this.$el.height(height);
-        }
-        else if (_.isElement(height)) {
-            this.$el.height(height.clientHeight);
-        }
-        else if (_.isFunction(height)) {
-            this.$el.height(height());
         }
         
         return this;
@@ -46,14 +43,11 @@ var SizableView = function () {
     * @returns {this} The view.
     */
     instance.setWidth = function (width) {
-        if (_.isNumber(width)) {
+        if (_.isElement(width)) {
+            this.$el.width($(width).width());
+        }
+        else {
             this.$el.width(width);
-        }
-        else if (_.isElement(width)) {
-            this.$el.width(width.clientWidth);
-        }
-        else if (_.isFunction(width)) {
-            this.$el.width(width());
         }
         
         return this;

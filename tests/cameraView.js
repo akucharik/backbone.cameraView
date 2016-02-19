@@ -7,6 +7,8 @@ QUnit.module('camera', function () {
                 className: 'bcv-camera',
                 template: _.template('<div><div id="focusElement" style="width: 100px; height: 200px; position: absolute; left: 100px; top: 100px;"></div></div>'),
                 model: CameraModel({
+                    height: 500,
+                    width: 1000,
                     state: {
                         scale: 1,
                         focus: {
@@ -20,9 +22,7 @@ QUnit.module('camera', function () {
                 }),
                 onBeforeRender: function () {
                     this.el.innerHTML = this.template();
-                },
-                width: 1000,
-                height: 500
+                }
             }).render();
             document.getElementById('qunit-fixture').appendChild(this.view.el);
             

@@ -31,6 +31,13 @@ var CameraModel = function (options) {
         */
         defaults: {
             /**
+            * The height of the camera.
+            * @property {number|string|Element} - A number, a valid CSS height value, or an element. If an element is set, the camera's height will be sized to match the element.
+            * @memberOf CameraModel.defaults
+            * @default
+            */
+            height: null,
+            /**
             * The base increment at which the content will be scaled.
             * @property {number} - See {@link CameraModel.defaults.state.scale|scale}.
             * @memberOf CameraModel.defaults
@@ -51,6 +58,50 @@ var CameraModel = function (options) {
             * @default
             */
             maxScale: 6.0,
+            /**
+            * The camera's current state.
+            * @property {Object} - An object of camera state properties.
+            * @memberOf CameraModel.defaults
+            * @namespace CameraModel.defaults.state
+            */
+            state: {
+                /**
+                * The current scale.
+                * @property {number} - A scale ratio where 1 = 100%.
+                * @memberOf CameraModel.defaults.state
+                * @default
+                */
+                scale: 1,
+                /**
+                * The current scale origin.
+                * @property {Object|Element} - An 'x' {number}, 'y' {number} pixel coordinate object or an Element.
+                * @memberOf CameraModel.defaults.state
+                * @default
+                */
+                scaleOrigin: null,
+                /**
+                * The current focus.
+                * @property {Object|Element} - An 'x' {number}, 'y' {number} pixel coordinate object or an Element.
+                * @memberOf CameraModel.defaults.state
+                * @default
+                */
+                focus: {
+                    x: 0,
+                    y: 0
+                },
+                /**
+                * The current transition.
+                * @property {Object} - A camera {@link CameraModel.defaults.transition|transition} object.
+                * @memberOf CameraModel.defaults.state
+                * @default See {@link CameraModel.defaults.transition|transition}.
+                */
+                transition: {
+                    delay: '0s',
+                    duration: '500ms',
+                    property: 'transform',
+                    timingFunction: 'ease-out'
+                }
+            },
             /**
             * The default transition.
             * @property {Object} - An object of transition properties.
@@ -89,49 +140,12 @@ var CameraModel = function (options) {
                 timingFunction: 'ease-out'
             },
             /**
-            * The camera's current state.
-            * @property {Object} - An object of camera state properties.
+            * The width of the camera.
+            * @property {number|string|Element} - A number, a valid CSS width value, or an element. If an element is set, the camera's width will be sized to match the element.
             * @memberOf CameraModel.defaults
-            * @namespace CameraModel.defaults.state
+            * @default
             */
-            state: {
-                /**
-                * The current scale.
-                * @property {number} - A scale ratio where 1 = 100%.
-                * @memberOf CameraModel.defaults.state
-                * @default
-                */
-                scale: 1,
-                /**
-                * The current scale origin.
-                * @property {Object|Element} - An 'x' {number}, 'y' {number} pixel coordinate object or an Element.
-                * @memberOf CameraModel.defaults.state
-                * @default
-                */
-                scaleOrigin: null,
-                /**
-                * The current focus.
-                * @property {Object|Element} - An 'x' {number}, 'y' {number} pixel coordinate object or an Element.
-                * @memberOf CameraModel.defaults.state
-                * @default
-                */
-                focus: {
-                    x: 501,
-                    y: 251
-                },
-                /**
-                * The current transition.
-                * @property {Object} - A camera {@link CameraModel.defaults.transition|transition} object.
-                * @memberOf CameraModel.defaults.state
-                * @default See {@link CameraModel.defaults.transition|transition}.
-                */
-                transition: {
-                    delay: '0s',
-                    duration: '500ms',
-                    property: 'transform',
-                    timingFunction: 'ease-out'
-                }
-            }
+            width: null
         },
         
         initialize: function () {
