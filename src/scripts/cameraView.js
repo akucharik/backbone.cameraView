@@ -46,10 +46,11 @@ var CameraView = function (options) {
         *
         * @private
         * @param {Object|Element} focus - A {@link CameraModel.defaultState.focus|focus} object.
-        * @param {number} scale - A {@link CameraModel.defaultState.scale|scale} ratio.
+        * @param {number} scale - The current {@link CameraModel.defaultState.scale|scale} ratio.
+        * @param {number} newScale - The new {@link CameraModel.defaultState.scale|scale} ratio.
         * @returns {Object} The focus offset: an 'x' {number}, 'y' {number} pixel coordinate object.
         */
-        _getFocusOffset: function (focus, scale) {
+        _getFocusOffset: function (focus, scale, newScale) {
             var offset = {};
             var frameWidth = instance.el.getBoundingClientRect().width;
             var frameHeight = instance.el.getBoundingClientRect().height;
@@ -59,8 +60,8 @@ var CameraView = function (options) {
             }
 
             if (_.isFinite(focus.x) && _.isFinite(focus.y)) {
-                offset.x = _.round((frameWidth / 2) - (focus.x * scale), 2);
-                offset.y = _.round((frameHeight / 2) - (focus.y * scale), 2);
+                offset.x = _.round((frameWidth / 2) - (focus.x * newScale), 2);
+                offset.y = _.round((frameHeight / 2) - (focus.y * newScale), 2);
             }
             else {
                 throw new Error('Cannot determine focus offset from invalid focus coordinates');
@@ -96,7 +97,7 @@ var CameraView = function (options) {
         * @returns {CameraView} The view.
         */
         _onStateChange: function (model, value, options) {
-            instance.update(value, model.get('transition'));
+            instance.update(value, model.get('transition'), model.previous('state'));
 
             return instance;
         },
@@ -298,10 +299,12 @@ var CameraView = function (options) {
         * @param {Object} transition - The {@link CameraModel.transition|transition}.
         * @returns {CameraView} The view.
         */
-        update: function (state, transition) {
+        update: function (state, transition, previousState) {
             // TODO: Remove once development is complete
             console.log('update');
-            var focusOffset = instance._getFocusOffset(state.focus, state.scale);
+            
+            previousState = previousState || state;
+            var focusOffset = instance._getFocusOffset(state.focus, previousState.scale, state.scale);
 
             utils.setCssTransition(instance.content, transition);
             utils.setCssTransform(instance.content, {
