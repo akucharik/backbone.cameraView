@@ -61,17 +61,7 @@
                 template: _.template(document.getElementById('cameraTemplate').innerHTML),
                 model: CameraModel({
                     height: 500,
-                    width: 1000,
-                    state: {
-                        scale: 1,
-                        focus: {
-                            x: 501,
-                            y: 251
-                        }, 
-                        transition: { 
-                            duration: '0s' 
-                        }
-                    }
+                    width: 1000
                 }),
                 onBeforeRender: function () {
                     this.el.innerHTML = this.template();

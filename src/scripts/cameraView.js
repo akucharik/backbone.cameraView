@@ -7,15 +7,13 @@
 
 /**
 * Factory: Creates a camera to pan and zoom content.
-* Requires {@link http://lodash.com|lodash} or {@link http://underscorejs.org|underscore} and {@link http://jquery.com|jQuery} or {@link http://zeptojs.com|Zepto}.
+* Requires {@link http://backbonejs.org|Backbone}, {@link http://lodash.com|lodash}, and {@link http://jquery.com|jQuery} or {@link http://zeptojs.com|Zepto}.
 * 
 * @constructs CameraView
 * @extends Backbone.View
 * @extends SizableView
 * @param {Object} [options] - An object of options. Includes all Backbone.View options. See {@link http://backbonejs.org/#View|Backbone.View}.
 * @param {CameraModel} [options.model] - The view's model.
-* @param {number|string|Element} [options.width] - The view's width. See {@link SizableView#setWidth|SizableView.setWidth}.
-* @param {number|string|Element} [options.height] - The view's height. See {@link SizableView#setHeight|SizableView.setHeight}.
 * @returns {CameraView} The newly created CameraView object.
 */
 var CameraView = function (options) {
@@ -29,8 +27,8 @@ var CameraView = function (options) {
         * @private
         * @param {Element} el - The Element.
         * @param {Element} content - The camera's main content Element.
-        * @param {number} scale - The current {@link CameraModel.defaults.state.scale|scale} ratio.
-        * @returns {Object} A camera {@link CameraModel.defaults.state.focus|focus} object representing the center point of the Element in relation to the camera's content.
+        * @param {number} scale - The current {@link CameraModel.defaultState.scale|scale} ratio.
+        * @returns {Object} A {@link CameraModel.defaultState.focus|focus} object representing the center point of the Element in relation to the camera's content.
         */
         _getElementFocus: function (el, content, scale) {
             var focus = {};
@@ -47,8 +45,8 @@ var CameraView = function (options) {
         * Get the x/y offset in order to focus on a specific point.
         *
         * @private
-        * @param {Object|Element} focus - A camera {@link CameraModel.defaults.state.focus|focus} object.
-        * @param {number} scale - A {@link CameraModel.defaults.state.scale|scale} ratio.
+        * @param {Object|Element} focus - A {@link CameraModel.defaultState.focus|focus} object.
+        * @param {number} scale - A {@link CameraModel.defaultState.scale|scale} ratio.
         * @returns {Object} The focus offset: an 'x' {number}, 'y' {number} pixel coordinate object.
         */
         _getFocusOffset: function (focus, scale) {
@@ -72,7 +70,39 @@ var CameraView = function (options) {
         },
         
         /**
-        * Track when a camera transition is over.
+        * Handle "height" change event.
+        *
+        * @private
+        * @param {CameraModel} model - The camera's model.
+        * @param {Objecty} value - The updated value.
+        * @param {Object} options - An object of options.
+        * @returns {CameraView} The view.
+        */
+        _onHeightChange: function (model, value, options) {
+            instance.setHeight(value);
+            model.setTransition({ duration: '0s' });
+            instance.update(model.get('state'), model.get('transition'));
+            
+            return instance;
+        },
+        
+        /**
+        * Handle "state" change event.
+        *
+        * @private
+        * @param {CameraModel} model - The camera's model.
+        * @param {Object} value - The updated value.
+        * @param {Object} options - An object of options.
+        * @returns {CameraView} The view.
+        */
+        _onStateChange: function (model, value, options) {
+            instance.update(value, model.get('transition'));
+
+            return instance;
+        },
+        
+        /**
+        * Handle the end of a camera transition.
         *
         * @private
         * @param {Event} event - The event object.
@@ -85,21 +115,21 @@ var CameraView = function (options) {
         },
         
         /**
-        * Respond wheel input.
+        * Handle wheel input.
         *
         * @private
         * @param {MouseEvent} event - A MouseEvent object.
         * @returns {CameraView} The view.
         */
-        _onWheel: function (event) { console.log('wheel');
+        _onWheel: function (event) {
             event.preventDefault();
             instance._wheelZoom(event);
             
             return instance;
         },
-        
+                
         /**
-        * Set the camera's height.
+        * Handle "width" change event.
         *
         * @private
         * @param {CameraModel} model - The camera's model.
@@ -107,48 +137,11 @@ var CameraView = function (options) {
         * @param {Object} options - An object of options.
         * @returns {CameraView} The view.
         */
-        _setHeight: function (model, value, options) {
-            instance.setHeight(value);
-            // TODO: Ideally the camera will keep the current focus in the center after the height change.
-            
-            return instance;
-        },
-        
-        /**
-        * Set the camera's width.
-        *
-        * @private
-        * @param {CameraModel} model - The camera's model.
-        * @param {Objecty} value - The updated value.
-        * @param {Object} options - An object of options.
-        * @returns {CameraView} The view.
-        */
-        _setWidth: function (model, value, options) {
+        _onWidthChange: function (model, value, options) {
             instance.setWidth(value);
-            // TODO: Ideally the camera will keep the current focus in the center after the width change.
+            instance.model.setTransition({ duration: '0s' });
+            instance.update(model.get('state'), model.get('transition'));
             
-            return instance;
-        },
-
-        /**
-        * Update camera to the current state.
-        *
-        * @private
-        * @param {CameraModel} model - The camera's model.
-        * @param {Objecty} value - The updated value.
-        * @param {Object} options - An object of options.
-        * @returns {CameraView} The view.
-        */
-        _update: function (model, value, options) {
-            var focusOffset = instance._getFocusOffset(value.focus, value.scale);
-
-            utils.setCssTransition(instance.content, value.transition);
-            utils.setCssTransform(instance.content, {
-                scale: value.scale,
-                translateX: focusOffset.x,
-                translateY: focusOffset.y
-            }, instance);
-
             return instance;
         },
         
@@ -203,16 +196,17 @@ var CameraView = function (options) {
         /**
         * Focus the camera on a specific point.
         *
-        * @param {Object|Element} focus - A camera {@link CameraModel.defaults.state.focus|focus} object.
-        * @param {Object} [transition] - A camera {@link CameraModel.defaults.transition|transition} object.
+        * @param {Object|Element} focus - A {@link CameraModel.defaultState.focus|focus} object.
+        * @param {Object} [transition] - A {@link CameraModel.defaultTransition|transition} object.
         * @returns {CameraView} The view.
         */
         focusOn: function (focus, transition) {
             transition = transition || {};
 
+            instance.model.setTransition(transition);
             instance.model.setState({
                 focus: focus
-            }, transition);
+            });
 
             return instance;
         },
@@ -232,9 +226,9 @@ var CameraView = function (options) {
             instance.$el.on('mouseup', instance._onMouseUp);
             instance.$el.on('transitionend', instance._onTransitionEnd);
             instance.$el.on('wheel', utils.throttleToFrame(instance._onWheel));
-            instance.listenTo(instance.model, 'change:height', instance._setHeight);
-            instance.listenTo(instance.model, 'change:width', instance._setWidth);
-            instance.listenTo(instance.model, 'change:state', instance._update);
+            instance.listenTo(instance.model, 'change:height', instance._onHeightChange);
+            instance.listenTo(instance.model, 'change:state', instance._onStateChange);
+            instance.listenTo(instance.model, 'change:width', instance._onWidthChange);
             instance.onInitialize(options);
 
             return instance;
@@ -274,9 +268,47 @@ var CameraView = function (options) {
             instance.content.setAttribute('draggable', false);
             instance.setHeight(instance.model.get('height'));
             instance.setWidth(instance.model.get('width'));
-            // TODO: Ideally the camera's focus will default to the center of the content
+            instance.model.setTransition({ duration: '0s' });
+            
+            // If no focus, set default focus
+            if (!instance.model.get('state').focus) { 
+                var cameraRect = instance.el.getBoundingClientRect();
+                
+                instance.model.setState({ 
+                    focus: {
+                        x: cameraRect.width / 2,
+                        y: cameraRect.height / 2
+                    }
+                });
+            }
+            else {
+                instance.update(instance.model.get('state'), instance.model.get('transition'));
+            }
+            
             instance.onRender();
-            instance._update(instance.model, instance.model.get('state'), {});
+
+            return instance;
+        },
+        
+        /**
+        * Update camera to a state.
+        *
+        * @private
+        * @param {Object} state - The {@link CameraModel.state|state}.
+        * @param {Object} transition - The {@link CameraModel.transition|transition}.
+        * @returns {CameraView} The view.
+        */
+        update: function (state, transition) {
+            // TODO: Remove once development is complete
+            console.log('update');
+            var focusOffset = instance._getFocusOffset(state.focus, state.scale);
+
+            utils.setCssTransition(instance.content, transition);
+            utils.setCssTransform(instance.content, {
+                scale: state.scale,
+                translateX: focusOffset.x,
+                translateY: focusOffset.y
+            }, instance);
 
             return instance;
         },
@@ -284,16 +316,17 @@ var CameraView = function (options) {
         /**
         * Zoom in/out at the current focus.
         *
-        * @param {number} scale - A {@link CameraModel.defaults.state.scale|scale} ratio.
-        * @param {Object} [transition] - A camera {@link CameraModel.defaults.transition|transition} object.
+        * @param {number} scale - A {@link CameraModel.defaultState.scale|scale} ratio.
+        * @param {Object} [transition] - A {@link CameraModel.defaultTransition|transition} object.
         * @returns {CameraView} The view.
         */
         zoom: function (scale, transition) {
             transition = transition || {};
 
+            instance.model.setTransition(transition);
             instance.model.setState({
                 scale: scale
-            }, transition);
+            });
 
             return instance;
         },
@@ -301,9 +334,9 @@ var CameraView = function (options) {
         /**
         * Zoom in/out at a specific point.
         *
-        * @param {number} scale - A {@link CameraModel.defaults.state.scale|scale} ratio.
-        * @param {Object|Element} focus - A camera {@link CameraModel.defaults.state.focus|focus} object.
-        * @param {Object} [transition] - A camera {@link CameraModel.defaults.transition|transition} object.
+        * @param {number} scale - A {@link CameraModel.defaultState.scale|scale} ratio.
+        * @param {Object|Element} focus - A {@link CameraModel.defaultState.focus|focus} object.
+        * @param {Object} [transition] - A {@link CameraModel.defaultTransition|transition} object.
         * @returns {CameraView} The view.
         */
         zoomAt: function (scale, focus, transition) {
@@ -330,11 +363,12 @@ var CameraView = function (options) {
             newFocus.x = currentFocus.x - delta.x + (delta.x * scaleRatio);
             newFocus.y = currentFocus.y - delta.y + (delta.y * scaleRatio);
             
+            instance.model.setTransition(transition);
             instance.model.setState({
                 scale: scale,
                 scaleOrigin: focus,
                 focus: newFocus
-            }, transition);
+            });
 
             return instance;
         },
@@ -342,18 +376,19 @@ var CameraView = function (options) {
         /**
         * Zoom in/out and focus the camera on a specific point.
         *
-        * @param {number} scale - A {@link CameraModel.defaults.state.scale|scale} ratio.
-        * @param {Object|Element} focus - A camera {@link CameraModel.defaults.state.focus|focus} object.
-        * @param {Object} [transition] - A camera {@link CameraModel.defaults.transition|transition} object.
+        * @param {number} scale - A {@link CameraModel.defaultState.scale|scale} ratio.
+        * @param {Object|Element} focus - A {@link CameraModel.defaultState.focus|focus} object.
+        * @param {Object} [transition] - A {@link CameraModel.defaultTransition|transition} object.
         * @returns {CameraView} The view.
         */
         zoomTo: function (scale, focus, transition) {
             transition = transition || {};
 
+            instance.model.setTransition(transition);
             instance.model.setState({
                 scale: scale,
                 focus: focus
-            }, transition);
+            });
 
             return instance;
         }
