@@ -157,4 +157,36 @@ QUnit.module('utils', {
             assert.equal(this.el.style.transitionTimingFunction, '');
         });
     });
+    
+    QUnit.module('throttleToFrame', {
+        beforeEach: function() {
+            this.count = 0;
+            this.func = function () { this.count++; }
+            this.throttled = utils.throttleToFrame(this.func);    
+        }}, function () {
+        
+        QUnit.test('return a throttled function', function(assert) {
+            assert.equal(_.isFunction(this.throttled), true);
+        });
+        
+        QUnit.test('throttled function runs only once per animation frame', function(assert) {
+            var _this = this;
+            var done = assert.async(2);
+            
+            this.throttled();
+            this.throttled();
+            
+            window.setTimeout(function () {
+                assert.equal(_this.count, 1);
+                done();
+                _this.throttled();
+                _this.throttled();
+            }, 50);
+            
+            window.setTimeout(function () {
+                assert.equal(_this.count, 2);
+                done();
+            }, 100);
+        });
+    });
 });
