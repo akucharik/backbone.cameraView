@@ -59,6 +59,7 @@
             var cameraView = CameraView({
                 el: document.getElementById('camera'),
                 template: _.template(document.getElementById('cameraTemplate').innerHTML),
+                // TODO: Add height and width to the model instead of options on the view.
                 model: CameraModel({
                     state: {
                         scale: 1,

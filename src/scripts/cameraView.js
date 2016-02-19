@@ -83,6 +83,20 @@ var CameraView = function (options) {
             
             return instance;
         },
+        
+        /**
+        * Respond wheel input.
+        *
+        * @private
+        * @param {MouseEvent} event - A MouseEvent object.
+        * @returns {CameraView} The view.
+        */
+        _onWheel: function (event) { console.log('wheel');
+            event.preventDefault();
+            instance._wheelZoom(event);
+            
+            return instance;
+        },
 
         /**
         * Update camera to the current state.
@@ -114,7 +128,6 @@ var CameraView = function (options) {
         * @returns {CameraView} The view.
         */
         _wheelZoom: function (event) {
-            event.preventDefault();
             document.querySelector('body').style.overflow = 'hidden';
 
             if (event.deltaY) {
@@ -173,13 +186,20 @@ var CameraView = function (options) {
         },
 
         /**
-        * Called on the view instance when the view has been created. This method is not meant to be overridden.
+        * Called on the view instance when the view has been created. This method is not meant to be overridden. If you need to access initialization, use {@link CameraView#onInitialize|onInitialize}.
         *
         * @param {Object} [options] - An object of options. Includes all Backbone.View options. See {@link http://backbonejs.org/#View|Backbone.View}.
         * @returns {CameraView} The view.
         */
         initialize: function (options) {
             instance.isTransitioning = false;
+            instance.$el.on('click', instance._onClick);
+            instance.$el.on('mousedown', instance._onMouseDown);
+            instance.$el.on('mouseleave', instance._onMouseLeave);
+            instance.$el.on('mousemove', instance._onMouseMove);
+            instance.$el.on('mouseup', instance._onMouseUp);
+            instance.$el.on('transitionend', instance._onTransitionEnd);
+            instance.$el.on('wheel', utils.throttleToFrame(instance._onWheel));
             instance.listenTo(instance.model, 'change:state', instance._update);
             instance.onInitialize(options);
 
@@ -210,7 +230,7 @@ var CameraView = function (options) {
         },
         
         /**
-        * Render the camera view. This method is not meant to be overridden. If you need manipulate how the camera renders, use {@link CameraView#onBeforeRender|onBeforeRender} and {@link CameraView#onRender|onRender}.
+        * Render the camera view. This method is not meant to be overridden. If you need to manipulate how the camera renders, use {@link CameraView#onBeforeRender|onBeforeRender} and {@link CameraView#onRender|onRender}.
         *
         * @returns {CameraView} The view.
         */
@@ -314,19 +334,6 @@ var CameraView = function (options) {
 
     // TODO: don't merge all the options onto the view. Figure out something better.
     Object.assign(instance, options);
-
-    // TODO: Refactor/clean up and move baked-in events into '_initialize'. Use 'listenTo' to attach events so 'remove' will unattach them.
-    instance.events = function () {
-        return {
-            'click'         : '_onClick',
-            'mousedown'     : '_onMouseDown',
-            'mouseleave'    : '_onMouseLeave',
-            'mousemove'     : '_onMouseMove',
-            'mouseup'       : '_onMouseUp',
-            'wheel'         : utils.throttleToFrame(instance._wheelZoom),
-            'transitionend' : '_onTransitionEnd'
-        };
-    };
     
     // TODO: Refactor/clean up and move into prototype
     /**
