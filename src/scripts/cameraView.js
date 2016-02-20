@@ -11,6 +11,7 @@
 * 
 * @constructs CameraView
 * @extends Backbone.View
+* @extends Focuser
 * @extends SizableView
 * @param {Object} [options] - An object of options. Includes all Backbone.View options. See {@link http://backbonejs.org/#View|Backbone.View}.
 * @param {CameraModel} [options.model] - The view's model.
@@ -21,55 +22,6 @@ var CameraView = function (options) {
     * @lends CameraView.prototype
     */
     let prototype = {
-        /**
-        * Get the x/y focus for an Element.
-        *
-        * @private
-        * @param {Element} el - The Element.
-        * @param {Element} content - The camera's main content Element.
-        * @param {number} scale - The current {@link CameraModel.defaultState.scale|scale} ratio.
-        * @returns {Object} A {@link CameraModel.defaultState.focus|focus} object representing the center point of the Element in relation to the camera's content.
-        */
-        _getElementFocus: function (el, content, scale) {
-            var focus = {};
-            var elRect = el.getBoundingClientRect();
-            var contentRect = content.getBoundingClientRect();
-            
-            focus.x = (elRect.width / scale / 2) + (elRect.left / scale + window.scrollX) - (contentRect.left / scale + window.scrollX);
-            focus.y = (elRect.height / scale / 2) + (elRect.top / scale + window.scrollY) - (contentRect.top / scale + window.scrollY);
-            
-            return focus;
-        },
-        
-        /**
-        * Get the x/y offset in order to focus on a specific point.
-        *
-        * @private
-        * @param {Object|Element} focus - A {@link CameraModel.defaultState.focus|focus} object.
-        * @param {number} scale - The current {@link CameraModel.defaultState.scale|scale} ratio.
-        * @param {number} newScale - The new {@link CameraModel.defaultState.scale|scale} ratio.
-        * @returns {Object} The focus offset: an 'x' {number}, 'y' {number} pixel coordinate object.
-        */
-        _getFocusOffset: function (focus, scale, newScale) {
-            var offset = {};
-            var frameWidth = instance.el.getBoundingClientRect().width;
-            var frameHeight = instance.el.getBoundingClientRect().height;
-
-            if (_.isElement(focus)) {
-                focus = instance._getElementFocus(focus, instance.content, scale);
-            }
-
-            if (_.isFinite(focus.x) && _.isFinite(focus.y)) {
-                offset.x = _.round((frameWidth / 2) - (focus.x * newScale), 2);
-                offset.y = _.round((frameHeight / 2) - (focus.y * newScale), 2);
-            }
-            else {
-                throw new Error('Cannot determine focus offset from invalid focus coordinates');
-            }
-
-            return offset;
-        },
-        
         /**
         * Handle "height" change event.
         *
@@ -82,7 +34,7 @@ var CameraView = function (options) {
         _onHeightChange: function (model, value, options) {
             instance.setHeight(value);
             model.setTransition({ duration: '0s' });
-            instance.update(model.get('state'), model.get('transition'));
+            instance.update(model);
             
             return instance;
         },
@@ -97,7 +49,7 @@ var CameraView = function (options) {
         * @returns {CameraView} The view.
         */
         _onStateChange: function (model, value, options) {
-            instance.update(value, model.get('transition'), model.previous('state'));
+            instance.update(model);
 
             return instance;
         },
@@ -141,7 +93,7 @@ var CameraView = function (options) {
         _onWidthChange: function (model, value, options) {
             instance.setWidth(value);
             instance.model.setTransition({ duration: '0s' });
-            instance.update(model.get('state'), model.get('transition'));
+            instance.update(model);
             
             return instance;
         },
@@ -283,7 +235,7 @@ var CameraView = function (options) {
                 });
             }
             else {
-                instance.update(instance.model.get('state'), instance.model.get('transition'));
+                instance.update(instance.model);
             }
             
             instance.onRender();
@@ -297,14 +249,17 @@ var CameraView = function (options) {
         * @private
         * @param {Object} state - The {@link CameraModel.state|state}.
         * @param {Object} transition - The {@link CameraModel.transition|transition}.
+        * @param {Object} [previousState] - The previous {@link CameraModel.state|state}. Only necessary when called from a "change:state" event.
         * @returns {CameraView} The view.
         */
-        update: function (state, transition, previousState) {
+        update: function (model) {
             // TODO: Remove once development is complete
             console.log('update');
             
-            previousState = previousState || state;
-            var focusOffset = instance._getFocusOffset(state.focus, previousState.scale, state.scale);
+            var state = model.get('state');
+            var transition = model.get('transition');
+            var previousState = model.previousAttributes().state;
+            var focusOffset = instance.getFocusOffset(instance.el, instance.content, state.focus, state.scale, previousState.scale);
 
             utils.setCssTransition(instance.content, transition);
             utils.setCssTransform(instance.content, {
@@ -401,6 +356,7 @@ var CameraView = function (options) {
     let instance = Object.create(Object.assign(
         {},
         Backbone.View.prototype, 
+        Focuser(),
         SizableView(), 
         prototype
     ));
