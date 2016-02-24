@@ -140,7 +140,8 @@ var utils = {
             if (!isProcessing) {
                 isProcessing = true;
 
-                window.requestAnimationFrame(function() {
+                window.requestAnimationFrame(function(timestamp) {
+                    Array.prototype.push.call(args, timestamp);
                     func.apply(_this, args);
                     isProcessing = false;
                 });    

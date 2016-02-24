@@ -188,5 +188,7 @@ QUnit.module('utils', {
                 done();
             }, 100);
         });
+        
+        // TODO: Write test to make sure RAF's timestamp is added to the function's arguments.
     });
 });
