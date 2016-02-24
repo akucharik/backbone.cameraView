@@ -23,6 +23,19 @@ var CameraView = function (options) {
     */
     let prototype = {
         /**
+        * Handle the dragstart event.
+        *
+        * @private
+        * @param {DragEvent} event - The drag event.
+        */
+        _onDragStart: function (event) {
+            // Prevent the "ghost image" when dragging.
+            event.preventDefault();
+
+            return false;
+        },
+        
+        /**
         * Handle "height" change event.
         *
         * @private
@@ -37,6 +50,61 @@ var CameraView = function (options) {
             instance.update(model);
             
             return instance;
+        },
+        
+        /**
+        * Handle the mousedown event.
+        *
+        * @private
+        * @param {MouseEvent} event - The mouse event.
+        */
+        _onMouseDown: function (event) {
+            instance.isDragging = true;
+            
+            // Set time for calculating velocity.
+            instance.previousEventTime = event.timeStamp;
+            
+            // Set x/y point for calculating move distance.
+            instance.dragStartX = event.clientX;
+            instance.dragStartY = event.clientY;
+        },
+        
+        /**
+        * Handle the mouseleave event.
+        *
+        * @private
+        * @param {MouseEvent} event - The mouse event.
+        */
+        _onMouseLeave: function (event) {
+            instance.isDragging = false;
+            document.querySelector('body').style.removeProperty('overflow');
+        },
+        
+        /**
+        * Handle the mousemove event.
+        *
+        * @private
+        * @param {MouseEvent} event - The mouse event.
+        */
+        _onMouseMove: function (event) {
+            if (instance.isDragging) {
+                instance.drag(event);
+            }
+        },
+        
+        /**
+        * Handle the mouseup event.
+        *
+        * @private
+        * @param {MouseEvent} event - The mouse event.
+        */
+        _onMouseUp: function (event) {
+            // TODO: Remove when development is complete
+            console.log('mouse up');
+            
+            if (instance.isDragging) {
+                instance.dragEnd(event);
+            }
         },
         
         /**
@@ -142,6 +210,94 @@ var CameraView = function (options) {
                     });
                 }
             }
+            
+            return instance;
+        },
+        
+        // TODO: Messy! Refactor!
+        /**
+        * Drag the content.
+        *
+        * @param {DragEvent} event - The drag event.
+        */
+        drag: function (event) {
+            var state = instance.model.get('state');
+            var dragDelta = {
+                x: (instance.dragStartX - event.clientX) / state.scale,
+                y: (instance.dragStartY - event.clientY) / state.scale
+            };
+            var newFocus = {
+                x: state.focus.x + dragDelta.x,
+                y: state.focus.y + dragDelta.y
+            };
+            var contentHeight = instance.content.getBoundingClientRect().height / state.scale;
+            var contentWidth = instance.content.getBoundingClientRect().width / state.scale;
+            var eventTimeDelta = event.timeStamp - instance.previousEventTime;
+            
+            instance.velocity = {
+                x: dragDelta.x / (eventTimeDelta / 1000),
+                y: dragDelta.y / (eventTimeDelta / 1000)
+            };
+            
+            // TODO: Abstract this out into a "check bounds" function.
+            // Contain movement
+            if (newFocus.x > contentWidth) {
+                newFocus.x = contentWidth;
+            }
+
+            if (newFocus.x < 0) {
+                newFocus.x = 0;
+            }
+
+            if (newFocus.y > contentHeight) {
+                newFocus.y = contentHeight;
+            }
+
+            if (newFocus.y < 0) {
+                newFocus.y = 0;
+            }
+
+            // Log timestamp
+            instance.previousEventTime = event.timeStamp;
+            
+            // Set x/y point for calculating next move distance
+            instance.dragStartX = event.clientX;
+            instance.dragStartY = event.clientY;
+
+            instance.focusOn(newFocus, { 
+                duration: '0s'
+            });
+
+            return instance;
+        },
+        
+        // TODO: Messy! Refactor!
+        /**
+        * End dragging the content.
+        *
+        * @param {MouseEvent} event - The mouse event.
+        */
+        dragEnd: function (event) {
+            var eventTimeDelta = event.timeStamp - instance.previousEventTime;
+
+            // Only apply momentum movement if dragging has not stopped
+            if (eventTimeDelta < 66.6) {
+                var state = instance.model.get('state');
+                var duration = 500;
+                var newFocus = {
+                    x: state.focus.x + (instance.velocity.x) * (duration / 1000),
+                    y: state.focus.y + (instance.velocity.y) * (duration / 1000)
+                };
+
+                // TODO: Abstract out "check bounds" function that can be called before setting new focus.
+                // "check bounds" should also be called from inside drag() and potentially other places.
+                instance.focusOn(newFocus, { 
+                    duration: duration + 'ms',
+                    timingFunction: 'ease-out'
+                });    
+            }
+            
+            instance.isDragging = false;
             
             return instance;
         },
@@ -368,7 +524,7 @@ var CameraView = function (options) {
     
     // TODO: Refactor/clean up and move into prototype
     /**
-    * Handle click event.
+    * Handle the click event.
     *
     * @private
     * @param {MouseEvent} event - The mouse event.
@@ -378,95 +534,6 @@ var CameraView = function (options) {
             x: event.clientX - instance.content.getBoundingClientRect().left + window.scrollX,
             y: event.clientY - instance.content.getBoundingClientRect().top + window.scrollX
         });
-    };
-    
-    instance._onDragStart = function (event) {
-        event.preventDefault();
-        
-        return false;
-    };    
-
-    // TODO: Refactor/clean up and move into prototype
-    /**
-    * Handle mousedown event.
-    *
-    * @private
-    * @param {MouseEvent} event - The mouse event.
-    */
-    instance._onMouseDown = function (event) {
-        instance.isDragging = true;
-        instance.moveStartX = event.clientX;
-        instance.moveStartY = event.clientY;
-    };
-
-    // TODO: Refactor/clean up and move into prototype
-    /**
-    * Handle mouseleave event.
-    *
-    * @private
-    * @param {MouseEvent} event - The mouse event.
-    */
-    instance._onMouseLeave = function (event) {
-        console.log('leave');
-        instance.isDragging = false;
-        document.querySelector('body').style.removeProperty('overflow');
-    };
-
-    // TODO: Refactor/clean up and move into prototype
-    /**
-    * Handle mousemove event.
-    *
-    * @private
-    * @param {MouseEvent} event - The mouse event.
-    */
-    instance._onMouseMove = function (event) {
-        if (instance.isDragging) {
-            console.log('move');
-            var state = instance.model.get('state');
-            var focus = state.focus;
-            var offset = {
-                x: (instance.moveStartX - event.clientX) / state.scale,
-                y: (instance.moveStartY - event.clientY) / state.scale
-            };
-            var newFocus = {
-                x: focus.x + offset.x,
-                y: focus.y + offset.y
-            };
-            var contentRect = instance.content.getBoundingClientRect();
-            
-            if (newFocus.x > contentRect.width / state.scale) {
-                newFocus.x = contentRect.width / state.scale;
-            }
-            
-            if (newFocus.x < 0) {
-                newFocus.x = 0;
-            }
-            
-            if (newFocus.y > contentRect.height / state.scale) {
-                newFocus.y = contentRect.height / state.scale;
-            }
-            
-            if (newFocus.y < 0) {
-                newFocus.y = 0;
-            }
-            
-            instance.focusOn(newFocus, { duration: '0s'});
-            
-            instance.moveStartX = event.clientX;
-            instance.moveStartY = event.clientY;
-        }
-    };
-
-    // TODO: Refactor/clean up and move into prototype
-    /**
-    * Handle mouseup event.
-    *
-    * @private
-    * @param {MouseEvent} event - The mouse event.
-    */
-    instance._onMouseUp = function (event) {
-        console.log('up');
-        instance.isDragging = false;
     };
 
     Backbone.View.call(instance, options);
