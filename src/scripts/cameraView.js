@@ -171,11 +171,13 @@ var CameraView = function (options) {
         * @returns {CameraView} The view.
         */
         initialize: function (options) {
+            instance.isDragging = false;
             instance.isTransitioning = false;
             instance.$el.on('click', instance._onClick);
+            instance.$el.on('dragstart', instance._onDragStart);
             instance.$el.on('mousedown', instance._onMouseDown);
             instance.$el.on('mouseleave', instance._onMouseLeave);
-            instance.$el.on('mousemove', instance._onMouseMove);
+            instance.$el.on('mousemove', utils.throttleToFrame(instance._onMouseMove));
             instance.$el.on('mouseup', instance._onMouseUp);
             instance.$el.on('transitionend', instance._onTransitionEnd);
             instance.$el.on('wheel', utils.throttleToFrame(instance._onWheel));
@@ -377,16 +379,12 @@ var CameraView = function (options) {
             y: event.clientY - instance.content.getBoundingClientRect().top + window.scrollX
         });
     };
-
-    // TODO: Refactor/clean up and move into prototype
-    /**
-    * Prevent mousemove event from doing anything.
-    *
-    * @private
-    */
-    instance._stop = function () {
-        instance.isActive = false;
-    };
+    
+    instance._onDragStart = function (event) {
+        event.preventDefault();
+        
+        return false;
+    };    
 
     // TODO: Refactor/clean up and move into prototype
     /**
@@ -396,27 +394,9 @@ var CameraView = function (options) {
     * @param {MouseEvent} event - The mouse event.
     */
     instance._onMouseDown = function (event) {
-        //console.log(instance.el.getBoundingClientRect());
-        //console.log('top: ', instance.el.getBoundingClientRect().top + window.scrollY);
+        instance.isDragging = true;
         instance.moveStartX = event.clientX;
         instance.moveStartY = event.clientY;
-        instance.contentStartX = instance.content.getBoundingClientRect().left + window.scrollX - instance.el.getBoundingClientRect().left + window.scrollX;
-        instance.contentStartY = instance.content.getBoundingClientRect().top + window.scrollY - instance.el.getBoundingClientRect().top + window.scrollY;
-
-        instance.isActive = true;
-
-        //console.log('scrollTop: ', instance.el.scrollTop);
-        //console.log('scrollLeft: ', instance.el.scrollLeft);
-        //console.log('scrollWidth: ', instance.el.scrollWidth);
-        //console.log('scrollHeight: ', instance.el.scrollHeight);
-        //console.log('eventX: ', event.clientX);
-        //console.log('eventY: ', event.clientY);
-        //console.log('elX: ', instance.el.getBoundingClientRect());
-        //console.log('elY: ', instance.el.getBoundingClientRect());
-        //console.log('mouse startX: ', instance.startX);
-        //console.log('mouse startY: ', instance.startY);
-        //console.log('content startX: ', instance.content.getBoundingClientRect().left - instance.el.getBoundingClientRect().left);
-        //console.log('content startY: ', instance.content.getBoundingClientRect().top - instance.el.getBoundingClientRect().top);
     };
 
     // TODO: Refactor/clean up and move into prototype
@@ -427,8 +407,8 @@ var CameraView = function (options) {
     * @param {MouseEvent} event - The mouse event.
     */
     instance._onMouseLeave = function (event) {
-        instance._stop();
-        // TODO: Instead of reverting to 'auto' remove the inline style rule to let any applied stylesheet rule kick in. 
+        console.log('leave');
+        instance.isDragging = false;
         document.querySelector('body').style.removeProperty('overflow');
     };
 
@@ -440,38 +420,40 @@ var CameraView = function (options) {
     * @param {MouseEvent} event - The mouse event.
     */
     instance._onMouseMove = function (event) {
-        // TODO: Refactor. Add drag-ability of content when zoomed in/out.
-        if (instance.isActive) {
+        if (instance.isDragging) {
             console.log('move');
-            // Handle vertical bounds
-            if (instance.contentStartX + event.clientX - instance.moveStartX < 0) {
-                instance.content.style.left = (instance.contentStartX + event.clientX - instance.moveStartX) + 'px';
+            var state = instance.model.get('state');
+            var focus = state.focus;
+            var offset = {
+                x: (instance.moveStartX - event.clientX) / state.scale,
+                y: (instance.moveStartY - event.clientY) / state.scale
+            };
+            var newFocus = {
+                x: focus.x + offset.x,
+                y: focus.y + offset.y
+            };
+            var contentRect = instance.content.getBoundingClientRect();
+            
+            if (newFocus.x > contentRect.width / state.scale) {
+                newFocus.x = contentRect.width / state.scale;
             }
-            if (instance.contentStartX + event.clientX - instance.moveStartX >= 0) {
-                instance.moveStartX = event.clientX;
-                instance.contentStartX = 0;
-                instance.content.style.left = 0 + 'px';
+            
+            if (newFocus.x < 0) {
+                newFocus.x = 0;
             }
-            if (instance.contentStartX + event.clientX - instance.moveStartX <= instance.el.clientWidth - instance.content.getBoundingClientRect().width) {
-                instance.moveStartX = event.clientX;
-                instance.contentStartX = instance.el.clientWidth - instance.content.getBoundingClientRect().width;
-                instance.content.style.left = instance.el.clientWidth - instance.content.getBoundingClientRect().width + 'px';
+            
+            if (newFocus.y > contentRect.height / state.scale) {
+                newFocus.y = contentRect.height / state.scale;
             }
-
-            // Handle horizontal bounds
-            if (instance.contentStartY + event.clientY - instance.moveStartY < 0) {
-                instance.content.style.top = (instance.contentStartY + event.clientY - instance.moveStartY) + 'px';
+            
+            if (newFocus.y < 0) {
+                newFocus.y = 0;
             }
-            if (instance.contentStartY + event.clientY - instance.moveStartY >= 0) {
-                instance.moveStartY = event.clientY;
-                instance.contentStartY = 0;
-                instance.content.style.top = 0 + 'px';
-            }
-            if (instance.contentStartY + event.clientY - instance.moveStartY <= instance.el.clientHeight - instance.content.getBoundingClientRect().height) {
-                instance.moveStartY = event.clientY;
-                instance.contentStartY = instance.el.clientHeight - instance.content.getBoundingClientRect().height;
-                instance.content.style.top = instance.el.clientHeight - instance.content.getBoundingClientRect().height + 'px';
-            }
+            
+            instance.focusOn(newFocus, { duration: '0s'});
+            
+            instance.moveStartX = event.clientX;
+            instance.moveStartY = event.clientY;
         }
     };
 
@@ -483,7 +465,8 @@ var CameraView = function (options) {
     * @param {MouseEvent} event - The mouse event.
     */
     instance._onMouseUp = function (event) {
-        instance._stop();
+        console.log('up');
+        instance.isDragging = false;
     };
 
     Backbone.View.call(instance, options);

@@ -3,6 +3,10 @@
     position: relative;
 }
 
+.bcv-camera *::selection {
+    background-color: transparent;
+}
+
 .bcv-camera > :first-child {
     position: absolute;
     transform-origin: 0 0;
