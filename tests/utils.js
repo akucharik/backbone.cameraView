@@ -160,12 +160,16 @@ QUnit.module('utils', {
     
     QUnit.module('throttleToFrame', {
         beforeEach: function() {
+            this.args = null;
             this.count = 0;
-            this.func = function () { this.count++; }
+            this.func = function () { 
+                this.args = arguments;
+                this.count++;
+            }
             this.throttled = utils.throttleToFrame(this.func);    
         }}, function () {
         
-        QUnit.test('return a throttled function', function(assert) {
+        QUnit.test('returns a throttled function', function(assert) {
             assert.equal(_.isFunction(this.throttled), true);
         });
         
@@ -189,6 +193,29 @@ QUnit.module('utils', {
             }, 100);
         });
         
-        // TODO: Write test to make sure RAF's timestamp is added to the function's arguments.
+        QUnit.test('any arguments passed to the throttled function are passed through to the original function', function(assert) {
+            var _this = this;
+            var done = assert.async();
+            
+            this.throttled(1, 2);
+            
+            window.setTimeout(function () {
+                assert.equal(_this.args[0], 1);
+                assert.equal(_this.args[1], 2);
+                done();
+            }, 50);
+        });
+        
+        QUnit.test('RAF timestamp is passed through to the original function as the last argument', function(assert) {
+            var _this = this;
+            var done = assert.async();
+            
+            this.throttled();
+            
+            window.setTimeout(function () {
+                assert.equal(_.isFinite(_this.args[_this.args.length - 1]), true);
+                done();
+            }, 50);
+        });
     });
 });
