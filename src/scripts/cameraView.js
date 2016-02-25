@@ -179,21 +179,10 @@ var CameraView = function (options) {
             if (event.deltaY) {
                 var direction = event.deltaY > 0 ? constants.zoom.OUT : constants.zoom.IN;
                 var scale = instance.model.get('state').scale;
-                var newScale = scale;
-                var min = instance.model.get('minScale');
-                var max = instance.model.get('maxScale');
+                var newScale = _.clamp(scale + instance.model.get('increment') * Math.abs(event.deltaY) * scale * (direction === constants.zoom.IN ? 1 : -1), instance.model.get('minScale'), instance.model.get('maxScale'));
                 var origin = null;
-
-                newScale = scale + instance.model.get('increment') * Math.abs(event.deltaY) * scale * (direction === constants.zoom.IN ? 1 : -1);
-
-                if (newScale < min) {
-                    newScale = min;
-                }
-                else if (newScale > max) {
-                    newScale = max;
-                }
-
-                // If scale has changed, it is within the min/max.
+                
+                // If scale has not changed, it is at the min or max.
                 if (newScale !== scale) {
                     if (!instance.isTransitioning) {
                         origin = {
@@ -227,35 +216,16 @@ var CameraView = function (options) {
                 y: (instance.dragStartY - event.clientY) / state.scale
             };
             var newFocus = {
-                x: state.focus.x + dragDelta.x,
-                y: state.focus.y + dragDelta.y
+                x: _.clamp(state.focus.x + dragDelta.x, 0, instance.content.getBoundingClientRect().width / state.scale),
+                y: _.clamp(state.focus.y + dragDelta.y, 0, instance.content.getBoundingClientRect().height / state.scale)
             };
-            var contentHeight = instance.content.getBoundingClientRect().height / state.scale;
-            var contentWidth = instance.content.getBoundingClientRect().width / state.scale;
+            
             var eventTimeDelta = event.timeStamp - instance.previousEventTime;
             
             instance.velocity = {
                 x: dragDelta.x / (eventTimeDelta / 1000),
                 y: dragDelta.y / (eventTimeDelta / 1000)
             };
-            
-            // TODO: Abstract this out into a "check bounds" function.
-            // Contain movement
-            if (newFocus.x > contentWidth) {
-                newFocus.x = contentWidth;
-            }
-
-            if (newFocus.x < 0) {
-                newFocus.x = 0;
-            }
-
-            if (newFocus.y > contentHeight) {
-                newFocus.y = contentHeight;
-            }
-
-            if (newFocus.y < 0) {
-                newFocus.y = 0;
-            }
 
             // Log timestamp
             instance.previousEventTime = event.timeStamp;
@@ -271,7 +241,7 @@ var CameraView = function (options) {
             return instance;
         },
         
-        // TODO: Messy! Refactor!
+        // TODO: Refactor into a function that repeats on RAF similar to zoomAt so that decceleration and bounds can work together.
         /**
         * End dragging the content.
         *
@@ -283,14 +253,12 @@ var CameraView = function (options) {
             // Only apply momentum movement if dragging has not stopped
             if (eventTimeDelta < 66.6) {
                 var state = instance.model.get('state');
-                var duration = 500;
+                var duration = 750;
                 var newFocus = {
                     x: state.focus.x + (instance.velocity.x) * (duration / 1000),
                     y: state.focus.y + (instance.velocity.y) * (duration / 1000)
                 };
 
-                // TODO: Abstract out "check bounds" function that can be called before setting new focus.
-                // "check bounds" should also be called from inside drag() and potentially other places.
                 instance.focusOn(newFocus, { 
                     duration: duration + 'ms',
                     timingFunction: 'ease-out'
