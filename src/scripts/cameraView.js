@@ -253,21 +253,72 @@ var CameraView = function (options) {
             // Only apply momentum movement if dragging has not stopped
             if (eventTimeDelta < 66.6) {
                 var state = instance.model.get('state');
-                var duration = 750;
-                var newFocus = {
-                    x: state.focus.x + (instance.velocity.x) * (duration / 1000),
-                    y: state.focus.y + (instance.velocity.y) * (duration / 1000)
-                };
+//                var duration = 750;
+//                var newFocus = {
+//                    x: state.focus.x + (instance.velocity.x) * (duration / 1000),
+//                    y: state.focus.y + (instance.velocity.y) * (duration / 1000)
+//                };
+                
+                var previousTime = performance.now();
+                window.requestAnimationFrame(function (timestamp) { 
+                    instance.dragDeccelerate(instance.velocity, timestamp - previousTime, timestamp);
+                });
 
-                instance.focusOn(newFocus, { 
-                    duration: duration + 'ms',
-                    timingFunction: 'ease-out'
-                });    
+//                instance.focusOn(newFocus, { 
+//                    duration: duration + 'ms',
+//                    timingFunction: 'ease-out'
+//                });
             }
             
             instance.isDragging = false;
             
             return instance;
+        },
+        
+        // TODO: Messy animation/decceleration.
+        // Clean up to generic accelerate that takes args: acceleration, velocity, threshold
+        dragDeccelerate: function (velocity, timeDelta, timestamp, elapsed) {
+            var complete = false;
+            elapsed = elapsed + timeDelta || timeDelta;
+            if (elapsed > 750) {
+                timeDelta = elapsed - 750;
+                elapsed = 750;
+                complete = true;
+            }
+            
+            var previousTime = timestamp;
+            var state = instance.model.get('state');
+            var duration = 750 / 1000;
+//            var incrementX = velocity.x * duration;
+//            var incrementY = velocity.y * duration;
+            var incrementX = velocity.x;
+            var incrementY = velocity.y;
+            
+            var newVelocity = {
+                x: velocity.x * (1 - 0.1),
+                y: velocity.y * (1 - 0.1)
+            };
+            
+            var newFocus = {
+                x: state.focus.x + incrementX * (timeDelta / 1000),
+                y: state.focus.y + incrementY * (timeDelta / 1000)
+            };
+            
+            console.log('deccelerate');
+            console.log('velocity: ', velocity);
+            console.log('timeDelta: ', timeDelta);
+            console.log('elapsed: ', elapsed);
+            console.log('incrementX: ', incrementX);
+            
+            instance.focusOn(newFocus, { 
+                duration: '100ms'
+            });
+            
+            if (Math.abs(velocity.x - newVelocity.x) > 3 || Math.abs(velocity.x - newVelocity.y) > 3) {
+                window.requestAnimationFrame(function (timestamp) { 
+                    instance.dragDeccelerate(newVelocity, timestamp - previousTime, timestamp, elapsed);
+                });    
+            }
         },
         
         /**
