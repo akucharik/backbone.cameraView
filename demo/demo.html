@@ -15,13 +15,52 @@
             top: 0px;
             left: 0px;
         }
+        .container {
+            display: flex;
+        }
+        .actions {
+            flex: 1;
+        }
+        input {
+            width: 3em;
+        }
+        [disabled] {
+            background-color: #eee;
+            border: 2px solid #ccc;
+        }
     </style>
 </head>
 <body>
     <h1>Backbone Camera View</h1>
     
-    <div id="camera" class="bcv-camera"></div>
-    
+    <div class="container">
+        <div id="camera" class="bcv-camera"></div>
+        <div class="actions">
+            <ul>
+                <li>scale: <input id="focusOnScale" type="text" disabled />
+                    x: <input id="focusOnX" type="text" />
+                    y: <input id="focusOnY" type="text" />
+                    <button id="focusOn">focusOn</button>
+                </li>
+                <li>scale: <input id="zoomScale" type="text" />
+                    x: <input id="zoomX" type="text" disabled />
+                    y: <input id="zoomY" type="text" disabled />
+                    <button id="zoom">zoom</button>
+                </li>
+                <li>scale: <input id="zoomAtScale" type="text" />
+                    x: <input id="zoomAtX" type="text" />
+                    y: <input id="zoomAtY" type="text" />
+                    <button id="zoomAt">zoomAt</button>
+                </li>
+                <li>scale: <input id="zoomToScale" type="text" />
+                    x: <input id="zoomToX" type="text" />
+                    y: <input id="zoomToY" type="text" />
+                    <button id="zoomTo">zoomTo</button>
+                </li>
+            </ul>
+        </div>
+    </div>
+        
     <script id="cameraTemplate" type="text/template">
         <div>
             <img src="images/FFL-Spritesheet-White-1827x1215.png" alt="Final Fantasy Legend Sprites" width="1827" height="1215" />
@@ -53,24 +92,55 @@
     
     <script type="text/javascript">
         // App
-        var app = Object.assign({}, Backbone.Events);
+        var app = Object.assign({}, Backbone.Events, {
 
-        app.initialize = function () {
-            // Views
-            var cameraView = CameraView({
-                el: document.getElementById('camera'),
-                template: _.template(document.getElementById('cameraTemplate').innerHTML),
-                model: CameraModel({
-                    height: 500,
-                    width: 1000
-                }),
-                onBeforeRender: function () {
-                    this.el.innerHTML = this.template();
-                }
-            }).render();
+            initialize: function () {
+                // Views
+                app.cameraView = CameraView({
+                    el: document.getElementById('camera'),
+                    template: _.template(document.getElementById('cameraTemplate').innerHTML),
+                    model: CameraModel({
+                        height: 500,
+                        width: 1000
+                    }),
+                    onBeforeRender: function () {
+                        this.el.innerHTML = this.template();
+                    }
+                }).render();
 
-            window.cameraView = cameraView;
-        };
+                $('#focusOn').on('click', app.focusOn);
+                $('#zoom').on('click', app.zoom);
+                $('#zoomAt').on('click', app.zoomAt);
+                $('#zoomTo').on('click', app.zoomTo);
+
+                window.cameraView = app.cameraView;
+            },
+
+            focusOn: function () {
+                app.cameraView.focusOn({ 
+                    x: parseFloat($('#focusOnX').val()), 
+                    y: parseFloat($('#focusOnY').val())
+                }, { duration: '1s' });
+            },
+            
+            zoom: function () {
+                app.cameraView.zoom(parseFloat($('#zoomScale').val()), { duration: '1s' });
+            },
+            
+            zoomAt: function () {
+                app.cameraView.zoomAt(parseFloat($('#zoomAtScale').val()), { 
+                    x: parseFloat($('#zoomAtX').val()), 
+                    y: parseFloat($('#zoomAtY').val())
+                }, { duration: '1s' });
+            },
+            
+            zoomTo: function () {
+                app.cameraView.zoomTo(parseFloat($('#zoomToScale').val()), { 
+                    x: parseFloat($('#zoomToX').val()), 
+                    y: parseFloat($('#zoomToY').val())
+                }, { duration: '1s' });
+            }
+        });
 
         app.initialize();
     </script>
