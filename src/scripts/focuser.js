@@ -24,12 +24,10 @@ Focuser.prototype = {
     * @returns {Object} The element's focus position. An x/y position object representing the center point of the element in relation to the container.
     */
     getElementFocus: function (window, containerRect, elRect, scale) {
-        var position = {};
-
-        position.x = _.round((elRect.width / scale / 2) + (elRect.left / scale + window.scrollX) - (containerRect.left / scale + window.scrollX), 2);
-        position.y = _.round((elRect.height / scale / 2) + (elRect.top / scale + window.scrollY) - (containerRect.top / scale + window.scrollY), 2);
-
-        return position;
+        return {
+            x: _.round((elRect.width / scale / 2) + (elRect.left / scale + window.scrollX) - (containerRect.left / scale + window.scrollX), 2),
+            y: _.round((elRect.height / scale / 2) + (elRect.top / scale + window.scrollY) - (containerRect.top / scale + window.scrollY), 2)
+        };
     },
 
     /**
@@ -41,17 +39,15 @@ Focuser.prototype = {
     * @returns {Object} The offset. An x/y point object representing the position of the content's container in order for the frame to focus on the position.
     */
     getFocusOffset: function (frameRect, position, scale) {
-        var offset = {};
-
         if (_.isFinite(position.x) && _.isFinite(position.y)) {
-            offset.x = _.round((frameRect.width / 2) - (position.x * scale), 2);
-            offset.y = _.round((frameRect.height / 2) - (position.y * scale), 2);
+            return {
+                x: _.round((frameRect.width / 2) - (position.x * scale), 2),
+                y: _.round((frameRect.height / 2) - (position.y * scale), 2)
+            };
         }
         else {
-            throw new Error('Cannot determine focus offset from invalid position coordinates');
+            throw new Error('Cannot determine focus offset from an invalid position');
         }
-
-        return offset;
     }
 };
 
