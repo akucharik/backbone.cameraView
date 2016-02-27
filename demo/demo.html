@@ -57,6 +57,11 @@
                     y: <input id="zoomToY" type="text" />
                     <button id="zoomTo">zoomTo</button>
                 </li>
+                <li>
+                    velocity x: <input id="velocityX" type="text" />
+                    velocity y: <input id="velocityY" type="text" />
+                    <button id="flick">flick</button>
+                </li>
             </ul>
         </div>
     </div>
@@ -108,6 +113,7 @@
                     }
                 }).render();
 
+                $('#flick').on('click', app.flick);
                 $('#focusOn').on('click', app.focusOn);
                 $('#zoom').on('click', app.zoom);
                 $('#zoomAt').on('click', app.zoomAt);
@@ -116,6 +122,13 @@
                 window.cameraView = app.cameraView;
             },
 
+            flick: function () {
+                app.cameraView.dragDeccelerate({ 
+                    x: parseFloat($('#velocityX').val()), 
+                    y: parseFloat($('#velocityY').val())
+                }, 16.6, window.performance.now(), 0);
+            },
+            
             focusOn: function () {
                 app.cameraView.focusOn({ 
                     x: parseFloat($('#focusOnX').val()), 
