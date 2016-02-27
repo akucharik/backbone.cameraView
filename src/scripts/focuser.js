@@ -20,47 +20,37 @@ var Focuser = function () {
         /**
         * Get the x/y focus point for an element.
         *
-        * @param {Element} container - The element that contains all focusable points/elements.
-        * @param {Element} el - The element on which to determine the focus point.
+        * @param {Object} containerRect - The boundingClientRect object for the element that contains all focusable positions.
+        * @param {Element} elRect - The boundingClientRect object for the element on which to determine the focus position.
         * @param {number} scale - The currently rendered scale ratio.
-        * @returns {Object} The element's focus point. An x/y point object representing the center point of the element in relation to the container.
+        * @returns {Object} The element's focus position. An x/y position object representing the center point of the element in relation to the container.
         */
-        getElementFocus: function (container, el, scale) {
-            var containerRect = container.getBoundingClientRect();
-            var elRect = el.getBoundingClientRect();
-            var focus = {};
+        getElementFocus: function (window, containerRect, elRect, scale) {
+            var position = {};
 
-            focus.x = (elRect.width / scale / 2) + (elRect.left / scale + window.scrollX) - (containerRect.left / scale + window.scrollX);
-            focus.y = (elRect.height / scale / 2) + (elRect.top / scale + window.scrollY) - (containerRect.top / scale + window.scrollY);
+            position.x = _.round((elRect.width / scale / 2) + (elRect.left / scale + window.scrollX) - (containerRect.left / scale + window.scrollX), 2);
+            position.y = _.round((elRect.height / scale / 2) + (elRect.top / scale + window.scrollY) - (containerRect.top / scale + window.scrollY), 2);
 
-            return focus;
+            return position;
         },
 
         /**
-        * Get the x/y container offset for a point or element.
+        * Get the x/y container offset to focus/center on a position.
         *
-        * @param {Element} frame - The element that frames the container.
-        * @param {Element} container - The element that contains all focusable points/elements.
-        * @param {Object|Element} focus - An x/y point object (at a scale ratio of 1) or an element.
+        * @param {Object} frameRect - The boundingClientRect object for the frame.
+        * @param {Object} position - The position that will be brought to focus. An x/y point object (at a scale ratio of 1).
         * @param {number} scale - The destination scale ratio.
-        * @param {number} renderedScale - The currently rendered scale ratio.
-        * @returns {Object} The offset. An x/y point object representing the position of the container in order for the frame to focus on a point.
+        * @returns {Object} The offset. An x/y point object representing the position of the content's container in order for the frame to focus on the position.
         */
-        getFocusOffset: function (frame, container, focus, scale, renderedScale) {
+        getFocusOffset: function (frameRect, position, scale) {
             var offset = {};
-            var frameWidth = frame.getBoundingClientRect().width;
-            var frameHeight = frame.getBoundingClientRect().height;
 
-            if (_.isElement(focus)) {
-                focus = this.getElementFocus(container, focus, renderedScale);
-            }
-
-            if (_.isFinite(focus.x) && _.isFinite(focus.y)) {
-                offset.x = _.round((frameWidth / 2) - (focus.x * scale), 2);
-                offset.y = _.round((frameHeight / 2) - (focus.y * scale), 2);
+            if (_.isFinite(position.x) && _.isFinite(position.y)) {
+                offset.x = _.round((frameRect.width / 2) - (position.x * scale), 2);
+                offset.y = _.round((frameRect.height / 2) - (position.y * scale), 2);
             }
             else {
-                throw new Error('Cannot determine focus offset from invalid focus coordinates');
+                throw new Error('Cannot determine focus offset from invalid position coordinates');
             }
 
             return offset;

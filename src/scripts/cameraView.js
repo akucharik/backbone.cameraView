@@ -436,7 +436,16 @@ var CameraView = function (options) {
             var state = model.get('state');
             var transition = model.get('transition');
             var previousState = model.previousAttributes().state;
-            var focusOffset = instance.getFocusOffset(instance.el, instance.content, state.focus, state.scale, previousState.scale);
+            var position = {};
+            
+            if (_.isElement(state.focus)) {
+                position = instance.getElementFocus(window, instance.content.getBoundingClientRect(), state.focus, previousState.scale);
+            }
+            else {
+                position = state.focus;
+            }
+            
+            var focusOffset = instance.getFocusOffset(instance.el.getBoundingClientRect(), position, state.scale);
 
             utils.setCssTransition(instance.content, transition);
             utils.setCssTransform(instance.content, {
