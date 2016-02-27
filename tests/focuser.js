@@ -3,7 +3,7 @@
 QUnit.module('focuser', function () {
     QUnit.module('getElementFocus', {
         beforeEach: function() {
-            this.focuser = Focuser();
+            this.focuser = new Focuser();
         }}, function () {
         
         QUnit.test('scroll: 100, scale: 0.7, offset: 100', function(assert) {
@@ -75,7 +75,7 @@ QUnit.module('focuser', function () {
     
     QUnit.module('getFocusOffset', {
         beforeEach: function() {
-            this.focuser = Focuser();
+            this.focuser = new Focuser();
             this.frame = { 
                 height: 500, 
                 width: 1000

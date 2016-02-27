@@ -542,7 +542,7 @@ var CameraView = function (options) {
     let instance = Object.create(Object.assign(
         {},
         Backbone.View.prototype, 
-        Focuser(),
+        Focuser.prototype,
         SizableView(), 
         prototype
     ));
