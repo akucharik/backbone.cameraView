@@ -286,6 +286,9 @@ var CameraView = function (options) {
                 complete = true;
             }
             
+            velocity.x = velocity.x || 0;
+            velocity.y = velocity.y || 0;
+            
             var previousTime = timestamp;
             var state = instance.model.get('state');
             var duration = 750 / 1000;
@@ -445,6 +448,14 @@ var CameraView = function (options) {
                 position = state.focus;
             }
             
+            if (!_.isFinite(state.scale)) {
+                throw new Error('Cannot zoom using an invalid scale');
+            }
+        
+            if (!_.isFinite(state.focus.x) && !_.isFinite(state.focus.y)) {
+                throw new Error('Cannot focus using an invalid position');
+            }
+            
             var focusOffset = instance.getFocusOffset(instance.el.getBoundingClientRect(), position, state.scale);
 
             utils.setCssTransition(instance.content, transition);
@@ -492,21 +503,21 @@ var CameraView = function (options) {
             state = instance.model.get('state');
             scaleRatio = state.scale / scale;
             currentFocus = state.focus;
-            
+
             if (_.isElement(focus)) {
                 focus = instance._getElementFocus(focus, instance.content, state.scale);
             }
-            
+
             if (_.isElement(currentFocus)) {
                 currentFocus = instance._getElementFocus(currentFocus, instance.content, state.scale);
             }
-            
+
             delta.x = currentFocus.x - focus.x;
             delta.y = currentFocus.y - focus.y;
-            
+
             newFocus.x = currentFocus.x - delta.x + (delta.x * scaleRatio);
             newFocus.y = currentFocus.y - delta.y + (delta.y * scaleRatio);
-            
+
             instance.model.setTransition(transition);
             instance.model.setState({
                 scale: scale,
