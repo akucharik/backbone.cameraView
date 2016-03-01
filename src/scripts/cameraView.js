@@ -17,11 +17,27 @@
 * @param {CameraModel} [options.model] - The view's model.
 * @returns {CameraView} The newly created CameraView object.
 */
-var CameraView = function (options) {
+var CameraView = Backbone.View.extend(Object.assign({},
+    new Focuser(),
+    new SizableView(),
     /**
     * @lends CameraView.prototype
-    */
-    let prototype = {
+    */                                                
+    {
+        // TODO: Refactor/clean up
+        /**
+        * Handle the click event.
+        *
+        * @private
+        * @param {MouseEvent} event - The mouse event.
+        */
+        _onClick: function (event) {
+            console.log({ 
+                x: event.clientX - this.content.getBoundingClientRect().left + window.scrollX,
+                y: event.clientY - this.content.getBoundingClientRect().top + window.scrollX
+            });
+        },
+
         /**
         * Handle the dragstart event.
         *
@@ -34,7 +50,7 @@ var CameraView = function (options) {
 
             return false;
         },
-        
+
         /**
         * Handle "height" change event.
         *
@@ -45,13 +61,13 @@ var CameraView = function (options) {
         * @returns {CameraView} The view.
         */
         _onHeightChange: function (model, value, options) {
-            instance.setHeight(value);
+            this.setHeight(value);
             model.setTransition({ duration: '0s' });
-            instance.update(model);
-            
-            return instance;
+            this.update(model);
+
+            return this;
         },
-        
+
         /**
         * Handle the mousedown event.
         *
@@ -59,16 +75,16 @@ var CameraView = function (options) {
         * @param {MouseEvent} event - The mouse event.
         */
         _onMouseDown: function (event) {
-            instance.isDragging = true;
-            
+            this.isDragging = true;
+
             // Set time for calculating velocity.
-            instance.previousEventTime = event.timeStamp;
-            
+            this.previousEventTime = event.timeStamp;
+
             // Set x/y point for calculating move distance.
-            instance.dragStartX = event.clientX;
-            instance.dragStartY = event.clientY;
+            this.dragStartX = event.clientX;
+            this.dragStartY = event.clientY;
         },
-        
+
         /**
         * Handle the mouseleave event.
         *
@@ -76,10 +92,10 @@ var CameraView = function (options) {
         * @param {MouseEvent} event - The mouse event.
         */
         _onMouseLeave: function (event) {
-            instance.isDragging = false;
+            this.isDragging = false;
             document.querySelector('body').style.removeProperty('overflow');
         },
-        
+
         /**
         * Handle the mousemove event.
         *
@@ -87,11 +103,11 @@ var CameraView = function (options) {
         * @param {MouseEvent} event - The mouse event.
         */
         _onMouseMove: function (event) {
-            if (instance.isDragging) {
-                instance.drag(event);
+            if (this.isDragging) {
+                this.drag(event);
             }
         },
-        
+
         /**
         * Handle the mouseup event.
         *
@@ -101,12 +117,12 @@ var CameraView = function (options) {
         _onMouseUp: function (event) {
             // TODO: Remove when development is complete
             console.log('mouse up');
-            
-            if (instance.isDragging) {
-                instance.dragEnd(event);
+
+            if (this.isDragging) {
+                this.dragEnd(event);
             }
         },
-        
+
         /**
         * Handle "state" change event.
         *
@@ -117,11 +133,11 @@ var CameraView = function (options) {
         * @returns {CameraView} The view.
         */
         _onStateChange: function (model, value, options) {
-            instance.update(model);
+            this.update(model);
 
-            return instance;
+            return this;
         },
-        
+
         /**
         * Handle the end of a camera transition.
         *
@@ -130,11 +146,11 @@ var CameraView = function (options) {
         * @returns {CameraView} The view.
         */
         _onTransitionEnd: function (event) {
-            instance.isTransitioning = false;
-            
-            return instance;
+            this.isTransitioning = false;
+
+            return this;
         },
-        
+
         /**
         * Handle wheel input.
         *
@@ -144,11 +160,11 @@ var CameraView = function (options) {
         */
         _onWheel: function (event) {
             event.preventDefault();
-            instance._wheelZoom(event);
-            
-            return instance;
+            this._wheelZoom(event);
+
+            return this;
         },
-                
+
         /**
         * Handle "width" change event.
         *
@@ -159,13 +175,13 @@ var CameraView = function (options) {
         * @returns {CameraView} The view.
         */
         _onWidthChange: function (model, value, options) {
-            instance.setWidth(value);
-            instance.model.setTransition({ duration: '0s' });
-            instance.update(model);
-            
-            return instance;
+            this.setWidth(value);
+            this.model.setTransition({ duration: '0s' });
+            this.update(model);
+
+            return this;
         },
-        
+
         /**
         * Zoom in/out based on wheel input.
         *
@@ -178,31 +194,31 @@ var CameraView = function (options) {
 
             if (event.deltaY) {
                 var direction = event.deltaY > 0 ? constants.zoom.OUT : constants.zoom.IN;
-                var scale = instance.model.get('state').scale;
-                var newScale = _.clamp(scale + instance.model.get('increment') * Math.abs(event.deltaY) * scale * (direction === constants.zoom.IN ? 1 : -1), instance.model.get('minScale'), instance.model.get('maxScale'));
+                var scale = this.model.get('state').scale;
+                var newScale = _.clamp(scale + this.model.get('increment') * Math.abs(event.deltaY) * scale * (direction === constants.zoom.IN ? 1 : -1), this.model.get('minScale'), this.model.get('maxScale'));
                 var origin = null;
-                
+
                 // If scale has not changed, it is at the min or max.
                 if (newScale !== scale) {
-                    if (!instance.isTransitioning) {
+                    if (!this.isTransitioning) {
                         origin = {
-                            x: (event.clientX - instance.content.getBoundingClientRect().left) / scale,
-                            y: (event.clientY - instance.content.getBoundingClientRect().top) / scale
+                            x: (event.clientX - this.content.getBoundingClientRect().left) / scale,
+                            y: (event.clientY - this.content.getBoundingClientRect().top) / scale
                         }
                     }
                     else {
-                        origin = instance.model.get('state').scaleOrigin;
+                        origin = this.model.get('state').scaleOrigin;
                     }
 
-                    instance.zoomAt(newScale, origin, {
+                    this.zoomAt(newScale, origin, {
                         duration: '100ms'
                     });
                 }
             }
-            
-            return instance;
+
+            return this;
         },
-        
+
         // TODO: Messy! Refactor!
         /**
         * Drag the content.
@@ -210,37 +226,37 @@ var CameraView = function (options) {
         * @param {DragEvent} event - The drag event.
         */
         drag: function (event) {
-            var state = instance.model.get('state');
+            var state = this.model.get('state');
             var dragDelta = {
-                x: (instance.dragStartX - event.clientX) / state.scale,
-                y: (instance.dragStartY - event.clientY) / state.scale
+                x: (this.dragStartX - event.clientX) / state.scale,
+                y: (this.dragStartY - event.clientY) / state.scale
             };
             var newFocus = {
-                x: _.clamp(state.focus.x + dragDelta.x, 0, instance.content.getBoundingClientRect().width / state.scale),
-                y: _.clamp(state.focus.y + dragDelta.y, 0, instance.content.getBoundingClientRect().height / state.scale)
+                x: _.clamp(state.focus.x + dragDelta.x, 0, this.content.getBoundingClientRect().width / state.scale),
+                y: _.clamp(state.focus.y + dragDelta.y, 0, this.content.getBoundingClientRect().height / state.scale)
             };
-            
-            var eventTimeDelta = event.timeStamp - instance.previousEventTime;
-            
-            instance.velocity = {
+
+            var eventTimeDelta = event.timeStamp - this.previousEventTime;
+
+            this.velocity = {
                 x: dragDelta.x / (eventTimeDelta / 1000),
                 y: dragDelta.y / (eventTimeDelta / 1000)
             };
 
             // Log timestamp
-            instance.previousEventTime = event.timeStamp;
-            
-            // Set x/y point for calculating next move distance
-            instance.dragStartX = event.clientX;
-            instance.dragStartY = event.clientY;
+            this.previousEventTime = event.timeStamp;
 
-            instance.focusOn(newFocus, { 
+            // Set x/y point for calculating next move distance
+            this.dragStartX = event.clientX;
+            this.dragStartY = event.clientY;
+
+            this.focusOn(newFocus, { 
                 duration: '0s'
             });
 
-            return instance;
+            return this;
         },
-        
+
         // TODO: Refactor into a function that repeats on RAF similar to zoomAt so that decceleration and bounds can work together.
         /**
         * End dragging the content.
@@ -248,36 +264,38 @@ var CameraView = function (options) {
         * @param {MouseEvent} event - The mouse event.
         */
         dragEnd: function (event) {
-            var eventTimeDelta = event.timeStamp - instance.previousEventTime;
+            var _this = this;
+            var eventTimeDelta = event.timeStamp - this.previousEventTime;
 
             // Only apply momentum movement if dragging has not stopped
             if (eventTimeDelta < 66.6) {
-                var state = instance.model.get('state');
-//                var duration = 750;
-//                var newFocus = {
-//                    x: state.focus.x + (instance.velocity.x) * (duration / 1000),
-//                    y: state.focus.y + (instance.velocity.y) * (duration / 1000)
-//                };
-                
+                var state = this.model.get('state');
+    //                var duration = 750;
+    //                var newFocus = {
+    //                    x: state.focus.x + (this.velocity.x) * (duration / 1000),
+    //                    y: state.focus.y + (this.velocity.y) * (duration / 1000)
+    //                };
+
                 var previousTime = performance.now();
                 window.requestAnimationFrame(function (timestamp) { 
-                    instance.dragDeccelerate(instance.velocity, timestamp - previousTime, timestamp);
+                    _this.dragDeccelerate(_this.velocity, timestamp - previousTime, timestamp);
                 });
 
-//                instance.focusOn(newFocus, { 
-//                    duration: duration + 'ms',
-//                    timingFunction: 'ease-out'
-//                });
+    //                this.focusOn(newFocus, { 
+    //                    duration: duration + 'ms',
+    //                    timingFunction: 'ease-out'
+    //                });
             }
-            
-            instance.isDragging = false;
-            
-            return instance;
+
+            this.isDragging = false;
+
+            return this;
         },
-        
+
         // TODO: Messy animation/decceleration.
         // Clean up to generic accelerate that takes args: acceleration, velocity, threshold
         dragDeccelerate: function (velocity, timeDelta, timestamp, elapsed) {
+            var _this = this;
             var complete = false;
             elapsed = elapsed + timeDelta || timeDelta;
             if (elapsed > 750) {
@@ -285,45 +303,45 @@ var CameraView = function (options) {
                 elapsed = 750;
                 complete = true;
             }
-            
+
             velocity.x = velocity.x || 0;
             velocity.y = velocity.y || 0;
-            
+
             var previousTime = timestamp;
-            var state = instance.model.get('state');
+            var state = this.model.get('state');
             var duration = 750 / 1000;
-//            var incrementX = velocity.x * duration;
-//            var incrementY = velocity.y * duration;
+    //            var incrementX = velocity.x * duration;
+    //            var incrementY = velocity.y * duration;
             var incrementX = velocity.x;
             var incrementY = velocity.y;
-            
+
             var newVelocity = {
                 x: velocity.x * (1 - 0.1),
                 y: velocity.y * (1 - 0.1)
             };
-            
+
             var newFocus = {
                 x: state.focus.x + incrementX * (timeDelta / 1000),
                 y: state.focus.y + incrementY * (timeDelta / 1000)
             };
-            
+
             console.log('deccelerate');
             console.log('velocity: ', velocity);
             console.log('timeDelta: ', timeDelta);
             console.log('elapsed: ', elapsed);
             console.log('incrementX: ', incrementX);
-            
-            instance.focusOn(newFocus, { 
+
+            this.focusOn(newFocus, { 
                 duration: '100ms'
             });
-            
+
             if (Math.abs(velocity.x - newVelocity.x) > 3 || Math.abs(velocity.x - newVelocity.y) > 3) {
                 window.requestAnimationFrame(function (timestamp) { 
-                    instance.dragDeccelerate(newVelocity, timestamp - previousTime, timestamp, elapsed);
+                    _this.dragDeccelerate(newVelocity, timestamp - previousTime, timestamp, elapsed);
                 });    
             }
         },
-        
+
         /**
         * Focus the camera on a specific point.
         *
@@ -334,37 +352,37 @@ var CameraView = function (options) {
         focusOn: function (focus, transition) {
             transition = transition || {};
 
-            instance.model.setTransition(transition);
-            instance.model.setState({
+            this.model.setTransition(transition);
+            this.model.setState({
                 focus: focus
             });
 
-            return instance;
+            return this;
         },
 
         /**
-        * Called on the view instance when the view has been created. This method is not meant to be overridden. If you need to access initialization, use {@link CameraView#onInitialize|onInitialize}.
+        * Called on the view this when the view has been created. This method is not meant to be overridden. If you need to access initialization, use {@link CameraView#onInitialize|onInitialize}.
         *
         * @param {Object} [options] - An object of options. Includes all Backbone.View options. See {@link http://backbonejs.org/#View|Backbone.View}.
         * @returns {CameraView} The view.
         */
         initialize: function (options) {
-            instance.isDragging = false;
-            instance.isTransitioning = false;
-            instance.$el.on('click', instance._onClick);
-            instance.$el.on('dragstart', instance._onDragStart);
-            instance.$el.on('mousedown', instance._onMouseDown);
-            instance.$el.on('mouseleave', instance._onMouseLeave);
-            instance.$el.on('mousemove', utils.throttleToFrame(instance._onMouseMove));
-            instance.$el.on('mouseup', instance._onMouseUp);
-            instance.$el.on('transitionend', instance._onTransitionEnd);
-            instance.$el.on('wheel', utils.throttleToFrame(instance._onWheel));
-            instance.listenTo(instance.model, 'change:height', instance._onHeightChange);
-            instance.listenTo(instance.model, 'change:state', instance._onStateChange);
-            instance.listenTo(instance.model, 'change:width', instance._onWidthChange);
-            instance.onInitialize(options);
+            this.isDragging = false;
+            this.isTransitioning = false;
+            this.$el.on('click', this._onClick.bind(this));
+            this.$el.on('dragstart', this._onDragStart.bind(this));
+            this.$el.on('mousedown', this._onMouseDown.bind(this));
+            this.$el.on('mouseleave', this._onMouseLeave.bind(this));
+            this.$el.on('mousemove', utils.throttleToFrame(this._onMouseMove.bind(this)));
+            this.$el.on('mouseup', this._onMouseUp.bind(this));
+            this.$el.on('transitionend', this._onTransitionEnd.bind(this));
+            this.$el.on('wheel', utils.throttleToFrame(this._onWheel.bind(this)));
+            this.listenTo(this.model, 'change:height', this._onHeightChange);
+            this.listenTo(this.model, 'change:state', this._onStateChange);
+            this.listenTo(this.model, 'change:width', this._onWidthChange);
+            this.onInitialize(options);
 
-            return instance;
+            return this;
         },
 
         /**
@@ -373,41 +391,41 @@ var CameraView = function (options) {
         onBeforeRender: function () {
             
         },
-        
+
         /**
         * Triggered after the camera has intialized.
         *
         * @param {Object} [options] - An object of options. Includes all Backbone.View options. See {@link http://backbonejs.org/#View|Backbone.View}.
         */
         onInitialize: function (options) {
-            
+
         },
-        
+
         /**
         * Triggered after the camera has rendered.
         */
         onRender: function () {
-            
+
         },
-        
+
         /**
         * Render the camera view. This method is not meant to be overridden. If you need to manipulate how the camera renders, use {@link CameraView#onBeforeRender|onBeforeRender} and {@link CameraView#onRender|onRender}.
         *
         * @returns {CameraView} The view.
         */
         render: function () {
-            instance.onBeforeRender();
-            instance.content = instance.el.querySelector(':first-child');
-            instance.content.setAttribute('draggable', false);
-            instance.setHeight(instance.model.get('height'));
-            instance.setWidth(instance.model.get('width'));
-            instance.model.setTransition({ duration: '0s' });
-            
+            this.onBeforeRender();
+            this.content = this.el.querySelector(':first-child');
+            this.content.setAttribute('draggable', false);
+            this.setHeight(this.model.get('height'));
+            this.setWidth(this.model.get('width'));
+            this.model.setTransition({ duration: '0s' });
+
             // If no focus, set default focus
-            if (!instance.model.get('state').focus) { 
-                var cameraRect = instance.el.getBoundingClientRect();
-                
-                instance.model.setState({ 
+            if (!this.model.get('state').focus) { 
+                var cameraRect = this.el.getBoundingClientRect();
+
+                this.model.setState({ 
                     focus: {
                         x: cameraRect.width / 2,
                         y: cameraRect.height / 2
@@ -415,14 +433,14 @@ var CameraView = function (options) {
                 });
             }
             else {
-                instance.update(instance.model);
+                this.update(this.model);
             }
-            
-            instance.onRender();
 
-            return instance;
+            this.onRender();
+
+            return this;
         },
-        
+
         /**
         * Update camera to a state.
         *
@@ -435,39 +453,39 @@ var CameraView = function (options) {
         update: function (model) {
             // TODO: Remove once development is complete
             console.log('update');
-            
+
             var state = model.get('state');
             var transition = model.get('transition');
             var previousState = model.previousAttributes().state;
             var position = {};
-            
+
             if (_.isElement(state.focus)) {
-                position = instance.getElementFocus(window, instance.content.getBoundingClientRect(), state.focus, previousState.scale);
+                position = this.getElementFocus(window, this.content.getBoundingClientRect(), state.focus, previousState.scale);
             }
             else {
                 position = state.focus;
             }
-            
+
             if (!_.isFinite(state.scale)) {
                 throw new Error('Cannot zoom using an invalid scale');
             }
-        
+
             if (!_.isFinite(state.focus.x) && !_.isFinite(state.focus.y)) {
                 throw new Error('Cannot focus using an invalid position');
             }
-            
-            var focusOffset = instance.getFocusOffset(instance.el.getBoundingClientRect(), position, state.scale);
 
-            utils.setCssTransition(instance.content, transition);
-            utils.setCssTransform(instance.content, {
+            var focusOffset = this.getFocusOffset(this.el.getBoundingClientRect(), position, state.scale);
+
+            utils.setCssTransition(this.content, transition);
+            utils.setCssTransform(this.content, {
                 scale: state.scale,
                 translateX: focusOffset.x,
                 translateY: focusOffset.y
-            }, instance);
+            }, this);
 
-            return instance;
+            return this;
         },
-        
+
         /**
         * Zoom in/out at the current focus.
         *
@@ -478,14 +496,14 @@ var CameraView = function (options) {
         zoom: function (scale, transition) {
             transition = transition || {};
 
-            instance.model.setTransition(transition);
-            instance.model.setState({
+            this.model.setTransition(transition);
+            this.model.setState({
                 scale: scale
             });
 
-            return instance;
+            return this;
         },
-        
+
         /**
         * Zoom in/out at a specific point.
         *
@@ -499,17 +517,17 @@ var CameraView = function (options) {
             var currentFocus, scaleRatio, state;
             var delta = {};
             var newFocus = {};
-            
-            state = instance.model.get('state');
+
+            state = this.model.get('state');
             scaleRatio = state.scale / scale;
             currentFocus = state.focus;
 
             if (_.isElement(focus)) {
-                focus = instance._getElementFocus(focus, instance.content, state.scale);
+                focus = this._getElementFocus(focus, this.content, state.scale);
             }
 
             if (_.isElement(currentFocus)) {
-                currentFocus = instance._getElementFocus(currentFocus, instance.content, state.scale);
+                currentFocus = this._getElementFocus(currentFocus, this.content, state.scale);
             }
 
             delta.x = currentFocus.x - focus.x;
@@ -518,14 +536,14 @@ var CameraView = function (options) {
             newFocus.x = currentFocus.x - delta.x + (delta.x * scaleRatio);
             newFocus.y = currentFocus.y - delta.y + (delta.y * scaleRatio);
 
-            instance.model.setTransition(transition);
-            instance.model.setState({
+            this.model.setTransition(transition);
+            this.model.setState({
                 scale: scale,
                 scaleOrigin: focus,
                 focus: newFocus
             });
 
-            return instance;
+            return this;
         },
 
         /**
@@ -539,43 +557,13 @@ var CameraView = function (options) {
         zoomTo: function (scale, focus, transition) {
             transition = transition || {};
 
-            instance.model.setTransition(transition);
-            instance.model.setState({
+            this.model.setTransition(transition);
+            this.model.setState({
                 scale: scale,
                 focus: focus
             });
 
-            return instance;
+            return this;
         }
-    };
-    
-    // Compose the object.
-    let instance = Object.create(Object.assign(
-        {},
-        Backbone.View.prototype, 
-        Focuser.prototype,
-        SizableView(), 
-        prototype
-    ));
-
-    // TODO: don't merge all the options onto the view. Figure out something better.
-    Object.assign(instance, options);
-    
-    // TODO: Refactor/clean up and move into prototype
-    /**
-    * Handle the click event.
-    *
-    * @private
-    * @param {MouseEvent} event - The mouse event.
-    */
-    instance._onClick = function (event) {
-        console.log({ 
-            x: event.clientX - instance.content.getBoundingClientRect().left + window.scrollX,
-            y: event.clientY - instance.content.getBoundingClientRect().top + window.scrollX
-        });
-    };
-
-    Backbone.View.call(instance, options);
-
-    return instance;
-};
+    })
+);

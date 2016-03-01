@@ -9,23 +9,18 @@
 * Factory: Creates {@link http://backbonejs.org/#View|Backbone.View} height and width sizing functionality used for object composition.
 * Requires {@link http://lodash.com|lodash} or {@link http://underscorejs.org|underscore} and {@link http://jquery.com|jQuery} or {@link http://zeptojs.com|Zepto}.
 *
-* @constructs SizableView
+* @class
+* @constructor
 * @extends Backbone.View
-* @returns {SizableView} A new SizableView object.
 */
 var SizableView = function () {
-    /**
-    * @lends SizableView.prototype
-    */
-    var instance = {};
-
     /**
     * Sets the height of the view.
     *
     * @param {number|string|Element} height - A number will be converted to pixels. A valid CSS string may also be used. If an Element is provided, the dimension will be sized to match the Element.
     * @returns {this} The view.
     */
-    instance.setHeight = function (height) {
+    this.setHeight = function (height) {
         if (_.isElement(height)) {
             this.$el.height($(height).height());
         }
@@ -42,7 +37,7 @@ var SizableView = function () {
     * @param {number|string|Element} width - A number will be converted to pixels. A valid CSS string may also be used. If an Element is provided, the dimension will be sized to match the Element.
     * @returns {this} The view.
     */
-    instance.setWidth = function (width) {
+    this.setWidth = function (width) {
         if (_.isElement(width)) {
             this.$el.width($(width).width());
         }
@@ -52,6 +47,6 @@ var SizableView = function () {
         
         return this;
     };
-
-    return instance;
 };
+
+SizableView.prototype.constructor = SizableView;
