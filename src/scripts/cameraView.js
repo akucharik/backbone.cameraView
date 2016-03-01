@@ -296,51 +296,44 @@ var CameraView = Backbone.View.extend(Object.assign({},
 
         // TODO: Messy animation/decceleration.
         // Clean up to generic accelerate that takes args: acceleration, velocity, threshold
-        dragDeccelerate: function (velocity, timeDelta, timestamp, elapsed) {
-            var _this = this;
-            var complete = false;
-            elapsed = elapsed + timeDelta || timeDelta;
-            if (elapsed > 750) {
-                timeDelta = elapsed - 750;
-                elapsed = 750;
-                complete = true;
-            }
-
+        dragDeccelerate: function (velocity, timeDelta, timestamp) {
             velocity.x = velocity.x || 0;
             velocity.y = velocity.y || 0;
-
+            
+            var _this = this;
+            var newFocus, newVelocity;
+            var complete = false;
             var previousTime = timestamp;
             var state = this.model.get('state');
-            var duration = 750 / 1000;
-    //            var incrementX = velocity.x * duration;
-    //            var incrementY = velocity.y * duration;
-            var incrementX = velocity.x;
-            var incrementY = velocity.y;
 
-            var newVelocity = {
-                x: velocity.x * (1 - 0.1),
-                y: velocity.y * (1 - 0.1)
+            newFocus = {
+                x: _.clamp(state.focus.x + velocity.x * (timeDelta / 1000), 0, this.content.getBoundingClientRect().width / state.scale),
+                y: _.clamp(state.focus.y + velocity.y * (timeDelta / 1000), 0, this.content.getBoundingClientRect().height / state.scale)
             };
-
-            var newFocus = {
-                x: state.focus.x + incrementX * (timeDelta / 1000),
-                y: state.focus.y + incrementY * (timeDelta / 1000)
-            };
-
-            console.log('deccelerate');
+            
+            if (state.focus.x === newFocus.x && state.focus.y === newFocus.y) {
+                complete = true;
+            }
+            
+            // TODO: Remove once development is complete
             console.log('velocity: ', velocity);
             console.log('timeDelta: ', timeDelta);
-            console.log('elapsed: ', elapsed);
-            console.log('incrementX: ', incrementX);
 
-            this.focusOn(newFocus, { 
-                duration: '100ms'
-            });
+            if (!complete) {
+                this.focusOn(newFocus, { 
+                    duration: '100ms'
+                });
 
-            if (Math.abs(velocity.x - newVelocity.x) > 3 || Math.abs(velocity.x - newVelocity.y) > 3) {
-                window.requestAnimationFrame(function (timestamp) { 
-                    _this.dragDeccelerate(newVelocity, timestamp - previousTime, timestamp, elapsed);
-                });    
+                newVelocity = {
+                    x: velocity.x * (1 - 0.1),
+                    y: velocity.y * (1 - 0.1)
+                };
+                
+                if (Math.abs(velocity.x - newVelocity.x) > 3 || Math.abs(velocity.x - newVelocity.y) > 3) {
+                    window.requestAnimationFrame(function (timestamp) { 
+                        _this.dragDeccelerate(newVelocity, timestamp - previousTime, timestamp);
+                    });    
+                }
             }
         },
 
