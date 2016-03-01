@@ -14,13 +14,11 @@
 * @param {Object} [options] - An object of options. See {@link http://backbonejs.org/#Model|Backbone.Model}.
 * @param {Object} [options.defaultState] - The default {@link CameraModel.defaultState|state}.
 * @param {Object} [options.defaultTransition] - The default {@link CameraModel.defaultTransition|transition}.
-* @param {number|string|Element} [options.height] - The camera's {@link CameraModel.height|height}.
 * @param {number} [options.increment] - The base {@link CameraModel.increment|scale increment}.
 * @param {number} [options.maxScale] - The {@link CameraModel.maxScale|maximum scale}.
 * @param {number} [options.minScale] - The {@link CameraModel.minScale|minimum scale}.
 * @param {Object} [options.state] - The starting {@link CameraModel.defaultState|state}.
 * @param {Object} [options.transition] - The starting {@link CameraModel.defaultTransition|transition}.
-* @param {number|string|Element} [options.width] - The camera's {@link CameraModel.width|width}.
 * @returns {CameraModel} A new CameraModel object.
 */
 var CameraModel = function (options) {
@@ -96,13 +94,6 @@ var CameraModel = function (options) {
                 timingFunction: 'ease-out'
             },
             /**
-            * The camera's height.
-            * @property {number|string|Element} - A number, a valid CSS height value, or an element. If an element is set, the camera's height will be sized to match the element.
-            * @memberOf CameraModel
-            * @default null
-            */
-            height: null,
-            /**
             * The base increment at which the content will be scaled.
             * @property {number} - See {@link CameraModel.defaultState.scale|scale}.
             * @memberOf CameraModel
@@ -136,14 +127,7 @@ var CameraModel = function (options) {
             * @memberOf CameraModel
             * @default See {@link CameraModel.defaultTransition|defaultTransition}.
             */
-            transition: null,
-            /**
-            * The camera's width.
-            * @property {number|string|Element} - A number, a valid CSS width value, or an element. If an element is set, the camera's width will be sized to match the element.
-            * @memberOf CameraModel
-            * @default null
-            */
-            width: null
+            transition: null
         },
         
         initialize: function () {

@@ -15,6 +15,8 @@
 * @extends SizableView
 * @param {Object} [options] - An object of options. Includes all Backbone.View options. See {@link http://backbonejs.org/#View|Backbone.View}.
 * @param {CameraModel} [options.model] - The view's model.
+* @param {number|string|Element} [options.height] - The camera's {@link CameraView.height|height}.
+* @param {number|string|Element} [options.width] - The camera's {@link CameraView.width|width}.
 * @returns {CameraView} The newly created CameraView object.
 */
 var CameraView = Backbone.View.extend(Object.assign({},
@@ -367,8 +369,41 @@ var CameraView = Backbone.View.extend(Object.assign({},
         * @returns {CameraView} The view.
         */
         initialize: function (options) {
+            /**
+            * The camera's height.
+            * @name height
+            * @property {number|string|Element} - A number, a valid CSS height value, or an element. If an element is set, the camera's height will be sized to match the element.
+            * @memberOf CameraView
+            * @default null
+            */
+            this.height = options.height || null;
+            
+            /**
+            * @name isDragging
+            * @property {boolean} - Whether the content is being dragged or not.
+            * @memberOf CameraView
+            * @default false
+            */
             this.isDragging = false;
+            
+            /**
+            * @name isTransitioning
+            * @property {boolean} - Whether the content is transitioning or not.
+            * @memberOf CameraView
+            * @default false
+            */
             this.isTransitioning = false;
+            
+            /**
+            * The camera's width.
+            * @name width
+            * @property {number|string|Element} - A number, a valid CSS width value, or an element. If an element is set, the camera's width will be sized to match the element.
+            * @memberOf CameraView
+            * @default null
+            */
+            this.width = options.width || null;
+            
+            // Initialize events
             this.$el.on('click', this._onClick.bind(this));
             this.$el.on('dragstart', this._onDragStart.bind(this));
             this.$el.on('mousedown', this._onMouseDown.bind(this));
@@ -380,6 +415,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
             this.listenTo(this.model, 'change:height', this._onHeightChange);
             this.listenTo(this.model, 'change:state', this._onStateChange);
             this.listenTo(this.model, 'change:width', this._onWidthChange);
+            
             this.onInitialize(options);
 
             return this;
@@ -417,8 +453,8 @@ var CameraView = Backbone.View.extend(Object.assign({},
             this.onBeforeRender();
             this.content = this.el.querySelector(':first-child');
             this.content.setAttribute('draggable', false);
-            this.setHeight(this.model.get('height'));
-            this.setWidth(this.model.get('width'));
+            this.setHeight(this.height);
+            this.setWidth(this.width);
             this.model.setTransition({ duration: '0s' });
 
             // If no focus, set default focus
