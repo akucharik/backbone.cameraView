@@ -14,9 +14,6 @@
 * @param {Object} [options] - An object of options. See {@link http://backbonejs.org/#Model|Backbone.Model}.
 * @param {Object} [options.defaultState] - The default {@link CameraModel.defaultState|state}.
 * @param {Object} [options.defaultTransition] - The default {@link CameraModel.defaultTransition|transition}.
-* @param {number} [options.increment] - The base {@link CameraModel.increment|scale increment}.
-* @param {number} [options.maxScale] - The {@link CameraModel.maxScale|maximum scale}.
-* @param {number} [options.minScale] - The {@link CameraModel.minScale|minimum scale}.
 * @param {Object} [options.state] - The starting {@link CameraModel.defaultState|state}.
 * @param {Object} [options.transition] - The starting {@link CameraModel.defaultTransition|transition}.
 * @returns {CameraModel} A new CameraModel object.
@@ -93,27 +90,6 @@ var CameraModel = function (options) {
                 */
                 timingFunction: 'ease-out'
             },
-            /**
-            * The base increment at which the content will be scaled.
-            * @property {number} - See {@link CameraModel.defaultState.scale|scale}.
-            * @memberOf CameraModel
-            * @default
-            */
-            increment: 0.01,
-            /**
-            * The maximum value the content can be scaled.
-            * @property {number} - See {@link CameraModel.defaultState.scale|scale}.
-            * @memberOf CameraModel
-            * @default
-            */
-            maxScale: 6.0,
-            /**
-            * The minimum value the content can be scaled.
-            * @property {number} - See {@link CameraModel.defaultState.scale|scale}.
-            * @memberOf CameraModel
-            * @default
-            */
-            minScale: 0.25,
             /**
             * The camera's current state.
             * @property {Object} - A {@link CameraModel.defaultState|state} object.

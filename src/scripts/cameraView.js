@@ -15,9 +15,14 @@
 * @extends SizableView
 * @param {Object} [options] - An object of options. Includes all Backbone.View options. See {@link http://backbonejs.org/#View|Backbone.View}.
 * @param {CameraModel} [options.model] - The view's model.
+* @param {Object|Element} [options.focus] - A {@link CameraView.focus|focus} object.
 * @param {number|string|Element} [options.height] - The camera's {@link CameraView.height|height}.
+* @param {number} [options.maxScale] - The {@link CameraView.maxScale|maximum scale}.
+* @param {number} [options.minScale] - The {@link CameraView.minScale|minimum scale}.
+* @param {number} [options.scale] - A {@link CameraView.scale|scale} ratio.
+* @param {number} [options.scaleIncrement] - The base {@link CameraView.scaleIncrement|scale increment}.
+* @param {Object} [options.scaleOrigin] - A {@link CameraView.scaleOrigin|scale origin} ratio.
 * @param {number|string|Element} [options.width] - The camera's {@link CameraView.width|width}.
-* @returns {CameraView} The newly created CameraView object.
 */
 var CameraView = Backbone.View.extend(Object.assign({},
     new Focuser(),
@@ -197,7 +202,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
             if (event.deltaY) {
                 var direction = event.deltaY > 0 ? constants.zoom.OUT : constants.zoom.IN;
                 var scale = this.model.get('state').scale;
-                var newScale = _.clamp(scale + this.model.get('increment') * Math.abs(event.deltaY) * scale * (direction === constants.zoom.IN ? 1 : -1), this.model.get('minScale'), this.model.get('maxScale'));
+                var newScale = _.clamp(scale + this.scaleIncrement * Math.abs(event.deltaY) * scale * (direction === constants.zoom.IN ? 1 : -1), this.minScale, this.maxScale);
                 var origin = null;
 
                 // If scale has not changed, it is at the min or max.
@@ -228,11 +233,9 @@ var CameraView = Backbone.View.extend(Object.assign({},
         /**
         * Ensure the camera keeps focus within the content's focusable bounds.
         *
-        * @returns {Object} The position.
+        * @returns {Object} The bounded position.
         */
         checkBounds: function (position) {
-            var scale = this.model.get('state').scale;
-            
             if (position.x <= this.bounds.left)
             {
                 position.x = this.bounds.left;
@@ -252,7 +255,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
             {
                 position.y = this.bounds.bottom;
             }
-            console.log('bounded position: ', position);
+            
             return position;
         },
 
@@ -383,6 +386,15 @@ var CameraView = Backbone.View.extend(Object.assign({},
             this.bounds = null;
             
             /**
+            * The focus.
+            * @name focus
+            * @property {Object|Element} - An 'x' {number}, 'y' {number} pixel coordinate object or an Element.
+            * @memberOf CameraView
+            * @default null
+            */
+            this.focus = options.focus || null;
+            
+            /**
             * The camera's height.
             * @name height
             * @property {number|string|Element} - A number, a valid CSS height value, or an element. If an element is set, the camera's height will be sized to match the element.
@@ -406,6 +418,51 @@ var CameraView = Backbone.View.extend(Object.assign({},
             * @default false
             */
             this.isTransitioning = false;
+            
+            /**
+            * The maximum value the content can be scaled.
+            * @name maxScale
+            * @property {number} - See {@link CameraView.scale|scale}.
+            * @memberOf CameraView
+            * @default
+            */
+            this.maxScale = options.maxScale || 6.0;
+            
+            /**
+            * The minimum value the content can be scaled.
+            * @name minScale
+            * @property {number} - See {@link CameraView.scale|scale}.
+            * @memberOf CameraView
+            * @default
+            */
+            this.minScale = options.minScale || 0.25;
+            
+            /**
+            * The scale.
+            * @name scale
+            * @property {number} - A scale ratio where 1 = 100%.
+            * @memberOf CameraView
+            * @default
+            */
+            this.scale = options.scale || 1;
+            
+            /**
+            * The base increment at which the content will be scaled.
+            * @name scaleIncrement
+            * @property {number} - See {@link CameraView.scale|scale}.
+            * @memberOf CameraView
+            * @default
+            */
+            this.scaleIncrement = options.scaleIncrement || 0.01;
+            
+            /**
+            * The scale origin.
+            * @name scaleOrigin
+            * @property {Object} - An 'x' {number}, 'y' {number} pixel coordinate object.
+            * @memberOf CameraView
+            * @default null
+            */
+            this.scaleOrigin = options.scaleOrigin || null;
             
             /**
             * The camera's width.
@@ -533,7 +590,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
             
             if (this.bounds) {
                 position = this.checkBounds(position);
-                // TODO: Terrible setting. Refactor when model is removed and all properties are on the view.
+                // TODO: Terrible! Refactor when model is removed and all properties are flattened on the view.
                 this.model.get('state').focus = position;
             }
             
