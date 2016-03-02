@@ -212,13 +212,48 @@ var CameraView = Backbone.View.extend(Object.assign({},
                         origin = this.model.get('state').scaleOrigin;
                     }
 
-                    this.zoomAt(newScale, origin, {
-                        duration: '100ms'
-                    });
+                    // TODO: BUG: If deccelerating and origin has not been set, zoomAt will not respond.
+                    // TODO: BUG: If deccelerating and origin has been previous set, it used previous/wrong origin.
+                    if (origin) {
+                        this.zoomAt(newScale, origin, {
+                            duration: '100ms'
+                        });
+                    }
                 }
             }
 
             return this;
+        },
+    
+        /**
+        * Ensure the camera keeps focus within the content's focusable bounds.
+        *
+        * @returns {Object} The position.
+        */
+        checkBounds: function (position) {
+            var scale = this.model.get('state').scale;
+            
+            if (position.x <= this.bounds.left)
+            {
+                position.x = this.bounds.left;
+            }
+
+            if (position.x >= this.bounds.right)
+            {
+                position.x = this.bounds.right;
+            }
+
+            if (position.y <= this.bounds.top)
+            {
+                position.y = this.bounds.top;
+            }
+
+            if (position.y >= this.bounds.bottom)
+            {
+                position.y = this.bounds.bottom;
+            }
+            console.log('bounded position: ', position);
+            return position;
         },
 
         // TODO: Messy! Refactor!
@@ -234,8 +269,8 @@ var CameraView = Backbone.View.extend(Object.assign({},
                 y: (this.dragStartY - event.clientY) / state.scale
             };
             var newFocus = {
-                x: _.clamp(state.focus.x + dragDelta.x, 0, this.content.getBoundingClientRect().width / state.scale),
-                y: _.clamp(state.focus.y + dragDelta.y, 0, this.content.getBoundingClientRect().height / state.scale)
+                x: state.focus.x + dragDelta.x,
+                y: state.focus.y + dragDelta.y
             };
 
             var eventTimeDelta = event.timeStamp - this.previousEventTime;
@@ -271,22 +306,10 @@ var CameraView = Backbone.View.extend(Object.assign({},
 
             // Only apply momentum movement if dragging has not stopped
             if (eventTimeDelta < 66.6) {
-                var state = this.model.get('state');
-    //                var duration = 750;
-    //                var newFocus = {
-    //                    x: state.focus.x + (this.velocity.x) * (duration / 1000),
-    //                    y: state.focus.y + (this.velocity.y) * (duration / 1000)
-    //                };
-
                 var previousTime = performance.now();
                 window.requestAnimationFrame(function (timestamp) { 
                     _this.dragDeccelerate(_this.velocity, timestamp - previousTime, timestamp);
                 });
-
-    //                this.focusOn(newFocus, { 
-    //                    duration: duration + 'ms',
-    //                    timingFunction: 'ease-out'
-    //                });
             }
 
             this.isDragging = false;
@@ -302,38 +325,27 @@ var CameraView = Backbone.View.extend(Object.assign({},
             
             var _this = this;
             var newFocus, newVelocity;
-            var complete = false;
             var previousTime = timestamp;
             var state = this.model.get('state');
-
+            
             newFocus = {
-                x: _.clamp(state.focus.x + velocity.x * (timeDelta / 1000), 0, this.content.getBoundingClientRect().width / state.scale),
-                y: _.clamp(state.focus.y + velocity.y * (timeDelta / 1000), 0, this.content.getBoundingClientRect().height / state.scale)
+                x: state.focus.x + velocity.x * (timeDelta / 1000),
+                y: state.focus.y + velocity.y * (timeDelta / 1000)
             };
-            
-            if (state.focus.x === newFocus.x && state.focus.y === newFocus.y) {
-                complete = true;
-            }
-            
-            // TODO: Remove once development is complete
-            console.log('velocity: ', velocity);
-            console.log('timeDelta: ', timeDelta);
 
-            if (!complete) {
-                this.focusOn(newFocus, { 
-                    duration: '100ms'
-                });
+            this.focusOn(newFocus, { 
+                duration: '100ms'
+            });
 
-                newVelocity = {
-                    x: velocity.x * (1 - 0.1),
-                    y: velocity.y * (1 - 0.1)
-                };
-                
-                if (Math.abs(velocity.x - newVelocity.x) > 3 || Math.abs(velocity.x - newVelocity.y) > 3) {
-                    window.requestAnimationFrame(function (timestamp) { 
-                        _this.dragDeccelerate(newVelocity, timestamp - previousTime, timestamp);
-                    });    
-                }
+            newVelocity = {
+                x: velocity.x * (1 - 0.1),
+                y: velocity.y * (1 - 0.1)
+            };
+
+            if (Math.abs(velocity.x - newVelocity.x) > 3 || Math.abs(velocity.x - newVelocity.y) > 3) {
+                window.requestAnimationFrame(function (timestamp) { 
+                    _this.dragDeccelerate(newVelocity, timestamp - previousTime, timestamp);
+                });    
             }
         },
 
@@ -362,6 +374,14 @@ var CameraView = Backbone.View.extend(Object.assign({},
         * @returns {CameraView} The view.
         */
         initialize: function (options) {
+            /**
+            * The content's focusable bounds. If set, the camera will keep focus within the bounds.
+            * @name bounds
+            * @property {Object} - An object representing the content's focusable bounds.
+            * @memberOf CameraView
+            */
+            this.bounds = null;
+            
             /**
             * The camera's height.
             * @name height
@@ -450,6 +470,14 @@ var CameraView = Backbone.View.extend(Object.assign({},
             this.setWidth(this.width);
             this.model.setTransition({ duration: '0s' });
 
+            var contentRect = this.content.getBoundingClientRect();
+            this.bounds = {
+                left: 0,
+                right: contentRect.width,
+                top: 0,
+                bottom: contentRect.height
+            };
+            
             // If no focus, set default focus
             if (!this.model.get('state').focus) { 
                 var cameraRect = this.el.getBoundingClientRect();
@@ -502,9 +530,15 @@ var CameraView = Backbone.View.extend(Object.assign({},
             if (!_.isFinite(state.focus.x) && !_.isFinite(state.focus.y)) {
                 throw new Error('Cannot focus using an invalid position');
             }
-
+            
+            if (this.bounds) {
+                position = this.checkBounds(position);
+                // TODO: Terrible setting. Refactor when model is removed and all properties are on the view.
+                this.model.get('state').focus = position;
+            }
+            
             var focusOffset = this.getFocusOffset(this.el.getBoundingClientRect(), position, state.scale);
-
+            
             utils.setCssTransition(this.content, transition);
             utils.setCssTransform(this.content, {
                 scale: state.scale,
