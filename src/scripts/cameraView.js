@@ -377,13 +377,44 @@ var CameraView = Backbone.View.extend(Object.assign({},
         * @returns {CameraView} The view.
         */
         initialize: function (options) {
+            var contentRect = options.content.getBoundingClientRect();
+            
+            /**
+            * The content.
+            * @name content
+            * @property {Element} - The element to treat as the camera's content.
+            * @memberOf CameraView
+            */
+            this.content = options.content || null;
+            
+            /**
+            * The content's height.
+            * @name contentHeight
+            * @property {number} - The content's height.
+            * @memberOf CameraView
+            */
+            this.contentHeight = contentRect.height;
+            
+            /**
+            * The content's width.
+            * @name contentWidth
+            * @property {number} - The content's width.
+            * @memberOf CameraView
+            */
+            this.contentWidth = contentRect.width;
+            
             /**
             * The content's focusable bounds. If set, the camera will keep focus within the bounds.
             * @name bounds
             * @property {Object} - An object representing the content's focusable bounds.
             * @memberOf CameraView
             */
-            this.bounds = null;
+            this.bounds = options.bounds || {
+                left: 0,
+                right: this.contentWidth,
+                top: 0,
+                bottom: this.contentHeight
+            };
             
             /**
             * The focus.
@@ -473,6 +504,10 @@ var CameraView = Backbone.View.extend(Object.assign({},
             */
             this.width = options.width || null;
             
+            // Set up content
+            this.el.appendChild(this.content);
+            this.content.setAttribute('draggable', false);
+            
             // Initialize events
             this.$el.on('click', this._onClick.bind(this));
             this.$el.on('dragstart', this._onDragStart.bind(this));
@@ -521,19 +556,10 @@ var CameraView = Backbone.View.extend(Object.assign({},
         */
         render: function () {
             this.onBeforeRender();
-            this.content = this.el.querySelector(':first-child');
-            this.content.setAttribute('draggable', false);
+            
             this.setHeight(this.height);
             this.setWidth(this.width);
             this.model.setTransition({ duration: '0s' });
-
-            var contentRect = this.content.getBoundingClientRect();
-            this.bounds = {
-                left: 0,
-                right: contentRect.width,
-                top: 0,
-                bottom: contentRect.height
-            };
             
             // If no focus, set default focus
             if (!this.model.get('state').focus) { 

@@ -10,7 +10,7 @@
             width: 1000px;*/
         }
 
-        .bcv-camera > :first-child {
+        .bcv-content {
             background-color: lightgray;
             top: 0px;
             left: 0px;
@@ -35,23 +35,25 @@
     
     <div class="container">
         <div id="camera" class="bcv-camera">
-            <div>
-                <img src="images/FFL-Spritesheet-White-1827x1215.png" alt="Final Fantasy Legend Sprites" width="1827" height="1215" />
-                <div id="box100" style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid green;"></div>
-                <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 150px; height: 150px; border: 1px solid green;"></div>
-                <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 200px; height: 200px; border: 1px solid green;"></div>
-                <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 250px; height: 250px; border: 1px solid green;"></div>
-                <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 300px; height: 300px; border: 1px solid green;"></div>
-            </div>
-            <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid blue;"></div>
-            <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 200px; height: 200px; border: 1px solid red;"></div>
+            <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid blue; z-index: 1;"></div>
+            <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 200px; height: 200px; border: 1px solid red; z-index: 1;"></div>
 
-            <div style="box-sizing: border-box; position: absolute; top: 105px; left: 180px; width: 3px; height: 3px; background-color: red;"></div>
-            <div style="box-sizing: border-box; position: absolute; top: 249px; left: 615px; width: 3px; height: 3px; background-color: red;"></div>
+            <div style="box-sizing: border-box; position: absolute; top: 105px; left: 180px; width: 3px; height: 3px; background-color: red; z-index: 1;"></div>
+            <div style="box-sizing: border-box; position: absolute; top: 249px; left: 615px; width: 3px; height: 3px; background-color: red; z-index: 1;"></div>
 
-            <div style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 50px; height: 2px; background-color: red; transform: translateX(-25px);"></div>
-            <div style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 2px; height: 50px; background-color: red; transform: translateY(-25px);"></div>
+            <div style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 50px; height: 2px; background-color: red; transform: translateX(-25px); z-index: 1;"></div>
+            <div style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 2px; height: 50px; background-color: red; transform: translateY(-25px); z-index: 1;"></div>
         </div>
+        
+        <div id="content" class="bcv-content">
+            <img src="images/FFL-Spritesheet-White-1827x1215.png" alt="Final Fantasy Legend Sprites" width="1827" height="1215" />
+            <div id="box100" style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid green;"></div>
+            <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 150px; height: 150px; border: 1px solid green;"></div>
+            <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 200px; height: 200px; border: 1px solid green;"></div>
+            <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 250px; height: 250px; border: 1px solid green;"></div>
+            <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 300px; height: 300px; border: 1px solid green;"></div>
+        </div>
+        
         <div class="actions">
             <ul>
                 <li>scale: <input id="focusOnScale" type="text" placeholder="2" disabled />
@@ -101,6 +103,7 @@
                 // Views
                 app.cameraView = new CameraView({
                     el: document.getElementById('camera'),
+                    content: document.getElementById('content'),
                     model: CameraModel(),
                     height: 500,
                     width: 1000

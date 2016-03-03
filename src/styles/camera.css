@@ -7,7 +7,7 @@
     background-color: transparent;
 }
 
-.bcv-camera > :first-child {
+.bcv-content {
     position: absolute;
     transform-origin: 0 0;
 }
