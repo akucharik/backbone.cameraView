@@ -15,35 +15,61 @@
 */
 var SizableView = function () {
     /**
-    * Sets the height of the view.
+    * Sets the view element's height.
+    *
+    * @private
+    * @returns {this} The view.
+    */
+    this._setHeight = function () {
+        var height = this.height;
+
+        if (_.isElement(height)) {
+            height = $(height).height();
+        }
+        this.$el.height(height);
+
+        return this;
+    };
+    
+    /**
+    * Sets the view element's width.
+    *
+    * @private
+    * @returns {this} The view.
+    */
+    this._setWidth = function () {
+        var width = this.width;
+
+        if (_.isElement(width)) {
+            width = $(width).width();
+        }
+        this.$el.width(width);
+
+        return this;
+    };
+    
+    /**
+    * Sets the view's height.
     *
     * @param {number|string|Element} height - A number will be converted to pixels. A valid CSS string may also be used. If an Element is provided, the dimension will be sized to match the Element.
     * @returns {this} The view.
     */
     this.setHeight = function (height) {
-        if (_.isElement(height)) {
-            this.$el.height($(height).height());
-        }
-        else {
-            this.$el.height(height);
-        }
+        this.height = height;
+        this.trigger('change:height');
         
         return this;
     };
 
     /**
-    * Sets the width of the view.
+    * Sets the view's width.
     *
     * @param {number|string|Element} width - A number will be converted to pixels. A valid CSS string may also be used. If an Element is provided, the dimension will be sized to match the Element.
     * @returns {this} The view.
     */
     this.setWidth = function (width) {
-        if (_.isElement(width)) {
-            this.$el.width($(width).width());
-        }
-        else {
-            this.$el.width(width);
-        }
+        this.width = width;
+        this.trigger('change:width');
         
         return this;
     };

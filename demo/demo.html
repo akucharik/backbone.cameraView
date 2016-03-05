@@ -104,9 +104,12 @@
                 app.cameraView = new CameraView({
                     el: document.getElementById('camera'),
                     content: document.getElementById('content'),
-                    model: CameraModel(),
                     height: 500,
-                    width: 1000
+                    width: 1000,
+                    focus: {
+                        x: 501,
+                        y: 251
+                    }
                 }).render();
 
                 $('#flick').on('click', app.flick);
