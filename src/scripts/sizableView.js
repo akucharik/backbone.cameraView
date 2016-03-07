@@ -6,21 +6,18 @@
 */
 
 /**
-* Factory: Creates {@link http://backbonejs.org/#View|Backbone.View} height and width sizing functionality used for object composition.
-* Requires {@link http://lodash.com|lodash} or {@link http://underscorejs.org|underscore} and {@link http://jquery.com|jQuery} or {@link http://zeptojs.com|Zepto}.
+* Height and width sizing functionality for object composition when the object extends {@link external:Backbone.View}.
+* Requires {@link external:lodash} or {@link external:underscore} and {@link external:jQuery} or {@link external:zepto}.
 *
-* @class
-* @constructor
-* @extends Backbone.View
+* @mixin
 */
-var SizableView = function () {
+var SizableView = {
     /**
     * Sets the view element's height.
     *
-    * @private
     * @returns {this} The view.
     */
-    this._setHeight = function () {
+    setViewHeight: function () {
         var height = this.height;
 
         if (_.isElement(height)) {
@@ -29,15 +26,14 @@ var SizableView = function () {
         this.$el.height(height);
 
         return this;
-    };
+    },
     
     /**
     * Sets the view element's width.
     *
-    * @private
     * @returns {this} The view.
     */
-    this._setWidth = function () {
+    setViewWidth: function () {
         var width = this.width;
 
         if (_.isElement(width)) {
@@ -46,7 +42,7 @@ var SizableView = function () {
         this.$el.width(width);
 
         return this;
-    };
+    },
     
     /**
     * Sets the view's height.
@@ -54,12 +50,12 @@ var SizableView = function () {
     * @param {number|string|Element} height - A number will be converted to pixels. A valid CSS string may also be used. If an Element is provided, the dimension will be sized to match the Element.
     * @returns {this} The view.
     */
-    this.setHeight = function (height) {
+    setHeight: function (height) {
         this.height = height;
         this.trigger('change:height');
         
         return this;
-    };
+    },
 
     /**
     * Sets the view's width.
@@ -67,12 +63,10 @@ var SizableView = function () {
     * @param {number|string|Element} width - A number will be converted to pixels. A valid CSS string may also be used. If an Element is provided, the dimension will be sized to match the Element.
     * @returns {this} The view.
     */
-    this.setWidth = function (width) {
+    setWidth: function (width) {
         this.width = width;
         this.trigger('change:width');
         
         return this;
-    };
+    }
 };
-
-SizableView.prototype.constructor = SizableView;

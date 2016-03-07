@@ -6,8 +6,8 @@
 */
 
 /**
-* Creates focus functionality used for object composition.
-* Requires {@link http://lodash.com|lodash}.
+* Focus functionality for a standalone object or object composition.
+* Requires {@link external:lodash}.
 *
 * @class
 * @constructor

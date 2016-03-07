@@ -5,15 +5,53 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
+
+/**
+* The Backbone library.
+* @external Backbone
+* @see http://backbonejs.org
+*/
+
+/**
+* The Backbone library's view class.
+* @name View
+* @memberof external:Backbone
+* @see http://backbonejs.org/#View
+*/
+
+/**
+* The jQuery library.
+* @external jQuery
+* @see http://jquery.com
+*/
+
+/**
+* The lodash library.
+* @external lodash
+* @see http://lodash.com
+*/
+
+/**
+* The underscore library.
+* @external underscore
+* @see http://underscorejs.org
+*/
+
+/**
+* The zepto library.
+* @external zepto
+* @see http://zeptojs.com
+*/
+
 /**
 * Factory: Creates a camera to pan and zoom content.
-* Requires {@link http://backbonejs.org|Backbone}, {@link http://lodash.com|lodash}, and {@link http://jquery.com|jQuery} or {@link http://zeptojs.com|Zepto}.
+* Requires {@link external:lodash}, and {@link external:jQuery} or {@link external:zepto}.
 * 
 * @constructs CameraView
-* @extends Backbone.View
-* @extends Focuser
-* @extends SizableView
-* @param {Object} [options] - An object of options. Includes all Backbone.View options. See {@link http://backbonejs.org/#View|Backbone.View}.
+* @extends external:Backbone.View
+* @mixes Focuser
+* @mixes SizableView
+* @param {Object} [options] - An object of options. Includes all Backbone.View options. See {@link external:Backbone.View}.
 * @param {Object|Element} [options.focus] - A {@link CameraView.focus|focus} object.
 * @param {number|string|Element} [options.height] - The camera's {@link CameraView.height|height}.
 * @param {number} [options.maxScale] - The {@link CameraView.maxScale|maximum scale}.
@@ -25,7 +63,7 @@
 */
 var CameraView = Backbone.View.extend(Object.assign({},
     new Focuser(),
-    new SizableView(),
+    SizableView,
     /**
     * @lends CameraView.prototype
     */                                                
@@ -332,7 +370,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
         /**
         * Called on the view this when the view has been created. This method is not meant to be overridden. If you need to access initialization, use {@link CameraView#onInitialize|onInitialize}.
         *
-        * @param {Object} [options] - An object of options. Includes all Backbone.View options. See {@link http://backbonejs.org/#View|Backbone.View}.
+        * @param {Object} [options] - An object of options. Includes all Backbone.View options. See {@link external:Backbone.View}.
         * @returns {CameraView} The view.
         */
         initialize: function (options) {
@@ -495,21 +533,20 @@ var CameraView = Backbone.View.extend(Object.assign({},
             /**
             * The current transition.
             * @name transition
-            * @property {Object} - An object of the current camera transitions.
+            * @property {Object} - An object of the current camera transition.
             * @memberOf CameraView
             */
             this.transition = {
-                zoom: { count: 0,
+                zoom: {
                     isComplete: false,
                     elapsedTime: 0,
                     startTime: null,
                     startValue: 1,
-                    endValue: 3,
+                    endValue: 2,
                     delay: 0,
                     duration: 1000,
                     timingFunction: 'linear',
                     update: function (camera, timestamp) {
-                        //console.log('zoom');
                         if (!this.startTime) {
                             this.startTime = timestamp;
                         }
@@ -520,70 +557,73 @@ var CameraView = Backbone.View.extend(Object.assign({},
                             var percent = Math.min(this.elapsedTime - this.delay, this.duration) / this.duration;
 
                             var value = this.startValue + (this.endValue - this.startValue) * percent;
-//this.count++; if (this.count == 2) this.isComplete = true;
+
                             if (this.elapsedTime >= this.duration) {
                                 this.isComplete = true;
                             }
-                            //console.log('z-scale: ', value);
+                            
                             camera.scale = value;
                         }
                     }
                 },
-                focus: { count: 0,
+                positionX: {
                     isComplete: false,
                     elapsedTime: 0,
                     startTime: null,
-                    startValue: { x: 501, y: 251 },
-                    endValue: { x: 200, y: 200 },
+                    startValue: 0,
+                    endValue: 100,
                     delay: 0,
                     duration: 1000,
                     timingFunction: 'linear',
                     update: function (camera, timestamp) {
-                        //console.log('focus');
                         if (!this.startTime) {
                             this.startTime = timestamp;
                         }
-                        //console.log('% change: ', (timestamp - this.startTime - this.elapsedTime) / this.duration);
+
                         this.elapsedTime = timestamp - this.startTime;
                         
                         if (this.elapsedTime >= this.delay) {
                             var percent = Math.min(this.elapsedTime - this.delay, this.duration) / this.duration;
+                            
+                            var value = this.startValue + (this.endValue - this.startValue) * percent;
 
-                            var value = {
-                                x: this.startValue.x + (this.endValue.x - this.startValue.x) * percent,
-                                y: this.startValue.y + (this.endValue.y - this.startValue.y) * percent
-                            };
-                            console.log('scale diff: ', camera.transition.zoom.endValue - camera.scale);
-//                            value = {
-//                                x: value.x - value.x * (camera.transition.zoom.endValue - camera.scale),
-//                                y: value.y - value.y * (camera.transition.zoom.endValue - camera.scale)
-//                            };
-//this.count++; if (this.count == 2) this.isComplete = true;
                             if (this.elapsedTime >= this.duration) {
                                 this.isComplete = true;
                             }
-                            //console.log('f-scale: ', camera.scale);
                             
+                            camera.position.x = value;
+                        }
+                    }
+                },
+                positionY: {
+                    isComplete: false,
+                    elapsedTime: 0,
+                    startTime: null,
+                    startValue: 0 ,
+                    endValue: -150,
+                    delay: 0,
+                    duration: 1000,
+                    timingFunction: 'linear',
+                    update: function (camera, timestamp) {
+                        if (!this.startTime) {
+                            this.startTime = timestamp;
+                        }
+
+                        this.elapsedTime = timestamp - this.startTime;
+                        
+                        if (this.elapsedTime >= this.delay) {
+                            var percent = Math.min(this.elapsedTime - this.delay, this.duration) / this.duration;
                             
-                            camera.focus = value;
-                            //var focusOffset = camera.getFocusOffset(camera.el.getBoundingClientRect(), value, camera.scale);
-                            //camera.position = focusOffset;
+                            var value = this.startValue + (this.endValue - this.startValue) * percent ;
+
+                            if (this.elapsedTime >= this.duration) {
+                                this.isComplete = true;
+                            }
+                            
+                            camera.position.y = value;
                         }
                     }
                 }
-                
-                
-                // Start
-                // Scale 1
-                // Focus 501, 251
-                
-                // Step (bad)
-                // Scale 1.21
-                // Focus 437.5, 240.2
-                
-                // Step (needed)
-                // Scale 1.21
-                // Focus 414, something
             };
             
             // Set up content
@@ -625,9 +665,6 @@ var CameraView = Backbone.View.extend(Object.assign({},
                     }
                 }
             }
-            console.log('scale: ', this.scale);
-            console.log('focus: ', this.focus);
-            var focusOffset = this.getFocusOffset(this.el.getBoundingClientRect(), this.focus, this.scale);
             
             utils.setCssTransition(this.content, {
                 duration: '100ms',
@@ -637,22 +674,17 @@ var CameraView = Backbone.View.extend(Object.assign({},
             
             utils.setCssTransform(this.content, {
                 scale: this.scale,
-                translateX: focusOffset.x,
-                translateY: focusOffset.y
+                translateX: this.position.x,
+                translateY: this.position.y
             }, this);
-            var _this = this;
+            
             if (!isComplete) {
-//                window.setTimeout(function () {
-//                    _this.testUpdate.call(_this, window.performance.now())
-//                }, 200);
                 window.requestAnimationFrame(this.testUpdate.bind(this));
             }
             
             return this;
         },
-    
-    
-    
+        
         /**
         * Triggered before the camera has rendered.
         */
@@ -663,7 +695,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
         /**
         * Triggered after the camera has intialized.
         *
-        * @param {Object} [options] - An object of options. Includes all Backbone.View options. See {@link http://backbonejs.org/#View|Backbone.View}.
+        * @param {Object} [options] - An object of options. Includes all Backbone.View options. See {@link external:Backbone.View}.
         */
         onInitialize: function (options) {
 
@@ -748,8 +780,8 @@ var CameraView = Backbone.View.extend(Object.assign({},
             // TODO: Remove once development is complete
             console.log('update');
 
-            this._setWidth();
-            this._setHeight();
+            this.setViewWidth();
+            this.setViewHeight();
             
             var position = {};
 
