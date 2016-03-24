@@ -349,8 +349,9 @@ var CameraView = Backbone.View.extend(Object.assign({},
             }
         },
 
+        // TODO: Refactor so it only handles an element.
         /**
-        * Focus the camera on a specific point.
+        * Focus the camera on an element.
         *
         * @param {Object|Element} focus - A {@link CameraView.focus|focus} object.
         * @param {Object} [transition] - A {@link CameraView.transition|transition} object.
@@ -363,6 +364,24 @@ var CameraView = Backbone.View.extend(Object.assign({},
             this.setState({
                 focus: focus
             });
+
+            return this;
+        },
+    
+        /**
+        * Focus the camera on a point.
+        *
+        * @param {number} x - The 'x' position on the unscaled content.
+        * @param {number} y - The 'y' position on the unscaled content.
+        * @param {Object} [transition] - A {@link CameraView.transition|transition} object.
+        * @returns {CameraView} The view.
+        */
+        focusOnXY: function (x, y, transition) {
+            transition = transition || {};
+
+            this.setTransition(transition);
+            this.x = x - this.width / 2;
+            this.y = y - this.height / 2;
 
             return this;
         },
@@ -516,6 +535,22 @@ var CameraView = Backbone.View.extend(Object.assign({},
             };
             
             /**
+            * The camera's 'x' position on the content.
+            * @name x
+            * @property {number} - The camera's 'x' position on the content.
+            * @memberOf CameraView
+            */
+            this.x = 0;
+            
+            /**
+            * The camera's 'y' position on the content.
+            * @name y
+            * @property {number} - The camera's 'y' position on the content.
+            * @memberOf CameraView
+            */
+            this.y = 0;
+            
+            /**
             * The camera's width.
             * @name width
             * @property {number|string|Element} - A number, a valid CSS width value, or an element. If an element is set, the camera's width will be sized to match the element.
@@ -528,6 +563,11 @@ var CameraView = Backbone.View.extend(Object.assign({},
             this.transitionDelay = '0s';
             this.transitionDuration = '500ms';
             this.transitionTimingFunciton = 'ease-out';
+            
+            // TODO: In development
+            this.tweenScale = null;
+            this.tweenX = null;
+            this.tweenY = null;
             
             // TODO: In development
             /**
@@ -545,7 +585,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
                     endValue: 2,
                     delay: 0,
                     duration: 1000,
-                    timingFunction: 'linear',
+                    timingFunction: createjs.Ease.cubicOut,
                     update: function (camera, timestamp) {
                         if (!this.startTime) {
                             this.startTime = timestamp;
@@ -554,15 +594,22 @@ var CameraView = Backbone.View.extend(Object.assign({},
                         this.elapsedTime = timestamp - this.startTime;
                         
                         if (this.elapsedTime >= this.delay) {
-                            var percent = Math.min(this.elapsedTime - this.delay, this.duration) / this.duration;
+                            if (!camera.tweenScale) {
+                                camera.tweenScale = createjs.Tween.get(camera, { paused: true }).to({ scale: this.endValue }, this.duration, this.timingFunction);
+                            }
+                            
+                            camera.tweenScale.setPosition(Math.min(this.elapsedTime - this.delay, this.duration));
+                            
+                            //var percent = Math.min(this.elapsedTime - this.delay, this.duration) / this.duration;
 
-                            var value = this.startValue + (this.endValue - this.startValue) * percent;
+                            //var value = this.startValue + (this.endValue - this.startValue) * percent;
 
                             if (this.elapsedTime >= this.duration) {
                                 this.isComplete = true;
+                                camera.tweenScale = null;
                             }
                             
-                            camera.scale = value;
+                            //camera.scale = value;
                         }
                     }
                 },
@@ -574,7 +621,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
                     endValue: 100,
                     delay: 0,
                     duration: 1000,
-                    timingFunction: 'linear',
+                    timingFunction: createjs.Ease.cubicOut,
                     update: function (camera, timestamp) {
                         if (!this.startTime) {
                             this.startTime = timestamp;
@@ -583,15 +630,22 @@ var CameraView = Backbone.View.extend(Object.assign({},
                         this.elapsedTime = timestamp - this.startTime;
                         
                         if (this.elapsedTime >= this.delay) {
-                            var percent = Math.min(this.elapsedTime - this.delay, this.duration) / this.duration;
+                            if (!camera.tweenX) {
+                                camera.tweenX = createjs.Tween.get(camera, { paused: true }).to({ x: this.endValue }, this.duration, this.timingFunction);
+                            }
                             
-                            var value = this.startValue + (this.endValue - this.startValue) * percent;
+                            camera.tweenX.setPosition(Math.min(this.elapsedTime - this.delay, this.duration));
+                            
+                            //var percent = Math.min(this.elapsedTime - this.delay, this.duration) / this.duration;
+                            
+                            //var value = this.startValue + (this.endValue - this.startValue) * percent;
 
                             if (this.elapsedTime >= this.duration) {
                                 this.isComplete = true;
+                                camera.tweenX = null;
                             }
                             
-                            camera.position.x = value;
+                            //camera.position.x = value;
                         }
                     }
                 },
@@ -603,7 +657,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
                     endValue: -150,
                     delay: 0,
                     duration: 1000,
-                    timingFunction: 'linear',
+                    timingFunction: createjs.Ease.cubicOut,
                     update: function (camera, timestamp) {
                         if (!this.startTime) {
                             this.startTime = timestamp;
@@ -612,15 +666,22 @@ var CameraView = Backbone.View.extend(Object.assign({},
                         this.elapsedTime = timestamp - this.startTime;
                         
                         if (this.elapsedTime >= this.delay) {
-                            var percent = Math.min(this.elapsedTime - this.delay, this.duration) / this.duration;
+                            if (!camera.tweenY) {
+                                camera.tweenY = createjs.Tween.get(camera, { paused: true }).to({ y: this.endValue }, this.duration, this.timingFunction);
+                            }
                             
-                            var value = this.startValue + (this.endValue - this.startValue) * percent ;
+                            camera.tweenY.setPosition(Math.min(this.elapsedTime - this.delay, this.duration));
+                            
+                            //var percent = Math.min(this.elapsedTime - this.delay, this.duration) / this.duration;
+                            
+                            //var value = this.startValue + (this.endValue - this.startValue) * percent ;
 
                             if (this.elapsedTime >= this.duration) {
                                 this.isComplete = true;
+                                camera.tweenY = null;
                             }
                             
-                            camera.position.y = value;
+                            //camera.position.y = value;
                         }
                     }
                 }
@@ -639,9 +700,8 @@ var CameraView = Backbone.View.extend(Object.assign({},
             this.$el.on('mouseup', this._onMouseUp.bind(this));
             this.$el.on('transitionend', this._onTransitionEnd.bind(this));
             this.$el.on('wheel', utils.throttleToFrame(this._onWheel.bind(this)));
-            this.listenTo(this, 'change:height', this.update);
+            this.listenTo(this, 'change:size', this.update);
             this.listenTo(this, 'change:state', this._onStateChange);
-            this.listenTo(this, 'change:width', this.update);
             
             this.onInitialize(options);
 
@@ -674,8 +734,8 @@ var CameraView = Backbone.View.extend(Object.assign({},
             
             utils.setCssTransform(this.content, {
                 scale: this.scale,
-                translateX: this.position.x,
-                translateY: this.position.y
+                translateX: this.x,
+                translateY: this.y
             }, this);
             
             if (!isComplete) {
