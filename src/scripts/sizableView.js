@@ -18,12 +18,7 @@ var SizableView = {
     * @returns {this} The view.
     */
     setViewHeight: function () {
-        var height = this.height;
-
-        if (_.isElement(height)) {
-            height = $(height).height();
-        }
-        this.$el.height(height);
+        this.$el.height(this.height);
 
         return this;
     },
@@ -34,25 +29,35 @@ var SizableView = {
     * @returns {this} The view.
     */
     setViewWidth: function () {
-        var width = this.width;
+        this.$el.width(this.width);
 
-        if (_.isElement(width)) {
-            width = $(width).width();
-        }
-        this.$el.width(width);
+        return this;
+    },
 
+    /**
+    * Sets the view's size.
+    *
+    * @param {number|string} width - A number will be treated as pixels. A valid CSS string may also be used.
+    * @param {number|string} height - A number will be treated as pixels. A valid CSS string may also be used.
+    * @returns {this} The view.
+    */
+    setSize: function (width, height) {
+        this.width = width;
+        this.height = height;
+        this.trigger('change:size');
+        
         return this;
     },
     
     /**
     * Sets the view's height.
     *
-    * @param {number|string|Element} height - A number will be converted to pixels. A valid CSS string may also be used. If an Element is provided, the dimension will be sized to match the Element.
+    * @param {number|string} height - A number will be treated as pixels. A valid CSS string may also be used.
     * @returns {this} The view.
     */
     setHeight: function (height) {
         this.height = height;
-        this.trigger('change:height');
+        this.trigger('change:size');
         
         return this;
     },
@@ -60,12 +65,12 @@ var SizableView = {
     /**
     * Sets the view's width.
     *
-    * @param {number|string|Element} width - A number will be converted to pixels. A valid CSS string may also be used. If an Element is provided, the dimension will be sized to match the Element.
+    * @param {number|string} width - A number will be treated as pixels. A valid CSS string may also be used.
     * @returns {this} The view.
     */
     setWidth: function (width) {
         this.width = width;
-        this.trigger('change:width');
+        this.trigger('change:size');
         
         return this;
     }
