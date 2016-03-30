@@ -68,6 +68,147 @@ var CameraView = Backbone.View.extend(Object.assign({},
     * @lends CameraView.prototype
     */                                                
     {
+        /**
+        * The content.
+        * @name content
+        * @property {Element} - The element to treat as the camera's content.
+        */
+        content: null,
+
+        /**
+        * The content's height.
+        * @name contentHeight
+        * @property {number} - The content's height.
+        */
+        contentHeight: 0,
+
+        /**
+        * The content's width.
+        * @name contentWidth
+        * @property {number} - The content's width.
+        */
+        contentWidth: 0,
+
+        /**
+        * The content's focusable bounds. If set, the camera will keep focus within the bounds.
+        * @name bounds
+        * @property {Object} - An object representing the content's focusable bounds.
+        */
+        bounds: null,
+
+        /**
+        * The focus.
+        * @name focus
+        * @property {Object|Element} - An 'x' {number}, 'y' {number} pixel coordinate object or an Element.
+        * @default null
+        */
+        focus: {
+            x: 0,
+            y: 0
+        },
+
+        /**
+        * The camera's height.
+        * @name height
+        * @property {number|string|Element} - A number, a valid CSS height value, or an element. If an element is set, the camera's height will be sized to match the element.
+        * @default null
+        */
+        height: null,
+
+        /**
+        * @name isDragging
+        * @property {boolean} - Whether the content is being dragged or not.
+        * @default false
+        */
+        isDragging: false,
+
+        /**
+        * @name isTransitioning
+        * @property {boolean} - Whether the content is transitioning or not.
+        * @default false
+        */
+        isTransitioning: false,
+
+        /**
+        * The maximum value the content can be scaled.
+        * @name maxScale
+        * @property {number} - See {@link CameraView.scale|scale}.
+        * @default
+        */
+        maxScale: 6.0,
+
+        /**
+        * The minimum value the content can be scaled.
+        * @name minScale
+        * @property {number} - See {@link CameraView.scale|scale}.
+        * @default
+        */
+        minScale: 0.25,
+
+        /**
+        * The scale.
+        * @name scale
+        * @property {number} - A scale ratio where 1 = 100%.
+        * @default
+        */
+        scale: 1,
+
+        /**
+        * The previous scale.
+        * @name previousScale
+        * @property {number} - A scale ratio where 1 = 100%.
+        * @default
+        */
+        previousScale: 1,
+
+        /**
+        * The base increment at which the content will be scaled.
+        * @name scaleIncrement
+        * @property {number} - See {@link CameraView.scale|scale}.
+        * @default
+        */
+        scaleIncrement: 0.01,
+
+        /**
+        * The scale origin.
+        * @name scaleOrigin
+        * @property {Object} - An 'x' {number}, 'y' {number} pixel coordinate object.
+        * @default null
+        */
+        scaleOrigin: null,
+
+        /**
+        * The camera's position on the content.
+        * @name position
+        * @property {Object} - An 'x' {number}, 'y' {number} pixel coordinate object.
+        */
+        position: {
+            x: 0,
+            y: 0
+        },
+
+        /**
+        * The camera's 'x' position on the content.
+        * @name x
+        * @property {number} - The camera's 'x' position on the content.
+        */
+        x: 0,
+
+        /**
+        * The camera's 'y' position on the content.
+        * @name y
+        * @property {number} - The camera's 'y' position on the content.
+        */
+        y: 0,
+
+        /**
+        * The camera's width.
+        * @name width
+        * @property {number|string|Element} - A number, a valid CSS width value, or an element. If an element is set, the camera's width will be sized to match the element.
+        * @default null
+        */
+        width: null,
+    
         // TODO: Refactor/clean up
         /**
         * Handle the click event.
@@ -393,175 +534,33 @@ var CameraView = Backbone.View.extend(Object.assign({},
         * @returns {CameraView} The view.
         */
         initialize: function (options) {
+            options = options || {};
             
-            // TODO: Move all property definitions directly on the view object.
-            // Only set values passed in during initialization here.
-            var contentRect = options.content.getBoundingClientRect();
-            
-            /**
-            * The content.
-            * @name content
-            * @property {Element} - The element to treat as the camera's content.
-            * @memberOf CameraView
-            */
-            this.content = options.content || null;
-            
-            /**
-            * The content's height.
-            * @name contentHeight
-            * @property {number} - The content's height.
-            * @memberOf CameraView
-            */
-            this.contentHeight = contentRect.height;
-            
-            /**
-            * The content's width.
-            * @name contentWidth
-            * @property {number} - The content's width.
-            * @memberOf CameraView
-            */
-            this.contentWidth = contentRect.width;
-            
-            /**
-            * The content's focusable bounds. If set, the camera will keep focus within the bounds.
-            * @name bounds
-            * @property {Object} - An object representing the content's focusable bounds.
-            * @memberOf CameraView
-            */
-            this.bounds = options.bounds || {
-                left: 0,
-                right: this.contentWidth,
-                top: 0,
-                bottom: this.contentHeight
-            };
-            
-            /**
-            * The focus.
-            * @name focus
-            * @property {Object|Element} - An 'x' {number}, 'y' {number} pixel coordinate object or an Element.
-            * @memberOf CameraView
-            * @default null
-            */
-            this.focus = options.focus || {
-                x: 0,
-                y: 0
-            };
-            
-            /**
-            * The camera's height.
-            * @name height
-            * @property {number|string|Element} - A number, a valid CSS height value, or an element. If an element is set, the camera's height will be sized to match the element.
-            * @memberOf CameraView
-            * @default null
-            */
-            this.height = options.height || null;
-            
-            /**
-            * @name isDragging
-            * @property {boolean} - Whether the content is being dragged or not.
-            * @memberOf CameraView
-            * @default false
-            */
-            this.isDragging = false;
-            
-            /**
-            * @name isTransitioning
-            * @property {boolean} - Whether the content is transitioning or not.
-            * @memberOf CameraView
-            * @default false
-            */
-            this.isTransitioning = false;
-            
-            /**
-            * The maximum value the content can be scaled.
-            * @name maxScale
-            * @property {number} - See {@link CameraView.scale|scale}.
-            * @memberOf CameraView
-            * @default
-            */
-            this.maxScale = options.maxScale || 6.0;
-            
-            /**
-            * The minimum value the content can be scaled.
-            * @name minScale
-            * @property {number} - See {@link CameraView.scale|scale}.
-            * @memberOf CameraView
-            * @default
-            */
-            this.minScale = options.minScale || 0.25;
-            
-            /**
-            * The scale.
-            * @name scale
-            * @property {number} - A scale ratio where 1 = 100%.
-            * @memberOf CameraView
-            * @default
-            */
-            this.scale = options.scale || 1;
-            
-            /**
-            * The previous scale.
-            * @name previousScale
-            * @property {number} - A scale ratio where 1 = 100%.
-            * @memberOf CameraView
-            * @default
-            */
-            this.previousScale = options.scale || 1;
-            
-            /**
-            * The base increment at which the content will be scaled.
-            * @name scaleIncrement
-            * @property {number} - See {@link CameraView.scale|scale}.
-            * @memberOf CameraView
-            * @default
-            */
-            this.scaleIncrement = options.scaleIncrement || 0.01;
-            
-            /**
-            * The scale origin.
-            * @name scaleOrigin
-            * @property {Object} - An 'x' {number}, 'y' {number} pixel coordinate object.
-            * @memberOf CameraView
-            * @default null
-            */
-            this.scaleOrigin = options.scaleOrigin || null;
-            
-            /**
-            * The camera's position on the content.
-            * @name position
-            * @property {Object} - An 'x' {number}, 'y' {number} pixel coordinate object.
-            * @memberOf CameraView
-            */
-            this.position = {
-                x: 0,
-                y: 0
-            };
-            
-            /**
-            * The camera's 'x' position on the content.
-            * @name x
-            * @property {number} - The camera's 'x' position on the content.
-            * @memberOf CameraView
-            */
+            this.scale = 1;
             this.x = 0;
-            
-            /**
-            * The camera's 'y' position on the content.
-            * @name y
-            * @property {number} - The camera's 'y' position on the content.
-            * @memberOf CameraView
-            */
             this.y = 0;
             
-            /**
-            * The camera's width.
-            * @name width
-            * @property {number|string|Element} - A number, a valid CSS width value, or an element. If an element is set, the camera's width will be sized to match the element.
-            * @memberOf CameraView
-            * @default null
-            */
-            this.width = options.width || null;
+            Object.assign(this, _.pick(options, [
+                'content',
+                'bounds',
+                'focus',
+                'height',
+                'maxScale',
+                'minScale',
+                'position',
+                'scale',
+                'scaleIncrement',
+                'scaleOrigin',
+                'width',
+                'x',
+                'y',
+            ]));
             
+            var contentRect = options.content.getBoundingClientRect();
+            
+            this.contentHeight = contentRect.height;
+            this.contentWidth = contentRect.width;
+        
             // TODO: In development
             this.transitionDelay = '0s';
             this.transitionDuration = '500ms';
