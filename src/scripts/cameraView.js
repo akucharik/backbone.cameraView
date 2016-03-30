@@ -393,6 +393,9 @@ var CameraView = Backbone.View.extend(Object.assign({},
         * @returns {CameraView} The view.
         */
         initialize: function (options) {
+            
+            // TODO: Move all property definitions directly on the view object.
+            // Only set values passed in during initialization here.
             var contentRect = options.content.getBoundingClientRect();
             
             /**
@@ -896,6 +899,49 @@ var CameraView = Backbone.View.extend(Object.assign({},
             this.setState({
                 scale: scale
             });
+
+            return this;
+        },
+        
+        positionX: 0,
+        positionY: 0,
+        defaultTweenOptions: {
+            ease: Power2.easeOut
+        },
+        gs_zoom: function (scale, duration, options) {
+            this.gs_zoomAtXY(scale, this.focus.x, this.focus.y, duration, options);
+
+            return this;
+        },
+        
+        gs_zoomAtXY: function (scale, x, y, duration, options) {
+            var currentFocus, scaleRatio, state;
+            var delta = {};
+            var newFocus = {};
+
+            scaleRatio = this.scale / scale;
+
+            delta.x = this.focus.x - x;
+            delta.y = this.focus.y - y;
+
+            newFocus.x = this.focus.x - delta.x + (delta.x * scaleRatio);
+            newFocus.y = this.focus.y - delta.y + (delta.y * scaleRatio);
+            
+            var contentX = this.getFocusOffset(this.el.getBoundingClientRect(), newFocus, scale).x;
+            var contentY = this.getFocusOffset(this.el.getBoundingClientRect(), newFocus, scale).y;
+            
+            var tweenOptions = Object.assign({}, options, this.defaultTweenOptions, { 
+                scale: scale,
+                positionX: contentX,
+                positionY: contentY,
+                css: {
+                    scale: scale,
+                    x: contentX,
+                    y: contentY
+                }
+            });
+
+            TweenMax.to([this, this.content], duration, tweenOptions);
 
             return this;
         },
