@@ -10,7 +10,5 @@
 .bcv-content {
     position: absolute;
     transform-origin: 0 0;
-    transition-duration: 100ms;
-    transition-property: transform;
-    transition-timing-function: linear;
+    transition-duration: 0.1s;
 }

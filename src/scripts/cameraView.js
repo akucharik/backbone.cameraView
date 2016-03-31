@@ -70,46 +70,56 @@ var CameraView = Backbone.View.extend(Object.assign({},
     {
         /**
         * The content.
-        * @name content
         * @property {Element} - The element to treat as the camera's content.
+        * @default null
         */
         content: null,
 
         /**
         * The content's height.
-        * @name contentHeight
         * @property {number} - The content's height.
+        * @default
         */
         contentHeight: 0,
 
         /**
         * The content's width.
-        * @name contentWidth
         * @property {number} - The content's width.
+        * @default
         */
         contentWidth: 0,
 
         /**
+        * The default tween options. Used when values are being tweened and options are not provided.
+        * @property {Object} - An object representing the default tween options.
+        * @default
+        */
+        defaultTweenOptions: {
+            ease: Power2.easeOut
+        },
+    
+        /**
         * The content's focusable bounds. If set, the camera will keep focus within the bounds.
-        * @name bounds
         * @property {Object} - An object representing the content's focusable bounds.
+        * @default null
         */
         bounds: null,
 
         /**
         * The focus.
-        * @name focus
         * @property {Object|Element} - An 'x' {number}, 'y' {number} pixel coordinate object or an Element.
-        * @default null
+        * @default
         */
         focus: {
             x: 0,
             y: 0
         },
+    
+        focusX: 0,
+        focusY: 0,
 
         /**
         * The camera's height.
-        * @name height
         * @property {number|string|Element} - A number, a valid CSS height value, or an element. If an element is set, the camera's height will be sized to match the element.
         * @default null
         */
@@ -118,20 +128,19 @@ var CameraView = Backbone.View.extend(Object.assign({},
         /**
         * @name isDragging
         * @property {boolean} - Whether the content is being dragged or not.
-        * @default false
+        * @default
         */
         isDragging: false,
 
         /**
         * @name isTransitioning
         * @property {boolean} - Whether the content is transitioning or not.
-        * @default false
+        * @default
         */
         isTransitioning: false,
 
         /**
         * The maximum value the content can be scaled.
-        * @name maxScale
         * @property {number} - See {@link CameraView.scale|scale}.
         * @default
         */
@@ -139,7 +148,6 @@ var CameraView = Backbone.View.extend(Object.assign({},
 
         /**
         * The minimum value the content can be scaled.
-        * @name minScale
         * @property {number} - See {@link CameraView.scale|scale}.
         * @default
         */
@@ -147,7 +155,6 @@ var CameraView = Backbone.View.extend(Object.assign({},
 
         /**
         * The scale.
-        * @name scale
         * @property {number} - A scale ratio where 1 = 100%.
         * @default
         */
@@ -155,7 +162,6 @@ var CameraView = Backbone.View.extend(Object.assign({},
 
         /**
         * The previous scale.
-        * @name previousScale
         * @property {number} - A scale ratio where 1 = 100%.
         * @default
         */
@@ -163,7 +169,6 @@ var CameraView = Backbone.View.extend(Object.assign({},
 
         /**
         * The base increment at which the content will be scaled.
-        * @name scaleIncrement
         * @property {number} - See {@link CameraView.scale|scale}.
         * @default
         */
@@ -171,7 +176,6 @@ var CameraView = Backbone.View.extend(Object.assign({},
 
         /**
         * The scale origin.
-        * @name scaleOrigin
         * @property {Object} - An 'x' {number}, 'y' {number} pixel coordinate object.
         * @default null
         */
@@ -179,8 +183,8 @@ var CameraView = Backbone.View.extend(Object.assign({},
 
         /**
         * The camera's position on the content.
-        * @name position
         * @property {Object} - An 'x' {number}, 'y' {number} pixel coordinate object.
+        * @default
         */
         position: {
             x: 0,
@@ -189,23 +193,22 @@ var CameraView = Backbone.View.extend(Object.assign({},
 
         /**
         * The camera's 'x' position on the content.
-        * @name x
         * @property {number} - The camera's 'x' position on the content.
+        * @default
         */
         x: 0,
 
         /**
         * The camera's 'y' position on the content.
-        * @name y
         * @property {number} - The camera's 'y' position on the content.
+        * @default
         */
         y: 0,
 
         /**
         * The camera's width.
-        * @name width
         * @property {number|string|Element} - A number, a valid CSS width value, or an element. If an element is set, the camera's width will be sized to match the element.
-        * @default null
+        * @default
         */
         width: null,
     
@@ -566,129 +569,6 @@ var CameraView = Backbone.View.extend(Object.assign({},
             this.transitionDuration = '500ms';
             this.transitionTimingFunciton = 'ease-out';
             
-            // TODO: In development
-            this.tweenScale = null;
-            this.tweenX = null;
-            this.tweenY = null;
-            
-            // TODO: In development
-            /**
-            * The current transition.
-            * @name transition
-            * @property {Object} - An object of the current camera transition.
-            * @memberOf CameraView
-            */
-            this.transition = {
-                zoom: {
-                    isComplete: false,
-                    elapsedTime: 0,
-                    startTime: null,
-                    startValue: 1,
-                    endValue: 2,
-                    delay: 0,
-                    duration: 1000,
-                    timingFunction: createjs.Ease.cubicOut,
-                    update: function (camera, timestamp) {
-                        if (!this.startTime) {
-                            this.startTime = timestamp;
-                        }
-                        
-                        this.elapsedTime = timestamp - this.startTime;
-                        
-                        if (this.elapsedTime >= this.delay) {
-                            if (!camera.tweenScale) {
-                                camera.tweenScale = createjs.Tween.get(camera, { paused: true }).to({ scale: this.endValue }, this.duration, this.timingFunction);
-                            }
-                            
-                            camera.tweenScale.setPosition(Math.min(this.elapsedTime - this.delay, this.duration));
-                            
-                            //var percent = Math.min(this.elapsedTime - this.delay, this.duration) / this.duration;
-
-                            //var value = this.startValue + (this.endValue - this.startValue) * percent;
-
-                            if (this.elapsedTime >= this.duration) {
-                                this.isComplete = true;
-                                camera.tweenScale = null;
-                            }
-                            
-                            //camera.scale = value;
-                        }
-                    }
-                },
-                positionX: {
-                    isComplete: false,
-                    elapsedTime: 0,
-                    startTime: null,
-                    startValue: 0,
-                    endValue: 100,
-                    delay: 0,
-                    duration: 1000,
-                    timingFunction: createjs.Ease.cubicOut,
-                    update: function (camera, timestamp) {
-                        if (!this.startTime) {
-                            this.startTime = timestamp;
-                        }
-
-                        this.elapsedTime = timestamp - this.startTime;
-                        
-                        if (this.elapsedTime >= this.delay) {
-                            if (!camera.tweenX) {
-                                camera.tweenX = createjs.Tween.get(camera, { paused: true }).to({ x: this.endValue }, this.duration, this.timingFunction);
-                            }
-                            
-                            camera.tweenX.setPosition(Math.min(this.elapsedTime - this.delay, this.duration));
-                            
-                            //var percent = Math.min(this.elapsedTime - this.delay, this.duration) / this.duration;
-                            
-                            //var value = this.startValue + (this.endValue - this.startValue) * percent;
-
-                            if (this.elapsedTime >= this.duration) {
-                                this.isComplete = true;
-                                camera.tweenX = null;
-                            }
-                            
-                            //camera.position.x = value;
-                        }
-                    }
-                },
-                positionY: {
-                    isComplete: false,
-                    elapsedTime: 0,
-                    startTime: null,
-                    startValue: 0 ,
-                    endValue: -150,
-                    delay: 0,
-                    duration: 1000,
-                    timingFunction: createjs.Ease.cubicOut,
-                    update: function (camera, timestamp) {
-                        if (!this.startTime) {
-                            this.startTime = timestamp;
-                        }
-
-                        this.elapsedTime = timestamp - this.startTime;
-                        
-                        if (this.elapsedTime >= this.delay) {
-                            if (!camera.tweenY) {
-                                camera.tweenY = createjs.Tween.get(camera, { paused: true }).to({ y: this.endValue }, this.duration, this.timingFunction);
-                            }
-                            
-                            camera.tweenY.setPosition(Math.min(this.elapsedTime - this.delay, this.duration));
-                            
-                            //var percent = Math.min(this.elapsedTime - this.delay, this.duration) / this.duration;
-                            
-                            //var value = this.startValue + (this.endValue - this.startValue) * percent ;
-
-                            if (this.elapsedTime >= this.duration) {
-                                this.isComplete = true;
-                                camera.tweenY = null;
-                            }
-                            
-                            //camera.position.y = value;
-                        }
-                    }
-                }
-            };
-            
             // Set up content
             this.el.appendChild(this.content);
             this.content.setAttribute('draggable', false);
@@ -707,43 +587,6 @@ var CameraView = Backbone.View.extend(Object.assign({},
             
             this.onInitialize(options);
 
-            return this;
-        },
-
-        // TODO: In development
-        testUpdate: function (timeStamp) {
-            var isComplete = true;
-            
-            for (let key in this.transition) {
-                let transitionType = this.transition[key];
-                
-                if (transitionType) {
-                    transitionType.update(this, timeStamp);
-                    if (!transitionType.isComplete) {
-                        isComplete = false;
-                    }
-                    else {
-                        transitionType = null;
-                    }
-                }
-            }
-            
-            utils.setCssTransition(this.content, {
-                duration: '100ms',
-                property: 'transform',
-                timingFunction: 'linear'
-            });
-            
-            utils.setCssTransform(this.content, {
-                scale: this.scale,
-                translateX: this.x,
-                translateY: this.y
-            }, this);
-            
-            if (!isComplete) {
-                window.requestAnimationFrame(this.testUpdate.bind(this));
-            }
-            
             return this;
         },
         
@@ -870,11 +713,11 @@ var CameraView = Backbone.View.extend(Object.assign({},
             
             var focusOffset = this.getFocusOffset(this.el.getBoundingClientRect(), position, this.scale);
             
-            utils.setCssTransition(this.content, {
-                delay: this.transitionDelay,
-                duration: this.transitionDuration,
-                timingFunction: this.transitionTimingFunction
-            });
+//            utils.setCssTransition(this.content, {
+//                delay: this.transitionDelay,
+//                duration: this.transitionDuration,
+//                timingFunction: this.transitionTimingFunction
+//            });
             utils.setCssTransform(this.content, {
                 scale: this.scale,
                 translateX: focusOffset.x,
@@ -902,37 +745,47 @@ var CameraView = Backbone.View.extend(Object.assign({},
             return this;
         },
         
-        positionX: 0,
-        positionY: 0,
-        defaultTweenOptions: {
-            ease: Power2.easeOut
-        },
         gs_zoom: function (scale, duration, options) {
-            this.gs_zoomAtXY(scale, this.focus.x, this.focus.y, duration, options);
+            this.gs_zoomAtXY(scale, this.focusX, this.focusY, duration, options);
 
             return this;
         },
         
         gs_zoomAtXY: function (scale, x, y, duration, options) {
-            var currentFocus, scaleRatio, state;
-            var delta = {};
-            var newFocus = {};
-
+            var scaleRatio;
+            var deltaX;
+            var deltaY;
+            var focusX;
+            var focusY;
+            var x;
+            var y;
+            var contentX;
+            var contentY;
+            var cameraRect = this.el.getBoundingClientRect();
+            
+            // TODO: Abstract out new x/y calculations.
+            // TODO: "focusX" and "focusY" could be a getter that calculates based off of "x", "y", "height", and "width".
+            // then "focusX" and "focusY" would not be writable.
             scaleRatio = this.scale / scale;
 
-            delta.x = this.focus.x - x;
-            delta.y = this.focus.y - y;
+            deltaX = this.focusX - x;
+            deltaY = this.focusY - y;
 
-            newFocus.x = this.focus.x - delta.x + (delta.x * scaleRatio);
-            newFocus.y = this.focus.y - delta.y + (delta.y * scaleRatio);
+            focusX = this.focusX - deltaX + (deltaX * scaleRatio);
+            focusY = this.focusY - deltaY + (deltaY * scaleRatio);
             
-            var contentX = this.getFocusOffset(this.el.getBoundingClientRect(), newFocus, scale).x;
-            var contentY = this.getFocusOffset(this.el.getBoundingClientRect(), newFocus, scale).y;
+            x = (focusX * scale) - (cameraRect.width / 2);
+            y = (focusY * scale) - (cameraRect.height / 2);
+            
+            contentX = this.getFocusOffset(cameraRect, { x: focusX, y: focusY }, scale).x;
+            contentY = this.getFocusOffset(cameraRect, { x: focusX, y: focusY }, scale).y;
             
             var tweenOptions = Object.assign({}, options, this.defaultTweenOptions, { 
+                focusX: focusX,
+                focusY: focusY,
                 scale: scale,
-                positionX: contentX,
-                positionY: contentY,
+                x: x,
+                y: y,
                 css: {
                     scale: scale,
                     x: contentX,
