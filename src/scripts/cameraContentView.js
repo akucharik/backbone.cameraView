@@ -19,13 +19,6 @@ var CameraContentView = Backbone.View.extend(
     */
     {
         /**
-        * The height.
-        * @property {number} - The height.
-        * @default
-        */
-        height: 0,
-
-        /**
         * The maximum value the content can be scaled.
         * @property {number} - See {@link CameraContentView.scale|scale}.
         * @default
@@ -40,13 +33,6 @@ var CameraContentView = Backbone.View.extend(
         minScale: 0.1,
 
         /**
-        * The width.
-        * @property {number} - The width.
-        * @default
-        */
-        width: 0,
-
-        /**
         * The 'x' position of the content.
         * @property {number} - The 'x' position of the content.
         * @default
@@ -59,7 +45,7 @@ var CameraContentView = Backbone.View.extend(
         * @default
         */
         y: 0,
-
+        
         /**
         * The scale.
         * @private
@@ -77,45 +63,36 @@ var CameraContentView = Backbone.View.extend(
         initialize: function (options) {
             options = options || {};
 
+            // Ensure the view has its own tweenable properties.
             this.x = 0;
             this.y = 0;
-
-            if (options.scale) {
-                this.scale = options.scale;
-            }
 
             Object.assign(this, _.pick(options, [
                 'height',
                 'minScale',
                 'maxScale',
+                'scale',
                 'width',
                 'x',
                 'y',
             ]));
 
             this.el.setAttribute('draggable', false);
-            
-            // Initialize events
             this.$el.on('dragstart', this._onDragStart.bind(this));
-            
-            this.update();
 
             return this;
         },
-
+        
         /**
-        * Updates the view.
+        * Sets the view's size.
         *
-        * @returns {CameraContentView} The view.
+        * @param {number|string} width - A number will be treated as pixels. A valid CSS string may also be used.
+        * @param {number|string} height - A number will be treated as pixels. A valid CSS string may also be used.
+        * @returns {this} The view.
         */
-        update: function () {
-            // TODO: Remove once development is complete
-            console.log('update');
-
-            var clientRect = this.el.getBoundingClientRect();
-
-            this.width = clientRect.width;
-            this.height = clientRect.height;
+        setSize: function (width, height) {
+            this.width = width;
+            this.height = height;
 
             return this;
         },
@@ -131,7 +108,7 @@ var CameraContentView = Backbone.View.extend(
             event.preventDefault();
 
             return false;
-        },
+        }
     }
 );
 
@@ -141,7 +118,6 @@ var CameraContentView = Backbone.View.extend(
 * @property {number} - Gets or sets the view's scale. This value is automatically clamped if it falls outside the bounds.
 */
 Object.defineProperty(CameraContentView.prototype, 'scale', {
-
     get: function () {
         return this._scale;
     },
@@ -149,5 +125,38 @@ Object.defineProperty(CameraContentView.prototype, 'scale', {
     set: function (value) {
         this._scale = _.clamp(value, this.minScale, this.maxScale);
     }
+});
 
+/**
+* The width.
+* @name SizeableView#width
+* @property {number} - Gets or sets the view's width.
+*/
+Object.defineProperty(CameraContentView.prototype, 'width', {
+    get: function () {
+        var computedStyle = window.getComputedStyle(this.el);
+        return this.el.clientWidth + parseInt(computedStyle.getPropertyValue('border-left-width')) + parseInt(computedStyle.getPropertyValue('border-right-width'));
+    },
+
+    set: function (value) {
+        this.$el.width(value);
+        this.trigger('change:size');
+    }
+});
+
+/**
+* The height.
+* @name SizeableView#height
+* @property {number} - Gets or sets the view's height.
+*/
+Object.defineProperty(CameraContentView.prototype, 'height', {
+    get: function () {
+        var computedStyle = window.getComputedStyle(this.el);
+        return this.el.clientHeight + parseInt(computedStyle.getPropertyValue('border-top-width')) + parseInt(computedStyle.getPropertyValue('border-bottom-width'));
+    },
+
+    set: function (value) {
+        this.$el.height(value);
+        this.trigger('change:size');
+    }
 });

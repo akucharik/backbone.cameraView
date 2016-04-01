@@ -8,6 +8,7 @@
 }
 
 .bcv-content {
+    overflow: hidden;
     position: absolute;
     transform-origin: 0 0;
     transition-duration: 0.1s;
