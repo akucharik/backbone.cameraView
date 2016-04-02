@@ -79,6 +79,7 @@ var CameraContentView = Backbone.View.extend(
 
             this.el.setAttribute('draggable', false);
             this.$el.on('dragstart', this._onDragStart.bind(this));
+            this.listenTo(this, 'change:size', this._onSizeChange);
 
             return this;
         },
@@ -91,8 +92,12 @@ var CameraContentView = Backbone.View.extend(
         * @returns {this} The view.
         */
         setSize: function (width, height) {
-            this.width = width;
-            this.height = height;
+            var width = this.width = width;
+            var height = this.height = height;
+            
+            if (width != this.width || height != this.height) {
+                this.trigger('change:size', width, height);
+            }
 
             return this;
         },
@@ -108,6 +113,18 @@ var CameraContentView = Backbone.View.extend(
             event.preventDefault();
 
             return false;
+        },
+        
+        /**
+        * Handle the sizeChange event.
+        *
+        * @private
+        * @param {number|string} width - The width.
+        * @param {number|string} height - The height.
+        */
+        _onSizeChange: function (width, height) {
+            this.$el.width(width);
+            this.$el.height(height);
         }
     }
 );
@@ -129,34 +146,38 @@ Object.defineProperty(CameraContentView.prototype, 'scale', {
 
 /**
 * The width.
-* @name SizeableView#width
-* @property {number} - Gets or sets the view's width.
+* @name CameraContentView#width
+* @property {number} - Gets or sets the view's width. A "change:width" event is emitted if the value has changed.
 */
 Object.defineProperty(CameraContentView.prototype, 'width', {
     get: function () {
         var computedStyle = window.getComputedStyle(this.el);
-        return this.el.clientWidth + parseInt(computedStyle.getPropertyValue('border-left-width')) + parseInt(computedStyle.getPropertyValue('border-right-width'));
+        
+        return this.el.clientWidth + parseFloat(computedStyle.getPropertyValue('border-left-width')) + parseFloat(computedStyle.getPropertyValue('border-right-width'));
     },
 
     set: function (value) {
-        this.$el.width(value);
-        this.trigger('change:size');
+        if (value != this.width) {
+            this.trigger('change:width', value);
+        }
     }
 });
 
 /**
 * The height.
-* @name SizeableView#height
-* @property {number} - Gets or sets the view's height.
+* @name CameraContentView#height
+* @property {number} - Gets or sets the view's height. A "change:height" event is emitted if the value has changed.
 */
 Object.defineProperty(CameraContentView.prototype, 'height', {
     get: function () {
         var computedStyle = window.getComputedStyle(this.el);
-        return this.el.clientHeight + parseInt(computedStyle.getPropertyValue('border-top-width')) + parseInt(computedStyle.getPropertyValue('border-bottom-width'));
+        
+        return this.el.clientHeight + parseFloat(computedStyle.getPropertyValue('border-top-width')) + parseFloat(computedStyle.getPropertyValue('border-bottom-width'));
     },
 
     set: function (value) {
-        this.$el.height(value);
-        this.trigger('change:size');
+        if (value != this.height) {
+            this.trigger('change:height', value);
+        }
     }
 });
