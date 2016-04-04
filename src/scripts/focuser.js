@@ -46,7 +46,52 @@ var Focuser = function () {
         else {
             throw new Error('Cannot determine focus offset from an invalid position');
         }
-    }
+    };
+    
+    /**
+    * Get the x/y focus position given a different current focus.
+    *
+    * @param {number} focusX - The x value of the current focus (at a scale ratio of 1).
+    * @param {number} focusY - The y value of the current focus (at a scale ratio of 1).
+    * @param {number} deltaX - The x delta between the current focus and the zoom anchor.
+    * @param {number} deltaY - The y delta between the current focus and the zoom anchor.
+    * @param {number} scale - The destination scale ratio.
+    * @returns {Object} The focus. An x/y point object representing the position of the focus in order to maintain the zoom anchor.
+    */
+    this.getContentFocus = function (focusX, focusY, deltaX, deltaY, scaleRatio) {
+        if (_.isFinite(focusX) && _.isFinite(focusY)) {
+            return {
+                x: focusX - deltaX + (deltaX * scaleRatio),
+                y: focusY - deltaY + (deltaY * scaleRatio)
+            };
+        }
+        else {
+            throw new Error('Cannot determine focus');
+        }
+    };
+    
+    /**
+    * Get the x/y position of the content in relation to the frame given a focus position.
+    *
+    * @param {number} positionX - The x value that will be brought to focus (at a scale ratio of 1).
+    * @param {number} positionY - The y value that will be brought to focus (at a scale ratio of 1).
+    * @param {number} frameWidth - The frame width.
+    * @param {number} frameHeight - The frame height.
+    * @param {number} scale - The destination scale ratio.
+    * @returns {Object} The position. An x/y point object representing the position of the content within the frame.
+    */
+    this.getContentPosition = function (positionX, positionY, frameWidth, frameHeight, scale) {
+        if (_.isFinite(positionX) && _.isFinite(positionY)) {
+            return {
+                x: _.round((frameWidth / 2) - (positionX * scale), 2),
+                y: _.round((frameHeight / 2) - (positionY * scale), 2)
+            };
+        }
+        else {
+            throw new Error('Cannot determine position');
+        }
+    };
+    
 };
 
 Focuser.prototype.constructor = Focuser;
