@@ -94,6 +94,7 @@
     <script type="text/javascript" src="../src/scripts/utils.js"></script>
     <script type="text/javascript" src="../src/scripts/focuser.js"></script>
     <script type="text/javascript" src="../src/scripts/sizableView.js"></script>
+    <script type="text/javascript" src="../src/scripts/cameraContentView.js"></script>
     <script type="text/javascript" src="../src/scripts/cameraView.js"></script>
     
     <script type="text/javascript">
@@ -102,14 +103,23 @@
 
             initialize: function () {
                 // Views
-                app.cameraView = new CameraView({
+//                app.cameraContentView = new CameraContentView({
+//                    el: document.getElementById('content'),
+//                }).render();
+                app.camera = new CameraView({
                     el: document.getElementById('camera'),
                     content: document.getElementById('content'),
                     height: 500,
                     width: 1000,
                     focus: {
-                        x: 501,
-                        y: 251
+                        x: 500,
+                        y: 250
+                    },
+                    bounds: {
+                        left: 0,
+                        right: 1827,
+                        top: 0,
+                        bottom: 1219
                     }
                 }).render();
 
@@ -119,36 +129,37 @@
                 $('#zoomAt').on('click', app.zoomAt);
                 $('#zoomTo').on('click', app.zoomTo);
 
-                window.cameraView = app.cameraView;
+//                window.cameraContentView = app.cameraContentView;
+                window.camera = app.camera;
             },
 
             flick: function () {
-                app.cameraView.dragDeccelerate({ 
+                app.camera.dragDeccelerate({ 
                     x: parseFloat($('#velocityX').val()), 
                     y: parseFloat($('#velocityY').val())
                 }, 16.6, window.performance.now());
             },
             
             focusOn: function () {
-                app.cameraView.focusOn({ 
+                app.camera.focusOn({ 
                     x: parseFloat($('#focusOnX').val()), 
                     y: parseFloat($('#focusOnY').val())
                 }, { duration: '1s' });
             },
             
             zoom: function () {
-                app.cameraView.zoom(parseFloat($('#zoomScale').val()), { duration: '1s' });
+                app.camera.zoom(parseFloat($('#zoomScale').val()), { duration: '1s' });
             },
             
             zoomAt: function () {
-                app.cameraView.zoomAt(parseFloat($('#zoomAtScale').val()), { 
+                app.camera.zoomAt(parseFloat($('#zoomAtScale').val()), { 
                     x: parseFloat($('#zoomAtX').val()), 
                     y: parseFloat($('#zoomAtY').val())
                 }, { duration: '1s' });
             },
             
             zoomTo: function () {
-                app.cameraView.zoomTo(parseFloat($('#zoomToScale').val()), { 
+                app.camera.zoomTo(parseFloat($('#zoomToScale').val()), { 
                     x: parseFloat($('#zoomToX').val()), 
                     y: parseFloat($('#zoomToY').val())
                 }, { duration: '1s' });

@@ -20,21 +20,9 @@
 */
 
 /**
-* The jQuery library.
-* @external jQuery
-* @see http://jquery.com
-*/
-
-/**
 * The lodash library.
 * @external lodash
 * @see http://lodash.com
-*/
-
-/**
-* The underscore library.
-* @external underscore
-* @see http://underscorejs.org
 */
 
 /**
@@ -45,7 +33,7 @@
 
 /**
 * Factory: Creates a camera to pan and zoom content.
-* Requires {@link external:lodash}, and {@link external:jQuery} or {@link external:zepto}.
+* Requires {@link external:lodash} and {@link external:zepto}.
 * 
 * @constructs CameraView
 * @extends external:Backbone.View
@@ -63,7 +51,6 @@
 */
 var CameraView = Backbone.View.extend(Object.assign({},
     new Focuser(),
-    SizableView,
     /**
     * @lends CameraView.prototype
     */                                                
@@ -74,20 +61,6 @@ var CameraView = Backbone.View.extend(Object.assign({},
         * @default null
         */
         content: null,
-
-        /**
-        * The content's height.
-        * @property {number} - The content's height.
-        * @default
-        */
-        contentHeight: 0,
-
-        /**
-        * The content's width.
-        * @property {number} - The content's width.
-        * @default
-        */
-        contentWidth: 0,
 
         /**
         * The default tween options. Used when values are being tweened and options are not provided.
@@ -115,15 +88,19 @@ var CameraView = Backbone.View.extend(Object.assign({},
             y: 0
         },
     
-        focusX: 0,
-        focusY: 0,
-
         /**
-        * The camera's height.
-        * @property {number|string|Element} - A number, a valid CSS height value, or an element. If an element is set, the camera's height will be sized to match the element.
-        * @default null
+        * The camera's 'x' focus position on the content.
+        * @property {number} - A pixel value.
+        * @default
         */
-        height: null,
+        focusX: 0,
+    
+        /**
+        * The camera's 'y' focus position on the content.
+        * @property {number} - A pixel value.
+        * @default
+        */
+        focusY: 0,
 
         /**
         * @name isDragging
@@ -182,16 +159,6 @@ var CameraView = Backbone.View.extend(Object.assign({},
         scaleOrigin: null,
 
         /**
-        * The camera's position on the content.
-        * @property {Object} - An 'x' {number}, 'y' {number} pixel coordinate object.
-        * @default
-        */
-        position: {
-            x: 0,
-            y: 0
-        },
-
-        /**
         * The camera's 'x' position on the content.
         * @property {number} - The camera's 'x' position on the content.
         * @default
@@ -204,13 +171,6 @@ var CameraView = Backbone.View.extend(Object.assign({},
         * @default
         */
         y: 0,
-
-        /**
-        * The camera's width.
-        * @property {number|string|Element} - A number, a valid CSS width value, or an element. If an element is set, the camera's width will be sized to match the element.
-        * @default
-        */
-        width: null,
     
         // TODO: Refactor/clean up
         /**
@@ -524,8 +484,8 @@ var CameraView = Backbone.View.extend(Object.assign({},
             transition = transition || {};
 
             this.setTransition(transition);
-            this.x = x - this.width / 2;
-            this.y = y - this.height / 2;
+            this.x = x - this.viewportWidth / 2;
+            this.y = y - this.viewportHeight / 2;
 
             return this;
         },
@@ -559,10 +519,10 @@ var CameraView = Backbone.View.extend(Object.assign({},
                 'y',
             ]));
             
-            var contentRect = options.content.getBoundingClientRect();
-            
-            this.contentHeight = contentRect.height;
-            this.contentWidth = contentRect.width;
+            // TODO: Rename as "content" var and rework "this.content" throughout
+            this.contentView = new CameraContentView({
+                el: options.content
+            })
         
             // TODO: In development
             this.transitionDelay = '0s';
@@ -684,9 +644,6 @@ var CameraView = Backbone.View.extend(Object.assign({},
         update: function () {
             // TODO: Remove once development is complete
             console.log('update');
-
-            this.setViewWidth();
-            this.setViewHeight();
             
             var position = {};
 
@@ -711,7 +668,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
                 this.focus = position;
             }
             
-            var focusOffset = this.getFocusOffset(this.el.getBoundingClientRect(), position, this.scale);
+            var focusOffset = this.getFocusOffset({ width: this.viewportWidth, height: this.viewportHeight}, position, this.scale);
             
 //            utils.setCssTransition(this.content, {
 //                delay: this.transitionDelay,
@@ -761,7 +718,6 @@ var CameraView = Backbone.View.extend(Object.assign({},
             var y;
             var contentX;
             var contentY;
-            var cameraRect = this.el.getBoundingClientRect();
             
             // TODO: Abstract out new x/y calculations.
             // TODO: "focusX" and "focusY" could be a getter that calculates based off of "x", "y", "height", and "width".
@@ -774,11 +730,11 @@ var CameraView = Backbone.View.extend(Object.assign({},
             focusX = this.focusX - deltaX + (deltaX * scaleRatio);
             focusY = this.focusY - deltaY + (deltaY * scaleRatio);
             
-            x = (focusX * scale) - (cameraRect.width / 2);
-            y = (focusY * scale) - (cameraRect.height / 2);
+            x = (focusX * scale) - (this.viewportWidth / 2);
+            y = (focusY * scale) - (this.viewportHeight / 2);
             
-            contentX = this.getFocusOffset(cameraRect, { x: focusX, y: focusY }, scale).x;
-            contentY = this.getFocusOffset(cameraRect, { x: focusX, y: focusY }, scale).y;
+            contentX = this.getFocusOffset({ width: this.viewportWidth, height: this.viewportHeight }, { x: focusX, y: focusY }, scale).x;
+            contentY = this.getFocusOffset({ width: this.viewportWidth, height: this.viewportHeight }, { x: focusX, y: focusY }, scale).y;
             
             var tweenOptions = Object.assign({}, options, this.defaultTweenOptions, { 
                 focusX: focusX,
@@ -860,3 +816,65 @@ var CameraView = Backbone.View.extend(Object.assign({},
         }
     })
 );
+
+/**
+* The width.
+* @name CameraView#width
+* @property {number} - Gets or sets the view's width. Includes border and padding. A "change:width" event is emitted if the value has changed.
+*/
+Object.defineProperty(CameraView.prototype, 'width', {
+    get: function () {
+        var computedStyle = window.getComputedStyle(this.el);
+        
+        return this.el.clientWidth + parseFloat(computedStyle.getPropertyValue('border-left-width')) + parseFloat(computedStyle.getPropertyValue('border-right-width'));
+    },
+
+    set: function (value) {
+        if (value != this.width) {
+            this.$el.width(value);
+            this.trigger('change:width', value);
+        }
+    }
+});
+
+/**
+* The height.
+* @name CameraView#height
+* @property {number} - Gets or sets the view's height. Includes border and padding. A "change:height" event is emitted if the value has changed.
+*/
+Object.defineProperty(CameraView.prototype, 'height', {
+    get: function () {
+        var computedStyle = window.getComputedStyle(this.el);
+        
+        return this.el.clientHeight + parseFloat(computedStyle.getPropertyValue('border-top-width')) + parseFloat(computedStyle.getPropertyValue('border-bottom-width'));
+    },
+
+    set: function (value) {
+        if (value != this.height) {
+            this.$el.height(value);
+            this.trigger('change:height', value);
+        }
+    }
+});
+
+/**
+* The width of the viewport.
+* @name CameraView#viewportWidth
+* @property {number} - Gets the viewport's width. Excludes the element's border.
+*/
+Object.defineProperty(CameraView.prototype, 'viewportWidth', {
+    get: function () {
+        return this.el.clientWidth;
+    }
+});
+
+/**
+* The height of the viewport.
+* @name CameraView#viewportHeight
+* @property {number} - Gets the viewport's height. Excludes the element's border.
+*/
+Object.defineProperty(CameraView.prototype, 'viewportHeight', {
+    get: function () {
+        return this.el.clientHeight;
+    }
+});

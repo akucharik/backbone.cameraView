@@ -7,31 +7,22 @@
 
 /**
 * Creates a camera's content.
-* Requires {@link external:lodash}, and {@link external:jQuery} or {@link external:zepto}.
+* Requires {@link external:lodash} and {@link external:zepto}.
 * 
 * @constructs CameraContentView
 * @extends external:Backbone.View
 * @param {Object} [options] - An object of options. Includes all Backbone.View options. See {@link external:Backbone.View}.
+* @param {number|string|Element} [options.width] - The {@link CameraContentView#width|width}.
+* @param {number|string|Element} [options.height] - The {@link CameraContentView#height|height}.
+* @param {number} [options.x] - The {@link CameraContentView#x|x} position.
+* @param {number} [options.y] - The {@link CameraContentView#y|y} position.
+* @param {Function} [options.onResize] - The "resize" event handler.
 */
 var CameraContentView = Backbone.View.extend(
     /**
     * @lends CameraContentView.prototype
     */
     {
-        /**
-        * The maximum value the content can be scaled.
-        * @property {number} - See {@link CameraContentView.scale|scale}.
-        * @default
-        */
-        maxScale: 10,
-
-        /**
-        * The minimum value the content can be scaled.
-        * @property {number} - See {@link CameraContentView.scale|scale}.
-        * @default
-        */
-        minScale: 0.1,
-
         /**
         * The 'x' position of the content.
         * @property {number} - The 'x' position of the content.
@@ -45,14 +36,6 @@ var CameraContentView = Backbone.View.extend(
         * @default
         */
         y: 0,
-        
-        /**
-        * The scale.
-        * @private
-        * @property {number} - A scale ratio where 1 = 100%.
-        * @default
-        */
-        _scale: 1,
 
         /**
         * Called on the view this when the view has been created. This method is not meant to be overridden. If you need to access initialization, use {@link CameraView#onInitialize|onInitialize}.
@@ -68,20 +51,27 @@ var CameraContentView = Backbone.View.extend(
             this.y = 0;
 
             Object.assign(this, _.pick(options, [
-                'height',
-                'minScale',
-                'maxScale',
-                'scale',
                 'width',
+                'height',
                 'x',
                 'y',
+                'onResize'
             ]));
 
             this.el.setAttribute('draggable', false);
             this.$el.on('dragstart', this._onDragStart.bind(this));
-            this.listenTo(this, 'change:size', this._onSizeChange);
 
             return this;
+        },
+        
+        /**
+        * Called when the view is resized. The default implementation is a no-op. Override this function with your code. 
+        *
+        * @param {number|string} width - The width the view was resized to.
+        * @param {number|string} height - The height the view was resized to.
+        */
+        onResize: function (width, height) {
+            
         },
         
         /**
@@ -91,14 +81,13 @@ var CameraContentView = Backbone.View.extend(
         * @param {number|string} height - A number will be treated as pixels. A valid CSS string may also be used.
         * @returns {this} The view.
         */
-        setSize: function (width, height) {
-            var width = this.width = width;
-            var height = this.height = height;
-            
+        resize: function (width, height) {
             if (width != this.width || height != this.height) {
-                this.trigger('change:size', width, height);
+                this.width = width;
+                this.height = height;
+                this.onResize(width, height);
             }
-
+            
             return this;
         },
         
@@ -113,36 +102,9 @@ var CameraContentView = Backbone.View.extend(
             event.preventDefault();
 
             return false;
-        },
-        
-        /**
-        * Handle the sizeChange event.
-        *
-        * @private
-        * @param {number|string} width - The width.
-        * @param {number|string} height - The height.
-        */
-        _onSizeChange: function (width, height) {
-            this.$el.width(width);
-            this.$el.height(height);
         }
     }
 );
-
-/**
-* The scale.
-* @name CameraContentView#scale
-* @property {number} - Gets or sets the view's scale. This value is automatically clamped if it falls outside the bounds.
-*/
-Object.defineProperty(CameraContentView.prototype, 'scale', {
-    get: function () {
-        return this._scale;
-    },
-
-    set: function (value) {
-        this._scale = _.clamp(value, this.minScale, this.maxScale);
-    }
-});
 
 /**
 * The width.
@@ -158,6 +120,7 @@ Object.defineProperty(CameraContentView.prototype, 'width', {
 
     set: function (value) {
         if (value != this.width) {
+            this.$el.width(value);
             this.trigger('change:width', value);
         }
     }
@@ -177,6 +140,7 @@ Object.defineProperty(CameraContentView.prototype, 'height', {
 
     set: function (value) {
         if (value != this.height) {
+            this.$el.height(value);
             this.trigger('change:height', value);
         }
     }
