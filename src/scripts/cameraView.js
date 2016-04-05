@@ -638,7 +638,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
             var position = {};
 
             if (_.isElement(this.focus)) {
-                position = this.getElementFocus(window, this.content.el.getBoundingClientRect(), this.focus, this.previousScale);
+                position = this.getElementFocus(window, this.content.el.getBoundingClientRect(), this.focus.getBoundingClientRect(), this.previousScale);
             }
             else {
                 position = this.focus;
@@ -703,7 +703,12 @@ var CameraView = Backbone.View.extend(Object.assign({},
         },
         
         gs_zoomAt: function (zoom, el, duration, options) {
+            // TODO: Refactor this.getElementFocus
+            var position = this.getElementFocus(window, this.content.el.getBoundingClientRect(), el.getBoundingClientRect(), this.gs_zoom);
             
+            this.gs_zoomAtXY(zoom, position.x, position.y, duration, options);
+            
+            return this;
         },
     
         gs_zoomAtXY: function (zoom, x, y, duration, options) {
@@ -711,32 +716,58 @@ var CameraView = Backbone.View.extend(Object.assign({},
             var deltaX = this.focusX - x;
             var deltaY = this.focusY - y;
             var zoomRatio = this.gs_zoom / zoom;
-            var timeline = new TimelineMax();
             
             focus = this.getContentFocus(this.focusX, this.focusY, deltaX, deltaY, zoomRatio);
             
             position = this.getContentPosition(focus.x, focus.y, this.viewportWidth, this.viewportHeight, zoom);
 
-            timeline.to(this, duration, this.getTweenOptions({ 
-                    focusX: focus.x,
-                    focusY: focus.y,
-                    gs_zoom: zoom
-                }, options))
-                .to(this.content.el, duration, this.getTweenOptions({ css: {
-                    scale: zoom,
-                    x: position.x,
-                    y: position.y
-                }}, options), 0);
+            this.gs_animate({
+                zoom: zoom, 
+                focusX: focus.x, 
+                focusY: focus.y, 
+                contentX: position.x, 
+                contentY: position.y }, duration, options);
 
             return this;
         },
     
         gs_zoomOn: function (zoom, el, duration, options) {
+            // TODO: Refactor this.getElementFocus
+            var position = this.getElementFocus(window, this.content.el.getBoundingClientRect(), el.getBoundingClientRect(), this.gs_zoom);
             
+            this.gs_zoomOnXY(zoom, position.x, position.y, duration, options);
+            
+            return this;
+        },
+        
+        gs_zoomOnXY: function (zoom, x, y, duration, options) {
+            var position = this.getContentPosition(x, y, this.viewportWidth, this.viewportHeight, zoom);
+
+            this.gs_animate({ 
+                zoom: zoom, 
+                focusX: x, 
+                focusY: y, 
+                contentX: position.x, 
+                contentY: position.y }, duration, options);
+
+            return this;
         },
     
-        gs_zoomOnXY: function (zoom, x, y, duration, options) {
-            
+        gs_animate: function (properties, duration, options) {
+            var timeline = new TimelineMax();
+
+            timeline.to(this, duration, this.getTweenOptions({ 
+                    focusX: properties.focusX,
+                    focusY: properties.focusY,
+                    gs_zoom: properties.zoom
+                }, options))
+                .to(this.content.el, duration, this.getTweenOptions({ css: {
+                    scale: properties.zoom,
+                    x: properties.contentX,
+                    y: properties.contentY
+                }}, options), 0);
+
+            return this;
         },
 
         /**
