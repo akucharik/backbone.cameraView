@@ -76,11 +76,22 @@
                     y: <input id="zoomToY" type="text" placeholder="300" />
                     <button id="zoomTo">zoomTo</button>
                 </li>
-                <li>
+                <!--<li>
                     velocity x: <input id="velocityX" type="text" placeholder="1000" />
                     velocity y: <input id="velocityY" type="text" placeholder="-500" />
                     <button id="flick">flick</button>
-                </li>
+                </li>-->
+            </ul>
+            <ul>
+                <li>focusX: <span id="debugFocusX"></span></li>
+                <li>focusY: <span id="debugFocusY"></span></li>
+                <li>isAnimating: <span id="debugIsAnimating"></span></li>
+                <li>isTransitioning: <span id="debugIsTransitioning"></span></li>
+                <li>zoom: <span id="debugZoom"></span></li>
+                <li>minZoom: <span id="debugMinZoom"></span></li>
+                <li>maxZoom: <span id="debugMaxZoom"></span></li>
+                <li>zoomOriginX: <span id="debugZoomOriginX"></span></li>
+                <li>zoomOriginY: <span id="debugZoomOriginY"></span></li>
             </ul>
         </div>
     </div>
@@ -88,6 +99,7 @@
     <script type="text/javascript" src="../src/scripts/lib/zepto.min.js"></script>
     <script type="text/javascript" src="../src/scripts/lib/lodash.min.js"></script>
     <script type="text/javascript" src="../src/scripts/lib/backbone-min.js"></script>
+    <script type="text/javascript" src="../src/scripts/lib/Draggable.min.js"></script>
     <script type="text/javascript" src="../src/scripts/lib/TweenMax.min.js"></script>
     <script type="text/javascript" src="../src/scripts/lib/tweenjs-0.6.2.min.js"></script>
     <script type="text/javascript" src="../src/scripts/constants.js"></script>

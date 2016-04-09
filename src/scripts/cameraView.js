@@ -116,6 +116,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
         * @default
         */
         isTransitioning: false,
+        isAnimating: false,
 
         /**
         * The maximum value the content can be scaled.
@@ -528,9 +529,17 @@ var CameraView = Backbone.View.extend(Object.assign({},
             // Set up content
             this.el.appendChild(this.content.el);
             this.content.el.setAttribute('draggable', false);
+            this.draggable = new Draggable(this.content.el, {
+                onDrag: function (camera) {
+                    camera.focusX = (camera.viewportWidth / 2 - this.x) / camera.gs_zoom;
+                    camera.focusY = (camera.viewportHeight / 2 - this.y) / camera.gs_zoom;
+                },
+                onDragParams: [this],
+                zIndexBoost: false
+            });
             
             // Initialize events
-            this.$el.on('click', this._onClick.bind(this));
+            //this.$el.on('click', this._onClick.bind(this));
             //this.$el.on('dragstart', this._onDragStart.bind(this));
             //this.$el.on('mousedown', this._onMouseDown.bind(this));
             //this.$el.on('mouseleave', this._onMouseLeave.bind(this));
@@ -538,8 +547,20 @@ var CameraView = Backbone.View.extend(Object.assign({},
             //this.$el.on('mouseup', this._onMouseUp.bind(this));
             this.$el.on('transitionend', this._onTransitionEnd.bind(this));
             this.$el.on('wheel', utils.throttleToFrame(this._onWheel.bind(this)));
-            this.listenTo(this, 'change:size', this.update);
-            this.listenTo(this, 'change:state', this._onStateChange);
+            //this.listenTo(this, 'change:size', this.update);
+            //this.listenTo(this, 'change:state', this._onStateChange);
+            
+            // TODO: Debug
+            this.debugFocusXEl = document.getElementById('debugFocusX');
+            this.debugFocusYEl = document.getElementById('debugFocusY');
+            this.debugIsAnimatingEl = document.getElementById('debugIsAnimating');
+            this.debugIsTransitioningEl = document.getElementById('debugIsTransitioning');
+            this.debugZoomEl = document.getElementById('debugZoom');
+            this.debugMinZoomEl = document.getElementById('debugMinZoom');
+            this.debugMaxZoomEl = document.getElementById('debugMaxZoom');
+            this.debugZoomOriginXEl = document.getElementById('debugZoomOriginX');
+            this.debugZoomOriginYEl = document.getElementById('debugZoomOriginY');
+            window.requestAnimationFrame(this.debug.bind(this));
             
             this.onInitialize(options);
 
@@ -576,10 +597,23 @@ var CameraView = Backbone.View.extend(Object.assign({},
         */
         render: function () {
             this.onBeforeRender();
-            this.update();
             this.onRender();
-
+            
             return this;
+        },
+    
+        debug: function () {
+            this.debugFocusXEl.innerHTML = this.focusX;
+            this.debugFocusYEl.innerHTML = this.focusY;
+            this.debugIsAnimatingEl.innerHTML = this.isAnimating;
+            this.debugIsTransitioningEl.innerHTML = this.isTransitioning;
+            this.debugZoomEl.innerHTML = this.gs_zoom;
+            this.debugMinZoomEl.innerHTML = this.gs_minZoom;
+            this.debugMaxZoomEl.innerHTML = this.gs_maxZoom;
+            this.debugZoomOriginXEl.innerHTML = this.gs_zoomOriginX;
+            this.debugZoomOriginYEl.innerHTML = this.gs_zoomOriginY;
+            
+            window.requestAnimationFrame(this.debug.bind(this));
         },
 
         /**
@@ -839,8 +873,14 @@ var CameraView = Backbone.View.extend(Object.assign({},
         gs_animate: function (properties, duration, options) {
             var timeline = new TimelineMax({
                 callbackScope: this,
-                onStart: function () { this.isAnimating = true; },
-                onComplete: function () { this.isAnimating = false; }
+                onStart: function () { 
+                    this.isAnimating = true;
+                    this.draggable.disable();
+                },
+                onComplete: function () { 
+                    this.isAnimating = false;
+                    this.draggable.enable();
+                }
             });
 
             return timeline.to(this, duration, this.getTweenOptions({ 
