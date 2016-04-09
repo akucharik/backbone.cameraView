@@ -146,6 +146,8 @@ var CameraView = Backbone.View.extend(Object.assign({},
         gs_zoom: 1,
         gs_maxZoom: 3,
         gs_minZoom: 0.5,
+        gs_zoomOriginX: 0,
+        gs_zoomOriginY: 0,
 
         /**
         * The previous scale.
@@ -743,30 +745,22 @@ var CameraView = Backbone.View.extend(Object.assign({},
             if (event.deltaY && !this.isAnimating) {
                 document.querySelector('body').style.overflow = 'hidden';
                 
+                var contentRect;
                 var direction = event.deltaY > 0 ? constants.zoom.OUT : constants.zoom.IN;
-                var newScale = _.clamp(this.gs_zoom + this.scaleIncrement * Math.abs(event.deltaY) * this.gs_zoom * (direction === constants.zoom.IN ? 1 : -1), this.gs_minZoom, this.gs_maxZoom);
-                var origin = null;
+                var originX = this.gs_zoomOriginX;
+                var originY = this.gs_zoomOriginY;
+                var zoom = _.clamp(this.gs_zoom + this.scaleIncrement * Math.abs(event.deltaY) * this.gs_zoom * (direction === constants.zoom.IN ? 1 : -1), this.gs_minZoom, this.gs_maxZoom);
 
-                // If scale has not changed, it is at the min or max.
-                if (newScale !== this.gs_zoom) {
-                    if (this.isTransitioning) {
-                        origin = this.scaleOrigin;
-                        console.log('old origin:', this.scaleOrigin);
-                    }
-                    else {
-                        origin = {
-                            x: (event.clientX - this.content.el.getBoundingClientRect().left) / this.gs_zoom,
-                            y: (event.clientY - this.content.el.getBoundingClientRect().top) / this.gs_zoom
-                        }
-                        console.log('new origin:', this.origin);
+                // Performance Optimization: If zoom has not changed, it is at the min or max.
+                if (zoom !== this.gs_zoom) {
+                    if (!this.isTransitioning) {
+                        contentRect = this.content.el.getBoundingClientRect();
+                        originX = (event.clientX - contentRect.left) / this.gs_zoom;
+                        originY = (event.clientY - contentRect.top) / this.gs_zoom;
                     }
 
-                    // TODO: BUG: If deccelerating and origin has not been set, zoomAt will not respond.
-                    // TODO: BUG: If deccelerating and origin has been previous set, it used previous/wrong origin.
-                    if (origin) {
-                        this.isTransitioning = true;
-                        return this.gs_zoomAtXY(newScale, origin.x, origin.y, 0);
-                    }
+                    this.isTransitioning = true;
+                    return this.gs_zoomAtXY(zoom, originX, originY, 0);
                 }
             }
         },
@@ -804,9 +798,10 @@ var CameraView = Backbone.View.extend(Object.assign({},
             var anchor = this.checkFocusBounds(x, y);
             var deltaX = this.focusX - anchor.x;
             var deltaY = this.focusY - anchor.y;
-            // TODO: Rename to zoomOriginX and zoomOriginY
-            var scaleOrigin = this.scaleOrigin = { x: x, y: y };
             var zoomRatio = this.gs_zoom / zoom;
+            
+            this.gs_zoomOriginX = x;
+            this.gs_zoomOriginY = y;
             
             focus = this.getContentFocus(this.focusX, this.focusY, deltaX, deltaY, zoomRatio);
             
