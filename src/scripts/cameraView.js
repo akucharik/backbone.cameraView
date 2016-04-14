@@ -55,6 +55,11 @@ var CameraView = Backbone.View.extend(Object.assign({},
     */                                                
     {
         /**
+        * @property {Object} - An object containing of all current and future animations.
+        */
+        animations: {},
+    
+        /**
         * The content.
         * @property {Element} - The element to treat as the camera's content.
         * @default null
@@ -97,6 +102,12 @@ var CameraView = Backbone.View.extend(Object.assign({},
         * @default
         */
         isAnimating: false,
+    
+        /**
+        * @property {boolean} - Whether the camera is paused or not.
+        * @default
+        */
+        isPaused: false,
     
         /**
         * @property {boolean} - Whether the content is transitioning or not.
@@ -471,6 +482,36 @@ var CameraView = Backbone.View.extend(Object.assign({},
         },
         
         /**
+        * Pauses all animations.
+        *
+        * @returns {CameraView} The view.
+        */
+        pause: function () {
+            Object.keys(this.animations).forEach(function (key) {
+                this.animations[key].pause();
+            }, this);
+            
+            this.isPaused = true;
+            
+            return this;
+        },
+    
+        /**
+        * Plays all animations from the current playhead position.
+        *
+        * @returns {CameraView} The view.
+        */
+        play: function () {
+            Object.keys(this.animations).forEach(function (key) {
+                this.animations[key].play();
+            }, this);
+            
+            this.isPaused = false;
+            
+            return this;
+        },
+    
+        /**
         * Zooms in/out based on wheel input.
         *
         * @private
@@ -648,18 +689,25 @@ var CameraView = Backbone.View.extend(Object.assign({},
         */
         gs_animate: function (properties, duration, options) {
             var timeline = new TimelineMax({
+                data: {
+                    id: _.uniqueId()
+                },
+                paused: this.isPaused,
                 callbackScope: this,
-                onStart: function () { 
+                onStart: function (timeline) { 
                     this.isAnimating = true;
                     this.draggable.disable();
                 },
-                onComplete: function () { 
+                onStartParams: ["{self}"],
+                onComplete: function (timeline) { 
                     this.isAnimating = false;
                     this.draggable.enable();
-                }
+                    delete this.animations[timeline.data.id];
+                },
+                onCompleteParams: ["{self}"]
             });
-
-            return timeline.to(this, duration, this.getTweenOptions({ 
+            
+            timeline.to(this, duration, this.getTweenOptions({ 
                     focusX: properties.focusX,
                     focusY: properties.focusY,
                     gs_zoom: properties.zoom
@@ -669,6 +717,10 @@ var CameraView = Backbone.View.extend(Object.assign({},
                     x: properties.contentX,
                     y: properties.contentY
                 }}, options), 0);
+            
+            this.animations[timeline.data.id] = timeline;
+            
+            return timeline;
         }
     })
 );
