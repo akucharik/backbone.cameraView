@@ -40,13 +40,13 @@
 * @mixes Focuser
 * @mixes SizableView
 * @param {Object} [options] - An object of options. Includes all Backbone.View options. See {@link external:Backbone.View}.
-* @param {Object|Element} [options.focus] - A {@link CameraView.focus|focus} object.
-* @param {number|string|Element} [options.height] - The camera's {@link CameraView.height|height}.
-* @param {number} [options.maxZoom] - The {@link CameraView.maxZoom|maximum zoom}.
-* @param {number} [options.minZoom] - The {@link CameraView.minZoom|minimum zoom}.
-* @param {number} [options.scale] - A {@link CameraView.zoom|zoom} ratio.
-* @param {number} [options.scaleIncrement] - The base {@link CameraView.scaleIncrement|scale increment}.
 * @param {number|string|Element} [options.width] - The camera's {@link CameraView.width|width}.
+* @param {number|string|Element} [options.height] - The camera's {@link CameraView.height|height}.
+* @param {Object|Element} [options.focus] - A {@link CameraView.focus|focus} object.
+* @param {number} [options.minZoom] - The {@link CameraView.minZoom|minimum zoom}.
+* @param {number} [options.maxZoom] - The {@link CameraView.maxZoom|maximum zoom}.
+* @param {number} [options.zoom] - A {@link CameraView.zoom|zoom} ratio.
+* @param {number} [options.zoomIncrement] - The base {@link CameraView.zoomIncrement|zoom increment}.
 */
 var CameraView = Backbone.View.extend(Object.assign({},
     new Focuser(),
@@ -81,6 +81,13 @@ var CameraView = Backbone.View.extend(Object.assign({},
         * @default null
         */
         bounds: null,
+    
+        /**
+        * TODO
+        *
+        * @property {Object} - TODO
+        * @default null
+        */
         focusBounds: null,
     
         /**
@@ -116,45 +123,71 @@ var CameraView = Backbone.View.extend(Object.assign({},
         isTransitioning: false,
     
         /**
-        * The zoom.
-        * @property {number} - A zoom ratio where 1 = 100%.
+        * The minimum value the content can be zoomed.
+        * @property {number} - See {@link CameraView.zoom|zoom}.
         * @default
         */
-        gs_zoom: 1,
+        minZoom: 0.5,
     
         /**
         * The maximum value the content can be zoomws.
         * @property {number} - See {@link CameraView.zoom|zoom}.
         * @default
         */
-        gs_maxZoom: 3,
+        maxZoom: 3,
     
         /**
-        * The minimum value the content can be zoomed.
+        * The zoom.
+        * @property {number} - A zoom ratio where 1 = 100%.
+        * @default
+        */
+        zoom: 1,
+    
+        /**
+        * The base increment at which the content will be zoomed.
         * @property {number} - See {@link CameraView.zoom|zoom}.
         * @default
         */
-        gs_minZoom: 0.5,
+        zoomIncrement: 0.01,
     
         /**
         * @property {number} - The 'x' value of the zoom origin.
         * @default
         */
-        gs_zoomOriginX: 0,
+        zoomOriginX: 0,
     
         /**
         * @property {number} - The 'y' value of the zoom origin.
         * @default
         */
-        gs_zoomOriginY: 0,
+        zoomOriginY: 0,
 
         /**
-        * The base increment at which the content will be scaled.
-        * @property {number} - See {@link CameraView.scale|scale}.
-        * @default
+        * Add an animation to the animations object.
+        *
+        * @private
+        * @param {TimelineMax} animation - A TimelineMax object.
+        * @returns {TimelineMax} The animation.
         */
-        scaleIncrement: 0.01,
-
+        _addAnimation: function (animation) {
+            this.animations[animation.data.id] = animation;
+            
+            return animation;
+        },
+    
+        /**
+        * Removes an animation from the animations object.
+        *
+        * @private
+        * @param {TimelineMax} animation - A TimelineMax object.
+        * @returns {TimelineMax} The animation.
+        */
+        _removeAnimation: function (animation) {
+            delete this.animations[animation.data.id];
+            
+            return animation;
+        },
+    
         /**
         * Handle the mouseleave event.
         *
@@ -187,35 +220,41 @@ var CameraView = Backbone.View.extend(Object.assign({},
         */
         _onWheel: function (event) {
             event.preventDefault();
-            this._gs_wheelZoom(event);
+            this._wheelZoom(event);
 
             return this;
         },
     
         /**
-        * Add an animation to the animations object.
+        * Zooms in/out based on wheel input.
         *
         * @private
-        * @param {TimelineMax} animation - A TimelineMax object.
-        * @returns {TimelineMax} The animation.
+        * @param {MouseEvent} event - A MouseEvent object.
+        * @returns {CameraView} The view.
         */
-        _addAnimation: function (animation) {
-            this.animations[animation.data.id] = animation;
+        _wheelZoom: function (event) {
+            document.querySelector('body').style.overflow = 'hidden';
             
-            return animation;
-        },
-    
-        /**
-        * Removes an animation from the animations object.
-        *
-        * @private
-        * @param {TimelineMax} animation - A TimelineMax object.
-        * @returns {TimelineMax} The animation.
-        */
-        _removeAnimation: function (animation) {
-            delete this.animations[animation.data.id];
-            
-            return animation;
+            if (event.deltaY && !this.isAnimating) {
+                
+                var contentRect;
+                var direction = event.deltaY > 0 ? constants.zoom.OUT : constants.zoom.IN;
+                var originX = this.zoomOriginX;
+                var originY = this.zoomOriginY;
+                var zoom = _.clamp(this.zoom + this.zoomIncrement * Math.abs(event.deltaY) * this.zoom * (direction === constants.zoom.IN ? 1 : -1), this.minZoom, this.maxZoom);
+
+                // Performance Optimization: If zoom has not changed, it is at the min or max.
+                if (zoom !== this.zoom) {
+                    if (!this.isTransitioning) {
+                        contentRect = this.content.el.getBoundingClientRect();
+                        originX = (event.clientX - contentRect.left) / this.zoom;
+                        originY = (event.clientY - contentRect.top) / this.zoom;
+                    }
+
+                    this.isTransitioning = true;
+                    return this.zoomAtXY(zoom, originX, originY, 0);
+                }
+            }
         },
     
         /**
@@ -350,7 +389,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
             this.content = new CameraContentView({
                 el: options.content
             })
-            this.gs_zoom = 1;
+            this.zoom = 1;
             
             Object.assign(this, _.pick(options, [
                 'debug',
@@ -361,7 +400,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
                 'zoom',
                 'minZoom',
                 'maxZoom',
-                'scaleIncrement',
+                'zoomIncrement',
                 'width',
                 'height',
                 'x',
@@ -374,8 +413,8 @@ var CameraView = Backbone.View.extend(Object.assign({},
             
             this.draggable = new Draggable(this.content.el, {
                 onDrag: function (camera) {
-                    camera.focusX = (camera.viewportWidth / 2 - this.x) / camera.gs_zoom;
-                    camera.focusY = (camera.viewportHeight / 2 - this.y) / camera.gs_zoom;
+                    camera.focusX = (camera.viewportWidth / 2 - this.x) / camera.zoom;
+                    camera.focusY = (camera.viewportHeight / 2 - this.y) / camera.zoom;
                 },
                 onDragParams: [this],
                 onPress: function (camera) {
@@ -418,6 +457,138 @@ var CameraView = Backbone.View.extend(Object.assign({},
         },
         
         /**
+        * Animates the camera's content.
+        *
+        * @param {Object} properties - TODO.
+        * @param {number} duration - TODO.
+        * @param {Object} [options] - TODO.
+        * @returns {TimelineMax} The animation timeline.
+        */
+        animate: function (properties, duration, options) {
+            var timeline = new TimelineMax({
+                data: {
+                    id: _.uniqueId()
+                },
+                paused: this.isPaused,
+                callbackScope: this,
+                onStart: function (timeline) { 
+                    this.isAnimating = true;
+                    this.draggable.disable();
+                    this._addAnimation(timeline);
+                },
+                onStartParams: ["{self}"],
+                onComplete: function (timeline) { 
+                    this.isAnimating = false;
+                    this.draggable.enable();
+                    this._removeAnimation(timeline);
+                },
+                onCompleteParams: ["{self}"]
+            });
+            
+            timeline.to(this, duration, this.getTweenOptions({ 
+                    focusX: properties.focusX,
+                    focusY: properties.focusY,
+                    zoom: properties.zoom
+                }, options))
+                .to(this.content.el, duration, this.getTweenOptions({ css: {
+                    scale: properties.zoom,
+                    x: properties.contentX,
+                    y: properties.contentY
+                }}, options), 0);
+            
+            return timeline;
+        },
+    
+        /**
+        * TODO
+        *
+        * @param {number} x - TODO.
+        * @param {number} y - TODO.
+        */
+        checkFocusBounds: function (x, y) {
+            if (x <= this.focusBounds.left)
+            {
+                x = this.focusBounds.left;
+            }
+
+            if (x >= this.focusBounds.right)
+            {
+                x = this.focusBounds.right;
+            }
+
+            if (y <= this.focusBounds.top)
+            {
+                y = this.focusBounds.top;
+            }
+
+            if (y >= this.focusBounds.bottom)
+            {
+                y = this.focusBounds.bottom;
+            }
+            
+            return { 
+                x: x, 
+                y: y 
+            };
+        },
+    
+        /**
+        * TODO
+        *
+        * @param {number} value - TODO.
+        * @returns {number} The clamped zoom.
+        */
+        checkZoom: function (value) {
+            if (value === 'min') {
+                value = this.minZoom;
+            }
+            
+            if (value === 'max') {
+                value = this.maxZoom;
+            }
+            
+            return _.clamp(value, this.minZoom, this.maxZoom);;
+        },
+        
+        /**
+        * Focus the camera on an element.
+        *
+        * @param {Element} focus - An element.
+        * @param {number} duration - TODO.
+        * @param {Object} [options] - TODO.
+        * @returns {CameraView} The view.
+        */
+        focusOn: function (el, duration, options) {
+            var position = this.getElementFocus(window, this.content.el.getBoundingClientRect(), el.getBoundingClientRect(), this.zoom);
+            
+            return this.focusOnXY(position.x, position.y, duration, options);
+        },
+        
+        /**
+        * Focus the camera on a point.
+        *
+        * @param {number} x - The 'x' position on the unzoomed content.
+        * @param {number} y - The 'y' position on the unzoomed content.
+        * @param {number} duration - TODO.
+        * @param {Object} [options] - TODO.
+        * @returns {CameraView} The view.
+        */
+        focusOnXY: function (x, y, duration, options) {
+            var focus = this.checkFocusBounds(x, y);
+            var position = this.getContentPosition(focus.x, focus.y, this.viewportWidth, this.viewportHeight, this.zoom);
+
+            return this.animate({
+                focusX: focus.x,
+                focusY: focus.y,
+                contentX: position.x, 
+                contentY: position.y }, duration, options);
+        },
+    
+        getTweenOptions: function (properties, options) {
+            return Object.assign({}, this.defaultTweenOptions, properties, options);
+        },
+    
+        /**
         * Triggered before the camera has rendered.
         */
         onBeforeRender: function () {
@@ -459,56 +630,13 @@ var CameraView = Backbone.View.extend(Object.assign({},
             this.debugIsAnimatingEl.innerHTML = this.isAnimating;
             this.debugIsPausedEl.innerHTML = this.isPaused;
             this.debugIsTransitioningEl.innerHTML = this.isTransitioning;
-            this.debugZoomEl.innerHTML = this.gs_zoom;
-            this.debugMinZoomEl.innerHTML = this.gs_minZoom;
-            this.debugMaxZoomEl.innerHTML = this.gs_maxZoom;
-            this.debugZoomOriginXEl.innerHTML = this.gs_zoomOriginX;
-            this.debugZoomOriginYEl.innerHTML = this.gs_zoomOriginY;
+            this.debugZoomEl.innerHTML = this.zoom;
+            this.debugMinZoomEl.innerHTML = this.minZoom;
+            this.debugMaxZoomEl.innerHTML = this.maxZoom;
+            this.debugZoomOriginXEl.innerHTML = this.zoomOriginX;
+            this.debugZoomOriginYEl.innerHTML = this.zoomOriginY;
             
             window.requestAnimationFrame(this.renderDebug.bind(this));
-        },
-        
-        checkFocusBounds: function (x, y) {
-            if (x <= this.focusBounds.left)
-            {
-                x = this.focusBounds.left;
-            }
-
-            if (x >= this.focusBounds.right)
-            {
-                x = this.focusBounds.right;
-            }
-
-            if (y <= this.focusBounds.top)
-            {
-                y = this.focusBounds.top;
-            }
-
-            if (y >= this.focusBounds.bottom)
-            {
-                y = this.focusBounds.bottom;
-            }
-            
-            return { 
-                x: x, 
-                y: y 
-            };
-        },
-    
-        checkZoom: function (value) {
-            if (value === 'min') {
-                value = this.gs_minZoom;
-            }
-            
-            if (value === 'max') {
-                value = this.gs_maxZoom;
-            }
-            
-            return _.clamp(value, this.gs_minZoom, this.gs_maxZoom);;
-        },
-    
-        getTweenOptions: function (properties, options) {
-            return Object.assign({}, this.defaultTweenOptions, properties, options);
         },
         
         /**
@@ -546,84 +674,6 @@ var CameraView = Backbone.View.extend(Object.assign({},
             
             return this;
         },
-    
-        /**
-        * Zooms in/out based on wheel input.
-        *
-        * @private
-        * @param {MouseEvent} event - A MouseEvent object.
-        * @returns {CameraView} The view.
-        */
-        _gs_wheelZoom: function (event) {
-            document.querySelector('body').style.overflow = 'hidden';
-            
-            if (event.deltaY && !this.isAnimating) {
-                
-                var contentRect;
-                var direction = event.deltaY > 0 ? constants.zoom.OUT : constants.zoom.IN;
-                var originX = this.gs_zoomOriginX;
-                var originY = this.gs_zoomOriginY;
-                var zoom = _.clamp(this.gs_zoom + this.scaleIncrement * Math.abs(event.deltaY) * this.gs_zoom * (direction === constants.zoom.IN ? 1 : -1), this.gs_minZoom, this.gs_maxZoom);
-
-                // Performance Optimization: If zoom has not changed, it is at the min or max.
-                if (zoom !== this.gs_zoom) {
-                    if (!this.isTransitioning) {
-                        contentRect = this.content.el.getBoundingClientRect();
-                        originX = (event.clientX - contentRect.left) / this.gs_zoom;
-                        originY = (event.clientY - contentRect.top) / this.gs_zoom;
-                    }
-
-                    this.isTransitioning = true;
-                    return this.gs_zoomAtXY(zoom, originX, originY, 0);
-                }
-            }
-        },
-    
-        /**
-        * Focus the camera on an element.
-        *
-        * @param {Element} focus - An element.
-        * @param {number} duration - TODO.
-        * @param {Object} [options] - TODO.
-        * @returns {CameraView} The view.
-        */
-        gs_focusOn: function (el, duration, options) {
-            var position = this.getElementFocus(window, this.content.el.getBoundingClientRect(), el.getBoundingClientRect(), this.gs_zoom);
-            
-            return this.gs_focusOnXY(position.x, position.y, duration, options);
-        },
-    
-        /**
-        * Focus the camera on a point.
-        *
-        * @param {number} x - The 'x' position on the unzoomed content.
-        * @param {number} y - The 'y' position on the unzoomed content.
-        * @param {number} duration - TODO.
-        * @param {Object} [options] - TODO.
-        * @returns {CameraView} The view.
-        */
-        gs_focusOnXY: function (x, y, duration, options) {
-            var focus = this.checkFocusBounds(x, y);
-            var position = this.getContentPosition(focus.x, focus.y, this.viewportWidth, this.viewportHeight, this.gs_zoom);
-
-            return this.gs_animate({
-                focusX: focus.x,
-                focusY: focus.y,
-                contentX: position.x, 
-                contentY: position.y }, duration, options);
-        },
-    
-        /**
-        * Zooms in/out at the current focus.
-        *
-        * @param {number} zoom - A {@link CameraView.zoom|zoom} ratio.
-        * @param {number} duration - TODO.
-        * @param {Object} [options] - TODO.
-        * @returns {CameraView} The view.
-        */
-        gs_zoomTo: function (zoom, duration, options) {
-            return this.gs_zoomAtXY(zoom, this.focusX, this.focusY, duration, options);
-        },
         
         /**
         * Zooms in/out at a specific element.
@@ -634,11 +684,11 @@ var CameraView = Backbone.View.extend(Object.assign({},
         * @param {Object} [options] - TODO.
         * @returns {CameraView} The view.
         */
-        gs_zoomAt: function (zoom, el, duration, options) {
+        zoomAt: function (zoom, el, duration, options) {
             // TODO: Refactor this.getElementFocus
-            var position = this.getElementFocus(window, this.content.el.getBoundingClientRect(), el.getBoundingClientRect(), this.gs_zoom);
+            var position = this.getElementFocus(window, this.content.el.getBoundingClientRect(), el.getBoundingClientRect(), this.zoom);
             
-            return this.gs_zoomAtXY(zoom, position.x, position.y, duration, options);
+            return this.zoomAtXY(zoom, position.x, position.y, duration, options);
         },
     
         /**
@@ -651,23 +701,23 @@ var CameraView = Backbone.View.extend(Object.assign({},
         * @param {Object} [options] - TODO.
         * @returns {CameraView} The view.
         */
-        gs_zoomAtXY: function (zoom, x, y, duration, options) {
+        zoomAtXY: function (zoom, x, y, duration, options) {
             zoom = this.checkZoom(zoom);
             
             var focus, position;
             var anchor = this.checkFocusBounds(x, y);
             var deltaX = this.focusX - anchor.x;
             var deltaY = this.focusY - anchor.y;
-            var zoomRatio = this.gs_zoom / zoom;
+            var zoomRatio = this.zoom / zoom;
             
-            this.gs_zoomOriginX = x;
-            this.gs_zoomOriginY = y;
+            this.zoomOriginX = x;
+            this.zoomOriginY = y;
             
             focus = this.getContentFocus(this.focusX, this.focusY, deltaX, deltaY, zoomRatio);
             
             position = this.getContentPosition(focus.x, focus.y, this.viewportWidth, this.viewportHeight, zoom);
             
-            return this.gs_animate({
+            return this.animate({
                 zoom: zoom, 
                 focusX: focus.x, 
                 focusY: focus.y, 
@@ -684,11 +734,11 @@ var CameraView = Backbone.View.extend(Object.assign({},
         * @param {Object} [options] - TODO.
         * @returns {CameraView} The view.
         */
-        gs_zoomOn: function (zoom, el, duration, options) {
+        zoomOn: function (zoom, el, duration, options) {
             // TODO: Refactor this.getElementFocus
-            var position = this.getElementFocus(window, this.content.el.getBoundingClientRect(), el.getBoundingClientRect(), this.gs_zoom);
+            var position = this.getElementFocus(window, this.content.el.getBoundingClientRect(), el.getBoundingClientRect(), this.zoom);
             
-            return this.gs_zoomOnXY(zoom, position.x, position.y, duration, options);
+            return this.zoomOnXY(zoom, position.x, position.y, duration, options);
         },
         
         /**
@@ -701,13 +751,13 @@ var CameraView = Backbone.View.extend(Object.assign({},
         * @param {Object} [options] - TODO.
         * @returns {CameraView} The view.
         */
-        gs_zoomOnXY: function (zoom, x, y, duration, options) {
+        zoomOnXY: function (zoom, x, y, duration, options) {
             zoom = this.checkZoom(zoom);
             
             var focus = this.checkFocusBounds(x, y);
             var position = this.getContentPosition(focus.x, focus.y, this.viewportWidth, this.viewportHeight, zoom);
 
-            return this.gs_animate({ 
+            return this.animate({ 
                 zoom: zoom, 
                 focusX: focus.x, 
                 focusY: focus.y, 
@@ -716,46 +766,15 @@ var CameraView = Backbone.View.extend(Object.assign({},
         },
     
         /**
-        * Animates the camera's content.
+        * Zooms in/out at the current focus.
         *
-        * @param {Object} properties - TODO.
+        * @param {number} zoom - A {@link CameraView.zoom|zoom} ratio.
         * @param {number} duration - TODO.
         * @param {Object} [options] - TODO.
-        * @returns {TimelineMax} The animation timeline.
+        * @returns {CameraView} The view.
         */
-        gs_animate: function (properties, duration, options) {
-            var timeline = new TimelineMax({
-                data: {
-                    id: _.uniqueId()
-                },
-                paused: this.isPaused,
-                callbackScope: this,
-                onStart: function (timeline) { 
-                    this.isAnimating = true;
-                    this.draggable.disable();
-                    this._addAnimation(timeline);
-                },
-                onStartParams: ["{self}"],
-                onComplete: function (timeline) { 
-                    this.isAnimating = false;
-                    this.draggable.enable();
-                    this._removeAnimation(timeline);
-                },
-                onCompleteParams: ["{self}"]
-            });
-            
-            timeline.to(this, duration, this.getTweenOptions({ 
-                    focusX: properties.focusX,
-                    focusY: properties.focusY,
-                    gs_zoom: properties.zoom
-                }, options))
-                .to(this.content.el, duration, this.getTweenOptions({ css: {
-                    scale: properties.zoom,
-                    x: properties.contentX,
-                    y: properties.contentY
-                }}, options), 0);
-            
-            return timeline;
+        zoomTo: function (zoom, duration, options) {
+            return this.zoomAtXY(zoom, this.focusX, this.focusY, duration, options);
         }
     })
 );
