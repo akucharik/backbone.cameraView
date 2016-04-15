@@ -76,6 +76,12 @@
                     y: <input id="zoomOnY" type="text" placeholder="300" />
                     <button id="zoomOn">zoomOn</button>
                 </li>
+                <li>
+                    <button id="pause">Pause</button>
+                </li>
+                <li>
+                    <button id="play">Play</button>
+                </li>
                 <!--<li>
                     velocity x: <input id="velocityX" type="text" placeholder="1000" />
                     velocity y: <input id="velocityY" type="text" placeholder="-500" />
@@ -83,9 +89,11 @@
                 </li>-->
             </ul>
             <ul>
+                <li>animations: <span id="debugAnimations"></span></li>
                 <li>focusX: <span id="debugFocusX"></span></li>
                 <li>focusY: <span id="debugFocusY"></span></li>
                 <li>isAnimating: <span id="debugIsAnimating"></span></li>
+                <li>isPaused: <span id="debugIsPaused"></span></li>
                 <li>isTransitioning: <span id="debugIsTransitioning"></span></li>
                 <li>zoom: <span id="debugZoom"></span></li>
                 <li>minZoom: <span id="debugMinZoom"></span></li>
@@ -145,6 +153,8 @@
 
                 $('#flick').on('click', app.flick);
                 $('#focusOn').on('click', app.focusOn);
+                $('#pause').on('click', app.pause);
+                $('#play').on('click', app.play);
                 $('#zoomTo').on('click', app.zoomTo);
                 $('#zoomAt').on('click', app.zoomAt);
                 $('#zoomOn').on('click', app.zoomOn);
@@ -162,6 +172,14 @@
             
             focusOn: function () {
                 app.camera.gs_focusOnXY(parseFloat($('#focusOnX').val()), parseFloat($('#focusOnY').val()), 1);
+            },
+            
+            pause: function () {
+                app.camera.pause();
+            },
+            
+            play: function () {
+                app.camera.play();
             },
             
             zoomTo: function () {

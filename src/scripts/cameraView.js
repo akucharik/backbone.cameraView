@@ -193,6 +193,32 @@ var CameraView = Backbone.View.extend(Object.assign({},
         },
     
         /**
+        * Add an animation to the animations object.
+        *
+        * @private
+        * @param {TimelineMax} animation - A TimelineMax object.
+        * @returns {TimelineMax} The animation.
+        */
+        _addAnimation: function (animation) {
+            this.animations[animation.data.id] = animation;
+            
+            return animation;
+        },
+    
+        /**
+        * Removes an animation from the animations object.
+        *
+        * @private
+        * @param {TimelineMax} animation - A TimelineMax object.
+        * @returns {TimelineMax} The animation.
+        */
+        _removeAnimation: function (animation) {
+            delete this.animations[animation.data.id];
+            
+            return animation;
+        },
+    
+        /**
         * Ensure the camera keeps focus within the content's focusable bounds.
         *
         * @returns {Object} The bounded position.
@@ -372,9 +398,11 @@ var CameraView = Backbone.View.extend(Object.assign({},
             this.$el.on('wheel', utils.throttleToFrame(this._onWheel.bind(this)));
             
             if (this.debug) {
+                this.debugAnimationsEl = document.getElementById('debugAnimations');
                 this.debugFocusXEl = document.getElementById('debugFocusX');
                 this.debugFocusYEl = document.getElementById('debugFocusY');
                 this.debugIsAnimatingEl = document.getElementById('debugIsAnimating');
+                this.debugIsPausedEl = document.getElementById('debugIsPaused');
                 this.debugIsTransitioningEl = document.getElementById('debugIsTransitioning');
                 this.debugZoomEl = document.getElementById('debugZoom');
                 this.debugMinZoomEl = document.getElementById('debugMinZoom');
@@ -425,9 +453,11 @@ var CameraView = Backbone.View.extend(Object.assign({},
         },
     
         renderDebug: function () {
+            this.debugAnimationsEl.innerHTML = Object.keys(this.animations).length;
             this.debugFocusXEl.innerHTML = this.focusX;
             this.debugFocusYEl.innerHTML = this.focusY;
             this.debugIsAnimatingEl.innerHTML = this.isAnimating;
+            this.debugIsPausedEl.innerHTML = this.isPaused;
             this.debugIsTransitioningEl.innerHTML = this.isTransitioning;
             this.debugZoomEl.innerHTML = this.gs_zoom;
             this.debugMinZoomEl.innerHTML = this.gs_minZoom;
@@ -492,6 +522,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
             }, this);
             
             this.isPaused = true;
+            this.isAnimating = false;
             
             return this;
         },
@@ -502,11 +533,16 @@ var CameraView = Backbone.View.extend(Object.assign({},
         * @returns {CameraView} The view.
         */
         play: function () {
-            Object.keys(this.animations).forEach(function (key) {
-                this.animations[key].play();
+            var animationsKeys = Object.keys(this.animations);
+            
+            animationsKeys.forEach(function (key) {
+                this.animations[key].resume();
             }, this);
             
             this.isPaused = false;
+            if (animationsKeys.length > 0) {
+                this.isAnimating = true;    
+            }
             
             return this;
         },
@@ -678,7 +714,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
                 contentX: position.x, 
                 contentY: position.y }, duration, options);
         },
-        
+    
         /**
         * Animates the camera's content.
         *
@@ -697,12 +733,13 @@ var CameraView = Backbone.View.extend(Object.assign({},
                 onStart: function (timeline) { 
                     this.isAnimating = true;
                     this.draggable.disable();
+                    this._addAnimation(timeline);
                 },
                 onStartParams: ["{self}"],
                 onComplete: function (timeline) { 
                     this.isAnimating = false;
                     this.draggable.enable();
-                    delete this.animations[timeline.data.id];
+                    this._removeAnimation(timeline);
                 },
                 onCompleteParams: ["{self}"]
             });
@@ -717,8 +754,6 @@ var CameraView = Backbone.View.extend(Object.assign({},
                     x: properties.contentX,
                     y: properties.contentY
                 }}, options), 0);
-            
-            this.animations[timeline.data.id] = timeline;
             
             return timeline;
         }
