@@ -98,7 +98,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
         focusY: 0,
 
         /**
-        * @property {boolean} - Whether the content is transitioning or not.
+        * @property {boolean} - Whether the content is animating or not.
         * @default
         */
         isAnimating: false,
@@ -110,7 +110,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
         isPaused: false,
     
         /**
-        * @property {boolean} - Whether the content is transitioning or not.
+        * @property {boolean} - Whether the content has an active CSS transition or not.
         * @default
         */
         isTransitioning: false,
