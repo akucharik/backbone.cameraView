@@ -1,0 +1,57 @@
+body {
+    margin: 0 20px;
+}
+
+button {
+    width: 5em;
+}
+
+h2 {
+    margin: 0.5em 0;
+}
+
+input {
+    width: 3.5em;
+}
+
+ul {
+    list-style-type: none;
+    margin: 10px 0 20px 0;
+    padding: 0;
+}
+
+[disabled] {
+    background-color: #eee;
+    border: 2px solid #ccc;
+}
+
+.demo-container {
+    display: flex;
+}
+
+.demo-sidebar {
+    flex: 1;
+    padding-left: 20px;
+}
+
+.demo-sidebar > h2 {
+    margin-top: 0;
+}
+
+.demo-sidebar > ul > li {
+    margin: 2px;
+}
+
+.demo-commands > li > label:first-child {
+    width: 4.5em;
+}
+
+.bcv-camera {
+    border: 1px solid gray;
+}
+
+.bcv-content {
+    background-color: lightgray;
+    top: 0px;
+    left: 0px;
+}

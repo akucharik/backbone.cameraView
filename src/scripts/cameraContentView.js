@@ -23,6 +23,8 @@ var CameraContentView = Backbone.View.extend(
     * @lends CameraContentView.prototype
     */
     {
+        
+        
         /**
         * The 'x' position of the content.
         * @property {number} - The 'x' position of the content.
@@ -46,6 +48,20 @@ var CameraContentView = Backbone.View.extend(
         initialize: function (options) {
             options = options || {};
 
+            this.transformRootEl = this.el;
+            this.$transformRootEl = this.$el;
+            
+            this.transformEl = document.createElement('div');
+            this.$transformEl = this.$(this.transformEl);
+            this.transformEl.classList.add('bcv-transform');
+            
+            this.rotateEl = options.content;
+            this.$rotateEl = this.$(options.content);
+            this.rotateEl.classList.add('bcv-rotate');
+            
+            this.transformRootEl.appendChild(this.transformEl);
+            this.transformEl.appendChild(this.rotateEl);
+            
             // Ensure the view has its own tweenable properties.
             this.x = 0;
             this.y = 0;
@@ -57,9 +73,6 @@ var CameraContentView = Backbone.View.extend(
                 'y',
                 'onResize'
             ]));
-
-            this.el.setAttribute('draggable', false);
-            this.$el.on('dragstart', this._onDragStart.bind(this));
 
             return this;
         },
@@ -89,19 +102,6 @@ var CameraContentView = Backbone.View.extend(
             }
             
             return this;
-        },
-        
-        /**
-        * Handle the dragstart event.
-        *
-        * @private
-        * @param {DragEvent} event - The drag event.
-        */
-        _onDragStart: function (event) {
-            // Prevent the "ghost image" when dragging.
-            event.preventDefault();
-
-            return false;
         }
     }
 );
@@ -113,14 +113,14 @@ var CameraContentView = Backbone.View.extend(
 */
 Object.defineProperty(CameraContentView.prototype, 'width', {
     get: function () {
-        var computedStyle = window.getComputedStyle(this.el);
+        var computedStyle = window.getComputedStyle(this.transformEl);
         
-        return this.el.clientWidth + parseFloat(computedStyle.getPropertyValue('border-left-width')) + parseFloat(computedStyle.getPropertyValue('border-right-width'));
+        return this.transformEl.clientWidth + parseFloat(computedStyle.getPropertyValue('border-left-width')) + parseFloat(computedStyle.getPropertyValue('border-right-width'));
     },
 
     set: function (value) {
         if (value != this.width) {
-            this.$el.width(value);
+            this.$transformEl.width(value);
             this.trigger('change:width', value);
         }
     }
@@ -133,14 +133,14 @@ Object.defineProperty(CameraContentView.prototype, 'width', {
 */
 Object.defineProperty(CameraContentView.prototype, 'height', {
     get: function () {
-        var computedStyle = window.getComputedStyle(this.el);
+        var computedStyle = window.getComputedStyle(this.transformEl);
         
-        return this.el.clientHeight + parseFloat(computedStyle.getPropertyValue('border-top-width')) + parseFloat(computedStyle.getPropertyValue('border-bottom-width'));
+        return this.transformEl.clientHeight + parseFloat(computedStyle.getPropertyValue('border-top-width')) + parseFloat(computedStyle.getPropertyValue('border-bottom-width'));
     },
 
     set: function (value) {
         if (value != this.height) {
-            this.$el.height(value);
+            this.$transformEl.height(value);
             this.trigger('change:height', value);
         }
     }

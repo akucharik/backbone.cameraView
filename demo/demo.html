@@ -2,80 +2,89 @@
 <html lang="en">
 <head>
 	<title>Backbone Camera View Demo</title>
+    <link type="text/css" href="styles/bootstrap.min.css" rel="stylesheet" />
+    <link type="text/css" href="styles/github-markdown.css" rel="stylesheet" />
     <link type="text/css" href="../src/styles/camera.css" rel="stylesheet" />
-    <style>
-        .bcv-camera {
-            border: 1px solid gray;
-            /*height: 500px;
-            width: 1000px;*/
-        }
-
-        .bcv-content {
-            background-color: lightgray;
-            top: 0px;
-            left: 0px;
-        }
-        .container {
-            display: flex;
-        }
-        .actions {
-            flex: 1;
-        }
-        input {
-            width: 3em;
-        }
-        [disabled] {
-            background-color: #eee;
-            border: 2px solid #ccc;
-        }
-    </style>
+    <link type="text/css" href="styles/demo.css" rel="stylesheet" />
 </head>
 <body>
-    <h1>Backbone Camera View</h1>
+    <h1>Backbone Camera View Demo</h1>
     
-    <div class="container">
-        <div id="camera" class="bcv-camera">
-            <div class="behavior-transparent" style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid blue; z-index: 1;"></div>
-            <div class="behavior-transparent" style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 200px; height: 200px; border: 1px solid red; z-index: 1;"></div>
+    <div class="demo-container">
+        <div class="demo-main">
+            <div id="camera" class="bcv-camera">
+                <div class="bcv-ignore-pointer-events" style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid blue; z-index: 1;"></div>
+                <div class="bcv-ignore-pointer-events" style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 200px; height: 200px; border: 1px solid red; z-index: 1;"></div>
 
-            <div class="behavior-transparent" style="box-sizing: border-box; position: absolute; top: 105px; left: 180px; width: 3px; height: 3px; background-color: red; z-index: 1;"></div>
-            <div class="behavior-transparent" style="box-sizing: border-box; position: absolute; top: 249px; left: 615px; width: 3px; height: 3px; background-color: red; z-index: 1;"></div>
+                <div class="bcv-ignore-pointer-events" style="box-sizing: border-box; position: absolute; top: 105px; left: 180px; width: 3px; height: 3px; background-color: red; z-index: 1;"></div>
+                <div class="bcv-ignore-pointer-events" style="box-sizing: border-box; position: absolute; top: 249px; left: 615px; width: 3px; height: 3px; background-color: red; z-index: 1;"></div>
 
-            <div class="behavior-transparent" style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 50px; height: 2px; background-color: red; transform: translateX(-25px) translateY(-1px); z-index: 1;"></div>
-            <div class="behavior-transparent" style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 2px; height: 50px; background-color: red; transform: translateX(-1px) translateY(-25px); z-index: 1;"></div>
-        </div>
+                <div class="bcv-ignore-pointer-events" style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 50px; height: 2px; background-color: red; transform: translateX(-25px) translateY(-1px); z-index: 1;"></div>
+                <div class="bcv-ignore-pointer-events" style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 2px; height: 50px; background-color: red; transform: translateX(-1px) translateY(-25px); z-index: 1;"></div>
+            </div>
+
+            <div id="content" class="bcv-content">
+                <img src="images/FFL-Spritesheet-White-1827x1215.png" alt="Final Fantasy Legend Sprites" width="1827" height="1215" />
+                <div id="box100" style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid green;"></div>
+                <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 150px; height: 150px; border: 1px solid green;"></div>
+                <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 200px; height: 200px; border: 1px solid green;"></div>
+                <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 250px; height: 250px; border: 1px solid green;"></div>
+                <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 300px; height: 300px; border: 1px solid green;"></div>
+            </div>
         
-        <div id="content" class="bcv-content">
-            <img src="images/FFL-Spritesheet-White-1827x1215.png" alt="Final Fantasy Legend Sprites" width="1827" height="1215" />
-            <div id="box100" style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid green;"></div>
-            <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 150px; height: 150px; border: 1px solid green;"></div>
-            <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 200px; height: 200px; border: 1px solid green;"></div>
-            <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 250px; height: 250px; border: 1px solid green;"></div>
-            <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 300px; height: 300px; border: 1px solid green;"></div>
-        </div>
-        
-        <div class="actions">
+            <h2>Console Examples</h2>
             <ul>
-                <li>zoom: <input id="focusOnScale" type="text" placeholder="2" disabled />
-                    x: <input id="focusOnX" type="text" placeholder="300" />
-                    y: <input id="focusOnY" type="text" placeholder="300" />
+                <li class="markdown-body">
+                    <pre><code class="language-js">camera.<span class="pl-en">zoomOnXY</span>(<span class="pl-c1">2</span>, <span class="pl-c1">300</span>, <span class="pl-c1">300</span>, <span class="pl-c1">5</span>).<span class="pl-en">rotate</span>(<span class="pl-c1">30</span>, <span class="pl-s">'300px'</span>, <span class="pl-s">'300px'</span>, <span class="pl-c1">5</span>);</code></pre>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="demo-sidebar">
+            <h2>Commands</h2>
+            <ul class="demo-commands">
+                <li><label>zoom:</label>
+                    <input id="focusOnScale" type="text" value="" disabled />
+                    <label>x:</label> 
+                    <input id="focusOnX" type="text" value="300" />
+                    <label>y:</label> 
+                    <input id="focusOnY" type="text" value="300" />
                     <button id="focusOn">focusOn</button>
                 </li>
-                <li>zoom: <input id="zoomToScale" type="text" placeholder="2" />
-                    x: <input id="zoomToX" type="text" placeholder="300" disabled />
-                    y: <input id="zoomToY" type="text" placeholder="300" disabled />
+                <li><label>rotate:</label> 
+                    <input id="rotation" type="text" value="30" />
+                    <label>x:</label> 
+                    <input id="rotateX" type="text" value="300px" />
+                    <label>y:</label> 
+                    <input id="rotateY" type="text" value="300px" />
+                    <button id="rotate">rotate</button>
+                </li>
+                <li><label>zoom:</label> 
+                    <input id="zoomToScale" type="text" value="2" />
+                    <label>x:</label> 
+                    <input id="zoomToX" type="text" value="300" disabled />
+                    <label>y:</label> 
+                    <input id="zoomToY" type="text" value="300" disabled />
                     <button id="zoomTo">zoomTo</button>
                 </li>
-                <li>zoom: <input id="zoomAtScale" type="text" placeholder="2" />
-                    x: <input id="zoomAtX" type="text" placeholder="300" />
-                    y: <input id="zoomAtY" type="text" placeholder="300" />
+                <li><label>zoom:</label> 
+                    <input id="zoomAtScale" type="text" value="2" />
+                    <label>x:</label> 
+                    <input id="zoomAtX" type="text" value="300" />
+                    <label>y:</label> 
+                    <input id="zoomAtY" type="text" value="300" />
                     <button id="zoomAt">zoomAt</button>
                 </li>
-                <li>zoom: <input id="zoomOnScale" type="text" placeholder="2" />
-                    x: <input id="zoomOnX" type="text" placeholder="300" />
-                    y: <input id="zoomOnY" type="text" placeholder="300" />
+                <li><label>zoom:</label> 
+                    <input id="zoomOnScale" type="text" value="2" />
+                    <label>x:</label> 
+                    <input id="zoomOnX" type="text" value="300" />
+                    <label>y:</label> 
+                    <input id="zoomOnY" type="text" value="300" />
                     <button id="zoomOn">zoomOn</button>
                 </li>
+                <li><label>duration:</label> 
+                    <input id="duration" type="text" value="2" /></li>
                 <li>
                     <button id="pause">Pause</button>
                 </li>
@@ -88,18 +97,20 @@
                     <button id="flick">flick</button>
                 </li>-->
             </ul>
+            
+            <h2>Debug Data</h2>
             <ul>
-                <li>animations: <span id="debugAnimations"></span></li>
-                <li>focusX: <span id="debugFocusX"></span></li>
-                <li>focusY: <span id="debugFocusY"></span></li>
-                <li>isAnimating: <span id="debugIsAnimating"></span></li>
-                <li>isPaused: <span id="debugIsPaused"></span></li>
-                <li>isTransitioning: <span id="debugIsTransitioning"></span></li>
-                <li>zoom: <span id="debugZoom"></span></li>
-                <li>minZoom: <span id="debugMinZoom"></span></li>
-                <li>maxZoom: <span id="debugMaxZoom"></span></li>
-                <li>zoomOriginX: <span id="debugZoomOriginX"></span></li>
-                <li>zoomOriginY: <span id="debugZoomOriginY"></span></li>
+                <li><label>animations:</label> <span id="debugAnimations"></span></li>
+                <li><label>focusX:</label> <span id="debugFocusX"></span></li>
+                <li><label>focusY:</label> <span id="debugFocusY"></span></li>
+                <li><label>isAnimating:</label> <span id="debugIsAnimating"></span></li>
+                <li><label>isPaused:</label> <span id="debugIsPaused"></span></li>
+                <li><label>isTransitioning:</label> <span id="debugIsTransitioning"></span></li>
+                <li><label>zoom:</label> <span id="debugZoom"></span></li>
+                <li><label>minZoom:</label> <span id="debugMinZoom"></span></li>
+                <li><label>maxZoom:</label> <span id="debugMaxZoom"></span></li>
+                <li><label>zoomOriginX:</label> <span id="debugZoomOriginX"></span></li>
+                <li><label>zoomOriginY:</label> <span id="debugZoomOriginY"></span></li>
             </ul>
         </div>
     </div>
@@ -155,6 +166,7 @@
                 $('#focusOn').on('click', app.focusOn);
                 $('#pause').on('click', app.pause);
                 $('#play').on('click', app.play);
+                $('#rotate').on('click', app.rotate);
                 $('#zoomTo').on('click', app.zoomTo);
                 $('#zoomAt').on('click', app.zoomAt);
                 $('#zoomOn').on('click', app.zoomOn);
@@ -171,7 +183,7 @@
             },
             
             focusOn: function () {
-                app.camera.focusOnXY(parseFloat($('#focusOnX').val()), parseFloat($('#focusOnY').val()), 1);
+                app.camera.focusOnXY(parseFloat($('#focusOnX').val()), parseFloat($('#focusOnY').val()), parseFloat($('#duration').val()));
             },
             
             pause: function () {
@@ -182,16 +194,20 @@
                 app.camera.play();
             },
             
+            rotate: function () {
+                app.camera.rotate(parseFloat($('#rotation').val()), $('#rotateX').val(), $('#rotateY').val(), parseFloat($('#duration').val()));
+            },
+            
             zoomTo: function () {
-                app.camera.zoomTo(parseFloat($('#zoomToScale').val()), 1);
+                app.camera.zoomTo(parseFloat($('#zoomToScale').val()), parseFloat($('#duration').val()));
             },
             
             zoomAt: function () {
-                app.camera.zoomAtXY(parseFloat($('#zoomAtScale').val()), parseFloat($('#zoomAtX').val()), parseFloat($('#zoomAtY').val()), 1);
+                app.camera.zoomAtXY(parseFloat($('#zoomAtScale').val()), parseFloat($('#zoomAtX').val()), parseFloat($('#zoomAtY').val()), parseFloat($('#duration').val()));
             },
             
             zoomOn: function () {
-                app.camera.zoomOnXY(parseFloat($('#zoomOnScale').val()), parseFloat($('#zoomOnX').val()), parseFloat($('#zoomOnY').val()), 1);
+                app.camera.zoomOnXY(parseFloat($('#zoomOnScale').val()), parseFloat($('#zoomOnX').val()), parseFloat($('#zoomOnY').val()), parseFloat($('#duration').val()));
             }
         });
 

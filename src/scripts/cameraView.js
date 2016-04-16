@@ -246,7 +246,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
                 // Performance Optimization: If zoom has not changed, it is at the min or max.
                 if (zoom !== this.zoom) {
                     if (!this.isTransitioning) {
-                        contentRect = this.content.el.getBoundingClientRect();
+                        contentRect = this.content.transformEl.getBoundingClientRect();
                         originX = (event.clientX - contentRect.left) / this.zoom;
                         originY = (event.clientY - contentRect.top) / this.zoom;
                     }
@@ -387,7 +387,8 @@ var CameraView = Backbone.View.extend(Object.assign({},
             options = options || {};
             
             this.content = new CameraContentView({
-                el: options.content
+                className: 'bcv-content-root',
+                content: options.content
             })
             this.zoom = 1;
             
@@ -409,16 +410,15 @@ var CameraView = Backbone.View.extend(Object.assign({},
             
             // Set up content
             this.el.appendChild(this.content.el);
-            this.content.el.setAttribute('draggable', false);
             
-            this.draggable = new Draggable(this.content.el, {
+            this.draggable = new Draggable(this.content.transformEl, {
                 onDrag: function (camera) {
                     camera.focusX = (camera.viewportWidth / 2 - this.x) / camera.zoom;
                     camera.focusY = (camera.viewportHeight / 2 - this.y) / camera.zoom;
                 },
                 onDragParams: [this],
                 onPress: function (camera) {
-//                    var contentRect = camera.content.el.getBoundingClientRect();
+//                    var contentRect = camera.content.transformEl.getBoundingClientRect();
 //                    
 //                    this.applyBounds({
 //                        top: camera.viewportHeight / 2 - contentRect.height,
@@ -490,7 +490,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
                     focusY: properties.focusY,
                     zoom: properties.zoom
                 }, options))
-                .to(this.content.el, duration, this.getTweenOptions({ css: {
+                .to(this.content.transformEl, duration, this.getTweenOptions({ css: {
                     scale: properties.zoom,
                     x: properties.contentX,
                     y: properties.contentY
@@ -559,7 +559,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
         * @returns {CameraView} The view.
         */
         focusOn: function (el, duration, options) {
-            var position = this.getElementFocus(window, this.content.el.getBoundingClientRect(), el.getBoundingClientRect(), this.zoom);
+            var position = this.getElementFocus(window, this.content.transformEl.getBoundingClientRect(), el.getBoundingClientRect(), this.zoom);
             
             return this.focusOnXY(position.x, position.y, duration, options);
         },
@@ -577,11 +577,13 @@ var CameraView = Backbone.View.extend(Object.assign({},
             var focus = this.checkFocusBounds(x, y);
             var position = this.getContentPosition(focus.x, focus.y, this.viewportWidth, this.viewportHeight, this.zoom);
 
-            return this.animate({
+            this.animate({
                 focusX: focus.x,
                 focusY: focus.y,
                 contentX: position.x, 
                 contentY: position.y }, duration, options);
+            
+            return this;
         },
     
         getTweenOptions: function (properties, options) {
@@ -676,6 +678,47 @@ var CameraView = Backbone.View.extend(Object.assign({},
         },
         
         /**
+        * Rotates at a specific point.
+        *
+        * @param {number|string} rotation - TODO.
+        * @param {string} originX - TODO.
+        * @param {string} originY - TODO.
+        * @param {number} duration - TODO.
+        * @param {Object} [options] - TODO.
+        * @returns {CameraView} The view.
+        */
+        rotate: function (rotation, originX, originY, duration, options) {
+            var timeline = new TimelineMax({
+                data: {
+                    id: _.uniqueId()
+                },
+                paused: this.isPaused,
+                callbackScope: this,
+                onStart: function (timeline) { 
+                    this.isAnimating = true;
+                    this.draggable.disable();
+                    this._addAnimation(timeline);
+                },
+                onStartParams: ["{self}"],
+                onComplete: function (timeline) { 
+                    this.isAnimating = false;
+                    this.draggable.enable();
+                    this._removeAnimation(timeline);
+                },
+                onCompleteParams: ["{self}"]
+            });
+            
+            timeline.to(this.content.rotateEl, duration, this.getTweenOptions({ 
+                css: {
+                    rotation: rotation,
+                    transformOrigin: (originX + ' ' + originY) || 'left top'
+                }
+            }, options));
+            
+            return this;
+        },
+    
+        /**
         * Zooms in/out at a specific element.
         *
         * @param {number} zoom - A {@link Cameraview.zoom|zoom} ratio.
@@ -686,7 +729,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
         */
         zoomAt: function (zoom, el, duration, options) {
             // TODO: Refactor this.getElementFocus
-            var position = this.getElementFocus(window, this.content.el.getBoundingClientRect(), el.getBoundingClientRect(), this.zoom);
+            var position = this.getElementFocus(window, this.content.transformEl.getBoundingClientRect(), el.getBoundingClientRect(), this.zoom);
             
             return this.zoomAtXY(zoom, position.x, position.y, duration, options);
         },
@@ -717,12 +760,14 @@ var CameraView = Backbone.View.extend(Object.assign({},
             
             position = this.getContentPosition(focus.x, focus.y, this.viewportWidth, this.viewportHeight, zoom);
             
-            return this.animate({
+            this.animate({
                 zoom: zoom, 
                 focusX: focus.x, 
                 focusY: focus.y, 
                 contentX: position.x, 
                 contentY: position.y }, duration, options);
+            
+            return this;
         },
     
         /**
@@ -736,7 +781,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
         */
         zoomOn: function (zoom, el, duration, options) {
             // TODO: Refactor this.getElementFocus
-            var position = this.getElementFocus(window, this.content.el.getBoundingClientRect(), el.getBoundingClientRect(), this.zoom);
+            var position = this.getElementFocus(window, this.content.transformEl.getBoundingClientRect(), el.getBoundingClientRect(), this.zoom);
             
             return this.zoomOnXY(zoom, position.x, position.y, duration, options);
         },
@@ -757,12 +802,14 @@ var CameraView = Backbone.View.extend(Object.assign({},
             var focus = this.checkFocusBounds(x, y);
             var position = this.getContentPosition(focus.x, focus.y, this.viewportWidth, this.viewportHeight, zoom);
 
-            return this.animate({ 
+            this.animate({ 
                 zoom: zoom, 
                 focusX: focus.x, 
                 focusY: focus.y, 
                 contentX: position.x, 
                 contentY: position.y }, duration, options);
+            
+            return this;
         },
     
         /**

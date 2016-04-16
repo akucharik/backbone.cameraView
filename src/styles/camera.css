@@ -7,13 +7,19 @@
     background-color: transparent;
 }
 
-.bcv-content {
-    overflow: hidden;
+.bcv-content-root {
     position: absolute;
-    transform-origin: 0 0;
-    transition-duration: 0.1s;
 }
 
-.behavior-transparent {
+.bcv-transform {
+    transform-origin: 0 0;
+    transition-duration: 0.05s;
+}
+
+.bcv-rotate {
+    transition-duration: 0s;
+}
+
+.bcv-ignore-pointer-events {
     pointer-events: none;
 }
