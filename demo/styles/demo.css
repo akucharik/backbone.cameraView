@@ -3,7 +3,7 @@ body {
 }
 
 button {
-    width: 5em;
+    width: 4.8em;
 }
 
 h2 {
@@ -12,6 +12,10 @@ h2 {
 
 input {
     width: 3.5em;
+}
+
+label {
+    text-align: right;
 }
 
 ul {
@@ -44,6 +48,10 @@ ul {
 
 .demo-commands > li > label:first-child {
     width: 4.5em;
+}
+
+.demo-commands > li > input {
+    margin-right: 0.5em;
 }
 
 .bcv-camera {

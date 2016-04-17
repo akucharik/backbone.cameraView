@@ -35,7 +35,7 @@
             <h2>Console Examples</h2>
             <ul>
                 <li class="markdown-body">
-                    <pre><code class="language-js">camera.<span class="pl-en">zoomOnXY</span>(<span class="pl-c1">2</span>, <span class="pl-c1">300</span>, <span class="pl-c1">300</span>, <span class="pl-c1">5</span>).<span class="pl-en">rotate</span>(<span class="pl-c1">30</span>, <span class="pl-s">'300px'</span>, <span class="pl-s">'300px'</span>, <span class="pl-c1">5</span>);</code></pre>
+                    <pre><code class="language-js">camera.<span class="pl-en">zoomOn</span>(<span class="pl-c1">2</span>, <span class="pl-c1">300</span>, <span class="pl-c1">300</span>, <span class="pl-c1">5</span>).<span class="pl-en">rotate</span>(<span class="pl-c1">30</span>, <span class="pl-s">'300px'</span>, <span class="pl-s">'300px'</span>, <span class="pl-c1">5</span>);</code></pre>
                 </li>
             </ul>
         </div>
@@ -62,9 +62,9 @@
                 <li><label>zoom:</label> 
                     <input id="zoomToScale" type="text" value="2" />
                     <label>x:</label> 
-                    <input id="zoomToX" type="text" value="300" disabled />
+                    <input id="zoomToX" type="text" value="" disabled />
                     <label>y:</label> 
-                    <input id="zoomToY" type="text" value="300" disabled />
+                    <input id="zoomToY" type="text" value="" disabled />
                     <button id="zoomTo">zoomTo</button>
                 </li>
                 <li><label>zoom:</label> 
@@ -183,7 +183,7 @@
             },
             
             focusOn: function () {
-                app.camera.focusOnXY(parseFloat($('#focusOnX').val()), parseFloat($('#focusOnY').val()), parseFloat($('#duration').val()));
+                app.camera.focusOn(parseFloat($('#focusOnX').val()), parseFloat($('#focusOnY').val()), parseFloat($('#duration').val()));
             },
             
             pause: function () {
@@ -198,16 +198,16 @@
                 app.camera.rotate(parseFloat($('#rotation').val()), $('#rotateX').val(), $('#rotateY').val(), parseFloat($('#duration').val()));
             },
             
-            zoomTo: function () {
-                app.camera.zoomTo(parseFloat($('#zoomToScale').val()), parseFloat($('#duration').val()));
-            },
-            
             zoomAt: function () {
-                app.camera.zoomAtXY(parseFloat($('#zoomAtScale').val()), parseFloat($('#zoomAtX').val()), parseFloat($('#zoomAtY').val()), parseFloat($('#duration').val()));
+                app.camera.zoomAt(parseFloat($('#zoomAtScale').val()), parseFloat($('#zoomAtX').val()), parseFloat($('#zoomAtY').val()), parseFloat($('#duration').val()));
             },
             
             zoomOn: function () {
-                app.camera.zoomOnXY(parseFloat($('#zoomOnScale').val()), parseFloat($('#zoomOnX').val()), parseFloat($('#zoomOnY').val()), parseFloat($('#duration').val()));
+                app.camera.zoomOn(parseFloat($('#zoomOnScale').val()), parseFloat($('#zoomOnX').val()), parseFloat($('#zoomOnY').val()), parseFloat($('#duration').val()));
+            },
+            
+            zoomTo: function () {
+                app.camera.zoomTo(parseFloat($('#zoomToScale').val()), parseFloat($('#duration').val()));
             }
         });
 

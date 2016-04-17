@@ -176,6 +176,29 @@ var CameraView = Backbone.View.extend(Object.assign({},
         },
     
         /**
+        * Focus the camera on a point.
+        *
+        * @private
+        * @param {number} x - The 'x' position on the unzoomed content.
+        * @param {number} y - The 'y' position on the unzoomed content.
+        * @param {number} duration - TODO.
+        * @param {Object} [options] - TODO.
+        * @returns {CameraView} The view.
+        */
+        _focusOnXY: function (x, y, duration, options) {
+            var focus = this.checkFocusBounds(x, y);
+            var position = this.getContentPosition(focus.x, focus.y, this.viewportWidth, this.viewportHeight, this.zoom);
+
+            this.animate({
+                focusX: focus.x,
+                focusY: focus.y,
+                contentX: position.x, 
+                contentY: position.y }, duration, options);
+            
+            return this;
+        },
+    
+        /**
         * Removes an animation from the animations object.
         *
         * @private
@@ -252,9 +275,71 @@ var CameraView = Backbone.View.extend(Object.assign({},
                     }
 
                     this.isTransitioning = true;
-                    return this.zoomAtXY(zoom, originX, originY, 0);
+                    return this._zoomAtXY(zoom, originX, originY, 0);
                 }
             }
+        },
+    
+        /**
+        * Zooms in/out at a specific point.
+        *
+        * @param {number} zoom - A {@link Cameraview.zoom|zoom} ratio.
+        * @param {number} x - TODO.
+        * @param {number} y - TODO.
+        * @param {number} duration - TODO.
+        * @param {Object} [options] - TODO.
+        * @returns {CameraView} The view.
+        */
+        _zoomAtXY: function (zoom, x, y, duration, options) {
+            zoom = this.checkZoom(zoom);
+            
+            var focus, position;
+            var anchor = this.checkFocusBounds(x, y);
+            var deltaX = this.focusX - anchor.x;
+            var deltaY = this.focusY - anchor.y;
+            var zoomRatio = this.zoom / zoom;
+            
+            this.zoomOriginX = x;
+            this.zoomOriginY = y;
+            
+            focus = this.getContentFocus(this.focusX, this.focusY, deltaX, deltaY, zoomRatio);
+            
+            position = this.getContentPosition(focus.x, focus.y, this.viewportWidth, this.viewportHeight, zoom);
+            
+            this.animate({
+                zoom: zoom, 
+                focusX: focus.x, 
+                focusY: focus.y, 
+                contentX: position.x, 
+                contentY: position.y }, duration, options);
+            
+            return this;
+        },
+    
+        /**
+        * Zooms in/out and focus the camera on a specific point.
+        *
+        * @param {number} zoom - A {@link CameraView.zoom|zoom} ratio.
+        * @param {number} x - TODO.
+        * @param {number} y - TODO.
+        * @param {number} duration - TODO.
+        * @param {Object} [options] - TODO.
+        * @returns {CameraView} The view.
+        */
+        _zoomOnXY: function (zoom, x, y, duration, options) {
+            zoom = this.checkZoom(zoom);
+            
+            var focus = this.checkFocusBounds(x, y);
+            var position = this.getContentPosition(focus.x, focus.y, this.viewportWidth, this.viewportHeight, zoom);
+
+            this.animate({ 
+                zoom: zoom, 
+                focusX: focus.x, 
+                focusY: focus.y, 
+                contentX: position.x, 
+                contentY: position.y }, duration, options);
+            
+            return this;
         },
     
         /**
@@ -557,14 +642,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
         * @param {number} duration - TODO.
         * @param {Object} [options] - TODO.
         * @returns {CameraView} The view.
-        */
-        focusOn: function (el, duration, options) {
-            var position = this.getElementFocus(window, this.content.transformEl.getBoundingClientRect(), el.getBoundingClientRect(), this.zoom);
-            
-            return this.focusOnXY(position.x, position.y, duration, options);
-        },
-        
-        /**
+        *//**
         * Focus the camera on a point.
         *
         * @param {number} x - The 'x' position on the unzoomed content.
@@ -573,15 +651,25 @@ var CameraView = Backbone.View.extend(Object.assign({},
         * @param {Object} [options] - TODO.
         * @returns {CameraView} The view.
         */
-        focusOnXY: function (x, y, duration, options) {
-            var focus = this.checkFocusBounds(x, y);
-            var position = this.getContentPosition(focus.x, focus.y, this.viewportWidth, this.viewportHeight, this.zoom);
-
-            this.animate({
-                focusX: focus.x,
-                focusY: focus.y,
-                contentX: position.x, 
-                contentY: position.y }, duration, options);
+        focusOn: function (x, y, duration, options) {
+            // Focus on an element
+            if (arguments.length >= 2 && _.isElement(arguments[0])) {
+                var el = x;
+                var duration = y;
+                var options = duration;
+                var position = this.getElementFocus(window, this.content.transformEl.getBoundingClientRect(), el.getBoundingClientRect(), this.zoom);
+                
+                this._focusOnXY(position.x, position.y, duration, options);
+            }
+            
+            // Focus on an x/y position
+            else if (arguments.length >= 3 && _.isFinite(arguments[0]) && _.isFinite(arguments[1])) {
+                this._focusOnXY(x, y, duration, options);
+            }
+            
+            else {
+                throw new Error('Incorrect method signature');
+            }
             
             return this;
         },
@@ -726,15 +814,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
         * @param {number} duration - TODO.
         * @param {Object} [options] - TODO.
         * @returns {CameraView} The view.
-        */
-        zoomAt: function (zoom, el, duration, options) {
-            // TODO: Refactor this.getElementFocus
-            var position = this.getElementFocus(window, this.content.transformEl.getBoundingClientRect(), el.getBoundingClientRect(), this.zoom);
-            
-            return this.zoomAtXY(zoom, position.x, position.y, duration, options);
-        },
-    
-        /**
+        *//**
         * Zooms in/out at a specific point.
         *
         * @param {number} zoom - A {@link Cameraview.zoom|zoom} ratio.
@@ -744,28 +824,25 @@ var CameraView = Backbone.View.extend(Object.assign({},
         * @param {Object} [options] - TODO.
         * @returns {CameraView} The view.
         */
-        zoomAtXY: function (zoom, x, y, duration, options) {
-            zoom = this.checkZoom(zoom);
+        zoomAt: function (zoom, x, y, duration, options) {
+            // Zoom on an element
+            if (arguments.length >= 3 && _.isElement(arguments[1])) {
+                var el = x;
+                var duration = y;
+                var options = duration;
+                var position = this.getElementFocus(window, this.content.transformEl.getBoundingClientRect(), el.getBoundingClientRect(), this.zoom);
+                
+                this._zoomAtXY(zoom, position.x, position.y, duration, options);
+            }
             
-            var focus, position;
-            var anchor = this.checkFocusBounds(x, y);
-            var deltaX = this.focusX - anchor.x;
-            var deltaY = this.focusY - anchor.y;
-            var zoomRatio = this.zoom / zoom;
+            // Zoom on an x/y position
+            else if (arguments.length >= 4 && _.isFinite(arguments[1]) && _.isFinite(arguments[2])) {
+                this._zoomAtXY(zoom, x, y, duration, options);
+            }
             
-            this.zoomOriginX = x;
-            this.zoomOriginY = y;
-            
-            focus = this.getContentFocus(this.focusX, this.focusY, deltaX, deltaY, zoomRatio);
-            
-            position = this.getContentPosition(focus.x, focus.y, this.viewportWidth, this.viewportHeight, zoom);
-            
-            this.animate({
-                zoom: zoom, 
-                focusX: focus.x, 
-                focusY: focus.y, 
-                contentX: position.x, 
-                contentY: position.y }, duration, options);
+            else {
+                throw new Error('Incorrect method signature');
+            }
             
             return this;
         },
@@ -778,15 +855,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
         * @param {number} duration - TODO.
         * @param {Object} [options] - TODO.
         * @returns {CameraView} The view.
-        */
-        zoomOn: function (zoom, el, duration, options) {
-            // TODO: Refactor this.getElementFocus
-            var position = this.getElementFocus(window, this.content.transformEl.getBoundingClientRect(), el.getBoundingClientRect(), this.zoom);
-            
-            return this.zoomOnXY(zoom, position.x, position.y, duration, options);
-        },
-        
-        /**
+        *//**
         * Zooms in/out and focus the camera on a specific point.
         *
         * @param {number} zoom - A {@link CameraView.zoom|zoom} ratio.
@@ -796,18 +865,25 @@ var CameraView = Backbone.View.extend(Object.assign({},
         * @param {Object} [options] - TODO.
         * @returns {CameraView} The view.
         */
-        zoomOnXY: function (zoom, x, y, duration, options) {
-            zoom = this.checkZoom(zoom);
+        zoomOn: function (zoom, x, y, duration, options) {
+            // Zoom on an element
+            if (arguments.length >= 3 && _.isElement(arguments[1])) {
+                var el = x;
+                var duration = y;
+                var options = duration;
+                var position = this.getElementFocus(window, this.content.transformEl.getBoundingClientRect(), el.getBoundingClientRect(), this.zoom);
+                
+                this._zoomOnXY(zoom, position.x, position.y, duration, options);
+            }
             
-            var focus = this.checkFocusBounds(x, y);
-            var position = this.getContentPosition(focus.x, focus.y, this.viewportWidth, this.viewportHeight, zoom);
-
-            this.animate({ 
-                zoom: zoom, 
-                focusX: focus.x, 
-                focusY: focus.y, 
-                contentX: position.x, 
-                contentY: position.y }, duration, options);
+            // Zoom on an x/y position
+            else if (arguments.length >= 4 && _.isFinite(arguments[1]) && _.isFinite(arguments[2])) {
+                this._zoomOnXY(zoom, x, y, duration, options);
+            }
+            
+            else {
+                throw new Error('Incorrect method signature');
+            }
             
             return this;
         },
@@ -821,7 +897,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
         * @returns {CameraView} The view.
         */
         zoomTo: function (zoom, duration, options) {
-            return this.zoomAtXY(zoom, this.focusX, this.focusY, duration, options);
+            return this._zoomAtXY(zoom, this.focusX, this.focusY, duration, options);
         }
     })
 );
