@@ -137,6 +137,13 @@ var CameraView = Backbone.View.extend(Object.assign({},
         maxZoom: 3,
     
         /**
+        * The rotation.
+        * @property {number} - A rotation value in degrees.
+        * @default
+        */
+        rotation: 0,
+    
+        /**
         * The zoom.
         * @property {number} - A zoom ratio where 1 = 100%.
         * @default
@@ -245,6 +252,31 @@ var CameraView = Backbone.View.extend(Object.assign({},
             event.preventDefault();
             this._wheelZoom(event);
 
+            return this;
+        },
+    
+        /**
+        * Rotates at a specific point.
+        *
+        * @param {number|string} rotation - TODO.
+        * @param {number|string} x - TODO.
+        * @param {number|string} y - TODO.
+        * @param {number} duration - TODO.
+        * @param {Object} [options] - TODO.
+        * @returns {CameraView} The view.
+        */
+        _rotateAtXY: function (rotation, x, y, duration, options) {
+            var rotationOriginCSS = x + ' ' + y;
+            
+            if (_.isFinite(x) && _.isFinite(y)) {
+                rotationOriginCSS = x + 'px ' + y + 'px';
+            }
+            
+            this.animate({
+                rotation: rotation,
+                rotationOrigin: rotationOriginCSS
+            }, duration, options);
+            
             return this;
         },
     
@@ -528,6 +560,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
                 this.debugIsAnimatingEl = document.getElementById('debugIsAnimating');
                 this.debugIsPausedEl = document.getElementById('debugIsPaused');
                 this.debugIsTransitioningEl = document.getElementById('debugIsTransitioning');
+                this.debugRotationEl = document.getElementById('debugRotation');
                 this.debugZoomEl = document.getElementById('debugZoom');
                 this.debugMinZoomEl = document.getElementById('debugMinZoom');
                 this.debugMaxZoomEl = document.getElementById('debugMaxZoom');
@@ -573,12 +606,17 @@ var CameraView = Backbone.View.extend(Object.assign({},
             timeline.to(this, duration, this.getTweenOptions({ 
                     focusX: properties.focusX,
                     focusY: properties.focusY,
+                    rotation: properties.rotation,
                     zoom: properties.zoom
                 }, options))
                 .to(this.content.transformEl, duration, this.getTweenOptions({ css: {
                     scale: properties.zoom,
                     x: properties.contentX,
                     y: properties.contentY
+                }}, options), 0)
+                .to(this.content.rotateEl, duration, this.getTweenOptions({ css: {
+                    rotation: properties.rotation,
+                    transformOrigin: properties.rotationOrigin
                 }}, options), 0);
             
             return timeline;
@@ -668,7 +706,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
             }
             
             else {
-                throw new Error('Incorrect method signature');
+                throw new Error(constants.errorMessage.METHOD_SIGNATURE);
             }
             
             return this;
@@ -720,6 +758,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
             this.debugIsAnimatingEl.innerHTML = this.isAnimating;
             this.debugIsPausedEl.innerHTML = this.isPaused;
             this.debugIsTransitioningEl.innerHTML = this.isTransitioning;
+            this.debugRotationEl.innerHTML = this.rotation;
             this.debugZoomEl.innerHTML = this.zoom;
             this.debugMinZoomEl.innerHTML = this.minZoom;
             this.debugMaxZoomEl.innerHTML = this.maxZoom;
@@ -764,44 +803,58 @@ var CameraView = Backbone.View.extend(Object.assign({},
             
             return this;
         },
-        
+    
         /**
+        * Rotates at a specific element.
+        *
+        * @param {number|string} rotation - TODO.
+        * @param {Element} focus - The element.
+        * @param {number} duration - TODO.
+        * @param {Object} [options] - TODO.
+        * @returns {CameraView} The view.
+        *//**
         * Rotates at a specific point.
         *
         * @param {number|string} rotation - TODO.
-        * @param {string} originX - TODO.
-        * @param {string} originY - TODO.
+        * @param {string|string} x - TODO.
+        * @param {string|string} y - TODO.
         * @param {number} duration - TODO.
         * @param {Object} [options] - TODO.
         * @returns {CameraView} The view.
         */
-        rotate: function (rotation, originX, originY, duration, options) {
-            var timeline = new TimelineMax({
-                data: {
-                    id: _.uniqueId()
-                },
-                paused: this.isPaused,
-                callbackScope: this,
-                onStart: function (timeline) { 
-                    this.isAnimating = true;
-                    this.draggable.disable();
-                    this._addAnimation(timeline);
-                },
-                onStartParams: ["{self}"],
-                onComplete: function (timeline) { 
-                    this.isAnimating = false;
-                    this.draggable.enable();
-                    this._removeAnimation(timeline);
-                },
-                onCompleteParams: ["{self}"]
-            });
+        rotateAt: function (rotation, x, y, duration, options) {
+            // Rotate at an element
+            if (arguments.length >= 3 && _.isElement(arguments[1])) {
+                var el = x;
+                var duration = y;
+                var options = duration;
+                var position = this.getElementFocus(window, this.content.transformEl.getBoundingClientRect(), el.getBoundingClientRect(), this.zoom);
+                
+                this._rotateAtXY(rotation, position.x, position.y, duration, options);
+            }
             
-            timeline.to(this.content.rotateEl, duration, this.getTweenOptions({ 
-                css: {
-                    rotation: rotation,
-                    transformOrigin: (originX + ' ' + originY) || 'left top'
-                }
-            }, options));
+            // Rotate at an x/y position
+            else if (arguments.length >= 4 && (_.isFinite(arguments[1]) || _.isString(arguments[1])) && (_.isFinite(arguments[2])) || _.isString(arguments[2])) {
+                this._rotateAtXY(rotation, x, y, duration, options);
+            }
+            
+            else {
+                throw new Error(constants.errorMessage.METHOD_SIGNATURE);
+            }
+            
+            return this;
+        },
+    
+        /**
+        * Rotates at the current focus.
+        *
+        * @param {number|string} rotation - TODO.
+        * @param {number} duration - TODO.
+        * @param {Object} [options] - TODO.
+        * @returns {CameraView} The view.
+        */
+        rotateTo: function (rotation, duration, options) {
+            this._rotateAtXY(rotation, this.focusX, this.focusY, duration, options);
             
             return this;
         },
@@ -825,7 +878,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
         * @returns {CameraView} The view.
         */
         zoomAt: function (zoom, x, y, duration, options) {
-            // Zoom on an element
+            // Zoom at an element
             if (arguments.length >= 3 && _.isElement(arguments[1])) {
                 var el = x;
                 var duration = y;
@@ -835,13 +888,13 @@ var CameraView = Backbone.View.extend(Object.assign({},
                 this._zoomAtXY(zoom, position.x, position.y, duration, options);
             }
             
-            // Zoom on an x/y position
+            // Zoom at an x/y position
             else if (arguments.length >= 4 && _.isFinite(arguments[1]) && _.isFinite(arguments[2])) {
                 this._zoomAtXY(zoom, x, y, duration, options);
             }
             
             else {
-                throw new Error('Incorrect method signature');
+                throw new Error(constants.errorMessage.METHOD_SIGNATURE);
             }
             
             return this;
@@ -882,7 +935,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
             }
             
             else {
-                throw new Error('Incorrect method signature');
+                throw new Error(constants.errorMessage.METHOD_SIGNATURE);
             }
             
             return this;
@@ -897,7 +950,9 @@ var CameraView = Backbone.View.extend(Object.assign({},
         * @returns {CameraView} The view.
         */
         zoomTo: function (zoom, duration, options) {
-            return this._zoomAtXY(zoom, this.focusX, this.focusY, duration, options);
+            this._zoomAtXY(zoom, this.focusX, this.focusY, duration, options);
+            
+            return this;
         }
     })
 );

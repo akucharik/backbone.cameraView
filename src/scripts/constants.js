@@ -9,6 +9,10 @@
 * @namespace constants
 */
 var constants = {
+    errorMessage: {
+        METHOD_SIGNATURE: 'Incorrect method signature'
+    },
+    
     /**
     * Enum for zoom direction.
     * @enum {number}

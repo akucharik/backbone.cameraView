@@ -35,7 +35,7 @@
             <h2>Console Examples</h2>
             <ul>
                 <li class="markdown-body">
-                    <pre><code class="language-js">camera.<span class="pl-en">zoomOn</span>(<span class="pl-c1">2</span>, <span class="pl-c1">300</span>, <span class="pl-c1">300</span>, <span class="pl-c1">5</span>).<span class="pl-en">rotate</span>(<span class="pl-c1">30</span>, <span class="pl-s">'300px'</span>, <span class="pl-s">'300px'</span>, <span class="pl-c1">5</span>);</code></pre>
+                    <pre><code class="language-js">camera.<span class="pl-en">zoomOn</span>(<span class="pl-c1">2</span>, <span class="pl-c1">300</span>, <span class="pl-c1">300</span>, <span class="pl-c1">5</span>).<span class="pl-en">rotateAt</span>(<span class="pl-c1">30</span>, <span class="pl-s">'300px'</span>, <span class="pl-s">'300px'</span>, <span class="pl-c1">5</span>);</code></pre>
                 </li>
             </ul>
         </div>
@@ -51,13 +51,21 @@
                     <input id="focusOnY" type="text" value="300" />
                     <button id="focusOn">focusOn</button>
                 </li>
-                <li><label>rotate:</label> 
-                    <input id="rotation" type="text" value="30" />
+                <li><label>rotation:</label> 
+                    <input id="rotateToRotation" type="text" value="30" />
                     <label>x:</label> 
-                    <input id="rotateX" type="text" value="300px" />
+                    <input id="rotateToX" type="text" value="" disabled />
                     <label>y:</label> 
-                    <input id="rotateY" type="text" value="300px" />
-                    <button id="rotate">rotate</button>
+                    <input id="rotateToY" type="text" value="" disabled />
+                    <button id="rotateTo">rotateTo</button>
+                </li>
+                <li><label>rotation:</label> 
+                    <input id="rotateAtRotation" type="text" value="30" />
+                    <label>x:</label> 
+                    <input id="rotateAtX" type="text" value="300px" />
+                    <label>y:</label> 
+                    <input id="rotateAtY" type="text" value="300px" />
+                    <button id="rotateAt">rotateAt</button>
                 </li>
                 <li><label>zoom:</label> 
                     <input id="zoomToScale" type="text" value="2" />
@@ -106,6 +114,7 @@
                 <li><label>isAnimating:</label> <span id="debugIsAnimating"></span></li>
                 <li><label>isPaused:</label> <span id="debugIsPaused"></span></li>
                 <li><label>isTransitioning:</label> <span id="debugIsTransitioning"></span></li>
+                <li><label>rotation:</label> <span id="debugRotation"></span></li>
                 <li><label>zoom:</label> <span id="debugZoom"></span></li>
                 <li><label>minZoom:</label> <span id="debugMinZoom"></span></li>
                 <li><label>maxZoom:</label> <span id="debugMaxZoom"></span></li>
@@ -166,7 +175,8 @@
                 $('#focusOn').on('click', app.focusOn);
                 $('#pause').on('click', app.pause);
                 $('#play').on('click', app.play);
-                $('#rotate').on('click', app.rotate);
+                $('#rotateTo').on('click', app.rotateTo);
+                $('#rotateAt').on('click', app.rotateAt);
                 $('#zoomTo').on('click', app.zoomTo);
                 $('#zoomAt').on('click', app.zoomAt);
                 $('#zoomOn').on('click', app.zoomOn);
@@ -194,8 +204,12 @@
                 app.camera.play();
             },
             
-            rotate: function () {
-                app.camera.rotate(parseFloat($('#rotation').val()), $('#rotateX').val(), $('#rotateY').val(), parseFloat($('#duration').val()));
+            rotateAt: function () {
+                app.camera.rotateAt(parseFloat($('#rotateAtRotation').val()), $('#rotateAtX').val(), $('#rotateAtY').val(), parseFloat($('#duration').val()));
+            },
+            
+            rotateTo: function () {
+                app.camera.rotateTo(parseFloat($('#rotateToRotation').val()), parseFloat($('#duration').val()));
             },
             
             zoomAt: function () {
