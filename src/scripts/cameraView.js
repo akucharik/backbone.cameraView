@@ -31,6 +31,16 @@
 * @see http://zeptojs.com
 */
 
+// TODO: Remove from the global namespace and create a closure on the utilities
+
+// Utilities (allow for easy swapping)
+var clamp = _.clamp;
+var isElement = _.isElement;
+var isFinite = _.isFinite;
+var isString = _.isString;
+var pick = _.pick;
+var uniqueId = _.uniqueId;
+
 /**
 * Factory: Creates a camera to pan and zoom content.
 * Requires {@link external:lodash} and {@link external:zepto}.
@@ -168,7 +178,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
         * @default
         */
         zoomOriginY: 0,
-
+    
         /**
         * Add an animation to the animations object.
         *
@@ -268,7 +278,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
         _rotateAtXY: function (rotation, x, y, duration, options) {
             var rotationOriginCSS = x + ' ' + y;
             
-            if (_.isFinite(x) && _.isFinite(y)) {
+            if (isFinite(x) && isFinite(y)) {
                 rotationOriginCSS = x + 'px ' + y + 'px';
             }
             
@@ -296,7 +306,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
                 var direction = event.deltaY > 0 ? constants.zoom.OUT : constants.zoom.IN;
                 var originX = this.zoomOriginX;
                 var originY = this.zoomOriginY;
-                var zoom = _.clamp(this.zoom + this.zoomIncrement * Math.abs(event.deltaY) * this.zoom * (direction === constants.zoom.IN ? 1 : -1), this.minZoom, this.maxZoom);
+                var zoom = clamp(this.zoom + this.zoomIncrement * Math.abs(event.deltaY) * this.zoom * (direction === constants.zoom.IN ? 1 : -1), this.minZoom, this.maxZoom);
 
                 // Performance Optimization: If zoom has not changed, it is at the min or max.
                 if (zoom !== this.zoom) {
@@ -509,7 +519,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
             })
             this.zoom = 1;
             
-            Object.assign(this, _.pick(options, [
+            Object.assign(this, pick(options, [
                 'debug',
                 'bounds',
                 'focusBounds',
@@ -585,7 +595,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
         animate: function (properties, duration, options) {
             var timeline = new TimelineMax({
                 data: {
-                    id: _.uniqueId()
+                    id: uniqueId()
                 },
                 paused: this.isPaused,
                 callbackScope: this,
@@ -670,7 +680,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
                 value = this.maxZoom;
             }
             
-            return _.clamp(value, this.minZoom, this.maxZoom);;
+            return clamp(value, this.minZoom, this.maxZoom);;
         },
         
         /**
@@ -701,7 +711,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
             }
             
             // Focus on an x/y position
-            else if (arguments.length >= 3 && _.isFinite(arguments[0]) && _.isFinite(arguments[1])) {
+            else if (arguments.length >= 3 && isFinite(arguments[0]) && isFinite(arguments[1])) {
                 this._focusOnXY(x, y, duration, options);
             }
             
@@ -834,7 +844,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
             }
             
             // Rotate at an x/y position
-            else if (arguments.length >= 4 && (_.isFinite(arguments[1]) || _.isString(arguments[1])) && (_.isFinite(arguments[2])) || _.isString(arguments[2])) {
+            else if (arguments.length >= 4 && (isFinite(arguments[1]) || isString(arguments[1])) && (isFinite(arguments[2])) || isString(arguments[2])) {
                 this._rotateAtXY(rotation, x, y, duration, options);
             }
             
@@ -889,7 +899,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
             }
             
             // Zoom at an x/y position
-            else if (arguments.length >= 4 && _.isFinite(arguments[1]) && _.isFinite(arguments[2])) {
+            else if (arguments.length >= 4 && isFinite(arguments[1]) && isFinite(arguments[2])) {
                 this._zoomAtXY(zoom, x, y, duration, options);
             }
             
@@ -930,7 +940,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
             }
             
             // Zoom on an x/y position
-            else if (arguments.length >= 4 && _.isFinite(arguments[1]) && _.isFinite(arguments[2])) {
+            else if (arguments.length >= 4 && isFinite(arguments[1]) && isFinite(arguments[2])) {
                 this._zoomOnXY(zoom, x, y, duration, options);
             }
             
