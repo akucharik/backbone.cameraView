@@ -612,20 +612,25 @@ var CameraView = Backbone.View.extend(Object.assign({},
         * @returns {TimelineMax} The animation timeline.
         */
         animate: function (properties, duration, options) {
-            var rOffsetX, rOffsetY, timeline, tOriginDeltaX, tOriginDeltaY;
-            var rElTransform = this.content.rotateEl._gsTransform || {};
-            // TODO: This must be a 2D matrix. Ensure a 2D matrix is returned.
-            var tMatrix = utils.getTransformMatrix(this.content.rotateEl);
-            
-            rOffsetX = rElTransform.x || 0;
-            rOffsetY = rElTransform.y || 0;
+            if (properties.rotation) {
+                var rOffsetX, rOffsetY, timeline, tOriginDeltaX, tOriginDeltaY;
+                var rElTransform = this.content.rotateEl._gsTransform || {};
+                // TODO: This must be a 2D matrix. Ensure a 2D matrix is returned.
+                var tMatrix = utils.getTransformMatrix(this.content.rotateEl);
 
-            tOriginDeltaX = properties.rotationOriginX - this.rotationOriginX;
-            tOriginDeltaY = properties.rotationOriginY - this.rotationOriginY;
+                rOffsetX = rElTransform.x || 0;
+                rOffsetY = rElTransform.y || 0;
 
-            // Handle 2D smooth origin changed when rotating
-            rOffsetX += (tOriginDeltaX * tMatrix[0] + tOriginDeltaY * tMatrix[2]) - tOriginDeltaX;
-            rOffsetY += (tOriginDeltaX * tMatrix[1] + tOriginDeltaY * tMatrix[3]) - tOriginDeltaY;
+                tOriginDeltaX = properties.rotationOriginX - this.rotationOriginX;
+                tOriginDeltaY = properties.rotationOriginY - this.rotationOriginY;
+
+                // Handle 2D smooth origin changed when rotating
+                rOffsetX += (tOriginDeltaX * tMatrix[0] + tOriginDeltaY * tMatrix[2]) - tOriginDeltaX;
+                rOffsetY += (tOriginDeltaX * tMatrix[1] + tOriginDeltaY * tMatrix[3]) - tOriginDeltaY;
+
+//                console.log('rOffset', rOffsetX, rOffsetY);
+//                console.log('tOriginDelta', tOriginDeltaX, tOriginDeltaY);
+            }
             
             timeline = new TimelineMax({
                 data: {
