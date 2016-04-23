@@ -154,6 +154,18 @@ var CameraView = Backbone.View.extend(Object.assign({},
         rotation: 0,
     
         /**
+        * @property {number} - The 'x' value of the rotation origin.
+        * @default
+        */
+        rotationOriginX: 0,
+    
+        /**
+        * @property {number} - The 'y' value of the rotation origin.
+        * @default
+        */
+        rotationOriginY: 0,
+    
+        /**
         * The zoom.
         * @property {number} - A zoom ratio where 1 = 100%.
         * @default
@@ -284,7 +296,9 @@ var CameraView = Backbone.View.extend(Object.assign({},
             
             this.animate({
                 rotation: rotation,
-                rotationOrigin: rotationOriginCSS
+                rotationOrigin: rotationOriginCSS,
+                rotationOriginX: x,
+                rotationOriginY: y
             }, duration, options);
             
             return this;
@@ -535,6 +549,9 @@ var CameraView = Backbone.View.extend(Object.assign({},
                 'y',
             ]));
             
+            this.rotationOriginX = this.focusX;
+            this.rotationOriginY = this.focusY;
+            
             // Set up content
             this.el.appendChild(this.content.el);
             
@@ -571,6 +588,8 @@ var CameraView = Backbone.View.extend(Object.assign({},
                 this.debugIsPausedEl = document.getElementById('debugIsPaused');
                 this.debugIsTransitioningEl = document.getElementById('debugIsTransitioning');
                 this.debugRotationEl = document.getElementById('debugRotation');
+                this.debugRotationOriginXEl = document.getElementById('debugRotationOriginX');
+                this.debugRotationOriginYEl = document.getElementById('debugRotationOriginY');
                 this.debugZoomEl = document.getElementById('debugZoom');
                 this.debugMinZoomEl = document.getElementById('debugMinZoom');
                 this.debugMaxZoomEl = document.getElementById('debugMaxZoom');
@@ -583,7 +602,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
 
             return this;
         },
-        
+    
         /**
         * Animates the camera's content.
         *
@@ -593,7 +612,22 @@ var CameraView = Backbone.View.extend(Object.assign({},
         * @returns {TimelineMax} The animation timeline.
         */
         animate: function (properties, duration, options) {
-            var timeline = new TimelineMax({
+            var rOffsetX, rOffsetY, timeline, tOriginDeltaX, tOriginDeltaY;
+            var rElTransform = this.content.rotateEl._gsTransform || {};
+            // TODO: This must be a 2D matrix. Ensure a 2D matrix is returned.
+            var tMatrix = utils.getTransformMatrix(this.content.rotateEl);
+            
+            rOffsetX = rElTransform.x || 0;
+            rOffsetY = rElTransform.y || 0;
+
+            tOriginDeltaX = properties.rotationOriginX - this.rotationOriginX;
+            tOriginDeltaY = properties.rotationOriginY - this.rotationOriginY;
+
+            // Handle 2D smooth origin changed when rotating
+            rOffsetX += (tOriginDeltaX * tMatrix[0] + tOriginDeltaY * tMatrix[2]) - tOriginDeltaX;
+            rOffsetY += (tOriginDeltaX * tMatrix[1] + tOriginDeltaY * tMatrix[3]) - tOriginDeltaY;
+            
+            timeline = new TimelineMax({
                 data: {
                     id: uniqueId()
                 },
@@ -618,7 +652,11 @@ var CameraView = Backbone.View.extend(Object.assign({},
                     focusY: properties.focusY,
                     rotation: properties.rotation,
                     zoom: properties.zoom
-                }, options))
+                }, options), 0)
+                .to(this, 0, this.getTweenOptions({ 
+                    rotationOriginX: properties.rotationOriginX,
+                    rotationOriginY: properties.rotationOriginY
+                }, options), 0)
                 .to(this.content.transformEl, duration, this.getTweenOptions({ css: {
                     scale: properties.zoom,
                     x: properties.contentX,
@@ -627,6 +665,10 @@ var CameraView = Backbone.View.extend(Object.assign({},
                 .to(this.content.rotateEl, duration, this.getTweenOptions({ css: {
                     rotation: properties.rotation,
                     transformOrigin: properties.rotationOrigin
+                }}, options), 0)
+                .to(this.content.rotateEl, 0, this.getTweenOptions({ css: {
+                    x: rOffsetX,
+                    y: rOffsetY
                 }}, options), 0);
             
             return timeline;
@@ -769,6 +811,8 @@ var CameraView = Backbone.View.extend(Object.assign({},
             this.debugIsPausedEl.innerHTML = this.isPaused;
             this.debugIsTransitioningEl.innerHTML = this.isTransitioning;
             this.debugRotationEl.innerHTML = this.rotation;
+            this.debugRotationOriginXEl.innerHTML = this.rotationOriginX;
+            this.debugRotationOriginYEl.innerHTML = this.rotationOriginY;
             this.debugZoomEl.innerHTML = this.zoom;
             this.debugMinZoomEl.innerHTML = this.minZoom;
             this.debugMaxZoomEl.innerHTML = this.maxZoom;

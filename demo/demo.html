@@ -62,9 +62,9 @@
                 <li><label>rotation:</label> 
                     <input id="rotateAtRotation" type="text" value="30" />
                     <label>x:</label> 
-                    <input id="rotateAtX" type="text" value="300px" />
+                    <input id="rotateAtX" type="text" value="300" />
                     <label>y:</label> 
-                    <input id="rotateAtY" type="text" value="300px" />
+                    <input id="rotateAtY" type="text" value="300" />
                     <button id="rotateAt">rotateAt</button>
                 </li>
                 <li><label>zoom:</label> 
@@ -115,6 +115,8 @@
                 <li><label>isPaused:</label> <span id="debugIsPaused"></span></li>
                 <li><label>isTransitioning:</label> <span id="debugIsTransitioning"></span></li>
                 <li><label>rotation:</label> <span id="debugRotation"></span></li>
+                <li><label>rotationOriginX:</label> <span id="debugRotationOriginX"></span></li>
+                <li><label>rotationOriginY:</label> <span id="debugRotationOriginY"></span></li>
                 <li><label>zoom:</label> <span id="debugZoom"></span></li>
                 <li><label>minZoom:</label> <span id="debugMinZoom"></span></li>
                 <li><label>maxZoom:</label> <span id="debugMaxZoom"></span></li>
@@ -205,7 +207,7 @@
             },
             
             rotateAt: function () {
-                app.camera.rotateAt(parseFloat($('#rotateAtRotation').val()), $('#rotateAtX').val(), $('#rotateAtY').val(), parseFloat($('#duration').val()));
+                app.camera.rotateAt(parseFloat($('#rotateAtRotation').val()), parseFloat($('#rotateAtX').val()), parseFloat($('#rotateAtY').val()), parseFloat($('#duration').val()));
             },
             
             rotateTo: function () {

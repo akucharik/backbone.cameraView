@@ -25,6 +25,18 @@ var utils = {
         return value;
     },
 
+    // TODO: This super simplistic and only handles 2D matrices.
+    getTransformMatrix: function (el) {
+        var styleValue = utils.getCssTransform(el);
+        
+        if (styleValue[0] === 'none') {
+            return [1, 0, 0, 1, 0, 0]
+        }
+        else {
+            return styleValue;
+        }
+    },
+    
     /**
     * Set the CSS transform value for an element.
     *
