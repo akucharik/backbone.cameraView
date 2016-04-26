@@ -28,13 +28,18 @@ var utils = {
     // TODO: This super simplistic and only handles 2D matrices.
     getTransformMatrix: function (el) {
         var styleValue = utils.getCssTransform(el);
+        var matrix = [];
         
         if (styleValue[0] === 'none') {
-            return [1, 0, 0, 1, 0, 0]
+            matrix = [1, 0, 0, 1, 0, 0]
         }
         else {
-            return styleValue;
+            styleValue.forEach(function (item) {
+                matrix.push(parseFloat(item));
+            });
         }
+        
+        return matrix;
     },
     
     /**

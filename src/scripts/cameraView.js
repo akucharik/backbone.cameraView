@@ -166,6 +166,32 @@ var CameraView = Backbone.View.extend(Object.assign({},
         rotationOriginY: 0,
     
         /**
+        * The camera's transformed 'x' focus position on the content.
+        * @property {number} - A pixel value.
+        * @default
+        */
+        transformedFocusX: 0,
+    
+        /**
+        * The camera's transformed 'y' focus position on the content.
+        * @property {number} - A pixel value.
+        * @default
+        */
+        transformedFocusY: 0,
+    
+        /**
+        * @property {number} - The 'x' value of the transform origin.
+        * @default
+        */
+        transformOriginX: 0,
+    
+        /**
+        * @property {number} - The 'y' value of the transform origin.
+        * @default
+        */
+        transformOriginY: 0,
+    
+        /**
         * The zoom.
         * @property {number} - A zoom ratio where 1 = 100%.
         * @default
@@ -205,6 +231,89 @@ var CameraView = Backbone.View.extend(Object.assign({},
         },
     
         /**
+        * Animates the camera's content.
+        *
+        * @private
+        * @param {Object} properties - TODO.
+        * @param {number} duration - TODO.
+        * @param {Object} [options] - TODO.
+        * @returns {TimelineMax} The animation timeline.
+        */
+        _animate: function (properties, duration, options) {
+            if (properties.rotation) {
+                var rOffsetX, rOffsetY, timeline, tOriginDeltaX, tOriginDeltaY;
+                var rElTransform = this.content.rotateEl._gsTransform || {};
+                // TODO: This must be a 2D matrix. Ensure a 2D matrix is returned.
+                var tMatrix = utils.getTransformMatrix(this.content.rotateEl);
+
+                rOffsetX = rElTransform.x || 0;
+                rOffsetY = rElTransform.y || 0;
+
+                tOriginDeltaX = properties.rotationOriginX - this.rotationOriginX;
+                tOriginDeltaY = properties.rotationOriginY - this.rotationOriginY;
+
+                // Handle 2D smooth origin changed when rotating
+                rOffsetX += (tOriginDeltaX * tMatrix[0] + tOriginDeltaY * tMatrix[2]) - tOriginDeltaX;
+                rOffsetY += (tOriginDeltaX * tMatrix[1] + tOriginDeltaY * tMatrix[3]) - tOriginDeltaY;
+
+//                console.log('rOffset', rOffsetX, rOffsetY);
+//                console.log('tOriginDelta', tOriginDeltaX, tOriginDeltaY);
+            }
+            
+            timeline = new TimelineMax({
+                data: {
+                    id: uniqueId()
+                },
+                paused: this.isPaused,
+                callbackScope: this,
+                onStart: function (timeline) { 
+                    this.isAnimating = true;
+                    this.draggable.disable();
+                    this._addAnimation(timeline);
+                },
+                onStartParams: ["{self}"],
+                onUpdate: function (timeline) { 
+                    this._updateTransformedFocus();
+                    this._renderDebug();
+                },
+                onUpdateParams: ["{self}"],
+                onComplete: function (timeline) { 
+                    this.isAnimating = false;
+                    this.draggable.enable();
+                    this._removeAnimation(timeline);
+                    this._renderDebug();
+                },
+                onCompleteParams: ["{self}"]
+            });
+            
+            timeline.to(this, duration, this.getTweenOptions({ 
+                    focusX: properties.focusX,
+                    focusY: properties.focusY,
+                    rotation: properties.rotation,
+                    zoom: properties.zoom
+                }, options), 0)
+                .to(this, 0, this.getTweenOptions({ 
+                    rotationOriginX: properties.rotationOriginX,
+                    rotationOriginY: properties.rotationOriginY
+                }, options), 0)
+                .to(this.content.transformEl, duration, this.getTweenOptions({ css: {
+                    scale: properties.zoom,
+                    x: properties.contentX,
+                    y: properties.contentY
+                }}, options), 0)
+                .to(this.content.rotateEl, duration, this.getTweenOptions({ css: {
+                    rotation: properties.rotation,
+                    transformOrigin: properties.rotationOrigin
+                }}, options), 0)
+                .to(this.content.rotateEl, 0, this.getTweenOptions({ css: {
+                    x: rOffsetX,
+                    y: rOffsetY
+                }}, options), 0);
+            
+            return timeline;
+        },
+    
+        /**
         * Focus the camera on a point.
         *
         * @private
@@ -217,12 +326,16 @@ var CameraView = Backbone.View.extend(Object.assign({},
         _focusOnXY: function (x, y, duration, options) {
             var focus = this.checkFocusBounds(x, y);
             var position = this.getContentPosition(focus.x, focus.y, this.viewportWidth, this.viewportHeight, this.zoom);
-
-            this.animate({
+            // TODO: This must be a 2D matrix. Ensure a 2D matrix is returned.
+            var tMatrix = utils.getTransformMatrix(this.content.rotateEl);
+            var tPositionX = position.x * tMatrix[0] + position.y * tMatrix[2];
+            var tPositionY = position.x * tMatrix[1] + position.y * tMatrix[3];
+            
+            this._animate({
                 focusX: focus.x,
                 focusY: focus.y,
-                contentX: position.x, 
-                contentY: position.y }, duration, options);
+                contentX: tPositionX, 
+                contentY: tPositionY }, duration, options);
             
             return this;
         },
@@ -276,6 +389,34 @@ var CameraView = Backbone.View.extend(Object.assign({},
 
             return this;
         },
+        
+        /**
+        * Render debug info.
+        *
+        * @private
+        */
+        _renderDebug: function () {
+            if (this.debug) {
+                this.debugAnimationsEl.innerHTML = Object.keys(this.animations).length;
+                this.debugFocusXEl.innerHTML = this.focusX;
+                this.debugFocusYEl.innerHTML = this.focusY;
+                this.debugTransformedFocusXEl.innerHTML = this.transformedFocusX;
+                this.debugTransformedFocusYEl.innerHTML = this.transformedFocusY;
+                this.debugIsAnimatingEl.innerHTML = this.isAnimating;
+                this.debugIsPausedEl.innerHTML = this.isPaused;
+                this.debugIsTransitioningEl.innerHTML = this.isTransitioning;
+                this.debugRotationEl.innerHTML = this.rotation;
+                this.debugRotationOriginXEl.innerHTML = this.rotationOriginX;
+                this.debugRotationOriginYEl.innerHTML = this.rotationOriginY;
+                this.debugTransformOriginXEl.innerHTML = this.transformOriginX;
+                this.debugTransformOriginYEl.innerHTML = this.transformOriginY;
+                this.debugZoomEl.innerHTML = this.zoom;
+                this.debugMinZoomEl.innerHTML = this.minZoom;
+                this.debugMaxZoomEl.innerHTML = this.maxZoom;
+                this.debugZoomOriginXEl.innerHTML = this.zoomOriginX;
+                this.debugZoomOriginYEl.innerHTML = this.zoomOriginY;
+            }
+        },
     
         /**
         * Rotates at a specific point.
@@ -294,12 +435,58 @@ var CameraView = Backbone.View.extend(Object.assign({},
                 rotationOriginCSS = x + 'px ' + y + 'px';
             }
             
-            this.animate({
+            // TODO: Consider determining focus "onUpdate" of tween (this.focusX * current tMatrix * current rMatrix + tMatrixTranslate, then take out scale)
+            // Determine focus point
+//            var relativeFocusX = this.focusX - x;
+//            var relativeFocusY = y - this.focusY;
+//            console.log(relativeFocusX, relativeFocusY);
+//            var tMatrix = utils.getTransformMatrix(this.content.rotateEl);
+//            var tPositionX = (relativeFocusX * tMatrix[0] + relativeFocusY * tMatrix[2]);
+//            var tPositionY = (relativeFocusX * tMatrix[1] + relativeFocusY * tMatrix[3]);
+            
+            this._animate({
                 rotation: rotation,
                 rotationOrigin: rotationOriginCSS,
                 rotationOriginX: x,
                 rotationOriginY: y
             }, duration, options);
+            
+            return this;
+        },
+    
+        /**
+        * Calculates the transformed focus coordinates.
+        *
+        * @private
+        * @param {number} x - TODO.
+        * @param {number} y - TODO.
+        * @param {number} originX - TODO.
+        * @param {number} originY - TODO.
+        * @param {Array} matrix - TODO.
+        * @return TODO.
+        */
+        _transformFocus: function (x, y, originX, originY, matrix) {
+            // TODO: Needs to take into account rotationOrigin changes!!!
+            var relativeFocusX = x - originX;
+            var relativeFocusY = originY - y;
+            
+            return {
+                x: originX + (relativeFocusX * matrix[0] + relativeFocusY * matrix[2]),
+                y: originY - (relativeFocusX * matrix[1] + relativeFocusY * matrix[3])
+            };
+        },
+    
+        /**
+        * Updates the transformed focus properties.
+        *
+        * @private
+        * @return {CameraView} - The view.
+        */
+        _updateTransformedFocus: function () {
+            var transformedFocus = this._transformFocus(this.focusX, this.focusY, this.rotationOriginX, this.rotationOriginY, utils.getTransformMatrix(this.content.rotateEl));
+                    
+            this.transformedFocusX = transformedFocus.x;
+            this.transformedFocusY = transformedFocus.y;
             
             return this;
         },
@@ -362,7 +549,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
             
             position = this.getContentPosition(focus.x, focus.y, this.viewportWidth, this.viewportHeight, zoom);
             
-            this.animate({
+            this._animate({
                 zoom: zoom, 
                 focusX: focus.x, 
                 focusY: focus.y, 
@@ -388,7 +575,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
             var focus = this.checkFocusBounds(x, y);
             var position = this.getContentPosition(focus.x, focus.y, this.viewportWidth, this.viewportHeight, zoom);
 
-            this.animate({ 
+            this._animate({ 
                 zoom: zoom, 
                 focusX: focus.x, 
                 focusY: focus.y, 
@@ -551,14 +738,22 @@ var CameraView = Backbone.View.extend(Object.assign({},
             
             this.rotationOriginX = this.focusX;
             this.rotationOriginY = this.focusY;
+            this.transformedFocusX = this.focusX;
+            this.transformedFocusY = this.focusY;
+            
+            //TODO: Create a utility function to build CSS transform-origin value
+            TweenMax.set(this.content.rotateEl, { transformOrigin: this.rotationOriginX + 'px ' + this.rotationOriginY + 'px' });
             
             // Set up content
             this.el.appendChild(this.content.el);
             
             this.draggable = new Draggable(this.content.transformEl, {
                 onDrag: function (camera) {
+                    // 'this' refers to the Draggable instance
                     camera.focusX = (camera.viewportWidth / 2 - this.x) / camera.zoom;
                     camera.focusY = (camera.viewportHeight / 2 - this.y) / camera.zoom;
+                    camera._updateTransformedFocus();
+                    camera._renderDebug();
                 },
                 onDragParams: [this],
                 onPress: function (camera) {
@@ -580,103 +775,29 @@ var CameraView = Backbone.View.extend(Object.assign({},
             this.$el.on('transitionend', this._onTransitionEnd.bind(this));
             this.$el.on('wheel', utils.throttleToFrame(this._onWheel.bind(this)));
             
-            if (this.debug) {
-                this.debugAnimationsEl = document.getElementById('debugAnimations');
-                this.debugFocusXEl = document.getElementById('debugFocusX');
-                this.debugFocusYEl = document.getElementById('debugFocusY');
-                this.debugIsAnimatingEl = document.getElementById('debugIsAnimating');
-                this.debugIsPausedEl = document.getElementById('debugIsPaused');
-                this.debugIsTransitioningEl = document.getElementById('debugIsTransitioning');
-                this.debugRotationEl = document.getElementById('debugRotation');
-                this.debugRotationOriginXEl = document.getElementById('debugRotationOriginX');
-                this.debugRotationOriginYEl = document.getElementById('debugRotationOriginY');
-                this.debugZoomEl = document.getElementById('debugZoom');
-                this.debugMinZoomEl = document.getElementById('debugMinZoom');
-                this.debugMaxZoomEl = document.getElementById('debugMaxZoom');
-                this.debugZoomOriginXEl = document.getElementById('debugZoomOriginX');
-                this.debugZoomOriginYEl = document.getElementById('debugZoomOriginY');
-                window.requestAnimationFrame(this.renderDebug.bind(this));
-            }
+            this.debugAnimationsEl = document.getElementById('debugAnimations');
+            this.debugFocusXEl = document.getElementById('debugFocusX');
+            this.debugFocusYEl = document.getElementById('debugFocusY');
+            this.debugTransformedFocusXEl = document.getElementById('debugTransformedFocusX');
+            this.debugTransformedFocusYEl = document.getElementById('debugTransformedFocusY');
+            this.debugIsAnimatingEl = document.getElementById('debugIsAnimating');
+            this.debugIsPausedEl = document.getElementById('debugIsPaused');
+            this.debugIsTransitioningEl = document.getElementById('debugIsTransitioning');
+            this.debugRotationEl = document.getElementById('debugRotation');
+            this.debugRotationOriginXEl = document.getElementById('debugRotationOriginX');
+            this.debugRotationOriginYEl = document.getElementById('debugRotationOriginY');
+            this.debugTransformOriginXEl = document.getElementById('debugTransformOriginX');
+            this.debugTransformOriginYEl = document.getElementById('debugTransformOriginY');
+            this.debugZoomEl = document.getElementById('debugZoom');
+            this.debugMinZoomEl = document.getElementById('debugMinZoom');
+            this.debugMaxZoomEl = document.getElementById('debugMaxZoom');
+            this.debugZoomOriginXEl = document.getElementById('debugZoomOriginX');
+            this.debugZoomOriginYEl = document.getElementById('debugZoomOriginY');
+            this._renderDebug();
                 
             this.onInitialize(options);
 
             return this;
-        },
-    
-        /**
-        * Animates the camera's content.
-        *
-        * @param {Object} properties - TODO.
-        * @param {number} duration - TODO.
-        * @param {Object} [options] - TODO.
-        * @returns {TimelineMax} The animation timeline.
-        */
-        animate: function (properties, duration, options) {
-            if (properties.rotation) {
-                var rOffsetX, rOffsetY, timeline, tOriginDeltaX, tOriginDeltaY;
-                var rElTransform = this.content.rotateEl._gsTransform || {};
-                // TODO: This must be a 2D matrix. Ensure a 2D matrix is returned.
-                var tMatrix = utils.getTransformMatrix(this.content.rotateEl);
-
-                rOffsetX = rElTransform.x || 0;
-                rOffsetY = rElTransform.y || 0;
-
-                tOriginDeltaX = properties.rotationOriginX - this.rotationOriginX;
-                tOriginDeltaY = properties.rotationOriginY - this.rotationOriginY;
-
-                // Handle 2D smooth origin changed when rotating
-                rOffsetX += (tOriginDeltaX * tMatrix[0] + tOriginDeltaY * tMatrix[2]) - tOriginDeltaX;
-                rOffsetY += (tOriginDeltaX * tMatrix[1] + tOriginDeltaY * tMatrix[3]) - tOriginDeltaY;
-
-//                console.log('rOffset', rOffsetX, rOffsetY);
-//                console.log('tOriginDelta', tOriginDeltaX, tOriginDeltaY);
-            }
-            
-            timeline = new TimelineMax({
-                data: {
-                    id: uniqueId()
-                },
-                paused: this.isPaused,
-                callbackScope: this,
-                onStart: function (timeline) { 
-                    this.isAnimating = true;
-                    this.draggable.disable();
-                    this._addAnimation(timeline);
-                },
-                onStartParams: ["{self}"],
-                onComplete: function (timeline) { 
-                    this.isAnimating = false;
-                    this.draggable.enable();
-                    this._removeAnimation(timeline);
-                },
-                onCompleteParams: ["{self}"]
-            });
-            
-            timeline.to(this, duration, this.getTweenOptions({ 
-                    focusX: properties.focusX,
-                    focusY: properties.focusY,
-                    rotation: properties.rotation,
-                    zoom: properties.zoom
-                }, options), 0)
-                .to(this, 0, this.getTweenOptions({ 
-                    rotationOriginX: properties.rotationOriginX,
-                    rotationOriginY: properties.rotationOriginY
-                }, options), 0)
-                .to(this.content.transformEl, duration, this.getTweenOptions({ css: {
-                    scale: properties.zoom,
-                    x: properties.contentX,
-                    y: properties.contentY
-                }}, options), 0)
-                .to(this.content.rotateEl, duration, this.getTweenOptions({ css: {
-                    rotation: properties.rotation,
-                    transformOrigin: properties.rotationOrigin
-                }}, options), 0)
-                .to(this.content.rotateEl, 0, this.getTweenOptions({ css: {
-                    x: rOffsetX,
-                    y: rOffsetY
-                }}, options), 0);
-            
-            return timeline;
         },
     
         /**
@@ -807,25 +928,6 @@ var CameraView = Backbone.View.extend(Object.assign({},
             
             return this;
         },
-    
-        renderDebug: function () {
-            this.debugAnimationsEl.innerHTML = Object.keys(this.animations).length;
-            this.debugFocusXEl.innerHTML = this.focusX;
-            this.debugFocusYEl.innerHTML = this.focusY;
-            this.debugIsAnimatingEl.innerHTML = this.isAnimating;
-            this.debugIsPausedEl.innerHTML = this.isPaused;
-            this.debugIsTransitioningEl.innerHTML = this.isTransitioning;
-            this.debugRotationEl.innerHTML = this.rotation;
-            this.debugRotationOriginXEl.innerHTML = this.rotationOriginX;
-            this.debugRotationOriginYEl.innerHTML = this.rotationOriginY;
-            this.debugZoomEl.innerHTML = this.zoom;
-            this.debugMinZoomEl.innerHTML = this.minZoom;
-            this.debugMaxZoomEl.innerHTML = this.maxZoom;
-            this.debugZoomOriginXEl.innerHTML = this.zoomOriginX;
-            this.debugZoomOriginYEl.innerHTML = this.zoomOriginY;
-            
-            window.requestAnimationFrame(this.renderDebug.bind(this));
-        },
         
         /**
         * Pauses all animations.
@@ -913,7 +1015,7 @@ var CameraView = Backbone.View.extend(Object.assign({},
         * @returns {CameraView} The view.
         */
         rotateTo: function (rotation, duration, options) {
-            this._rotateAtXY(rotation, this.focusX, this.focusY, duration, options);
+            this._rotateAtXY(rotation, this.transformedFocusX, this.transformedFocusY, duration, options);
             
             return this;
         },
