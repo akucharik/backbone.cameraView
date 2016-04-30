@@ -205,6 +205,20 @@ var Camera = function (options) {
     * @default
     */
     this.zoom = 1;
+    
+    /**
+    * The amount of zoom on the x-axis.
+    * @property {number} - A zoom ratio where 1 = 100%.
+    * @default
+    */
+    this.zoomX = 1;
+    
+    /**
+    * The amount of zoom on the y-axis.
+    * @property {number} - A zoom ratio where 1 = 100%.
+    * @default
+    */
+    this.zoomY = 1;
 
     /**
     * The base increment at which the content will be zoomed.
@@ -352,7 +366,9 @@ p._animate = function (properties, duration, options) {
         },
         onStartParams: ["{self}"],
         onUpdate: function (timeline) { 
+            this._updateProps();
             this._updateTransformedFocus();
+            
             this._renderDebug();
         },
         onUpdateParams: ["{self}"],
@@ -367,16 +383,15 @@ p._animate = function (properties, duration, options) {
 
     timeline.to(this, duration, this.getTweenOptions({ 
             focusX: properties.focusX,
-            focusY: properties.focusY,
-            rotation: properties.rotation,
-            zoom: properties.zoom
+            focusY: properties.focusY
         }, options), 0)
         .to(this, 0, this.getTweenOptions({ 
             rotationOriginX: properties.rotationOriginX,
             rotationOriginY: properties.rotationOriginY
         }, options), 0)
         .to(this.content.transformEl, duration, this.getTweenOptions({ css: {
-            scale: properties.zoom,
+            scaleX: properties.zoom,
+            scaleY: properties.zoom,
             x: properties.contentX,
             y: properties.contentY
         }}, options), 0)
@@ -490,6 +505,8 @@ p._renderDebug = function () {
         this.debugTransformOriginXEl.innerHTML = this.transformOriginX;
         this.debugTransformOriginYEl.innerHTML = this.transformOriginY;
         this.debugZoomEl.innerHTML = this.zoom;
+        this.debugZoomXEl.innerHTML = this.zoomX;
+        this.debugZoomYEl.innerHTML = this.zoomY;
         this.debugMinZoomEl.innerHTML = this.minZoom;
         this.debugMaxZoomEl.innerHTML = this.maxZoom;
         this.debugZoomOriginXEl.innerHTML = this.zoomOriginX;
@@ -556,6 +573,24 @@ p._transformFocus = function (x, y, originX, originY, matrix) {
         x: originX + (relativeFocusX * matrix[0] + relativeFocusY * matrix[2]) - matrix[4],
         y: originY - (relativeFocusX * matrix[1] + relativeFocusY * matrix[3]) - matrix[5]
     };
+};
+
+/**
+* Updates the camera's properties after a transform.
+*
+* @private
+* @return {Camera} - The view.
+*/
+p._updateProps = function () {
+    var props = this.content.transformEl._gsTransform;
+    var rotateProps = this.content.rotateEl._gsTransform;
+
+    this.rotation = rotateProps.rotation;
+    this.zoom = props.scaleX;
+    this.zoomX = props.scaleX;
+    this.zoomY = props.scaleY;
+    
+    return this;
 };
 
 /**
@@ -832,6 +867,7 @@ p.initialize = function (options) {
     this.draggable = new Draggable(this.content.transformEl, {
         onDrag: function (camera) {
             // 'this' refers to the Draggable instance
+            camera._updateProps();
             camera.focusX = (camera.viewportWidth / 2 - this.x) / camera.zoom;
             camera.focusY = (camera.viewportHeight / 2 - this.y) / camera.zoom;
             camera._updateTransformedFocus();
@@ -871,6 +907,8 @@ p.initialize = function (options) {
     this.debugTransformOriginXEl = document.getElementById('debugTransformOriginX');
     this.debugTransformOriginYEl = document.getElementById('debugTransformOriginY');
     this.debugZoomEl = document.getElementById('debugZoom');
+    this.debugZoomXEl = document.getElementById('debugZoomX');
+    this.debugZoomYEl = document.getElementById('debugZoomY');
     this.debugMinZoomEl = document.getElementById('debugMinZoom');
     this.debugMaxZoomEl = document.getElementById('debugMaxZoom');
     this.debugZoomOriginXEl = document.getElementById('debugZoomOriginX');
