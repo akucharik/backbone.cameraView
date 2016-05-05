@@ -22,17 +22,17 @@ p.constructor = Matrix2;
 
 /**
 * Multiplies the matrix by one or more matrices.
-* @param {Matrix2|Array} m - One or more Matrices.
+* @param {Matrix2|Matrix2D|Array} m - One or more Matrices.
 * @return {Matrix2} - The matrix.
 */
-p.multiplyMatrix = function (m) {
+p.multiply = function (m) {
     if (isArray(m)) {
         m.forEach(function (item) {
-            Matrix2.multiplyMatrices(this, item);
+            this.value = Matrix2.multiplyMatrices(this, item).value;
         });
     }
     else {
-        Matrix2.multiplyMatrices(this, m);
+        this.value = Matrix2.multiplyMatrices(this, m).value;
     }
     
     return this;
@@ -87,24 +87,30 @@ Matrix2.getInverse = function (m) {
 
 /**
 * Multiplies two matrices.
-* @param {Matrix2} a - A matrix.
-* @param {Matrix2} b - Another matrix.
+* @param {Matrix2|Matrix2D} a - A matrix.
+* @param {Matrix2|Matrix2D} b - Another matrix.
 * @return {Matrix2} - The multiplied matrix.
 */
 Matrix2.multiplyMatrices = function (a, b) {
     if (a.cols === b.rows) {
-        var a11 = a[0], a12 = a[1],
-            a21 = a[2], a22 = a[3],
-            b11 = b[0], b12 = b[1],
-            b21 = b[2], b22 = b[3];
+        var av = a.value;
+        var bv = b.value;
+        var nv = new Array(4);
+        var a11 = av[0], a12 = av[1],
+            a21 = av[2], a22 = av[3],
+            b11 = bv[0], b12 = bv[1],
+            b21 = bv[2], b22 = bv[3];
     
-        // TODO: Multiply matrices
+        nv[0] = a11 * b11 + a12 * b21;
+        nv[1] = a11 * b12 + a12 * b22;
+        nv[2] = a21 * b11 + a22 * b21;
+        nv[3] = a21 * b12 + a22 * b22;
     }
     else {
         throw new Error('Cannot multiply incompatible matrices');
     }
     
-    return a;
+    return new Matrix2(nv);
 };
 
 /**

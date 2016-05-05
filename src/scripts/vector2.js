@@ -13,7 +13,12 @@ p.constructor = Vector2;
 * @return {Vector2} - The transformed vector.
 */
 p.transform = function (m) {
-    return this.constructor.transform(this, m);
+    var v1 = this.constructor.transform(this, m);
+    
+    this.x = v1.x;
+    this.y = v1.y;
+    
+    return this;
 };
 
 /**

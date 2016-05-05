@@ -1,17 +1,17 @@
-var M = {
+Camera.Math = {
     degToRad: function (degrees) {
-        return degrees * M.DEG2RAD;
+        return degrees * Camera.Math.DEG2RAD;
     },
 
     radToDeg: function (radians) {
-        return radians * M.RAD2DEG;
+        return radians * Camera.Math.RAD2DEG;
     }
 };
 
-Object.defineProperty(M, 'DEG2RAD', {
+Object.defineProperty(Camera.Math, 'DEG2RAD', {
     value: Math.PI / 180
 });
 
-Object.defineProperty(M, 'RAD2DEG', {
+Object.defineProperty(Camera.Math, 'RAD2DEG', {
     value: 180 / Math.PI
 });
