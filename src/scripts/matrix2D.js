@@ -5,7 +5,7 @@ var Matrix2D = function (m) {
     if (!m) {
         this.value = this.identity;
     }
-    else if (isArray(m) && m.length === 4) {
+    else if (isArray(m) && m.length === 6) {
         this.value = m;
     }
     else {
@@ -15,14 +15,7 @@ var Matrix2D = function (m) {
 
 var p = Matrix2D.prototype;
 
-/**
-* Multiplies the matrix by a vector.
-* @param {Array} v - The vector.
-* @return {Array} - The transformed vector.
-*/
-p.multiplyVector = function (v) {
-    return Matrix2D.multiplyVector(this, v);
-};
+p.constructor = Matrix2D;
 
 /**
 * Gets the matrix's determinant.
@@ -45,7 +38,8 @@ Object.defineProperty(p, 'determinant', {
 Object.defineProperty(p, 'identity', {
     enumerable: true,
     value: [1, 0,
-            0, 1]
+            0, 1,
+            0, 0]
 });
 
 /**
@@ -54,7 +48,7 @@ Object.defineProperty(p, 'identity', {
 */
 Object.defineProperty(p, 'inverse', {
     get: function () {
-        return Matrix2D.getInverse(this);
+        return this.constructor.getInverse(this);
     }
 });
 
@@ -66,9 +60,10 @@ Object.defineProperty(p, 'inverse', {
 */
 Matrix2D.getInverse = function (m) {
     var a = m.value[0], b = m.value[1],
-        c = m.value[2], d = m.value[3];
+        c = m.value[2], d = m.value[3],
+        e = m.value[4], f = m.value[5];
     
-    return Matrix2D.multiplyScalar(new Matrix2D([d, -b, -c, a]), 1 / m.determinant);
+    return Matrix2D.multiplyScalar(new Matrix2D([d, -b, -c, a, -e, -f]), 1 / m.determinant);
 };
 
 /**
@@ -80,29 +75,11 @@ Matrix2D.getInverse = function (m) {
 */
 Matrix2D.multiplyScalar = function (m, s) {
     var a = m.value[0], b = m.value[1],
-        c = m.value[2], d = m.value[3];
+        c = m.value[2], d = m.value[3],
+        e = m.value[4], f = m.value[5];
     
     a *= s; b *= s;
     c *= s; d *= s;
     
     return m;
-};
-
-/**
-* Multiplies a matrix by a vector.
-* @static
-* @param {Matrix2D} m - The matrix.
-* @param {Array} v - The vector.
-* @return {Array} - The transformed vector.
-*/
-Matrix2D.multiplyVector = function (m, v) {
-    var a = m.value[0], b = m.value[1],
-        c = m.value[2], d = m.value[3];
-    
-    var x = v[0], y = v[1];
-    
-    var x1 = a * x + b * y;
-    var y1 = c * x + d * y;
-    
-    return [x1, y1];
 };
