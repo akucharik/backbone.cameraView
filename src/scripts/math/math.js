@@ -1,9 +1,9 @@
-Camera.Math = {
-    degToRad: function (degrees) {
+Camera.Math = class {
+    static degToRad (degrees) {
         return degrees * Camera.Math.DEG2RAD;
-    },
+    }
 
-    radToDeg: function (radians) {
+    static radToDeg (radians) {
         return radians * Camera.Math.RAD2DEG;
     }
 };
