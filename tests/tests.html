@@ -1,0 +1,149 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>HTMLCamera Unit Tests</title>
+    <link type="text/css" href="mocha.css" rel="stylesheet" />
+</head>
+<body>
+    <div id="mocha"><h1><a href="tests.html">HTMLCamera Tests</a></h1></div>
+    <div id="messages"></div>
+    <div id="fixtures"></div>
+    
+    <script type="text/javascript" src="mocha.js"></script>
+    <script type="text/javascript" src="chai.js"></script>
+    
+    <script type="text/javascript" src="../src/scripts/lib/zepto.min.js"></script>
+    <script type="text/javascript" src="../src/scripts/lib/lodash.min.js"></script>
+    <script type="text/javascript" src="../src/scripts/lib/backbone-min.js"></script>
+    <script type="text/javascript" src="../src/scripts/math/matrix2.js"></script>
+    
+    <script>mocha.setup('bdd')</script>
+    
+    <script>
+        var expect = chai.expect;
+        
+        describe('Matrix2', function() {
+            var m;
+            
+            beforeEach('Instantiate a new matrix', function() {
+                m = new Matrix2();
+            });
+            
+            describe('constructor', function() {
+                it('should set its values to the provided parameters', function() {
+                    var m = new Matrix2(1,2,3,1);
+                    expect(m.a).to.equal(1);
+                    expect(m.b).to.equal(2);
+                    expect(m.c).to.equal(3);
+                    expect(m.d).to.equal(1);
+                });
+                it('should set its values to the provided array', function() {
+                    var m = new Matrix2([1,2,3,1]);
+                    expect(m.a).to.equal(1);
+                    expect(m.b).to.equal(2);
+                    expect(m.c).to.equal(3);
+                    expect(m.d).to.equal(1);
+                });
+                it('should set its values to the identity if no parameters are provided', function() {
+                    var m = new Matrix2();
+                    expect(m.a).to.equal(1);
+                    expect(m.b).to.equal(0);
+                    expect(m.c).to.equal(0);
+                    expect(m.d).to.equal(1);
+                });
+                it('should set its values to the identity if the provided parameters are incompatible', function() {
+                    var m = new Matrix2(1,2,3);
+                    expect(m.a).to.equal(1);
+                    expect(m.b).to.equal(0);
+                    expect(m.c).to.equal(0);
+                    expect(m.d).to.equal(1);
+                });
+                it('should set its values to the identity if the provided array is incompatible', function() {
+                    var m = new Matrix2([1,2,3,4,5]);
+                    expect(m.a).to.equal(1);
+                    expect(m.b).to.equal(0);
+                    expect(m.c).to.equal(0);
+                    expect(m.d).to.equal(1);
+                });
+            });
+            
+            describe('determinant', function() {
+                it('should calculate and return the determinant', function() {
+                    m.set(1,2,3,1);
+                    expect(m.determinant).to.equal(-5);
+                });
+            });
+            describe('identity', function() {
+                it('should set its values to the identity', function() {
+                    m.set(1,2,3,1);
+                    m.identity();
+                    expect(m.a).to.equal(1);
+                    expect(m.b).to.equal(0);
+                    expect(m.c).to.equal(0);
+                    expect(m.d).to.equal(1);
+                });
+            });
+            describe('inverse', function() {
+                it('should calculate and return the inverse', function() {
+                    m.set(1,2,3,1);
+                    var i = m.inverse;
+                    expect(i.a).to.equal(-0.2);
+                    expect(i.b).to.equal(0.4);
+                    expect(i.c).to.equal(0.6);
+                    expect(i.d).to.equal(-0.2);
+                });
+            });
+            describe('multiplyScalar', function() {
+                it('should multiply its values by the provided value', function() {
+                    m.set(1,2,3,1);
+                    m.multiplyScalar(2);
+                    expect(m.a).to.equal(2);
+                    expect(m.b).to.equal(4);
+                    expect(m.c).to.equal(6);
+                    expect(m.d).to.equal(2);
+                });
+            });
+            describe('set', function() {
+                it('should set its values by the provided values', function() {
+                    m.set(1,2,3,1);
+                    expect(m.a).to.equal(1);
+                    expect(m.b).to.equal(2);
+                    expect(m.c).to.equal(3);
+                    expect(m.d).to.equal(1);
+                });
+            });
+            describe('setFromArray', function() {
+                it('should set its values by the provided array', function() {
+                    m.setFromArray([1,2,3,1]);
+                    expect(m.a).to.equal(1);
+                    expect(m.b).to.equal(2);
+                    expect(m.c).to.equal(3);
+                    expect(m.d).to.equal(1);
+                });
+            });
+            describe('toArray', function() {
+                it('should return a new array containing the values', function() {
+                    m.set(1,2,3,1);
+                    var a = m.toArray();
+                    expect(a[0]).to.equal(1);
+                    expect(a[1]).to.equal(2);
+                    expect(a[2]).to.equal(3);
+                    expect(a[3]).to.equal(1);
+                });
+                it('should write its values into the provided array', function() {
+                    var a = [];
+                    m.set(1,2,3,1);
+                    m.toArray(a);
+                    expect(a[0]).to.equal(1);
+                    expect(a[1]).to.equal(2);
+                    expect(a[2]).to.equal(3);
+                    expect(a[3]).to.equal(1);
+                });
+            });
+        });
+    </script>
+    
+    <script>mocha.run();</script>
+</body>
+</html>

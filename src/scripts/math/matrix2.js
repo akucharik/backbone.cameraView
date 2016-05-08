@@ -1,5 +1,6 @@
 // Utilities
 var isArray = _.isArray;
+var round = _.round;
 
 /**
 * Create 2x2 matrix from a series of values.
@@ -49,7 +50,7 @@ class Matrix2 {
         this.d = 1;
         
         if (arguments.length === 4) {
-            this.setTo(a, b, c, d);
+            this.set(a, b, c, d);
         }
         else if (isArray(a) && a.length === 4) {
             this.setFromArray(a);
@@ -76,7 +77,7 @@ class Matrix2 {
     * Sets the matrix to the identity.
     */
     identity () {
-        return this.setTo(1, 0 , 0, 1);
+        return this.set(1, 0 , 0, 1);
     }
     
     /**
@@ -110,19 +111,19 @@ class Matrix2 {
     * @return {Matrix2} - The multiplied matrix.
     */
     static multiplyMatrices (a, b) {
-        var m = new Matrix2();
+        var a1, b1, c1, d1;
         
         if (a.cols === b.rows) {
-            m.a = a.a * b.a + a.b * b.c;
-            m.b = a.a * b.b + a.b * b.d;
-            m.c = a.c * b.a + a.d * b.c;
-            m.d = a.c * b.b + a.d * b.d;
+            a1 = a.a * b.a + a.b * b.c;
+            b1 = a.a * b.b + a.b * b.d;
+            c1 = a.c * b.a + a.d * b.c;
+            d1 = a.c * b.b + a.d * b.d;
         }
         else {
             throw new Error('Cannot multiply incompatible matrices');
         }
 
-        return m;
+        return new Matrix(a1, b1, c1, d1);
     }
     
     /**
@@ -131,10 +132,12 @@ class Matrix2 {
     * @return {Matrix2} - The matrix.
     */
     multiplyScalar (s) {
-        this.a *= s;
-        this.b *= s;
-        this.c *= s;
-        this.d *= s;
+        var a1 = this.a * s;
+        var b1 = this.b * s;
+        var c1 = this.c * s;
+        var d1 = this.d * s;
+        
+        this.set(a1, b1, c1, d1);
 
         return this;
     }
@@ -146,10 +149,7 @@ class Matrix2 {
     */
     setFromArray (array) {
         if (array.length === 4) {
-            this.a = array[0];
-            this.b = array[1];
-            this.c = array[2];
-            this.d = array[3];
+            this.set(array[0], array[1], array[2], array[3]);
         }
         else {
             throw new Error('Cannot set matrix values from an invalid array');
@@ -166,11 +166,11 @@ class Matrix2 {
     * @param {number} d
     * @return {Matrix2} The matrix.
     */
-    setTo (a, b, c, d) {
-        this.a = a;
-        this.b = b;
-        this.c = c;
-        this.d = d;
+    set (a, b, c, d) {
+        this.a = round(a, 4);
+        this.b = round(b, 4);
+        this.c = round(c, 4);
+        this.d = round(d, 4);
         
         return this;
     }
