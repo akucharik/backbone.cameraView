@@ -11,10 +11,10 @@ var round = _.round;
 * | c | d |
 *
 * @class Matrix2
-* @param {number} [a=1]
-* @param {number} [b=0]
-* @param {number} [c=0]
-* @param {number} [d=1]
+* @param {number} [e11=1]
+* @param {number} [e12=0]
+* @param {number} [e21=0]
+* @param {number} [e22=1]
 *//**
 * Create a 2x2 matrix from an array.
 * @class Matrix2
@@ -24,36 +24,36 @@ var round = _.round;
 * @class Matrix2
 */
 class Matrix2 {
-    constructor (a, b, c, d) {
+    constructor (e11, e12, e21, e22) {
         /**
-        * @property {number} a
+        * @property {number} e11
         * @default
         */
-        this.a = 1;
+        this.e11 = 1;
         
         /**
-        * @property {number} b
+        * @property {number} e12
         * @default
         */
-        this.b = 0;
+        this.e12 = 0;
         
         /**
-        * @property {number} c
+        * @property {number} e21
         * @default
         */
-        this.c = 0;
+        this.e21 = 0;
         
         /**
-        * @property {number} d
+        * @property {number} e22
         * @default
         */
-        this.d = 1;
+        this.e22 = 1;
         
         if (arguments.length === 4) {
-            this.set(a, b, c, d);
+            this.set(e11, e12, e21, e22);
         }
-        else if (isArray(a) && a.length === 4) {
-            this.setFromArray(a);
+        else if (isArray(e11) && e11.length === 4) {
+            this.setFromArray(e11);
         }
     }
     
@@ -61,14 +61,14 @@ class Matrix2 {
     * Gets the determinant.
     */
     get determinant () {
-        return this.a * this.d - this.b * this.c;
+        return this.e11 * this.e22 - this.e12 * this.e21;
     }
     
     /**
     * Gets the inverse.
     */
-    get inverse () {
-        var m = new Matrix2(this.d, -this.b, -this.c, this.a)
+    inverse () {
+        var m = new Matrix2(this.e22, -this.e12, -this.e21, this.e11)
 
         return m.multiplyScalar(1 / m.determinant);
     }
@@ -111,19 +111,19 @@ class Matrix2 {
     * @return {Matrix2} - The multiplied matrix.
     */
     static multiplyMatrices (a, b) {
-        var a1, b1, c1, d1;
+        var n11, n12, n21, n22;
         
         if (a.cols === b.rows) {
-            a1 = a.a * b.a + a.b * b.c;
-            b1 = a.a * b.b + a.b * b.d;
-            c1 = a.c * b.a + a.d * b.c;
-            d1 = a.c * b.b + a.d * b.d;
+            n11 = a.e11 * b.e11 + a.e12 * b.e21;
+            n12 = a.e11 * b.e12 + a.e12 * b.e22;
+            n21 = a.e21 * b.e11 + a.e22 * b.e21;
+            n22 = a.e21 * b.e12 + a.e22 * b.e22;
         }
         else {
             throw new Error('Cannot multiply incompatible matrices');
         }
 
-        return new Matrix(a1, b1, c1, d1);
+        return new Matrix2(n11, n12, n21, n22);
     }
     
     /**
@@ -132,12 +132,12 @@ class Matrix2 {
     * @return {Matrix2} - The matrix.
     */
     multiplyScalar (s) {
-        var a1 = this.a * s;
-        var b1 = this.b * s;
-        var c1 = this.c * s;
-        var d1 = this.d * s;
+        var n11 = this.e11 * s;
+        var n12 = this.e12 * s;
+        var n21 = this.e21 * s;
+        var n22 = this.e22 * s;
         
-        this.set(a1, b1, c1, d1);
+        this.set(n11, n12, n21, n22);
 
         return this;
     }
@@ -160,17 +160,17 @@ class Matrix2 {
     
     /**
     * Sets the matrix values.
-    * @param {number} a
-    * @param {number} b
-    * @param {number} c
-    * @param {number} d
+    * @param {number} e11
+    * @param {number} e12
+    * @param {number} e21
+    * @param {number} e22
     * @return {Matrix2} The matrix.
     */
-    set (a, b, c, d) {
-        this.a = round(a, 4);
-        this.b = round(b, 4);
-        this.c = round(c, 4);
-        this.d = round(d, 4);
+    set (e11, e12, e21, e22) {
+        this.e11 = e11;
+        this.e12 = e12;
+        this.e21 = e21;
+        this.e22 = e22;
         
         return this;
     }
@@ -183,13 +183,13 @@ class Matrix2 {
     */
     toArray (array) {
         if (!array) {
-            var array = new Array(4);    
+            var array = new Float32Array(4);    
         }
         
-        array[0] = this.a;
-        array[1] = this.b;
-        array[2] = this.c;
-        array[3] = this.d;
+        array[0] = this.e11;
+        array[1] = this.e12;
+        array[2] = this.e21;
+        array[3] = this.e22;
         
         return array;
     }
