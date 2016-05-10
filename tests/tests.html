@@ -168,11 +168,7 @@
             });
             
             describe('toArray', function() {
-                it('should be a Float32Array', function() {
-                    var a = m.toArray();
-                    expect(a).to.be.a('Float32Array');
-                });
-                it('should have a length of 4', function() {
+                it('should return an array with length of 4', function() {
                     var a = m.toArray();
                     expect(a).to.have.lengthOf(4);
                 });
@@ -192,6 +188,13 @@
                     expect(a[1]).to.equal(2);
                     expect(a[2]).to.equal(3);
                     expect(a[3]).to.equal(1);
+                });
+            });
+            
+            describe('toFloat32Array', function() {
+                it('should return a Float32Array', function() {
+                    var a = m.toFloat32Array();
+                    expect(a).to.be.a('Float32Array');
                 });
             });
         });

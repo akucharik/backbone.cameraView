@@ -1,6 +1,5 @@
-// Utilities
-var isArray = _.isArray;
-var round = _.round;
+//Utilities
+var isArrayLike = _.isArrayLike;
 
 /**
 * Create 2x2 matrix from a series of values.
@@ -52,7 +51,7 @@ class Matrix2 {
         if (arguments.length === 4) {
             this.set(e11, e12, e21, e22);
         }
-        else if (isArray(e11) && e11.length === 4) {
+        else if (isArrayLike(e11) && e11.length === 4) {
             this.setFromArray(e11);
         }
     }
@@ -92,7 +91,7 @@ class Matrix2 {
     multiply (m) {
         var result;
         
-        if (isArray(m)) {
+        if (Array.isArray(m)) {
             m.forEach(i => this.multiply(i));
         }
         else {
@@ -178,12 +177,12 @@ class Matrix2 {
     /**
     * Creates an array from the matrix values.
     *
-    * @param {Array} array - If provided the matrix values will be set into the array, otherwise a new array is created.
+    * @param {Array} array - If provided, the matrix values will be set into the array, otherwise a new array is created.
     * @return {Array} The array containing the matrix values.
     */
     toArray (array) {
         if (!array) {
-            var array = new Float32Array(4);    
+            var array = new Array(4);    
         }
         
         array[0] = this.e11;
@@ -192,6 +191,23 @@ class Matrix2 {
         array[3] = this.e22;
         
         return array;
+    }
+    
+    /**
+    * Creates a Float32Array from the matrix values.
+    *
+    * @param {Float32Array} array - If provided, the matrix values will be set into the array, otherwise a new array is created.
+    * @return {Float32Array} The array containing the matrix values.
+    */
+    toFloat32Array (array) {
+        if (!array) {
+            var array = new Float32Array(4);    
+        }
+        else if (!(array instanceof Float32Array)) {
+            throw new Error('Provided array must be a Float32Array');
+        }
+        
+        return this.toArray(array)
     }
 }
 
