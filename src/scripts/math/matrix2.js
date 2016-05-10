@@ -147,12 +147,7 @@ class Matrix2 {
     * @return {Matrix2} The matrix.
     */
     setFromArray (array) {
-        if (array.length === 4) {
-            this.set(array[0], array[1], array[2], array[3]);
-        }
-        else {
-            throw new Error('Cannot set matrix values from an invalid array');
-        }
+        this.set(array[0], array[1], array[2], array[3]);
 
         return this;
     }
