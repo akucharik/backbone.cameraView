@@ -37,6 +37,24 @@
                 });
             });
             
+            describe('Matrix2.getDeterminant', function() {
+                it('should get the determinant', function() {
+                    m.set(1,2,3,1);
+                    expect(Matrix2.getDeterminant(m)).to.equal(-5);
+                });
+            });
+            
+            describe('Matrix2.getInverse', function() {
+                it('should calculate and return the inverse', function() {
+                    m.set(1,2,3,1);
+                    var i = Matrix2.getInverse(m);
+                    expect(i.e11).to.equal(-0.2);
+                    expect(i.e12).to.equal(-0.4);
+                    expect(i.e21).to.equal(-0.6000000000000001);
+                    expect(i.e22).to.equal(-0.2);
+                });
+            });
+            
             describe('Matrix2.multiplyMatrices', function() {
                 it('should return the product of two matrices', function() {
                     m.set(1,2,3,1);
@@ -47,10 +65,35 @@
                     expect(m3.e21).to.equal(10);
                     expect(m3.e22).to.equal(11);
                 });
+                it('should return the product of any array of matrices', function() {
+                    m.set(1,2,3,1);
+                    var m2 = new Matrix2(2,3,4,2);
+                    var m3 = new Matrix2(2,0,0,2);
+                    var m4 = Matrix2.multiplyMatrices([m, m2, m3]);
+                    expect(m4.e11).to.equal(20);
+                    expect(m4.e12).to.equal(14);
+                    expect(m4.e21).to.equal(20);
+                    expect(m4.e22).to.equal(22);
+                });
+            });
+            
+            describe('Matrix2.multiplyScalar', function() {
+                it('should multiply matrix values by the provided scalar', function() {
+                    m.set(1,2,3,1);
+                    var m1 = Matrix2.multiplyScalar(m, 2);
+                    expect(m1.e11).to.equal(2);
+                    expect(m1.e12).to.equal(4);
+                    expect(m1.e21).to.equal(6);
+                    expect(m1.e22).to.equal(2);
+                });
             });
             
             describe('Matrix2.toArray', function() {
-                it('should return an array with length of 4', function() {
+                it('should return an Array', function() {
+                    var a = Matrix2.toArray(m);
+                    expect(a).to.be.a('Array');
+                });
+                it('should return something with length of 4', function() {
                     var a = Matrix2.toArray(m);
                     expect(a).to.have.lengthOf(4);
                 });
@@ -62,21 +105,24 @@
                     expect(a[2]).to.equal(3);
                     expect(a[3]).to.equal(1);
                 });
-                it('should write matrix values into the provided array', function() {
-                    var a = [5,5,5,5];
-                    m.set(1,2,3,1);
-                    Matrix2.toArray(m, a);
-                    expect(a[0]).to.equal(1);
-                    expect(a[1]).to.equal(2);
-                    expect(a[2]).to.equal(3);
-                    expect(a[3]).to.equal(1);
-                });
             });
             
             describe('Matrix2.toFloat32Array', function() {
                 it('should return a Float32Array', function() {
                     var a = Matrix2.toFloat32Array(m);
                     expect(a).to.be.a('Float32Array');
+                });
+                it('should return something with length of 4', function() {
+                    var a = Matrix2.toFloat32Array(m);
+                    expect(a).to.have.lengthOf(4);
+                });
+                it('should return a new Float32Array containing matrix values', function() {
+                    m.set(1,2,3,1);
+                    var a = Matrix2.toFloat32Array(m);
+                    expect(a[0]).to.equal(1);
+                    expect(a[1]).to.equal(2);
+                    expect(a[2]).to.equal(3);
+                    expect(a[3]).to.equal(1);
                 });
             });
             
@@ -145,10 +191,10 @@
                 });
             });
             
-            describe('determinant', function() {
+            describe('getDeterminant', function() {
                 it('should get the determinant', function() {
                     m.set(1,2,3,1);
-                    expect(m.determinant).to.equal(-5);
+                    expect(m.getDeterminant()).to.equal(-5);
                 });
             });
             
@@ -157,16 +203,16 @@
                     m.set(1,2,3,1);
                     var i = m.getInverse();
                     expect(i.e11).to.equal(-0.2);
-                    expect(i.e12).to.equal(0.4);
-                    expect(i.e21).to.equal(0.6000000000000001);
+                    expect(i.e12).to.equal(-0.4);
+                    expect(i.e21).to.equal(-0.6000000000000001);
                     expect(i.e22).to.equal(-0.2);
                 });
             });
             
-            describe('multiply', function() {
+            describe('multiplyMatrices', function() {
                 it('should multiply itself by the provided matrix', function() {
                     m.set(1,2,3,1);
-                    m.multiply(new Matrix2(2,3,4,2));
+                    m.multiplyMatrices(new Matrix2(2,3,4,2));
                     expect(m.e11).to.equal(10);
                     expect(m.e12).to.equal(7);
                     expect(m.e21).to.equal(10);
@@ -174,7 +220,7 @@
                 });
                 it('should multiply itself by the provided matrices', function() {
                     m.set(1,2,3,1);
-                    m.multiply([new Matrix2(2,3,4,2), new Matrix2(2,0,0,2)]);
+                    m.multiplyMatrices([new Matrix2(2,3,4,2), new Matrix2(2,0,0,2)]);
                     expect(m.e11).to.equal(20);
                     expect(m.e12).to.equal(14);
                     expect(m.e21).to.equal(20);

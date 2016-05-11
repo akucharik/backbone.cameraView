@@ -60,7 +60,6 @@ class Matrix2 {
     
     /**
     * Clones the matrix.
-    *
     * {Matrix2} m - The matrix to clone.
     * @return {Matrix2} - A new identical matrix.
     */
@@ -73,23 +72,72 @@ class Matrix2 {
     * @return {Matrix2} - A new identical matrix.
     */
     clone () {
-        return Matrix2.clone(this);
+        return this.constructor.clone(this);
     }
     
     /**
     * Gets the determinant.
+    * {Matrix2} m - The matrix to get the determinant.
+    * @return {number} - The determinant.
     */
-    get determinant () {
-        return this.e11 * this.e22 - this.e12 * this.e21;
+    static getDeterminant (m) {
+        return m.e11 * m.e22 - m.e12 * m.e21;
+    }
+    
+    /**
+    * Gets the determinant.
+    * @return {number} - The determinant.
+    */
+    getDeterminant () {
+        return this.constructor.getDeterminant(this);
     }
     
     /**
     * Gets the inverse.
+    * {Matrix2} m - The matrix to get the inverse.
+    * @return {Matrix2} - The inverse matrix.
+    */
+    static getInverse (m) {
+        return Matrix2.multiplyScalar(m, 1 / Matrix2.getDeterminant(m));
+    }
+    
+    /**
+    * Gets the inverse.
+    * @return {Matrix2} - The inverse matrix.
     */
     getInverse () {
-        var m = new this.constructor(this.e22, -this.e12, -this.e21, this.e11)
-
-        return m.multiplyScalar(1 / m.determinant);
+        return this.constructor.getInverse(this);
+    }
+    
+    /**
+    * Multiplies two matrices.
+    * @param {Matrix2} a - A matrix.
+    * @param {Matrix2} b - Another matrix.
+    * @return {Matrix2} - A new matrix that is the product of the provided matrices.
+    *//**
+    * Multiplies a list of matrices.
+    * @param {Array} m - A list of matrices.
+    * @return {Matrix2} - A new matrix that is the product of the provided matrices.
+    */
+    static multiplyMatrices (a, b) {
+        if (Array.isArray(a)) {
+            let m = a.reduce(Matrix2.multiplyMatrices);
+            
+            return new Matrix2(Matrix2.toArray(m));
+        }
+        else if (a.cols === b.rows) {
+            let n11, n12, n21, n22;
+         
+            n11 = a.e11 * b.e11 + a.e12 * b.e21;
+            n12 = a.e11 * b.e12 + a.e12 * b.e22;
+            n21 = a.e21 * b.e11 + a.e22 * b.e21;
+            n22 = a.e21 * b.e12 + a.e22 * b.e22;
+        
+            return new Matrix2(n11, n12, n21, n22);
+        }
+        else {
+            throw new Error('Cannot multiply incompatible matrices');
+        }
     }
     
     /**
@@ -101,41 +149,27 @@ class Matrix2 {
     * @param {Array} m - A list of matrices.
     * @return {Matrix2} - The matrix.
     */
-    multiply (m) {
-        var result;
-        
-        if (Array.isArray(m)) {
-            m.forEach(i => this.multiply(i));
-        }
-        else {
-            result = this.constructor.multiplyMatrices(this, m);
-            this.setFromArray(result.toArray());
-        }
+    multiplyMatrices (m) {
+        var a = Array.isArray(m) ? m.slice() : [m];
+        a.unshift(this);
+        this.setFromArray(this.constructor.multiplyMatrices(a).toArray());
 
         return this;
     }
     
     /**
-    * Multiplies two matrices.
-    * @static
-    * @param {Matrix2|Matrix2D} a - A matrix.
-    * @param {Matrix2|Matrix2D} b - Another matrix.
-    * @return {Matrix2} - The multiplied matrix.
+    * Multiplies a matrix by a scalar.
+    * @param {Matrix2} m - The matrix.
+    * @param {number} s - The scalar.
+    * @return {Matrix2} - A new scaled matrix.
     */
-    static multiplyMatrices (a, b) {
-        var n11, n12, n21, n22;
-        
-        if (a.cols === b.rows) {
-            n11 = a.e11 * b.e11 + a.e12 * b.e21;
-            n12 = a.e11 * b.e12 + a.e12 * b.e22;
-            n21 = a.e21 * b.e11 + a.e22 * b.e21;
-            n22 = a.e21 * b.e12 + a.e22 * b.e22;
-        }
-        else {
-            throw new Error('Cannot multiply incompatible matrices');
-        }
+    static multiplyScalar (m, s) {
+        var e11 = m.e11 * s;
+        var e12 = m.e12 * s;
+        var e21 = m.e21 * s;
+        var e22 = m.e22 * s;
 
-        return new Matrix2(n11, n12, n21, n22);
+        return new Matrix2(e11, e12, e21, e22);
     }
     
     /**
@@ -144,12 +178,8 @@ class Matrix2 {
     * @return {Matrix2} - The matrix.
     */
     multiplyScalar (s) {
-        var n11 = this.e11 * s;
-        var n12 = this.e12 * s;
-        var n21 = this.e21 * s;
-        var n22 = this.e22 * s;
-        
-        this.set(n11, n12, n21, n22);
+        var m = this.constructor.multiplyScalar(this, s);
+        this.setFromArray(m.toArray());
 
         return this;
     }
@@ -184,22 +214,21 @@ class Matrix2 {
     
     /**
     * Sets the matrix to the identity.
+    * @return {Matrix2} The matrix.
     */
     setToIdentity () {
-        return this.set(1, 0 , 0, 1);
+        this.set(1, 0 , 0, 1);
+        
+        return this;
     }
     
     /**
-    * Sets the values from the matrix into a new or provided array.
-    *
+    * Sets the values from the matrix into a new array.
     * @param {Matrix2} m - The matrix.
-    * @param {Array} [a] - The array.
-    * @return {Array|Float32Array} The array containing the matrix values. If no array is provided, a standard Array will be returned.
+    * @return {Array} The array containing the matrix values.
     */
-    static toArray (m, a) {
-        if (!a) {
-            var a = new Array(4);
-        }
+    static toArray (m) {
+        var a = new Array(4);
         
         a[0] = m.e11;
         a[1] = m.e12;
@@ -210,38 +239,35 @@ class Matrix2 {
     }
     
     /**
-    * Sets the values from the matrix into a new or provided array.
-    *
-    * @param {Array} [a] - The array.
+    * Sets the values from the matrix into a new array.
     * @return {Array} The array containing the matrix values.
     */
-    toArray (a) {
-        return this.constructor.toArray(this, a);
+    toArray () {
+        return this.constructor.toArray(this);
     }
     
     /**
-    * Sets the values from the matrix into a new or provided Float32Array.
-    *
+    * Sets the values from the matrix into a new Float32Array.
     * @param {Matrix2} m - The matrix.
-    * @param {Float32Array} [a] - The array.
     * @return {Float32Array} The array containing the matrix values.
     */
-    static toFloat32Array (m, a) {
-        if (!a) {
-            var a = new Float32Array(4);
-        }
+    static toFloat32Array (m) {
+        var a = new Float32Array(4);
         
-        return Matrix2.toArray(m, a);
+        a[0] = m.e11;
+        a[1] = m.e12;
+        a[2] = m.e21;
+        a[3] = m.e22;
+        
+        return a;
     }
     
     /**
-    * Sets the values from the matrix into a new or provided Float32Array.
-    *
-    * @param {Float32Array} [a] - The array.
+    * Sets the values from the matrix into a new Float32Array.
     * @return {Float32Array} The array containing the matrix values.
     */
-    toFloat32Array (a) {
-        return this.constructor.toFloat32Array(this, a);
+    toFloat32Array () {
+        return this.constructor.toFloat32Array(this);
     }
 }
 
