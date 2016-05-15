@@ -11,17 +11,30 @@
     "url": "https://github.com/akucharik/backbone.cameraView.git"
   },
   "keywords": [
+    "HTML",
     "HTML5",
     "javascript",
     "camera",
     "backbone",
-    "view",
+    "2D",
+    "3D",
     "zoom",
     "focus",
     "pan"
   ],
   "devDependencies": {
-    "jsdoc": "^3.4.0"
+    "browserify": "^13.0.1",
+    "chai": "^3.5.0",
+    "del": "^2.2.0",
+    "gulp": "^3.9.1",
+    "gulp-rename": "^1.2.2",
+    "gulp-sass": "^2.3.1",
+    "gulp-uglify": "^1.5.3",
+    "gulp-uglifycss": "^1.0.6",
+    "jsdoc": "^3.4.0",
+    "mocha": "^2.4.5",
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^1.1.0"
   },
   "dependencies": {
     "backbone": "^1.2.3",
