@@ -1,3 +1,7 @@
+'use strict';
+
+var _ = require('lodash');
+
 //Utilities
 var isArrayLike = _.isArrayLike;
 
@@ -288,3 +292,5 @@ Object.defineProperty(Matrix2.prototype, 'rows', {
     enumerable: true,
     value: 2
 });
+
+module.exports = Matrix2;

@@ -4,6 +4,7 @@ var browserify = require('browserify');
 var buffer = require('vinyl-buffer');
 var del = require('del');
 var gulp = require('gulp');
+var mocha = require('gulp-mocha');
 var sass = require('gulp-sass');
 var rename = require('gulp-rename');
 var source = require('vinyl-source-stream');
@@ -21,10 +22,13 @@ var build = {
         dest: './build/styles',
         destName: 'oculo.css',
         source: './src/styles/**/*.sass'
+    },
+    tests: {
+        source: './tests/*.js'
     }
 };
 
-gulp.task('build', ['scripts', 'styles'], function () {
+gulp.task('build', ['scripts', 'styles', 'test'], function () {
     
 });
 
@@ -62,6 +66,15 @@ gulp.task('styles', ['clean'], function () {
 
 gulp.task('styles:watch', function () {
     gulp.watch(build.styles.source, ['sass']);
+});
+
+gulp.task('test', function () {
+	return gulp.src(build.tests.source, {
+            read: false
+        })
+		.pipe(mocha({
+            reporter: 'nyan'
+        }));
 });
 
 // set up default task
