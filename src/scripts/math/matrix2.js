@@ -13,7 +13,7 @@ var isArrayLike = _.isArrayLike;
 * | a | b |
 * | c | d |
 *
-* @class Matrix2
+* @class Oculo.Matrix2
 * @param {number} [e11=1]
 * @param {number} [e12=0]
 * @param {number} [e21=0]

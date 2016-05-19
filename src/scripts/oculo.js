@@ -1,9 +1,13 @@
 'use strict';
 
-var Test = require('./Math/test');
+var Math = require('./math/math');
+var Matrix2 = require('./math/matrix2');
+var Vector2 = require('./math/vector2');
 
 var Oculo = {
-    Test: Test
+    Math: Math,
+    Matrix2: Matrix2,
+    Vector2: Vector2
 };
 
 window.Oculo = Oculo;

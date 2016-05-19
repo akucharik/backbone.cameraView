@@ -1,17 +1,45 @@
-Camera.Math = class {
-    static degToRad (degrees) {
-        return degrees * Camera.Math.DEG2RAD;
-    }
+'use strict';
 
-    static radToDeg (radians) {
-        return radians * Camera.Math.RAD2DEG;
+/**
+* A collection of useful mathematical values and functions.
+*
+* @class Oculo.Math
+* @static
+*/
+var Math = {
+    /**
+    * Convert degrees to radians.
+    * @param {number} degrees - The degrees value.
+    * @return {number} - The value in radians.
+    */
+    degToRad: (degrees) => {
+        return degrees * Math.degToRadFactor;
+    },
+
+    /**
+    * Convert radians to degrees.
+    * @param {number} radians - The radians value.
+    * @return {number} - The value in degrees.
+    */
+    radToDeg: (radians) => {
+        return radians * Math.radToDegFactor;
     }
 };
 
-Object.defineProperty(Camera.Math, 'DEG2RAD', {
-    value: Math.PI / 180
+/**
+* The factor used to convert degrees to radians.
+* @name Math#degToRadFactor
+*/
+Object.defineProperty(Math, 'degToRadFactor', {
+    value: window.Math.PI / 180
 });
 
-Object.defineProperty(Camera.Math, 'RAD2DEG', {
-    value: 180 / Math.PI
+/**
+* The factor used to convert radians to degrees.
+* @name Math2#radToDegFactor
+*/
+Object.defineProperty(Math, 'radToDegFactor', {
+    value: 180 / window.Math.PI
 });
+
+module.exports = Math;
