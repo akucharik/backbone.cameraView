@@ -13,18 +13,12 @@ var isArrayLike = _.isArrayLike;
 * | a | b |
 * | c | d |
 *
-* @class Oculo.Matrix2
-* @param {number} [e11=1]
-* @param {number} [e12=0]
-* @param {number} [e21=0]
-* @param {number} [e22=1]
-*//**
-* Create a 2x2 matrix from an array.
 * @class Matrix2
-* @param {Array} - The matrix values.
-*//**
-* Create a 2x2 matrix initialzed to its identity.
-* @class Matrix2
+* @constructor
+* @param {number} [e11=1] - The value of row 1, column 1
+* @param {number} [e12=0] - The value of row 1, column 2
+* @param {number} [e21=0] - The value of row 2, column 1
+* @param {number} [e22=1] - The value of row 2, column 2
 */
 class Matrix2 {
     constructor (e11, e12, e21, e22) {
