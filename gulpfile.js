@@ -42,12 +42,12 @@ gulp.task('scripts', ['clean'], function () {
         .pipe(source(build.scripts.sourceName))
         .pipe(gulp.dest(build.scripts.dest))
         // Minify
-        .pipe(buffer())
-        .pipe(uglify())
-        .pipe(rename({
-            suffix: '.min'
-        }))
-        .pipe(gulp.dest(build.scripts.dest));
+//        .pipe(buffer())
+//        .pipe(uglify())
+//        .pipe(rename({
+//            suffix: '.min'
+//        }))
+//        .pipe(gulp.dest(build.scripts.dest));
 });
 
 gulp.task('styles', ['clean'], function () {
