@@ -3,6 +3,7 @@
 var browserify = require('browserify');
 var buffer = require('vinyl-buffer');
 var del = require('del');
+var executeChildProcess = require('child_process').exec;
 var gulp = require('gulp');
 var mocha = require('gulp-mocha');
 var sass = require('gulp-sass');
@@ -28,7 +29,7 @@ var build = {
     }
 };
 
-gulp.task('build', ['scripts', 'styles', 'test'], function () {
+gulp.task('build', ['scripts', 'styles', 'test', 'docs'], function () {
     
 });
 
@@ -64,7 +65,7 @@ gulp.task('styles', ['clean'], function () {
         .pipe(gulp.dest(build.styles.dest));
 });
 
-gulp.task('styles:watch', function () {
+gulp.task('styles:watch', ['clean'], function () {
     gulp.watch(build.styles.source, ['sass']);
 });
 
@@ -75,6 +76,10 @@ gulp.task('test', function () {
 		.pipe(mocha({
             reporter: 'nyan'
         }));
+});
+
+gulp.task('docs', function () {
+	executeChildProcess('node ./node_modules/jsdoc/jsdoc.js -c jsdocconfig.json');
 });
 
 // set up default task
