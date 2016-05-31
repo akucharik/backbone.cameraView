@@ -4,6 +4,7 @@ var test = require('mocha').describe;
 var beforeEach = require('mocha').beforeEach;
 var assert = require('mocha').it;
 var expect = require('chai').expect;
+var Matrix2 = require('../src/scripts/math/matrix2');
 var Vector2 = require('../src/scripts/math/vector2');
     
 test('Vector2', function() {
@@ -65,6 +66,17 @@ test('Vector2', function() {
             var a = Vector2.toArray(v);
             expect(a[0]).to.equal(1);
             expect(a[1]).to.equal(2);
+        });
+    });
+    
+    test('Vector2.transform', function() {
+        assert('should return a transformed vector', function() {
+            v.set(1,2);
+            var m = new Matrix2(2,0,0,2);
+            var m2 = new Matrix2(0,1,-1,0);
+            var v1 = Vector2.transform(v, m, m2);
+            expect(v1.x).to.equal(4);
+            expect(v1.y).to.equal(-2);
         });
     });
 
@@ -131,6 +143,17 @@ test('Vector2', function() {
         assert('should return an array', function() {
             var a = v.toArray();
             expect(a).to.be.a('Array');
+        });
+    });
+    
+    test('transform', function() {
+        assert('should transform its values by the provided (infinite) matrices', function() {
+            v.set(1,2);
+            var m = new Matrix2(2,0,0,2);
+            var m2 = new Matrix2(0,1,-1,0);
+            v.transform(m, m2);
+            expect(v.x).to.equal(4);
+            expect(v.y).to.equal(-2);
         });
     });
 });

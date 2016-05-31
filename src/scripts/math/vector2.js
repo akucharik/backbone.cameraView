@@ -2,19 +2,19 @@
 
 /**
 * Creates a 2D vector from a series of values.
-* @param {number} [x]
-* @param {number} [y]
+* @param {number} [x] - The x value.
+* @param {number} [y] - The y value.
 */
 class Vector2 {
     constructor (x, y) {
         /**
-        * The x coordinate.
+        * The x value.
         * @default 0
         */
         this.x = x || 0;
         
         /**
-        * The y coordinate.
+        * The y value.
         * @default 0
         */
         this.y = y || 0;
@@ -25,7 +25,7 @@ class Vector2 {
     * @private
     * @param {Vector2} a - A vector.
     * @param {Vector2} b - Another vector.
-    * @return {Vector2} - A new vector that is the sum of the provided vectors.
+    * @return {Vector2} A new vector that is the sum of the provided vectors.
     */
     static _add (a, b) {
         return new Vector2(a.x + b.x, a.y + b.y);
@@ -33,10 +33,10 @@ class Vector2 {
     
     /**
     * Adds vectors together.
-    * {...Vector2} v - A vector.
-    * @return {Vector2} - A new vector that is the sum of the provided vectors.
+    * @param {...Vector2} v - A vector.
+    * @return {Vector2} A new vector that is the sum of the provided vectors.
     */
-    static add () {
+    static add (v) {
         let vectors = Array.prototype.slice.call(arguments);
 
         return vectors.reduce(Vector2._add);
@@ -44,10 +44,10 @@ class Vector2 {
     
     /**
     * Adds vectors to the vector.
-    * {...Vector2} v - A vector.
-    * @return {Vector2} - The vector.
+    * @param {...Vector2} v - A vector.
+    * @return {Vector2} The vector.
     */
-    add () {
+    add (v) {
         var v1 = null;
         var vectors = Array.prototype.slice.call(arguments);
         
@@ -61,7 +61,7 @@ class Vector2 {
     /**
     * Clones the vector.
     * {Vector2} v - The vector to clone.
-    * @return {Vector2} - A new identical vector.
+    * @return {Vector2} A new identical vector.
     */
     static clone (v) {
         return new Vector2(v.x, v.y);
@@ -69,7 +69,7 @@ class Vector2 {
     
     /**
     * Clones the vector.
-    * @return {Vector2} - A new identical vector.
+    * @return {Vector2} A new identical vector.
     */
     clone () {
         return this.constructor.clone(this);
@@ -79,7 +79,7 @@ class Vector2 {
     * Multiplies a vector by a scalar.
     * @param {Vector2} m - The vector.
     * @param {number} s - The scalar.
-    * @return {Vector2} - A new scaled vector.
+    * @return {Vector2} A new scaled vector.
     */
     static multiplyScalar (v, s) {
         var x = v.x * s;
@@ -91,7 +91,7 @@ class Vector2 {
     /**
     * Multiplies the vector by a scalar.
     * @param {number} s - The scalar.
-    * @return {Vector2} - The vector.
+    * @return {Vector2} The vector.
     */
     multiplyScalar (s) {
         var v = this.constructor.multiplyScalar(this, s);
@@ -102,8 +102,8 @@ class Vector2 {
     
     /**
     * Sets the vector values.
-    * @param {number} x
-    * @param {number} y
+    * @param {number} x - The x value.
+    * @param {number} y - The y value.
     * @return {Vector2} The vector.
     */
     set (x, y) {
@@ -118,7 +118,7 @@ class Vector2 {
     * @private
     * @param {Vector2} a - A vector.
     * @param {Vector2} b - Another vector.
-    * @return {Vector2} - A new vector that is the difference of the provided vectors.
+    * @return {Vector2} A new vector that is the difference of the provided vectors.
     */
     static _subtract (a, b) {
         return new Vector2(a.x - b.x, a.y - b.y);
@@ -126,10 +126,10 @@ class Vector2 {
     
     /**
     * Subtracts vectors.
-    * {...Vector2} v - A vector.
-    * @return {Vector2} - A new vector that is the difference of the provided vectors.
+    * @param {...Vector2} v - A vector.
+    * @return {Vector2} A new vector that is the difference of the provided vectors.
     */
-    static subtract () {
+    static subtract (v) {
         let vectors = Array.prototype.slice.call(arguments);
 
         return vectors.reduce(Vector2._subtract);
@@ -137,10 +137,10 @@ class Vector2 {
     
     /**
     * Subtracts vectors from the vector.
-    * {...Vector2} v - A vector.
-    * @return {Vector2} - The vector.
+    * @param {...Vector2} v - A vector.
+    * @return {Vector2} The vector.
     */
-    subtract () {
+    subtract (v) {
         var v1 = null;
         var vectors = Array.prototype.slice.call(arguments);
         
@@ -173,62 +173,47 @@ class Vector2 {
         return this.constructor.toArray(this);
     }
     
-    
     /**
-    * Transforms the vector by multiplying a matrix.
-    * @param {Matrix2D} m - The matrix.
-    * @return {Vector2} - The transformed vector.
+    * Transforms a vector using the provided matrix.
+    * @private
+    * @param {Vector2} v - A vector.
+    * @param {Matrix2} m - A transformation matrix.
+    * @return {Vector2} A new transformed vector.
     */
-    transform (m) {
-        var v1 = Vector2.transform(this, m);
-
-        this.x = v1.x;
-        this.y = v1.y;
-
-        return this;
-    }
-
-    /**
-    * Transforms a vector by multiplying a matrix.
-    * @static
-    * @param {Vector2} v - The vector.
-    * @param {Matrix2D} m - The matrix.
-    * @return {Vector2} - The transformed vector.
-    */
-    static transform (v, m) {
-        var x = v.x, y = v.y;
-        var a = m.value[0], b = m.value[1],
-            c = m.value[2], d = m.value[3],
-            e = m.value[4], f = m.value[5];
-
-        var x1 = x * a + y * b + e;
-        var y1 = x * c + y * d + f;
+    static _transform (v, m) {
+        var x1 = v.x * m.e11 + v.y * m.e12;
+        var y1 = v.x * m.e21 + v.y * m.e22;
 
         return new Vector2(x1, y1);
     }
     
-//    static multiplyVector (v, v1, m) {
-//        v1.x = m.e11 * v.x + m.e12 * v.y;
-//        v1.y = m.e21 * v.x + m.e22 * v.y;
-//
-//        return v1;
-//
-//    }
-//    
-//    /**
-//    * Transform a vector by a matrix or array of matrices.
-//    *
-//    * @param {Vector2} v - The vector.
-//    * @param {Vector2} v1 - The vector in which to write the transformed values.
-//    * @return {Vector2} The transformed vector.
-//    */
-//    static transformVector (v, v1, m) {
-//        if (Array.isArray(m)) {
-//            m.forEach(i => Matrix2.multiplyVector(v, v1, m));
-//        }
-//        
-//        return Matrix2.multiplyVector(v, v1, m);
-//    }
+    /**
+    * Transforms a vector using the provided matrices.
+    * @param {Vector2} v - A vector.
+    * @param {...Matrix2} m - A transformation matrix.
+    * @return {Vector2} A new transformed vector.
+    */
+    static transform (v, m) {
+        var args = Array.prototype.slice.call(arguments);
+
+        return args.reduce(Vector2._transform);
+    }
+    
+    /**
+    * Transforms the vector using the provided matrices.
+    * @param {...Matrix2} m - A transformation matrix.
+    * @return {Vector2} The transformed vector.
+    */
+    transform (m) {
+        var v1 = null;
+        var args = Array.prototype.slice.call(arguments);
+        
+        args.unshift(this);
+        v1 = this.constructor.transform.apply(null, args);
+        this.set(v1.x, v1.y);
+
+        return this;
+    }
 }
 
 module.exports = Vector2;
