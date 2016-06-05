@@ -215,7 +215,7 @@ class Matrix2 {
     * @return {Matrix2} The matrix.
     */
     setToIdentity () {
-        this.set(1, 0 , 0, 1);
+        this.set(1, 0, 0, 1);
         
         return this;
     }

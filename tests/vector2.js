@@ -5,6 +5,7 @@ var beforeEach = require('mocha').beforeEach;
 var assert = require('mocha').it;
 var expect = require('chai').expect;
 var Matrix2 = require('../src/scripts/math/matrix2');
+var Matrix2D = require('../src/scripts/math/matrix2D');
 var Vector2 = require('../src/scripts/math/vector2');
     
 test('Vector2', function() {
@@ -70,13 +71,20 @@ test('Vector2', function() {
     });
     
     test('Vector2.transform', function() {
-        assert('should return a transformed vector', function() {
+        assert('should return a Matrix2 transformed vector', function() {
             v.set(1,2);
             var m = new Matrix2(2,0,0,2);
             var m2 = new Matrix2(0,1,-1,0);
             var v1 = Vector2.transform(v, m, m2);
             expect(v1.x).to.equal(4);
             expect(v1.y).to.equal(-2);
+        });
+        assert('should return a Matrix2D transformed vector', function() {
+            v.set(1,2);
+            var m = new Matrix2D(2,0,0,2,10,20);
+            var v1 = Vector2.transform(v, m);
+            expect(v1.x).to.equal(12);
+            expect(v1.y).to.equal(24);
         });
     });
 
@@ -147,13 +155,20 @@ test('Vector2', function() {
     });
     
     test('transform', function() {
-        assert('should transform its values by the provided (infinite) matrices', function() {
+        assert('should transform its values by the provided (infinite) Matrix2 matrices', function() {
             v.set(1,2);
             var m = new Matrix2(2,0,0,2);
             var m2 = new Matrix2(0,1,-1,0);
             v.transform(m, m2);
             expect(v.x).to.equal(4);
             expect(v.y).to.equal(-2);
+        });
+        assert('should transform its values by the provided Matrix2D matrix', function() {
+            v.set(1,2);
+            var m = new Matrix2D(2,0,0,2,10,20);
+            v.transform(m);
+            expect(v.x).to.equal(12);
+            expect(v.y).to.equal(24);
         });
     });
 });

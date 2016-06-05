@@ -177,12 +177,12 @@ class Vector2 {
     * Transforms a vector using the provided matrix.
     * @private
     * @param {Vector2} v - A vector.
-    * @param {Matrix2} m - A transformation matrix.
+    * @param {Matrix2|Matrix2D} m - A transformation matrix.
     * @return {Vector2} A new transformed vector.
     */
     static _transform (v, m) {
-        var x1 = v.x * m.e11 + v.y * m.e12;
-        var y1 = v.x * m.e21 + v.y * m.e22;
+        var x1 = v.x * m.e11 + v.y * m.e12 + (m.tx ? m.tx : 0);
+        var y1 = v.x * m.e21 + v.y * m.e22 + (m.ty ? m.ty : 0);
 
         return new Vector2(x1, y1);
     }
@@ -190,7 +190,7 @@ class Vector2 {
     /**
     * Transforms a vector using the provided matrices.
     * @param {Vector2} v - A vector.
-    * @param {...Matrix2} m - A transformation matrix.
+    * @param {...Matrix2|...Matrix2D} m - A transformation matrix.
     * @return {Vector2} A new transformed vector.
     */
     static transform (v, m) {
@@ -201,7 +201,7 @@ class Vector2 {
     
     /**
     * Transforms the vector using the provided matrices.
-    * @param {...Matrix2} m - A transformation matrix.
+    * @param {...Matrix2|...Matrix2D} m - A transformation matrix.
     * @return {Vector2} The transformed vector.
     */
     transform (m) {
