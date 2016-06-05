@@ -201,11 +201,11 @@ class Matrix2 {
     
     /**
     * Sets the matrix from an array.
-    * @param {Array} array - The array of matrix values.
+    * @param {Array} a - The array of matrix values.
     * @return {Matrix2} The matrix.
     */
-    setFromArray (array) {
-        this.set(array[0], array[1], array[2], array[3]);
+    setFromArray (a) {
+        this.set(a[0], a[1], a[2], a[3]);
 
         return this;
     }
