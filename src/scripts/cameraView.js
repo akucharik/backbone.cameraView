@@ -173,6 +173,15 @@ var Camera = function (options) {
     */
     this.rotationOriginY = 0;
 
+    this.shakeIntensity = 0;
+    this.shakeHorizontal = true;
+    this.shakeVertical = true;
+    this.shakeDirection = {
+        BOTH: 0,
+        HORIZONTAL: 1,
+        VERTICAL: 2
+    };
+    
     /**
     * The camera's transformed 'x' focus position on the content.
     * @property {number} - A pixel value.
@@ -1138,6 +1147,59 @@ p.rotateTo = function (rotation, duration, options) {
     this._rotateAtXY(rotation, this.transformedFocusX, this.transformedFocusY, duration, options);
 
     return this;
+};
+
+p._shake = function (tween) {
+    var x = 0;
+    var y = 0;
+    var startX = this.content.transformEl._gsTransform.x || 0;
+    var startY = this.content.transformEl._gsTransform.y || 0;
+    
+    if (this.shakeHorizontal) {
+        x = startX + Math.random() * this.shakeIntensity * this.width * 2 - this.shakeIntensity * this.width;
+    }
+
+    if (this.shakeVertical) {
+        y = startY + Math.random() * this.shakeIntensity * this.height * 2 - this.shakeIntensity * this.height;
+    }
+    //console.log('x: ', x, ' y: ', y);
+    TweenMax.set(this.content.transformEl, { 
+        css: {
+            x: x,
+            y: y
+        }
+    });
+};
+
+p.shake = function (intensity, duration, direction, options) {
+	options = options || {};
+    var startX = this.content.transformEl._gsTransform.x || 0;
+    var startY = this.content.transformEl._gsTransform.y || 0;
+    
+    this.shakeIntensity = intensity;
+    this.shakeHorizontal = direction === this.shakeDirection.VERTICAL ? false : true;
+    this.shakeVertical = direction === this.shakeDirection.HORIZONTAL ? false : true;
+    
+    
+    
+    Object.assign(options, {
+        onComplete: function () {
+            TweenMax.set(this.content.transformEl, { 
+                css: {
+                    x: startX,
+                    y: startY
+                }
+            });
+        },
+        onCompleteScope: this
+    });
+    
+    TweenMax.to(this.content.transformEl, duration, Object.assign({ 
+        scale: 1,
+        onUpdate: this._shake,
+        onUpdateParams: ['{self}'],
+        onUpdateScope: this,
+    }, options));
 };
 
 /**
