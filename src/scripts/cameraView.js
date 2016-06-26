@@ -173,6 +173,7 @@ var Camera = function (options) {
     */
     this.rotationOriginY = 0;
 
+    // Move shake properties into tween's .data attribute (e.g. TweenMax.set(target, duration, { x: 0, data: { intensity: 0.1 }}))
     this.shakeIntensity = 0;
     this.shakeHorizontal = true;
     this.shakeVertical = true;
@@ -1152,18 +1153,16 @@ p.rotateTo = function (rotation, duration, options) {
 p._shake = function (tween) {
     var x = 0;
     var y = 0;
-    var startX = this.content.transformEl._gsTransform.x || 0;
-    var startY = this.content.transformEl._gsTransform.y || 0;
     
     if (this.shakeHorizontal) {
-        x = startX + Math.random() * this.shakeIntensity * this.width * 2 - this.shakeIntensity * this.width;
+        x = tween.data.startX + Math.random() * this.shakeIntensity * this.width * 2 - this.shakeIntensity * this.width;
     }
 
     if (this.shakeVertical) {
-        y = startY + Math.random() * this.shakeIntensity * this.height * 2 - this.shakeIntensity * this.height;
+        y = tween.data.startY + Math.random() * this.shakeIntensity * this.height * 2 - this.shakeIntensity * this.height;
     }
     //console.log('x: ', x, ' y: ', y);
-    TweenMax.set(this.content.transformEl, { 
+    TweenMax.set(tween.target, { 
         css: {
             x: x,
             y: y
@@ -1172,34 +1171,63 @@ p._shake = function (tween) {
 };
 
 p.shake = function (intensity, duration, direction, options) {
-	options = options || {};
+	options = options || { data: {} };
     var startX = this.content.transformEl._gsTransform.x || 0;
     var startY = this.content.transformEl._gsTransform.y || 0;
     
-    this.shakeIntensity = intensity;
     this.shakeHorizontal = direction === this.shakeDirection.VERTICAL ? false : true;
     this.shakeVertical = direction === this.shakeDirection.HORIZONTAL ? false : true;
     
+    //var timeline = new TimelineMax({ paused: true });
     
+    if (options.ease) {
+        TweenMax.fromTo(this, duration, {
+            shakeIntensity: 0
+        }, {
+            ease: options.ease || Power0.easeNone,
+            shakeIntensity: intensity
+        });
+    }
+    else if (options.data && (options.data.easeIn || options.data.easeOut)) {
+        TweenMax.fromTo(this, duration * 0.5, {
+            shakeIntensity: 0
+        }, {
+            ease: options.data.easeIn || Power0.easeNone,
+            shakeIntensity: intensity
+        });
+        
+        TweenMax.to(this, duration * 0.5, {
+            delay: duration * 0.5,
+            ease: options.data.easeOut || Power0.easeNone,
+            shakeIntensity: 0
+        });
+    }
+    else {
+        this.shakeIntensity = intensity;
+    }
     
-    Object.assign(options, {
-        onComplete: function () {
-            TweenMax.set(this.content.transformEl, { 
+    TweenMax.to(this.content.transformEl, duration, {
+        data: {
+            startX: startX,
+            startY: startY
+        },
+        scale: 1,
+        onComplete: function (tween) {
+            TweenMax.set(tween.target, { 
                 css: {
                     x: startX,
                     y: startY
                 }
             });
         },
-        onCompleteScope: this
-    });
-    
-    TweenMax.to(this.content.transformEl, duration, Object.assign({ 
-        scale: 1,
+        onCompleteParams: ['{self}'],
+        onCompleteScope: this,
         onUpdate: this._shake,
         onUpdateParams: ['{self}'],
         onUpdateScope: this,
-    }, options));
+    });
+    
+    //timeline.play();
 };
 
 /**
