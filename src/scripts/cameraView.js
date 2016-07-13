@@ -210,27 +210,6 @@ var Camera = function (options) {
     this.transformOriginY = 0;
 
     /**
-    * The zoom.
-    * @property {number} - A zoom ratio where 1 = 100%.
-    * @default
-    */
-    this.zoom = 1;
-    
-    /**
-    * The amount of zoom on the x-axis.
-    * @property {number} - A zoom ratio where 1 = 100%.
-    * @default
-    */
-    this.zoomX = 1;
-    
-    /**
-    * The amount of zoom on the y-axis.
-    * @property {number} - A zoom ratio where 1 = 100%.
-    * @default
-    */
-    this.zoomY = 1;
-
-    /**
     * The base increment at which the content will be zoomed.
     * @property {number} - See {@link Camera.zoom|zoom}.
     * @default
@@ -308,6 +287,51 @@ var Camera = function (options) {
     Object.defineProperty(this, 'viewportHeight', {
         get: function () {
             return this.el.clientHeight;
+        }
+    });
+
+    /**
+    * The amount of zoom.
+    * @name Camera#zoom
+    * @property {number} - Gets or sets the zoom. A ratio where 1 = 100%.
+    */
+    Object.defineProperty(this, 'zoom', {
+        get: function () {
+            return this.content.scaleX;
+        },
+
+        set: function (value) {
+            this.content.scaleX = value;
+        }
+    });
+    
+    /**
+    * The amount of zoom on the x-axis.
+    * @name Camera#zoomX
+    * @property {number} - Gets or sets the zoom on the x-axis. A ratio where 1 = 100%.
+    */
+    Object.defineProperty(this, 'zoomX', {
+        get: function () {
+            return this.content.scaleX;
+        },
+
+        set: function (value) {
+            this.content.scaleX = value;
+        }
+    });
+
+    /**
+    * The amount of zoom on the y-axis.
+    * @name Camera#zoomY
+    * @property {number} - Gets or sets the zoom on the y-axis. A ratio where 1 = 100%.
+    */
+    Object.defineProperty(this, 'zoomY', {
+        get: function () {
+            return this.content.scaleY;
+        },
+
+        set: function (value) {
+            this.content.scaleY = value;
         }
     });
     
@@ -393,11 +417,18 @@ p._animate = function (properties, duration, options) {
 
     timeline.to(this, duration, this.getTweenOptions({ 
             focusX: properties.focusX,
-            focusY: properties.focusY
+            focusY: properties.focusY,
+            zoom: properties.zoom,
+            zoomX: properties.zoom,
+            zoomY: properties.zoom
         }, options), 0)
         .to(this, 0, this.getTweenOptions({ 
             rotationOriginX: properties.rotationOriginX,
             rotationOriginY: properties.rotationOriginY
+        }, options), 0)
+        .to(this.content, duration, this.getTweenOptions({
+            x: properties.contentX,
+            y: properties.contentY
         }, options), 0)
         .to(this.content.transformEl, duration, this.getTweenOptions({ css: {
             scaleX: properties.zoom,
@@ -592,13 +623,9 @@ p._transformFocus = function (x, y, originX, originY, matrix) {
 * @return {Camera} - The view.
 */
 p._updateProps = function () {
-    var props = this.content.transformEl._gsTransform;
     var rotateProps = this.content.rotateEl._gsTransform;
 
     this.rotation = rotateProps.rotation;
-    this.zoom = props.scaleX;
-    this.zoomX = props.scaleX;
-    this.zoomY = props.scaleY;
     
     return this;
 };
@@ -1178,40 +1205,38 @@ p.shake = function (intensity, duration, direction, options) {
     this.shakeHorizontal = direction === this.shakeDirection.VERTICAL ? false : true;
     this.shakeVertical = direction === this.shakeDirection.HORIZONTAL ? false : true;
     
-    //var timeline = new TimelineMax({ paused: true });
+    var timeline = new TimelineMax();
     
     if (options.ease) {
-        TweenMax.fromTo(this, duration, {
+        timeline.fromTo(this, duration, {
             shakeIntensity: 0
         }, {
             ease: options.ease || Power0.easeNone,
             shakeIntensity: intensity
-        });
+        }, 0);
     }
     else if (options.data && (options.data.easeIn || options.data.easeOut)) {
-        TweenMax.fromTo(this, duration * 0.5, {
+        timeline.fromTo(this, duration * 0.5, {
             shakeIntensity: 0
         }, {
             ease: options.data.easeIn || Power0.easeNone,
             shakeIntensity: intensity
-        });
+        }, 0);
         
-        TweenMax.to(this, duration * 0.5, {
-            delay: duration * 0.5,
+        timeline.to(this, duration * 0.5, {
             ease: options.data.easeOut || Power0.easeNone,
             shakeIntensity: 0
-        });
+        }, duration * 0.5);
     }
     else {
         this.shakeIntensity = intensity;
     }
     
-    TweenMax.to(this.content.transformEl, duration, {
+    timeline.to(this.content.transformEl, duration, {
         data: {
             startX: startX,
             startY: startY
         },
-        scale: 1,
         onComplete: function (tween) {
             TweenMax.set(tween.target, { 
                 css: {
@@ -1225,9 +1250,7 @@ p.shake = function (intensity, duration, direction, options) {
         onUpdate: this._shake,
         onUpdateParams: ['{self}'],
         onUpdateScope: this,
-    });
-    
-    //timeline.play();
+    }, 0);
 };
 
 /**

@@ -23,7 +23,19 @@ var CameraContentView = Backbone.View.extend(
     * @lends CameraContentView.prototype
     */
     {
+        /**
+        * The scale of the x-axis.
+        * @property {number} - The scale of the x-axis.
+        * @default
+        */
+        scaleX: 1,
         
+        /**
+        * The scale of the y-axis.
+        * @property {number} - The scale of the y-axis.
+        * @default
+        */
+        scaleY: 1,
         
         /**
         * The 'x' position of the content.
