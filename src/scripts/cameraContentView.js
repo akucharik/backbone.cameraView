@@ -24,6 +24,13 @@ var CameraContentView = Backbone.View.extend(
     */
     {
         /**
+        * The rotation.
+        * @property {number} - A rotation value in degrees.
+        * @default
+        */
+        rotation: 0,
+        
+        /**
         * The scale of the x-axis.
         * @property {number} - The scale of the x-axis.
         * @default

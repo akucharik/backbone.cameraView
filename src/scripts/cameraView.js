@@ -155,13 +155,6 @@ var Camera = function (options) {
     this.maxZoom = 3;
 
     /**
-    * The rotation.
-    * @property {number} - A rotation value in degrees.
-    * @default
-    */
-    this.rotation = 0;
-
-    /**
     * @property {number} - The 'x' value of the rotation origin.
     * @default
     */
@@ -268,6 +261,21 @@ var Camera = function (options) {
         }
     });
 
+    /**
+    * The amount of rotation in degrees.
+    * @name Camera#rotation
+    * @property {number} - Gets or sets the rotation.
+    */
+    Object.defineProperty(this, 'rotation', {
+        get: function () {
+            return this.content.rotation;
+        },
+
+        set: function (value) {
+            this.content.rotation = value;
+        }
+    });
+    
     /**
     * The width of the viewport.
     * @name Camera#viewportWidth
@@ -400,7 +408,6 @@ p._animate = function (properties, duration, options) {
         },
         onStartParams: ["{self}"],
         onUpdate: function (timeline) { 
-            this._updateProps();
             this._updateTransformedFocus();
             
             this._renderDebug();
@@ -418,6 +425,7 @@ p._animate = function (properties, duration, options) {
     timeline.to(this, duration, this.getTweenOptions({ 
             focusX: properties.focusX,
             focusY: properties.focusY,
+            rotation: properties.rotation,
             zoom: properties.zoom,
             zoomX: properties.zoom,
             zoomY: properties.zoom
@@ -614,20 +622,6 @@ p._transformFocus = function (x, y, originX, originY, matrix) {
         x: originX + (relativeFocusX * matrix[0] + relativeFocusY * matrix[2]) - matrix[4],
         y: originY - (relativeFocusX * matrix[1] + relativeFocusY * matrix[3]) - matrix[5]
     };
-};
-
-/**
-* Updates the camera's properties after a transform.
-*
-* @private
-* @return {Camera} - The view.
-*/
-p._updateProps = function () {
-    var rotateProps = this.content.rotateEl._gsTransform;
-
-    this.rotation = rotateProps.rotation;
-    
-    return this;
 };
 
 /**
@@ -904,7 +898,6 @@ p.initialize = function (options) {
     this.draggable = new Draggable(this.content.transformEl, {
         onDrag: function (camera) {
             // 'this' refers to the Draggable instance
-            camera._updateProps();
             camera.focusX = (camera.viewportWidth / 2 - this.x) / camera.zoom;
             camera.focusY = (camera.viewportHeight / 2 - this.y) / camera.zoom;
             camera._updateTransformedFocus();
