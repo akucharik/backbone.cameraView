@@ -21,13 +21,14 @@ var BehaviorView = Backbone.View.extend({
             name: options.name || '',
             properties: options.properties || {}
         };
-        
-        this.render();
     },
 
     render: function() {
-        this.$el.html(this.template(this.model));
-    },
-    
-    template: _.template(document.getElementById('behaviorTemplate').innerHTML)
+        var template = '<button><%= name %></button>';
+        var compiledTemplate = _.template(template, { variable: 'data' });
+        
+        this.$el.html(compiledTemplate(this.model));
+        
+        return this;
+    }
 });
