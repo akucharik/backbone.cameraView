@@ -82,6 +82,13 @@ var Camera = function (options) {
     this.content = null;
 
     /**
+    * The debugging information view.
+    * @property {Backbone.View} - The debugging information view.
+    * @default null
+    */
+    this.debugView = null;
+    
+    /**
     * The default tween options. Used when values are being tweened and options are not provided.
     * @property {Object} - An object representing the default tween options.
     * @default
@@ -540,26 +547,7 @@ p._onWheel = function (event) {
 */
 p._renderDebug = function () {
     if (this.debug) {
-        this.debugAnimationsEl.innerHTML = Object.keys(this.animations).length;
-        this.debugFocusXEl.innerHTML = this.focusX;
-        this.debugFocusYEl.innerHTML = this.focusY;
-        this.debugTransformedFocusXEl.innerHTML = this.transformedFocusX;
-        this.debugTransformedFocusYEl.innerHTML = this.transformedFocusY;
-        this.debugIsAnimatingEl.innerHTML = this.isAnimating;
-        this.debugIsPausedEl.innerHTML = this.isPaused;
-        this.debugIsTransitioningEl.innerHTML = this.isTransitioning;
-        this.debugRotationEl.innerHTML = this.rotation;
-        this.debugRotationOriginXEl.innerHTML = this.rotationOriginX;
-        this.debugRotationOriginYEl.innerHTML = this.rotationOriginY;
-        this.debugTransformOriginXEl.innerHTML = this.transformOriginX;
-        this.debugTransformOriginYEl.innerHTML = this.transformOriginY;
-        this.debugZoomEl.innerHTML = this.zoom;
-        this.debugZoomXEl.innerHTML = this.zoomX;
-        this.debugZoomYEl.innerHTML = this.zoomY;
-        this.debugMinZoomEl.innerHTML = this.minZoom;
-        this.debugMaxZoomEl.innerHTML = this.maxZoom;
-        this.debugZoomOriginXEl.innerHTML = this.zoomOriginX;
-        this.debugZoomOriginYEl.innerHTML = this.zoomOriginY;
+        this.debugView.update();
     }
 };
 
@@ -866,6 +854,12 @@ p.initialize = function (options) {
         className: 'bcv-content-root',
         content: options.content
     })
+    
+    this.debugView = new DebugView({
+        model: this,
+        className: 'oculo-debug'
+    });
+    
     this.zoom = 1;
 
     Object.assign(this, pick(options, [
@@ -922,28 +916,6 @@ p.initialize = function (options) {
     this.$el.on('mouseleave', this._onMouseLeave.bind(this));
     this.$el.on('transitionend', this._onTransitionEnd.bind(this));
     this.$el.on('wheel', utils.throttleToFrame(this._onWheel.bind(this)));
-
-    this.debugAnimationsEl = document.getElementById('debugAnimations');
-    this.debugFocusXEl = document.getElementById('debugFocusX');
-    this.debugFocusYEl = document.getElementById('debugFocusY');
-    this.debugTransformedFocusXEl = document.getElementById('debugTransformedFocusX');
-    this.debugTransformedFocusYEl = document.getElementById('debugTransformedFocusY');
-    this.debugIsAnimatingEl = document.getElementById('debugIsAnimating');
-    this.debugIsPausedEl = document.getElementById('debugIsPaused');
-    this.debugIsTransitioningEl = document.getElementById('debugIsTransitioning');
-    this.debugRotationEl = document.getElementById('debugRotation');
-    this.debugRotationOriginXEl = document.getElementById('debugRotationOriginX');
-    this.debugRotationOriginYEl = document.getElementById('debugRotationOriginY');
-    this.debugTransformOriginXEl = document.getElementById('debugTransformOriginX');
-    this.debugTransformOriginYEl = document.getElementById('debugTransformOriginY');
-    this.debugZoomEl = document.getElementById('debugZoom');
-    this.debugZoomXEl = document.getElementById('debugZoomX');
-    this.debugZoomYEl = document.getElementById('debugZoomY');
-    this.debugMinZoomEl = document.getElementById('debugMinZoom');
-    this.debugMaxZoomEl = document.getElementById('debugMaxZoom');
-    this.debugZoomOriginXEl = document.getElementById('debugZoomOriginX');
-    this.debugZoomOriginYEl = document.getElementById('debugZoomOriginY');
-    this._renderDebug();
 
     this.onInitialize(options);
 
@@ -1074,6 +1046,10 @@ p.onRender = function () {
 */
 p.render = function () {
     this.onBeforeRender();
+    
+    this.debugView.render();
+    document.body.appendChild(this.debugView.el);
+    
     this.onRender();
 
     return this;

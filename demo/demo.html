@@ -105,30 +105,6 @@
                     <button id="flick">flick</button>
                 </li>-->
             </ul>
-            
-            <h2>Debug Data</h2>
-            <ul>
-                <li><label>animations:</label> <span id="debugAnimations"></span></li>
-                <li><label>focusX:</label> <span id="debugFocusX"></span></li>
-                <li><label>focusY:</label> <span id="debugFocusY"></span></li>
-                <li><label>transformedFocusX:</label> <span id="debugTransformedFocusX"></span></li>
-                <li><label>transformedFocusY:</label> <span id="debugTransformedFocusY"></span></li>
-                <li><label>isAnimating:</label> <span id="debugIsAnimating"></span></li>
-                <li><label>isPaused:</label> <span id="debugIsPaused"></span></li>
-                <li><label>isTransitioning:</label> <span id="debugIsTransitioning"></span></li>
-                <li><label>rotation:</label> <span id="debugRotation"></span></li>
-                <li><label>rotationOriginX:</label> <span id="debugRotationOriginX"></span></li>
-                <li><label>rotationOriginY:</label> <span id="debugRotationOriginY"></span></li>
-                <li><label>transformOriginX:</label> <span id="debugTransformOriginX"></span></li>
-                <li><label>transformOriginY:</label> <span id="debugTransformOriginY"></span></li>
-                <li><label>zoom:</label> <span id="debugZoom"></span></li>
-                <li><label>zoomX:</label> <span id="debugZoomX"></span></li>
-                <li><label>zoomY:</label> <span id="debugZoomY"></span></li>
-                <li><label>minZoom:</label> <span id="debugMinZoom"></span></li>
-                <li><label>maxZoom:</label> <span id="debugMaxZoom"></span></li>
-                <li><label>zoomOriginX:</label> <span id="debugZoomOriginX"></span></li>
-                <li><label>zoomOriginY:</label> <span id="debugZoomOriginY"></span></li>
-            </ul>
         </div>
     </div>
     
@@ -153,9 +129,6 @@
 
             initialize: function () {
                 // Views
-//                app.cameraContentView = new CameraContentView({
-//                    el: document.getElementById('content'),
-//                }).render();
                 app.camera = new Camera({
                     el: document.getElementById('camera'),
                     content: document.getElementById('content'),
@@ -192,12 +165,6 @@
                 $('#zoomAt').on('click', app.zoomAt);
                 $('#zoomOn').on('click', app.zoomOn);
                 
-                var debugView = new DebugView({
-                    model: app.camera,
-                    className: 'debug'
-                }).render().$el.appendTo('body');
-                
-//                window.cameraContentView = app.cameraContentView;
                 window.camera = app.camera;
             },
 
