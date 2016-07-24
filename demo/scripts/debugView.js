@@ -24,6 +24,9 @@ var DebugView = Backbone.View.extend({
         }, this);
         
         this.listenTo(this, 'change:isOpen', this.isOpenChange);
+        this.listenTo(this, 'append', this.checkScroll);
+        //TODO: Fix this crappy code
+        $(window).on('resize', this.checkScroll.bind(this));
     },
 
     events: {
@@ -32,8 +35,14 @@ var DebugView = Backbone.View.extend({
         'mouseleave': 'onMouseleave'
     },
     
+    // TODO: Fix this crappy code
+    append: function (element) {
+        element.appendChild(this.el);
+        this.trigger('append');
+    },
+    
     render: function() {
-        var template = '<h2>Debug Info</h2><ul class="content"></ul>';
+        var template = '<div class="oculo-panel-handle"></div><h2>Debug Info</h2><ul class="oculo-scrollable content"></ul><div class="oculo-scroll-indicator"></div>';
         var compiledTemplate = _.template(template, { variable: 'data' });
         var fragment = document.createDocumentFragment();
         
@@ -43,6 +52,9 @@ var DebugView = Backbone.View.extend({
         
         this.$el.html(compiledTemplate(this));
         this.$el.find('.content').append(fragment);
+        
+        // TODO: Fix this crappy code
+        this.$el.find('.oculo-scrollable').on('scroll', this.checkScroll.bind(this));
         
         return this;
     },
@@ -66,6 +78,23 @@ var DebugView = Backbone.View.extend({
     
     onMouseleave: function () {
         document.body.style.overflow = null;
+    },
+    
+    // TODO: Fix this crappy code
+    checkScroll: function () {
+        var scrollable = this.$el.find('.oculo-scrollable')[0];
+        
+        //console.log(scrollable.scrollTop(), scrollable.height(), scrollable[0].scrollHeight);
+        
+        console.log(scrollable.scrollTop, scrollable.clientHeight, scrollable.scrollHeight);
+        
+        if (scrollable.scrollHeight - scrollable.scrollTop === scrollable.clientHeight) {
+            console.log('hidden');
+            this.$el.find('.oculo-scroll-indicator').addClass('oculo-transparent');
+        }
+        else {
+            this.$el.find('.oculo-scroll-indicator').removeClass('oculo-transparent');
+        }
     },
     
     isOpenChange: function (value) {

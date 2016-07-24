@@ -1047,8 +1047,7 @@ p.onRender = function () {
 p.render = function () {
     this.onBeforeRender();
     
-    this.debugView.render();
-    document.body.appendChild(this.debugView.el);
+    this.debugView.render().append(document.body);
     
     this.onRender();
 

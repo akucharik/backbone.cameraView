@@ -25,14 +25,53 @@
 }
 
 .oculo-debug {
-    background-color: rgba(0,0,0,0.85);
-    color: #fff;
+    background-color: #ddd;
+    background: linear-gradient(45deg, #ccc 0%, #fff 50%, #fff 100%);
+    box-shadow: -4px 2px 10px rgba(0,0,0,0.4);
+    color: #444;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 30px 30px 30px;
+    position: fixed;
+    top: -5px;
+    right: 0;
+    bottom: -5px;
+    width: 400px;
+}
+
+.oculo-panel-handle {
+    background-color: #ccc;
+    border: 1px solid #999;
+    border-radius: 5px;
+    box-shadow: inset -3px 3px 3px rgba(0,0,0,0.5);
+    height: 50px;
+    margin-top: -25px;
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    width: 10px;
+}
+
+.oculo-scrollable {
+    height: 100%;
+    margin: 0;
     overflow-x: hidden;
     overflow-y: auto;
-    padding: 1.0em 3.0em;
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 400px;
+}
+
+.oculo-scroll-indicator {
+    height: 7px;
+    width: 30px;
+    background-color: red;
+    position: absolute;
+    left: 30px;
+    bottom: 20px;
+}
+
+.oculo-opaque {
+    opacity: 1;
+}
+
+.oculo-transparent {
+    opacity: 0;
 }
