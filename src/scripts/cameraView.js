@@ -1145,6 +1145,60 @@ p.rotateTo = function (rotation, duration, options) {
     return this;
 };
 
+// TODO: Should take a tween as a parameter so tween determines the properties to animate?
+p._animate2 = function (properties, duration, options) {
+    var timeline = null;
+    
+    if (!this.isAnimating) {
+        timeline = new TimelineMax({
+            data: {
+                id: uniqueId()
+            },
+            paused: this.isPaused,
+            callbackScope: this,
+            onStart: function (timeline) { 
+                this.isAnimating = true;
+                this.draggable.disable();
+            },
+            onStartParams: ['{self}'],
+            onUpdate: function (timeline) { 
+                //this._updateTransformedFocus();
+
+                // calculate and render values
+                TweenMax.set(this.content.transformEl, { 
+                    css: {
+                        scaleX: this.zoomX,
+                        scaleY: this.zoomY,
+                        x: this.contentX,
+                        y: this.contentY
+                    }
+                }, 0);
+                
+                this._renderDebug();
+            },
+            onUpdateParams: ['{self}'],
+            onComplete: function (timeline) { 
+                this.isAnimating = false;
+                this.draggable.enable();
+                this._renderDebug();
+            },
+            onCompleteParams: ['{self}']
+        });
+    }
+    else {
+        timeline = this.timeline;
+    }
+
+    timeline.to(this, duration, this.getTweenOptions({ 
+        focusX: properties.focusX,
+        focusY: properties.focusY,
+        zoomX: properties.zoomX,
+        zoomY: properties.zoomY
+    }, options), 0);
+
+    return timeline;
+};
+
 p._shake = function (tween) {
     var x = 0;
     var y = 0;
