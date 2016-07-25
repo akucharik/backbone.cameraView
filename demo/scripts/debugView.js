@@ -24,9 +24,8 @@ var DebugView = Backbone.View.extend({
         }, this);
         
         this.listenTo(this, 'change:isOpen', this.isOpenChange);
-        this.listenTo(this, 'append', this.checkScroll);
-        //TODO: Fix this crappy code
-        $(window).on('resize', this.checkScroll.bind(this));
+        
+        ScrollableView.install(this);
     },
 
     events: {
@@ -35,10 +34,10 @@ var DebugView = Backbone.View.extend({
         'mouseleave': 'onMouseleave'
     },
     
-    // TODO: Fix this crappy code
-    append: function (element) {
+    // TODO: Abstract to installable feature
+    attach: function (element) {
         element.appendChild(this.el);
-        this.trigger('append');
+        this.trigger('attach');
     },
     
     render: function() {
@@ -53,8 +52,7 @@ var DebugView = Backbone.View.extend({
         this.$el.html(compiledTemplate(this));
         this.$el.find('.content').append(fragment);
         
-        // TODO: Fix this crappy code
-        this.$el.find('.oculo-scrollable').on('scroll', this.checkScroll.bind(this));
+        this.trigger('render');
         
         return this;
     },
@@ -78,23 +76,6 @@ var DebugView = Backbone.View.extend({
     
     onMouseleave: function () {
         document.body.style.overflow = null;
-    },
-    
-    // TODO: Fix this crappy code
-    checkScroll: function () {
-        var scrollable = this.$el.find('.oculo-scrollable')[0];
-        
-        //console.log(scrollable.scrollTop(), scrollable.height(), scrollable[0].scrollHeight);
-        
-        console.log(scrollable.scrollTop, scrollable.clientHeight, scrollable.scrollHeight);
-        
-        if (scrollable.scrollHeight - scrollable.scrollTop === scrollable.clientHeight) {
-            console.log('hidden');
-            this.$el.find('.oculo-scroll-indicator').addClass('oculo-transparent');
-        }
-        else {
-            this.$el.find('.oculo-scroll-indicator').removeClass('oculo-transparent');
-        }
     },
     
     isOpenChange: function (value) {

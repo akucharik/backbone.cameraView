@@ -66,6 +66,7 @@
     position: absolute;
     left: 30px;
     bottom: 20px;
+    transition: all 0.5s;
 }
 
 .oculo-opaque {
