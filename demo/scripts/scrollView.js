@@ -18,17 +18,43 @@ class ScrollView {
             target[property] = ScrollView.prototype[property];
         });
         
-        target.hasScrolling = false;
-        
         // TODO: Pass in the element selectors as parameters
         target.scrollElement = null;
         target.scrollIndicatorElement = null;
         
-        // TODO: Set up non-enumerable read-only property that defines the position constants
-        target.scrollPosition = '';
-        target.scrollRatio = 0;
+        target._scrollPosition = 0;
+        
+        Object.defineProperty(target, 'scrollPosition', {
+            get: function () {
+                return this._scrollPosition;
+            },
+
+            set: function (value) {
+                if (value != this._scrollPosition) {
+                    this._scrollPosition = value;
+                    this.trigger('change:scrollPosition');
+                }
+            }
+        }); 
+        
+        // TODO: Should be able to remove "hasScrolling" and just use "scrollPosition"
+        target._hasScrolling = false;
+        
+        Object.defineProperty(target, 'hasScrolling', {
+            get: function () {
+                return this._hasScrolling;
+            },
+
+            set: function (value) {
+                if (value != this._hasScrolling) {
+                    this._hasScrolling = value;
+                    this.trigger('change:hasScrolling');
+                }
+            }
+        });  
         
         target.checkScroll = target.checkScroll.bind(target);
+        target.onScroll = target.onScroll.bind(target);
         
         target.listenTo(target, 'render', target.initializeScrollView);
         target.listenTo(target, 'attach', target.checkScroll);
@@ -42,7 +68,7 @@ class ScrollView {
     // TODO: Add documentation
     initializeScrollView () {
         this.scrollElement = this.el.querySelector('.oculo-scrollable');
-        this.scrollElement.addEventListener('scroll', this.onScroll.bind(this));
+        this.scrollElement.addEventListener('scroll', this.onScroll);
         
         this.scrollIndicatorElement = this.el.querySelector('.oculo-scroll-indicator');
         this.scrollIndicatorElement.style.opacity = 0;
@@ -54,34 +80,11 @@ class ScrollView {
     
     // TODO: Add documentation
     /**
-    * Checks if an element is scrolled to the bottom.
+    * Sets the scroll position.
     */
     checkScroll () {
-        // TODO: Rework change event emitting using defineProperty and _hasScrolling, _scrollPosition
-        var hasScrolling = this.hasScrolling;
-        var scrollPosition = this.scrollPosition;
-        
         this.hasScrolling = (this.scrollElement.scrollHeight === this.scrollElement.clientHeight) ? false : true;
-        
-        if (this.hasScrolling !== hasScrolling) {
-            this.trigger('change:hasScrolling');    
-        }
-        
-        if (this.scrollElement.scrollTop === 0) {
-            this.scrollPosition = 'top';
-        }
-        else if (this.scrollElement.scrollHeight - this.scrollElement.scrollTop === this.scrollElement.clientHeight) {
-            this.scrollPosition = 'bottom';
-        }
-        else {
-            this.scrollPosition = 'middle';
-        }
-        
-        if (this.scrollPosition !== scrollPosition) {
-            this.trigger('change:scrollPosition');    
-        }
-        
-        this.scrollRatio = this.scrollElement.scrollTop / (this.scrollElement.scrollHeight - this.scrollElement.clientHeight);
+        this.scrollPosition = this.hasScrolling ? this.scrollElement.scrollTop / (this.scrollElement.scrollHeight - this.scrollElement.clientHeight) : 1;
     }
     
     // TODO: Add documentation
@@ -90,12 +93,7 @@ class ScrollView {
     }
     
     // TODO: Add documentation
-    setScrollIndicatorVisibility (value) {
-        if (this.hasScrolling === true && this.scrollPosition !== 'bottom') {
-            this.scrollIndicatorElement.style.opacity = 1;
-        }
-        else {
-            this.scrollIndicatorElement.style.opacity = 0;
-        }
+    setScrollIndicatorVisibility () { console.log(this.scrollPosition);
+        this.scrollIndicatorElement.style.opacity = (this.hasScrolling && this.scrollPosition !== 1) ? 1 : 0;
     }
 }
