@@ -25,7 +25,7 @@ var DebugView = Backbone.View.extend({
         
         this.listenTo(this, 'change:isOpen', this.isOpenChange);
         
-        ScrollableView.install(this);
+        ScrollView.install(this);
     },
 
     events: {
@@ -63,6 +63,11 @@ var DebugView = Backbone.View.extend({
         });
         
         return this;
+    },
+    
+    destroy: function () {
+        this.trigger('destroy');
+        this.remove();
     },
     
     onClick: function () {

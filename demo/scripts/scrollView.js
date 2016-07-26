@@ -6,16 +6,16 @@
 */
 
 // TODO: Add documentation
-class ScrollableView {
+class ScrollView {
     constructor () {}
     
     // TODO: Add documentation
     static install (target, options) {
-        var properties = Object.getOwnPropertyNames(ScrollableView.prototype);
+        var properties = Object.getOwnPropertyNames(ScrollView.prototype);
         
         properties.splice(properties.indexOf('constructor'), 1);
         properties.forEach(function (property) {
-            target[property] = ScrollableView.prototype[property];
+            target[property] = ScrollView.prototype[property];
         });
         
         target.hasScrolling = false;
@@ -28,21 +28,28 @@ class ScrollableView {
         target.scrollPosition = '';
         target.scrollRatio = 0;
         
-        target.listenTo(target, 'render', target.initializeScrollableView);
+        target.checkScroll = target.checkScroll.bind(target);
+        
+        target.listenTo(target, 'render', target.initializeScrollView);
         target.listenTo(target, 'attach', target.checkScroll);
         target.listenTo(target, 'change:hasScrolling', target.setScrollIndicatorVisibility);
         target.listenTo(target, 'change:scrollPosition', target.setScrollIndicatorVisibility);
+        target.listenTo(target, 'destroy', target.destroyScrollView);
         
-        window.addEventListener('resize', target.checkScroll.bind(target));
+        window.addEventListener('resize', target.checkScroll);
     }
     
     // TODO: Add documentation
-    initializeScrollableView () {
+    initializeScrollView () {
         this.scrollElement = this.el.querySelector('.oculo-scrollable');
         this.scrollElement.addEventListener('scroll', this.onScroll.bind(this));
         
         this.scrollIndicatorElement = this.el.querySelector('.oculo-scroll-indicator');
         this.scrollIndicatorElement.style.opacity = 0;
+    }
+    
+    destroyScrollView () {
+        window.removeEventListener('resize', this.checkScroll);
     }
     
     // TODO: Add documentation
