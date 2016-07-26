@@ -19,81 +19,46 @@ class ScrollView {
         });
         
         // TODO: Pass in the element selectors as parameters
+        // TODO: Add documentation
         target.scrollElement = null;
+        
+        // TODO: Add documentation
         target.scrollIndicatorElement = null;
         
-        target._scrollPosition = 0;
+        // TODO: Add documentation
+        target.scrollPosition = 0; 
         
-        Object.defineProperty(target, 'scrollPosition', {
-            get: function () {
-                return this._scrollPosition;
-            },
-
-            set: function (value) {
-                if (value != this._scrollPosition) {
-                    this._scrollPosition = value;
-                    this.trigger('change:scrollPosition');
-                }
-            }
-        }); 
-        
-        // TODO: Should be able to remove "hasScrolling" and just use "scrollPosition"
-        target._hasScrolling = false;
-        
-        Object.defineProperty(target, 'hasScrolling', {
-            get: function () {
-                return this._hasScrolling;
-            },
-
-            set: function (value) {
-                if (value != this._hasScrolling) {
-                    this._hasScrolling = value;
-                    this.trigger('change:hasScrolling');
-                }
-            }
-        });  
-        
-        target.checkScroll = target.checkScroll.bind(target);
-        target.onScroll = target.onScroll.bind(target);
+        target.checkScrollPosition = target.checkScrollPosition.bind(target);
         
         target.listenTo(target, 'render', target.initializeScrollView);
-        target.listenTo(target, 'attach', target.checkScroll);
-        target.listenTo(target, 'change:hasScrolling', target.setScrollIndicatorVisibility);
-        target.listenTo(target, 'change:scrollPosition', target.setScrollIndicatorVisibility);
+        target.listenTo(target, 'attach', target.checkScrollPosition);
         target.listenTo(target, 'destroy', target.destroyScrollView);
         
-        window.addEventListener('resize', target.checkScroll);
+        window.addEventListener('resize', target.checkScrollPosition);
     }
     
     // TODO: Add documentation
     initializeScrollView () {
         this.scrollElement = this.el.querySelector('.oculo-scrollable');
-        this.scrollElement.addEventListener('scroll', this.onScroll);
+        this.scrollElement.addEventListener('scroll', this.checkScrollPosition);
         
         this.scrollIndicatorElement = this.el.querySelector('.oculo-scroll-indicator');
         this.scrollIndicatorElement.style.opacity = 0;
     }
     
+    // TODO: Add documentation
     destroyScrollView () {
-        window.removeEventListener('resize', this.checkScroll);
+        window.removeEventListener('resize', this.checkScrollPosition);
     }
     
     // TODO: Add documentation
     /**
-    * Sets the scroll position.
+    * Checks the scroll position and shows/hides the scroll indicator.
     */
-    checkScroll () {
-        this.hasScrolling = (this.scrollElement.scrollHeight === this.scrollElement.clientHeight) ? false : true;
-        this.scrollPosition = this.hasScrolling ? this.scrollElement.scrollTop / (this.scrollElement.scrollHeight - this.scrollElement.clientHeight) : 1;
-    }
-    
-    // TODO: Add documentation
-    onScroll () {
-        this.checkScroll();
-    }
-    
-    // TODO: Add documentation
-    setScrollIndicatorVisibility () { console.log(this.scrollPosition);
-        this.scrollIndicatorElement.style.opacity = (this.hasScrolling && this.scrollPosition !== 1) ? 1 : 0;
+    checkScrollPosition () {
+        var hiddenHeight = this.scrollElement.scrollHeight - this.scrollElement.clientHeight;
+        
+        this.scrollPosition = hiddenHeight > 0 ? this.scrollElement.scrollTop / hiddenHeight : 1;
+        this.scrollIndicatorElement.style.opacity = (this.scrollPosition !== 1) ? 1 : 0;
     }
 }
