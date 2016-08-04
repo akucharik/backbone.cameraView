@@ -31,12 +31,16 @@
     color: #444;
     display: flex;
     flex-direction: column;
-    padding: 10px 30px 30px 30px;
+    padding: 50px 30px 50px 30px;
     position: fixed;
     top: -5px;
     right: 0;
     bottom: -5px;
     width: 400px;
+}
+
+.oculo-debug h2 {
+    margin-top: 0;
 }
 
 .oculo-panel-handle {
@@ -52,27 +56,31 @@
     width: 10px;
 }
 
-.oculo-scrollable {
+.scrollview {
     height: 100%;
-    margin: 0;
+    position: relative;
+}
+
+.scrollview-scroll-element {
+    height: 100%;
     overflow-x: hidden;
     overflow-y: auto;
 }
 
-.oculo-scroll-indicator {
-    height: 7px;
-    width: 30px;
-    background-color: red;
+.scrollview-scroll-hint-top, 
+.scrollview-scroll-hint-bottom {
+    color: rgba(0,0,0,0.4);
+    font-size: 200%;
     position: absolute;
-    left: 30px;
-    bottom: 20px;
-    transition: all 0.5s;
+    left: 0;
+    transition: opacity 0.3s;
+    z-index: 101;
 }
 
-.oculo-opaque {
-    opacity: 1;
+.scrollview-scroll-hint-top {
+    top: -30px;
 }
 
-.oculo-transparent {
-    opacity: 0;
+.scrollview-scroll-hint-bottom {
+    bottom: -30px;
 }

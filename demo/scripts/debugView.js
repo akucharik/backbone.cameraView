@@ -5,90 +5,84 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
+// TODO: Add documentation
 var DebugView = Backbone.View.extend({
     initialize: function (options) {
-        var properties = Object.getOwnPropertyNames(this.model).sort().filter(function (property) {
-            return typeof this[property] !== 'function' && typeof this[property] !== 'object';
-        }, this.model);
+        // TODO: Add documentation
+        this.childView = new DebugScrollView({
+            model: this.model,
+            scrollHintTopClassName: 'fa fa-ellipsis-h',
+            scrollHintBottomClassName: 'fa fa-ellipsis-h'
+        });
         
-        this.isOpen = true;
-        this.propertyViews = new Array(properties.length);
+        // TODO: Add documentation
+        this._isOpen = true;
         
-        properties.forEach(function (property, index) {
-            this.propertyViews[index] = new DebugPropertyView({
-                className: 'oculo-debug-property',
-                model: this.model,
-                property: property,
-                tagName: 'li'
-            });
-        }, this);
+        // TODO: Add documentation
+        Object.defineProperty(this, 'isOpen', {
+            get: function () {
+                return this._isOpen;
+            },
+            
+            set: function (value) {
+                if (value !== this._isOpen) {
+                    this._isOpen = value;
+                    this.trigger('change:isOpen', value);
+                }
+            }
+        });
         
-        this.listenTo(this, 'change:isOpen', this.isOpenChange);
+        this.listenTo(this, 'change:isOpen', this.onIsOpenChange);
         
-        ScrollView.install(this);
+//        this.listenTo(this, 'attach', function () { console.log('attach debug: ' + this.cid); });
+//        this.listenTo(this, 'render', function () { console.log('render debug: ' + this.cid); });
+//        this.listenTo(this, 'update', function () { console.log('update debug: ' + this.cid); });
     },
 
     events: {
-        'click': 'onClick',
-        'mouseenter': 'onMouseenter',
-        'mouseleave': 'onMouseleave'
+        'click': 'onClick'
     },
     
     // TODO: Abstract to installable feature
     attach: function (element) {
         element.appendChild(this.el);
+        this.childView.trigger('attach');
         this.trigger('attach');
     },
     
     render: function() {
-        var template = '<div class="oculo-panel-handle"></div><h2>Debug Info</h2><ul class="oculo-scrollable content"></ul><div class="oculo-scroll-indicator"></div>';
+        var template = '<div class="oculo-panel-handle"></div>';
         var compiledTemplate = _.template(template, { variable: 'data' });
-        var fragment = document.createDocumentFragment();
         
-        this.propertyViews.forEach(function (view) {
-            fragment.appendChild(view.render().el);
-        });
-        
-        this.$el.html(compiledTemplate(this));
-        this.$el.find('.content').append(fragment);
-        
+        this.el.innerHTML = compiledTemplate(this);
+        this.el.appendChild(this.childView.render().el);
         this.trigger('render');
         
         return this;
     },
     
     update: function () {
-        this.propertyViews.forEach(function (view) {
-            view.update();
-        });
+        this.childView.update();
         
         return this;
     },
     
     destroy: function () {
+        this.childView.destroy();
         this.trigger('destroy');
         this.remove();
     },
     
     onClick: function () {
         this.isOpen = this.isOpen ? false : true;
-        this.trigger('change:isOpen', this.isOpen);
     },
     
-    onMouseenter: function () {
-        document.body.style.overflow = 'hidden';
-    },
-    
-    onMouseleave: function () {
-        document.body.style.overflow = null;
-    },
-    
-    isOpenChange: function (value) {
+    onIsOpenChange: function (value) {
         if (!value) {
-            TweenMax.to(this.el, 0.5, { x: this.$el.width() - 30 });
+            TweenMax.to(this.el, 0.3, { x: this.$el.width() - 30 });
         }
         else {
-            TweenMax.to(this.el, 0.5, { x: 0 });
+            TweenMax.to(this.el, 0.3, { x: 0 });
         }
     }
 });

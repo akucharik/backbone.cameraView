@@ -8,23 +8,34 @@
 var DebugPropertyView = Backbone.View.extend({
     initialize: function (options) {
         this.property = options.property || '';
+        
+//        this.listenTo(this, 'attach', function () { console.log('attach property: ' + this.property); });
+//        this.listenTo(this, 'render', function () { console.log('render property: ' + this.property); });
+//        this.listenTo(this, 'update', function () { console.log('update property: ' + this.property); });
     },
 
     render: function() {
-        var template = '<label><%= data.property %>:</label> <span class="value"><%= data.object[data.property] %></span>';
+        var template = '<label><%= data.property %>:</label> <span class="value"><%= data.model[data.property] %></span>';
         var compiledTemplate = _.template(template, { variable: 'data' });
         
-        this.$el.html(compiledTemplate({ 
-            object: this.model,
+        this.el.innerHTML = compiledTemplate({ 
+            model: this.model,
             property: this.property
-        }));
+        });
+        this.trigger('render');
         
         return this;
     },
     
     update: function () {
-        this.$('.value').html(this.model[this.property]);
+        this.el.querySelector('.value').innerHTML = this.model[this.property];
+        this.trigger('update');
         
         return this;
+    },
+    
+    destroy: function () {
+        this.trigger('destroy');
+        this.remove();
     }
 });
