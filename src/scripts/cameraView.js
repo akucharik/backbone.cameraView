@@ -1147,10 +1147,10 @@ p.rotateTo = function (rotation, duration, options) {
 
 // TODO: Should take a tween as a parameter so tween determines the properties to animate?
 p._animate2 = function (properties, duration, options) {
-    var timeline = null;
+    //var overwrite = false;
     
-    if (!this.isAnimating) {
-        timeline = new TimelineMax({
+    if (true) { //!this.timeline || overwrite) {
+        this.timeline = new TimelineMax({
             data: {
                 id: uniqueId()
             },
@@ -1164,6 +1164,7 @@ p._animate2 = function (properties, duration, options) {
             onUpdate: function (timeline) { 
                 //this._updateTransformedFocus();
 
+                console.log(this.zoomX);
                 // calculate and render values
                 TweenMax.set(this.content.transformEl, { 
                     css: {
@@ -1185,18 +1186,86 @@ p._animate2 = function (properties, duration, options) {
             onCompleteParams: ['{self}']
         });
     }
-    else {
-        timeline = this.timeline;
-    }
 
-    timeline.to(this, duration, this.getTweenOptions({ 
+    this.timeline.to(this, duration, this.getTweenOptions({ 
         focusX: properties.focusX,
         focusY: properties.focusY,
         zoomX: properties.zoomX,
         zoomY: properties.zoomY
     }, options), 0);
+    
+    return this;
+};
 
-    return timeline;
+// TODO: Needs to handle zoomXTo, zoomYTo, zoomTo
+/**
+* Zooms in/out at a specific point.
+*
+* @param {number} zoom - A {@link Camera.zoom|zoom} ratio.
+* @param {number} x - TODO.
+* @param {number} y - TODO.
+* @param {number} duration - TODO.
+* @param {Object} [options] - TODO.
+* @returns {Camera} The view.
+*/
+p._zoomAtXY2 = function (zoomX, zoomY, x, y, duration, options) {
+    zoomX = zoomX === null ? this.zoomX : zoomX;
+    zoomY = zoomY === null ? this.zoomY : zoomY;
+    x = x === null ? this.focusX : x;
+    y = x === null ? this.focusY : y;
+
+    zoomX = this.checkZoom(zoomX);
+    zoomY = this.checkZoom(zoomY);
+    
+    var focus, position;
+    var anchor = this.checkFocusBounds(x, y);
+    var deltaX = this.focusX - anchor.x;
+    var deltaY = this.focusY - anchor.y;
+    var zoomRatio = this.zoomX / zoomX;
+
+    this.zoomOriginX = x;
+    this.zoomOriginY = y;
+
+    focus = this.getContentFocus(this.focusX, this.focusY, deltaX, deltaY, zoomRatio);
+
+    position = this.getContentPosition(focus.x, focus.y, this.viewportWidth, this.viewportHeight, zoomX);
+
+    this._animate2({
+        zoomX: zoomX,
+        zoomY: zoomY,
+        focusX: focus.x, 
+        focusY: focus.y, 
+        contentX: position.x, 
+        contentY: position.y }, duration, options);
+
+    return this;
+};
+
+// TODO: Needs 3 options, zoomXTo, zoomYTo, zoomTo
+/**
+* Zooms in/out at the current focus.
+*
+* @param {number} zoom - A {@link Camera.zoom|zoom} ratio.
+* @param {number} duration - TODO.
+* @param {Object} [options] - TODO.
+* @returns {Camera} The view.
+*/
+p.zoomTo2 = function (zoom, duration, options) {
+    this._zoomAtXY2(zoom, zoom, null, null, duration, options);
+
+    return this;
+};
+
+p.zoomXTo2 = function (zoomX, duration, options) {
+    this._zoomAtXY2(zoomX, null, null, null, duration, options);
+
+    return this;
+};
+
+p.zoomYTo2 = function (zoomY, duration, options) {
+    this._zoomAtXY2(null, zoomY, null, null, duration, options);
+
+    return this;
 };
 
 p._shake = function (tween) {
