@@ -87,16 +87,14 @@ var Camera = function (options) {
     * @default null
     */
     this.debugView = null;
-    
+
     /**
     * The default tween options. Used when values are being tweened and options are not provided.
     * @property {Object} - An object representing the default tween options.
     * @default
     */
-    this.defaultTweenOptions = {
-        ease: Power2.easeOut
-    };
-
+    this.defaultTweenOptions = {};
+    
     /**
     * @property {Element} - TODO.
     */
@@ -142,6 +140,12 @@ var Camera = function (options) {
     this.isPaused = false;
 
     /**
+    * @property {boolean} - Whether the content is shaking or not.
+    * @default
+    */
+    this.isShaking = false;
+    
+    /**
     * @property {boolean} - Whether the content has an active CSS transition or not.
     * @default
     */
@@ -182,6 +186,60 @@ var Camera = function (options) {
         HORIZONTAL: 1,
         VERTICAL: 2
     };
+    
+    this.timeline = new TimelineMax({
+        data: {
+            id: uniqueId()
+        },
+        paused: true,
+        callbackScope: this,
+        onStart: function (timeline) { 
+            this.isAnimating = true;
+            this.draggable.disable();
+        },
+        onStartParams: ['{self}'],
+        onUpdate: function (timeline) {
+            var x = this.contentX;
+            var y = this.contentY;
+            
+            if (this.isShaking) {
+                if (this.shakeHorizontal) {
+                    x += Math.random() * this.shakeIntensity * this.width * 2 - this.shakeIntensity * this.width;
+                }
+
+                if (this.shakeVertical) {
+                    y += Math.random() * this.shakeIntensity * this.height * 2 - this.shakeIntensity * this.height;
+                }
+            }
+            
+            // render
+            TweenMax.set(this.content.transformEl, { 
+                css: {
+                    scaleX: this.zoomX,
+                    scaleY: this.zoomY,
+                    x: x,
+                    y: y
+                }
+            });
+
+            this._renderDebug();
+        },
+        onUpdateParams: ['{self}'],
+        onComplete: function (timeline) { 
+            console.log('camera TL complete');
+            // render position without effects applied
+            TweenMax.set(this.content.transformEl, { 
+                css: {
+                    x: this.contentX,
+                    y: this.contentY
+                }
+            });
+            this.isAnimating = false;
+            this.draggable.enable();
+            this._renderDebug();
+        },
+        onCompleteParams: ['{self}']
+    });
     
     /**
     * The camera's transformed 'x' focus position on the content.
@@ -268,6 +326,51 @@ var Camera = function (options) {
         }
     });
 
+    /**
+    * The content's x position.
+    * @name Camera#contentX
+    * @property {number} - Gets or sets the content's x position.
+    */
+    Object.defineProperty(this, 'contentX', {
+        get: function () {
+            return this.content.x;
+        },
+
+        set: function (value) {
+            this.content.x = value;
+        }
+    });
+    
+    /**
+    * The content's y position.
+    * @name Camera#contentY
+    * @property {number} - Gets or sets the content's y position.
+    */
+    Object.defineProperty(this, 'contentY', {
+        get: function () {
+            return this.content.y;
+        },
+
+        set: function (value) {
+            this.content.y = value;
+        }
+    });
+    
+    /**
+    * The default ease.
+    * @name Camera#defaultEase
+    * @property {Object} - Gets or sets the default ease.
+    */
+    Object.defineProperty(this, 'defaultEase', {
+        get: function () {
+            return TweenLite.defaultEase;
+        },
+
+        set: function (value) {
+            TweenLite.defaultEase = value;
+        }
+    });
+    
     /**
     * The amount of rotation in degrees.
     * @name Camera#rotation
@@ -864,6 +967,7 @@ p.initialize = function (options) {
 
     Object.assign(this, pick(options, [
         'debug',
+        'defaultEase',
         'bounds',
         'focusBounds',
         'focusX',
@@ -1146,53 +1250,12 @@ p.rotateTo = function (rotation, duration, options) {
 };
 
 // TODO: Should take a tween as a parameter so tween determines the properties to animate?
-p._animate2 = function (properties, duration, options) {
-    //var overwrite = false;
+p._animate2 = function (animation) {    
+    this.timeline.add(animation, this.timeline.time());
     
-    if (true) { //!this.timeline || overwrite) {
-        this.timeline = new TimelineMax({
-            data: {
-                id: uniqueId()
-            },
-            paused: this.isPaused,
-            callbackScope: this,
-            onStart: function (timeline) { 
-                this.isAnimating = true;
-                this.draggable.disable();
-            },
-            onStartParams: ['{self}'],
-            onUpdate: function (timeline) { 
-                //this._updateTransformedFocus();
-
-                console.log(this.zoomX);
-                // calculate and render values
-                TweenMax.set(this.content.transformEl, { 
-                    css: {
-                        scaleX: this.zoomX,
-                        scaleY: this.zoomY,
-                        x: this.contentX,
-                        y: this.contentY
-                    }
-                }, 0);
-                
-                this._renderDebug();
-            },
-            onUpdateParams: ['{self}'],
-            onComplete: function (timeline) { 
-                this.isAnimating = false;
-                this.draggable.enable();
-                this._renderDebug();
-            },
-            onCompleteParams: ['{self}']
-        });
+    if (this.timeline.paused) {
+        this.timeline.resume();
     }
-
-    this.timeline.to(this, duration, this.getTweenOptions({ 
-        focusX: properties.focusX,
-        focusY: properties.focusY,
-        zoomX: properties.zoomX,
-        zoomY: properties.zoomY
-    }, options), 0);
     
     return this;
 };
@@ -1209,13 +1272,10 @@ p._animate2 = function (properties, duration, options) {
 * @returns {Camera} The view.
 */
 p._zoomAtXY2 = function (zoomX, zoomY, x, y, duration, options) {
-    zoomX = zoomX === null ? this.zoomX : zoomX;
-    zoomY = zoomY === null ? this.zoomY : zoomY;
+    zoomX = this.checkZoom(zoomX === null ? this.zoomX : zoomX);
+    zoomY = this.checkZoom(zoomY === null ? this.zoomY : zoomY);
     x = x === null ? this.focusX : x;
-    y = x === null ? this.focusY : y;
-
-    zoomX = this.checkZoom(zoomX);
-    zoomY = this.checkZoom(zoomY);
+    y = y === null ? this.focusY : y;
     
     var focus, position;
     var anchor = this.checkFocusBounds(x, y);
@@ -1230,15 +1290,67 @@ p._zoomAtXY2 = function (zoomX, zoomY, x, y, duration, options) {
 
     position = this.getContentPosition(focus.x, focus.y, this.viewportWidth, this.viewportHeight, zoomX);
 
-    this._animate2({
+    this._animate2(TweenMax.to(this, duration, this.getTweenOptions({ 
+        contentX: position.x,
+        contentY: position.y,
+        focusX: focus.x,
+        focusY: focus.y,
         zoomX: zoomX,
-        zoomY: zoomY,
-        focusX: focus.x, 
-        focusY: focus.y, 
-        contentX: position.x, 
-        contentY: position.y }, duration, options);
+        zoomY: zoomY
+    }, options)));
 
     return this;
+};
+
+// camera.shake(0.1, 4, camera.shakeDirection.BOTH, { easeIn: Power2.easeIn, easeOut: Power2.easeOut })
+p.shake = function (intensity, duration, direction, options) {
+	options = options || {};
+    
+    this.shakeHorizontal = direction === this.shakeDirection.VERTICAL ? false : true;
+    this.shakeVertical = direction === this.shakeDirection.HORIZONTAL ? false : true;
+    
+    var timeline = new TimelineMax(Object.assign({}, options, {
+        onStart: function (timeline) {
+            this.isShaking = true;
+        },
+        onStartParams: ['{self}'],
+        onStartScope: this,
+        onComplete: function (timeline) {
+            TweenMax.set(this, { 
+                shakeIntensity: 0
+            });
+            this.isShaking = false;
+        },
+        onCompleteParams: ['{self}'],
+        onCompleteScope: this
+    })).to(this, duration, {}, 0);
+    
+    if (options.ease) {
+        timeline.fromTo(this, duration, {
+            shakeIntensity: 0
+        }, {
+            ease: options.ease || Power0.easeNone,
+            shakeIntensity: intensity
+        }, 0);
+    }
+    else if (options.easeIn || options.easeOut) {
+        timeline.fromTo(this, duration * 0.5, {
+            shakeIntensity: 0
+        }, {
+            ease: options.easeIn || Power0.easeNone,
+            shakeIntensity: intensity
+        }, 0);
+        
+        timeline.to(this, duration * 0.5, {
+            ease: options.easeOut || Power0.easeNone,
+            shakeIntensity: 0
+        }, duration * 0.5);
+    }
+    else {
+        this.shakeIntensity = intensity;
+    }
+    
+    this._animate2(timeline);
 };
 
 // TODO: Needs 3 options, zoomXTo, zoomYTo, zoomTo
@@ -1266,82 +1378,6 @@ p.zoomYTo2 = function (zoomY, duration, options) {
     this._zoomAtXY2(null, zoomY, null, null, duration, options);
 
     return this;
-};
-
-p._shake = function (tween) {
-    var x = 0;
-    var y = 0;
-    
-    if (this.shakeHorizontal) {
-        x = tween.data.startX + Math.random() * this.shakeIntensity * this.width * 2 - this.shakeIntensity * this.width;
-    }
-
-    if (this.shakeVertical) {
-        y = tween.data.startY + Math.random() * this.shakeIntensity * this.height * 2 - this.shakeIntensity * this.height;
-    }
-    //console.log('x: ', x, ' y: ', y);
-    TweenMax.set(tween.target, { 
-        css: {
-            x: x,
-            y: y
-        }
-    });
-};
-
-p.shake = function (intensity, duration, direction, options) {
-	options = options || { data: {} };
-    var startX = this.content.transformEl._gsTransform.x || 0;
-    var startY = this.content.transformEl._gsTransform.y || 0;
-    
-    this.shakeHorizontal = direction === this.shakeDirection.VERTICAL ? false : true;
-    this.shakeVertical = direction === this.shakeDirection.HORIZONTAL ? false : true;
-    
-    var timeline = new TimelineMax();
-    
-    if (options.ease) {
-        timeline.fromTo(this, duration, {
-            shakeIntensity: 0
-        }, {
-            ease: options.ease || Power0.easeNone,
-            shakeIntensity: intensity
-        }, 0);
-    }
-    else if (options.data && (options.data.easeIn || options.data.easeOut)) {
-        timeline.fromTo(this, duration * 0.5, {
-            shakeIntensity: 0
-        }, {
-            ease: options.data.easeIn || Power0.easeNone,
-            shakeIntensity: intensity
-        }, 0);
-        
-        timeline.to(this, duration * 0.5, {
-            ease: options.data.easeOut || Power0.easeNone,
-            shakeIntensity: 0
-        }, duration * 0.5);
-    }
-    else {
-        this.shakeIntensity = intensity;
-    }
-    
-    timeline.to(this.content.transformEl, duration, {
-        data: {
-            startX: startX,
-            startY: startY
-        },
-        onComplete: function (tween) {
-            TweenMax.set(tween.target, { 
-                css: {
-                    x: startX,
-                    y: startY
-                }
-            });
-        },
-        onCompleteParams: ['{self}'],
-        onCompleteScope: this,
-        onUpdate: this._shake,
-        onUpdateParams: ['{self}'],
-        onUpdateScope: this,
-    }, 0);
 };
 
 /**
