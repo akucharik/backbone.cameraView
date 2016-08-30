@@ -70,6 +70,17 @@ var Focuser = function () {
         }
     };
     
+    this.getContentFocusAxisValue = function (axisValue, newAxisValue, scaleRatio) {
+        if (_.isFinite(axisValue) && _.isFinite(newAxisValue)) {
+            var deltaAxisValue = axisValue - newAxisValue;
+            
+            return axisValue - deltaAxisValue + (deltaAxisValue * scaleRatio);
+        }
+        else {
+            throw new Error('Cannot determine focus');
+        }
+    };
+    
     /**
     * Get the x/y position of the content in relation to the frame given a focus position.
     *
@@ -86,6 +97,15 @@ var Focuser = function () {
                 x: _.round((frameWidth / 2) - (positionX * scale), 2),
                 y: _.round((frameHeight / 2) - (positionY * scale), 2)
             };
+        }
+        else {
+            throw new Error('Cannot determine position');
+        }
+    };
+    
+    this.getContentPositionAxisValue = function (axisValue, axisFrameSize, scale) {
+        if (_.isFinite(axisValue)) {
+            return _.round((axisFrameSize / 2) - (axisValue * scale), 2);
         }
         else {
             throw new Error('Cannot determine position');

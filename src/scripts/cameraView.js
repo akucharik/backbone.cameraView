@@ -31,6 +31,30 @@
 * @see http://zeptojs.com
 */
 
+/**
+* The GreenSock Animation Platform (GSAP).
+* @external GSAP
+* @see http://greensock.com/docs/#/HTML5/GSAP/
+*/
+
+/**
+* GSAP's TweenMax.
+* @external TweenMax
+* @see http://greensock.com/docs/#/HTML5/GSAP/TweenMax/
+*/
+
+/**
+* GSAP's TimelineMax.
+* @external TimelineMax
+* @see http://greensock.com/docs/#/HTML5/GSAP/TimelineMax/
+*/
+
+/**
+* GSAP's Easing.
+* @external Easing
+* @see http://greensock.com/docs/#/HTML5/GSAP/Easing/
+*/
+
 // TODO: Remove from the window object
 
 // Utilities (allows for easy swapping)
@@ -177,15 +201,22 @@ var Camera = function (options) {
     */
     this.rotationOriginY = 0;
 
-    // Move shake properties into tween's .data attribute (e.g. TweenMax.set(target, duration, { x: 0, data: { intensity: 0.1 }}))
+    /**
+    * @property {number} - The shake intensity. A value between 0 and 1.
+    */
     this.shakeIntensity = 0;
+    
+    /**
+    * @property {boolean} - Whether the camera should shake on the x axis.
+    * @default
+    */
     this.shakeHorizontal = true;
+    
+    /**
+    * @property {boolean} - Whether the camera should shake on the y axis.
+    * @default
+    */
     this.shakeVertical = true;
-    this.shakeDirection = {
-        BOTH: 0,
-        HORIZONTAL: 1,
-        VERTICAL: 2
-    };
     
     this.timeline = new TimelineMax({
         data: {
@@ -455,6 +486,25 @@ var Camera = function (options) {
     
     this.initialize(options);
     
+};
+
+/**
+* Shake directions.
+* @enum {number}
+*/
+Camera.shakeDirection = {
+    /**
+    * Both the x and y axes.
+    */
+    BOTH: 0,
+    /**
+    * The x axis.
+    */
+    HORIZONTAL: 1,
+    /**
+    * The y axis.
+    */
+    VERTICAL: 2
 };
 
 /**
@@ -773,7 +823,7 @@ p._wheelZoom = function (event) {
 * @returns {Camera} The view.
 */
 p._zoomAtXY = function (zoom, x, y, duration, options) {
-    zoom = this.checkZoom(zoom);
+    zoom = this.clampZoom(zoom);
 
     var focus, position;
     var anchor = this.checkFocusBounds(x, y);
@@ -809,7 +859,7 @@ p._zoomAtXY = function (zoom, x, y, duration, options) {
 * @returns {Camera} The view.
 */
 p._zoomOnXY = function (zoom, x, y, duration, options) {
-    zoom = this.checkZoom(zoom);
+    zoom = this.clampZoom(zoom);
 
     var focus = this.checkFocusBounds(x, y);
     var position = this.getContentPosition(focus.x, focus.y, this.viewportWidth, this.viewportHeight, zoom);
@@ -1065,16 +1115,8 @@ p.checkFocusBounds = function (x, y) {
 * @param {number} value - TODO.
 * @returns {number} The clamped zoom.
 */
-p.checkZoom = function (value) {
-    if (value === 'min') {
-        value = this.minZoom;
-    }
-
-    if (value === 'max') {
-        value = this.maxZoom;
-    }
-
-    return clamp(value, this.minZoom, this.maxZoom);;
+p.clampZoom = function (value) {
+    return clamp(value, this.minZoom, this.maxZoom);
 };
 
 /**
@@ -1260,54 +1302,64 @@ p._animate2 = function (animation) {
     return this;
 };
 
-// TODO: Needs to handle zoomXTo, zoomYTo, zoomTo
 /**
 * Zooms in/out at a specific point.
 *
-* @param {number} zoom - A {@link Camera.zoom|zoom} ratio.
-* @param {number} x - TODO.
-* @param {number} y - TODO.
-* @param {number} duration - TODO.
-* @param {Object} [options] - TODO.
-* @returns {Camera} The view.
+* @private
+* @param {number} zoomX - A {@link Camera#zoomX|zoomX} ratio for the x axis.
+* @param {number} zoomY - A {@link Camera#zoomY|zoomY} ratio for the y axis.
+* @param {number} x - A x axis anchor value.
+* @param {number} y - A y axis anchor value.
+* @param {number} duration - A duration.
+* @param {Object} [options] - An object of {@link external:TweenMax|TweenMax} options.
+* @returns {Camera} The camera.
 */
 p._zoomAtXY2 = function (zoomX, zoomY, x, y, duration, options) {
-    zoomX = this.checkZoom(zoomX === null ? this.zoomX : zoomX);
-    zoomY = this.checkZoom(zoomY === null ? this.zoomY : zoomY);
+    zoomX = this.clampZoom(zoomX === null ? this.zoomX : zoomX);
+    zoomY = this.clampZoom(zoomY === null ? this.zoomY : zoomY);
     x = x === null ? this.focusX : x;
     y = y === null ? this.focusY : y;
     
-    var focus, position;
     var anchor = this.checkFocusBounds(x, y);
-    var deltaX = this.focusX - anchor.x;
-    var deltaY = this.focusY - anchor.y;
-    var zoomRatio = this.zoomX / zoomX;
-
+    var focusX = this.getContentFocusAxisValue(this.focusX, anchor.x, this.zoomX / zoomX);
+    var focusY = this.getContentFocusAxisValue(this.focusY, anchor.y, this.zoomY / zoomY);
+    var positionX = this.getContentPositionAxisValue(focusX, this.viewportWidth, zoomX);
+    var positionY = this.getContentPositionAxisValue(focusY, this.viewportHeight, zoomY);
+    
     this.zoomOriginX = x;
     this.zoomOriginY = y;
 
-    focus = this.getContentFocus(this.focusX, this.focusY, deltaX, deltaY, zoomRatio);
-
-    position = this.getContentPosition(focus.x, focus.y, this.viewportWidth, this.viewportHeight, zoomX);
-
-    this._animate2(TweenMax.to(this, duration, this.getTweenOptions({ 
-        contentX: position.x,
-        contentY: position.y,
-        focusX: focus.x,
-        focusY: focus.y,
+    this._animate2(TweenMax.to(this, duration, Object.assign({}, options, { 
+        contentX: positionX,
+        contentY: positionY,
+        focusX: focusX,
+        focusY: focusY,
         zoomX: zoomX,
         zoomY: zoomY
-    }, options)));
+    })));
 
     return this;
 };
 
-// camera.shake(0.1, 4, camera.shakeDirection.BOTH, { easeIn: Power2.easeIn, easeOut: Power2.easeOut })
+/**
+* Shakes the camera.
+*
+* @param {number} intensity - A {@link Camera#shakeIntensity|shake intensity}.
+* @param {number} duration - A duration.
+* @param {Camera.shakeDirection} [direction=Camera.shakeDirection.BOTH] - A shake direction. 
+* @param {Object} [options] - An object of {@link external:TweenMax|TweenMax} options plus:
+* @param {Object} [options.easeIn] - An {@link external:Easing|Easing}.
+* @param {Object} [options.easeOut] - An {@link external:Easing|Easing}.
+* @returns {Camera} The camera.
+*
+* @example
+* camera.shake(0.1, 4, camera.shakeDirection.BOTH, { easeIn: Power2.easeIn, easeOut: Power2.easeOut })
+*/
 p.shake = function (intensity, duration, direction, options) {
 	options = options || {};
     
-    this.shakeHorizontal = direction === this.shakeDirection.VERTICAL ? false : true;
-    this.shakeVertical = direction === this.shakeDirection.HORIZONTAL ? false : true;
+    this.shakeHorizontal = direction === Camera.shakeDirection.VERTICAL ? false : true;
+    this.shakeVertical = direction === Camera.shakeDirection.HORIZONTAL ? false : true;
     
     var timeline = new TimelineMax(Object.assign({}, options, {
         onStart: function (timeline) {
@@ -1353,14 +1405,16 @@ p.shake = function (intensity, duration, direction, options) {
     this._animate2(timeline);
 };
 
-// TODO: Needs 3 options, zoomXTo, zoomYTo, zoomTo
 /**
 * Zooms in/out at the current focus.
 *
-* @param {number} zoom - A {@link Camera.zoom|zoom} ratio.
-* @param {number} duration - TODO.
-* @param {Object} [options] - TODO.
-* @returns {Camera} The view.
+* @param {number} zoom - A zoom ratio for both axes.
+* @param {number} duration - A duration.
+* @param {Object} [options] - An object of {@link external:TweenMax|TweenMax} options.
+* @returns {Camera} The camera.
+*
+* @example
+* camera.zoomTo(2, 1, { ease: Power2.easeIn })
 */
 p.zoomTo2 = function (zoom, duration, options) {
     this._zoomAtXY2(zoom, zoom, null, null, duration, options);
@@ -1368,12 +1422,34 @@ p.zoomTo2 = function (zoom, duration, options) {
     return this;
 };
 
+/**
+* Zooms the x axis in/out at the current focus.
+*
+* @param {number} zoom - A {@link Camera#zoomX|zoomX} ratio for the x axis.
+* @param {number} duration - A duration.
+* @param {Object} [options] - An object of {@link external:TweenMax|TweenMax} options.
+* @returns {Camera} The camera.
+*
+* @example
+* camera.zoomXTo(2, 1, { ease: Power2.easeIn })
+*/
 p.zoomXTo2 = function (zoomX, duration, options) {
     this._zoomAtXY2(zoomX, null, null, null, duration, options);
 
     return this;
 };
 
+/**
+* Zooms the y axis in/out at the current focus.
+*
+* @param {number} zoom - A {@link Camera#zoomY|zoomY} ratio for the y axis.
+* @param {number} duration - A duration.
+* @param {Object} [options] - An object of {@link external:TweenMax|TweenMax} options.
+* @returns {Camera} The camera.
+*
+* @example
+* camera.zoomYTo(2, 1, { ease: Power2.easeIn })
+*/
 p.zoomYTo2 = function (zoomY, duration, options) {
     this._zoomAtXY2(null, zoomY, null, null, duration, options);
 
