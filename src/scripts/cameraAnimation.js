@@ -84,6 +84,44 @@ Animation.prototype.constructor = Animation;
 var a = Animation.prototype;
 
 /**
+* Focus the camera on a point.
+*
+* @private
+* @param {number} x - The 'x' position on the unzoomed content.
+* @param {number} y - The 'y' position on the unzoomed content.
+* @param {number} duration - TODO.
+* @param {Object} [options] - TODO.
+* @returns {Camera} The view.
+*/
+a._focusOnXY = function (x, y, duration, options, position) {
+    this.add(TweenMax.to(this.camera, duration, Object.assign({}, options, { 
+        data: {
+            x: x === null ? this.camera.focusX : x,
+            y: y === null ? this.camera.focusY : y
+        },
+        callbackScope: this,
+        onStart: function (tween) { 
+            var focus = this.camera.checkFocusBounds(tween.data.x, tween.data.y);
+            var vector = this.camera.getContentPosition(focus.x, focus.y, this.camera.viewportWidth, this.camera.viewportHeight, this.camera.zoomX);
+            // TODO: This must be a 2D matrix. Ensure a 2D matrix is returned.
+            var tMatrix = utils.getTransformMatrix(this.camera.content.rotateEl);
+            var tPositionX = vector.x * tMatrix[0] + vector.y * tMatrix[2];
+            var tPositionY = vector.x * tMatrix[1] + vector.y * tMatrix[3];
+            
+            tween.updateTo({
+                contentX: tPositionX, 
+                contentY: tPositionY,
+                focusX: focus.x,
+                focusY: focus.y,
+            });
+        },
+        onStartParams: ['{self}']
+    })), position);
+
+    return this;
+};
+
+/**
 * Zooms in/out at a specific point.
 *
 * @private
@@ -123,8 +161,77 @@ a._zoomAtXY = function (zoomX, zoomY, x, y, duration, options, position) {
     return this;
 };
 
+a._zoomTo = function (zoomX, zoomY, duration, options, position) {
+    this.add(TweenMax.to(this.camera, duration, Object.assign({}, options, { 
+        data: {
+            zoomX: this.camera.clampZoom(zoomX === null ? this.camera.zoomX : zoomX),
+            zoomY: this.camera.clampZoom(zoomY === null ? this.camera.zoomY : zoomY)
+        },
+        callbackScope: this,
+        onStart: function (tween) { 
+            var positionX = this.camera.getContentPositionAxisValue(this.camera.focusX, this.camera.viewportWidth, zoomX);
+            var positionY = this.camera.getContentPositionAxisValue(this.camera.focusY, this.camera.viewportHeight, zoomY);
+            
+            this.camera.zoomOriginX = this.camera.focusX;
+            this.camera.zoomOriginY = this.camera.focusY;
+            
+            tween.updateTo({
+                contentX: positionX,
+                contentY: positionY,
+                focusX: this.camera.focusX,
+                focusY: this.camera.focusY,
+                zoomX: tween.data.zoomX,
+                zoomY: tween.data.zoomY
+            });
+        },
+        onStartParams: ['{self}']
+    })), position);
+
+    return this;
+};
+
 /**
-* Shakes the camera.
+* Focus on an element.
+*
+* @param {Element} focus - An element.
+* @param {number} duration - TODO.
+* @param {Object} [options] - TODO.
+* @returns {Camera} The view.
+*//**
+* Focus on a point.
+*
+* @param {number} x - The 'x' position on the unzoomed content.
+* @param {number} y - The 'y' position on the unzoomed content.
+* @param {number} duration - TODO.
+* @param {Object} [options] - TODO.
+* @returns {Camera} The view.
+*/
+a.focusOn = function (x, y, duration, options, position) {
+    // Focus on an element
+    if (arguments.length >= 2 && _.isElement(arguments[0])) {
+        var el = x;
+        var duration = y;
+        var options = duration;
+        var position = options;
+        var vector = this.camera.getElementFocus(window, this.camera.content.transformEl.getBoundingClientRect(), el.getBoundingClientRect(), this.camera.zoom);
+
+        this._focusOnXY(vector.x, vector.y, duration, options, position);
+    }
+
+    // Focus on a vector
+    else if (arguments.length >= 3) {
+        this._focusOnXY(x, y, duration, options, position);
+    }
+
+    else {
+        throw new Error(constants.errorMessage.METHOD_SIGNATURE);
+    }
+
+    return this;
+};
+
+/**
+* Shakes.
 *
 * @param {number} intensity - A {@link Camera#shakeIntensity|shake intensity}.
 * @param {number} duration - A duration.
@@ -203,7 +310,7 @@ a.shake = function (intensity, duration, direction, options, position) {
 * animation.zoomTo(2, 1, { ease: Power2.easeIn })
 */
 a.zoomTo = function (zoom, duration, options, position) {
-    this._zoomAtXY(zoom, zoom, null, null, duration, options, position);
+    this._zoomTo(zoom, zoom, duration, options, position);
 
     return this;
 };
@@ -221,7 +328,7 @@ a.zoomTo = function (zoom, duration, options, position) {
 * animation.zoomXTo(2, 1, { ease: Power2.easeIn })
 */
 a.zoomXTo = function (zoomX, duration, options, position) {
-    this._zoomAtXY(zoomX, null, null, null, duration, options, position);
+    this._zoomTo(zoomX, null, duration, options, position);
 
     return this;
 };
@@ -239,7 +346,7 @@ a.zoomXTo = function (zoomX, duration, options, position) {
 * animation.zoomYTo(2, 1, { ease: Power2.easeIn })
 */
 a.zoomYTo = function (zoomY, duration, options, position) {
-    this._zoomAtXY(null, zoomY, null, null, duration, options, position);
+    this._zoomTo(null, zoomY, duration, options, position);
 
     return this;
 };
