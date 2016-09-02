@@ -55,6 +55,7 @@
 var clamp = _.clamp;
 var isElement = _.isElement;
 var isFinite = _.isFinite;
+var isObject = _.isObject;
 var isString = _.isString;
 var pick = _.pick;
 var uniqueId = _.uniqueId;
