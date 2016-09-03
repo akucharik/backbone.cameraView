@@ -133,20 +133,6 @@ var Camera = function (options) {
     this.focusBounds = null;
 
     /**
-    * The camera's 'x' focus position on the content.
-    * @property {number} - A pixel value.
-    * @default
-    */
-    this.focusX = 0;
-
-    /**
-    * The camera's 'y' focus position on the content.
-    * @property {number} - A pixel value.
-    * @default
-    */
-    this.focusY = 0;
-
-    /**
     * @property {boolean} - Whether the content is animating or not.
     * @default
     */
@@ -342,6 +328,28 @@ var Camera = function (options) {
 
         set: function (value) {
             TweenLite.defaultEase = value;
+        }
+    });
+    
+    /**
+    * The x position on which the camera is focused.
+    * @name Camera#focusX
+    * @property {number} - Gets the x position on which the camera is focused.
+    */
+    Object.defineProperty(this, 'focusX', {
+        get: function () {
+            return _.round((this.width / 2 - this.contentX) / this.zoomX, 2)
+        }
+    });
+    
+    /**
+    * The y position on which the camera is focused.
+    * @name Camera#focusY
+    * @property {number} - Gets the y position on which the camera is focused.
+    */
+    Object.defineProperty(this, 'focusY', {
+        get: function () {
+            return _.round((this.height / 2 - this.contentY) / this.zoomY, 2)
         }
     });
     
@@ -963,8 +971,6 @@ p.initialize = function (options) {
         'defaultEase',
         'bounds',
         'focusBounds',
-        'focusX',
-        'focusY',
         'zoom',
         'minZoom',
         'maxZoom',
@@ -975,6 +981,8 @@ p.initialize = function (options) {
         'y',
     ]));
 
+    this.contentX = this.getContentPositionAxisValue(options.focusX, this.width, this.zoomX) ;
+    this.contentY = this.getContentPositionAxisValue(options.focusY, this.height, this.zoomY);
     this.rotationOriginX = this.focusX;
     this.rotationOriginY = this.focusY;
     this.transformedFocusX = this.focusX;

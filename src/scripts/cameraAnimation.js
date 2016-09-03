@@ -72,10 +72,11 @@ var Animation = function (camera, options) {
             this.camera._renderDebug();
         }
     }));
-}
+};
 
 Animation.prototype = Object.create(TimelineMax.prototype);
 Animation.prototype.constructor = Animation;
+Camera.Animation = Animation;
 
 /**
 * @lends Camera.Animation.prototype
@@ -109,9 +110,7 @@ a._focusOnXY = function (x, y, duration, options, position) {
             
             tween.updateTo({
                 contentX: tPositionX, 
-                contentY: tPositionY,
-                focusX: focus.x,
-                focusY: focus.y,
+                contentY: tPositionY
             });
         },
         onStartParams: ['{self}']
@@ -155,8 +154,6 @@ a._zoomAtXY = function (zoomX, zoomY, x, y, duration, options, position) {
             tween.updateTo({
                 contentX: positionX,
                 contentY: positionY,
-                focusX: focusX,
-                focusY: focusY,
                 zoomX: tween.data.zoomX,
                 zoomY: tween.data.zoomY
             });
@@ -184,8 +181,6 @@ a._zoomTo = function (zoomX, zoomY, duration, options, position) {
             tween.updateTo({
                 contentX: positionX,
                 contentY: positionY,
-                focusX: this.camera.focusX,
-                focusY: this.camera.focusY,
                 zoomX: tween.data.zoomX,
                 zoomY: tween.data.zoomY
             });
@@ -356,13 +351,13 @@ a.zoomAt = function (zoom, x, y, duration, options, position) {
     // Zoom at an element
     if (arguments.length >= 3 && _.isElement(x)) {
         var el = x;
-        var duration = y;
-        var options = duration;
         var vector = this.camera.getElementFocus(window, this.camera.content.transformEl.getBoundingClientRect(), el.getBoundingClientRect(), this.camera.zoom);
 
-        x = vector.x;
+        position = options;
+        options = duration;
+        duration = y;
         y = vector.y;
-        
+        x = vector.x;
     }
     else if (arguments.length < 3){
         throw new Error(constants.errorMessage.METHOD_SIGNATURE);
@@ -410,5 +405,3 @@ a.zoomTo = function (zoom, duration, options, position) {
 
     return this;
 };
-
-Camera.Animation = Animation;
