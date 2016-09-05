@@ -228,6 +228,18 @@ var Camera = function (options) {
     this.transformOriginY = 0;
 
     /**
+    * @property {number} - The camera's x position on the content.
+    * @default
+    */
+    this.x = 0;
+    
+    /**
+    * @property {number} - The camera's y position on the content.
+    * @default
+    */
+    this.y = 0;
+    
+    /**
     * The base increment at which the content will be zoomed.
     * @property {number} - See {@link Camera.zoom|zoom}.
     * @default

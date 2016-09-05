@@ -27,6 +27,13 @@ var Focuser = function () {
             y: _.round((elRect.height / scale / 2) + (elRect.top / scale + window.scrollY) - (containerRect.top / scale + window.scrollY), 2)
         };
     };
+    
+    this.getElementCenter = function (window, containerRect, elRect, scaleX, scaleY) {
+        return {
+            x: _.round((elRect.width / scaleX / 2) + (elRect.left / scaleX + window.scrollX) - (containerRect.left / scaleX + window.scrollX), 2),
+            y: _.round((elRect.height / scaleY / 2) + (elRect.top / scaleY + window.scrollY) - (containerRect.top / scaleY + window.scrollY), 2)
+        };
+    };
 
     /**
     * Get the x/y container offset to focus/center on a position.
@@ -81,6 +88,22 @@ var Focuser = function () {
         }
     };
     
+    this.calculateFocus = function (focusX, focusY, anchorX, anchorY, scaleRatioX, scaleRatioY) {
+        if (_.isFinite(focusX) && _.isFinite(focusY) && _.isFinite(anchorX) && _.isFinite(anchorY)) {
+            var deltaX = focusX - anchorX;
+            var deltaY = focusY - anchorY;
+            
+            return {
+                x: focusX - deltaX + (deltaX * scaleRatioX),
+                y: focusY - deltaY + (deltaY * scaleRatioY)
+            }
+            axisValue - deltaAxisValue + (deltaAxisValue * scaleRatio);
+        }
+        else {
+            throw new Error('Cannot determine focus');
+        }
+    };
+    
     /**
     * Get the x/y position of the content in relation to the frame given a focus position.
     *
@@ -96,6 +119,18 @@ var Focuser = function () {
             return {
                 x: _.round((frameWidth / 2) - (positionX * scale), 2),
                 y: _.round((frameHeight / 2) - (positionY * scale), 2)
+            };
+        }
+        else {
+            throw new Error('Cannot determine position');
+        }
+    };
+    
+    this.calculatePosition = function (focusX, focusY, cameraWidth, cameraHeight, scaleX, scaleY) {
+        if (_.isFinite(focusX) && _.isFinite(focusY)) {
+            return {
+                x: _.round((focusX * scaleX) - (cameraWidth / 2), 2),
+                y: _.round((focusY * scaleY) - (cameraHeight / 2), 2)
             };
         }
         else {
