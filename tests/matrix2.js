@@ -70,6 +70,17 @@ test('Matrix2', function() {
             expect(m1.e22).to.equal(2);
         });
     });
+    
+    test('Matrix2.rotate', function() {
+        assert('should apply a rotation to the provided matrix', function() {
+            m.set(1,0,0,1);
+            var m1 = Matrix2.rotate(m, 0.35);
+            expect(m1.e11).to.equal(0.9393727128473789);
+            expect(m1.e12).to.equal(-0.34289780745545134);
+            expect(m1.e21).to.equal(0.34289780745545134);
+            expect(m1.e22).to.equal(0.9393727128473789);
+        });
+    });
 
     test('Matrix2.toArray', function() {
         assert('should return an Array', function() {
@@ -165,6 +176,15 @@ test('Matrix2', function() {
             expect(m).to.deep.equal(m2);
         });
     });
+    
+    test('copy', function() {
+        assert('should copy the values from the provided matrix into this matrix', function() {
+            m.set(1,2,3,1);
+            var m2 = new Matrix2(2,3,4,2);
+            m.copy(m2);
+            expect(m).to.deep.equal(m2);
+        });
+    });
 
     test('getDeterminant', function() {
         assert('should get the determinant', function() {
@@ -214,6 +234,17 @@ test('Matrix2', function() {
         });
     });
 
+    test('rotate', function() {
+        assert('should rotate the matrix by the provided angle', function() {
+            m.set(1,0,0,1);
+            m.rotate(0.35);
+            expect(m.e11).to.equal(0.9393727128473789);
+            expect(m.e12).to.equal(-0.34289780745545134);
+            expect(m.e21).to.equal(0.34289780745545134);
+            expect(m.e22).to.equal(0.9393727128473789);
+        });
+    });
+    
     test('set', function() {
         assert('should set its values to the provided values', function() {
             m.set(1,2,3,1);

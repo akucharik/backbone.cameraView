@@ -29,7 +29,7 @@ var build = {
     }
 };
 
-gulp.task('build', ['scripts', 'styles', 'test', 'docs'], function () {
+gulp.task('build', ['scripts', 'styles', 'tests', 'docs'], function () {
     
 });
 
@@ -69,7 +69,7 @@ gulp.task('styles:watch', ['clean'], function () {
     gulp.watch(build.styles.source, ['sass']);
 });
 
-gulp.task('test', function () {
+gulp.task('tests', function () {
 	return gulp.src(build.tests.source, {
             read: false
         })

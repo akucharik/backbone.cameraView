@@ -59,7 +59,7 @@ class Matrix2 {
     /**
     * Clones the matrix.
     * {Matrix2} m - The matrix to clone.
-    * @return {Matrix2} - A new identical matrix.
+    * @return {Matrix2} A new identical matrix.
     */
     static clone (m) {
         return new Matrix2(Matrix2.toArray(m));
@@ -67,16 +67,25 @@ class Matrix2 {
     
     /**
     * Clones the matrix.
-    * @return {Matrix2} - A new identical matrix.
+    * @return {Matrix2} A new identical matrix.
     */
     clone () {
         return this.constructor.clone(this);
     }
     
     /**
+    * Copies the values from the provided matrix into this matrix.
+    * {Matrix2} m - The matrix to copy.
+    * @return {this} self
+    */
+    copy (m) {
+        return this.set(m.e11, m.e12, m.e21, m.e22);
+    }
+    
+    /**
     * Gets the determinant.
     * {Matrix2} m - The matrix to get the determinant.
-    * @return {number} - The determinant.
+    * @return {number} The determinant.
     */
     static getDeterminant (m) {
         return m.e11 * m.e22 - m.e12 * m.e21;
@@ -84,7 +93,7 @@ class Matrix2 {
     
     /**
     * Gets the determinant.
-    * @return {number} - The determinant.
+    * @return {number} The determinant.
     */
     getDeterminant () {
         return this.constructor.getDeterminant(this);
@@ -93,7 +102,7 @@ class Matrix2 {
     /**
     * Gets the inverse.
     * {Matrix2} m - The matrix to get the inverse.
-    * @return {Matrix2} - The inverse matrix.
+    * @return {Matrix2} The inverse matrix.
     */
     static getInverse (m) {
         return Matrix2.multiplyScalar(m, 1 / Matrix2.getDeterminant(m));
@@ -101,7 +110,7 @@ class Matrix2 {
     
     /**
     * Gets the inverse.
-    * @return {Matrix2} - The inverse matrix.
+    * @return {Matrix2} The inverse matrix.
     */
     getInverse () {
         return this.constructor.getInverse(this);
@@ -111,11 +120,11 @@ class Matrix2 {
     * Multiplies two matrices.
     * @param {Matrix2} a - A matrix.
     * @param {Matrix2} b - Another matrix.
-    * @return {Matrix2} - A new matrix that is the product of the provided matrices.
+    * @return {Matrix2} A new matrix that is the product of the provided matrices.
     *//**
     * Multiplies a list of matrices.
     * @param {Array} m - A list of matrices.
-    * @return {Matrix2} - A new matrix that is the product of the provided matrices.
+    * @return {Matrix2} A new matrix that is the product of the provided matrices.
     */
     static multiplyMatrices (a, b) {
         if (Array.isArray(a)) {
@@ -141,11 +150,11 @@ class Matrix2 {
     /**
     * Multiplies the matrix by another matrix.
     * @param {Matrix2|Matrix2D} m - a matrix.
-    * @return {Matrix2} - The matrix.
+    * @return {this} self
     *//**
     * Multiplies the matrix by a list of matrices.
     * @param {Array} m - A list of matrices.
-    * @return {Matrix2} - The matrix.
+    * @return {this} self
     */
     multiplyMatrices (m) {
         var a = Array.isArray(m) ? m.slice() : [m];
@@ -159,7 +168,7 @@ class Matrix2 {
     * Multiplies a matrix by a scalar.
     * @param {Matrix2} m - The matrix.
     * @param {number} s - The scalar.
-    * @return {Matrix2} - A new scaled matrix.
+    * @return {Matrix2} A new scaled matrix.
     */
     static multiplyScalar (m, s) {
         var e11 = m.e11 * s;
@@ -173,7 +182,7 @@ class Matrix2 {
     /**
     * Multiplies the matrix by a scalar.
     * @param {number} s - The scalar.
-    * @return {Matrix2} - The matrix.
+    * @return {this} self
     */
     multiplyScalar (s) {
         var m = this.constructor.multiplyScalar(this, s);
@@ -183,12 +192,41 @@ class Matrix2 {
     }
     
     /**
+    * Applies a rotation to a matrix.
+    * @param {Matrix2} m - The matrix.
+    * @param {number} angle - The angle in radians.
+    * @return {Matrix2} A new rotated matrix.
+    */
+    static rotate (m, angle) {
+        var cos = Math.cos(angle);
+        var sin = Math.sin(angle);
+        var rotationMatrix = new Matrix2(cos, -sin, sin, cos);
+        
+        return Matrix2.multiplyMatrices(m, rotationMatrix);
+    }
+    
+    /**
+    * Rotates the matrix.
+    * @param {number} angle - The angle in radians.
+    * @return {this} self
+    */
+    rotate (angle) {
+        var cos = Math.cos(angle);
+        var sin = Math.sin(angle);
+        var rotationMatrix = new Matrix2(cos, -sin, sin, cos);
+        var rotatedMatrix = this.constructor.multiplyMatrices(this, rotationMatrix);
+        this.set(rotatedMatrix.e11, rotatedMatrix.e12, rotatedMatrix.e21, rotatedMatrix.e22);
+        
+        return this;
+    }
+    
+    /**
     * Sets the matrix values.
     * @param {number} e11
     * @param {number} e12
     * @param {number} e21
     * @param {number} e22
-    * @return {Matrix2} The matrix.
+    * @return {this} self
     */
     set (e11, e12, e21, e22) {
         this.e11 = e11;
@@ -202,7 +240,7 @@ class Matrix2 {
     /**
     * Sets the matrix from an array.
     * @param {Array} a - The array of matrix values.
-    * @return {Matrix2} The matrix.
+    * @return {this} self
     */
     setFromArray (a) {
         this.set(a[0], a[1], a[2], a[3]);
@@ -212,7 +250,7 @@ class Matrix2 {
     
     /**
     * Sets the matrix to the identity.
-    * @return {Matrix2} The matrix.
+    * @return {this} self
     */
     setToIdentity () {
         this.set(1, 0, 0, 1);
