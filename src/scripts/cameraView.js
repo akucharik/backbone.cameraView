@@ -123,7 +123,7 @@ var Camera = function (options) {
     * @property {Element} - TODO.
     */
     this.$el = $(this.el);
-
+    
     /**
     * TODO
     *
@@ -231,13 +231,13 @@ var Camera = function (options) {
     * @property {number} - The camera's x position on the content.
     * @default
     */
-    this.x = 0;
+    //this.x = 0;
     
     /**
     * @property {number} - The camera's y position on the content.
     * @default
     */
-    this.y = 0;
+    //this.y = 0;
     
     /**
     * The base increment at which the content will be zoomed.
@@ -297,6 +297,18 @@ var Camera = function (options) {
             }
         }
     });
+    
+    Object.defineProperty(this, 'halfViewportWidth', {
+        get: function () {
+            return this.viewportWidth / 2;
+        }
+    });
+    
+    Object.defineProperty(this, 'halfViewportHeight', {
+        get: function () {
+            return this.viewportHeight / 2;
+        }
+    });
 
     /**
     * The content's x position.
@@ -343,6 +355,23 @@ var Camera = function (options) {
         }
     });
     
+    Object.defineProperty(this, 'focus', {
+        get: function () {
+            var focus = new Vector2((this.width / 2 - this.contentX) / this.zoomX, (this.height / 2 - this.contentY) / this.zoomY);
+            var rad = Oculo.Math.degToRad(-this.rotation);
+            
+            console.log('height of triangle: ', Math.tan(rad) * this.halfViewportWidth);
+            
+            var e11 = Math.cos(rad);
+            var e12 = -Math.sin(rad);
+            var e21 = Math.sin(rad);
+            var e22 = e11;
+            focus.transform(new Matrix2(e11, e12, e21, e22));
+            
+            return focus;
+        }
+    });
+    
     /**
     * The x position on which the camera is focused.
     * @name Camera#focusX
@@ -350,7 +379,7 @@ var Camera = function (options) {
     */
     Object.defineProperty(this, 'focusX', {
         get: function () {
-            return _.round((this.width / 2 - this.contentX) / this.zoomX, 2)
+            return _.round((this.halfViewportWidth + this.x) / this.zoomX, 2)
         }
     });
     
@@ -361,7 +390,7 @@ var Camera = function (options) {
     */
     Object.defineProperty(this, 'focusY', {
         get: function () {
-            return _.round((this.height / 2 - this.contentY) / this.zoomY, 2)
+            return _.round((this.halfViewportHeight + this.y) / this.zoomY, 2)
         }
     });
     
@@ -372,11 +401,11 @@ var Camera = function (options) {
     */
     Object.defineProperty(this, 'rotation', {
         get: function () {
-            return this.content.rotation;
+            return -this.content.rotation;
         },
 
         set: function (value) {
-            this.content.rotation = value;
+            this.content.rotation = -value;
         }
     });
     
@@ -402,6 +431,36 @@ var Camera = function (options) {
         }
     });
 
+    /**
+    * The camera's x position on the content.
+    * @name Camera#x
+    * @property {number} - Gets or sets the camera's x position on the content.
+    */
+    Object.defineProperty(this, 'x', {
+        get: function () {
+            return -this.content.x;
+        },
+
+        set: function (value) {
+            this.content.x = -value;
+        }
+    });
+    
+    /**
+    * The camera's y position on the content.
+    * @name Camera#y
+    * @property {number} - Gets or sets the camera's y position on the content.
+    */
+    Object.defineProperty(this, 'y', {
+        get: function () {
+            return -this.content.y;
+        },
+
+        set: function (value) {
+            this.content.y = -value;
+        }
+    });
+    
     /**
     * The amount of zoom.
     * @name Camera#zoom
@@ -474,6 +533,12 @@ Camera.shakeDirection = {
 * @lends Camera.prototype
 */
 var p = Camera.prototype;
+
+p._markPoint = function (x, y) {
+    var point = document.getElementById('point');
+    point.style.top = y + 'px';
+    point.style.left = x + 'px';
+};
 
 /**
 * Add an animation to the animations object.
@@ -993,8 +1058,10 @@ p.initialize = function (options) {
         'y',
     ]));
 
-    this.contentX = this.getContentPositionAxisValue(options.focusX, this.width, this.zoomX) ;
-    this.contentY = this.getContentPositionAxisValue(options.focusY, this.height, this.zoomY);
+    //this.contentX = this.getContentPositionAxisValue(options.focusX, this.width, this.zoomX) ;
+    //this.contentY = this.getContentPositionAxisValue(options.focusY, this.height, this.zoomY);
+    this.x = this.getContentPositionAxisValue(options.focusX, this.viewportWidth, this.zoomX) ;
+    this.y = this.getContentPositionAxisValue(options.focusY, this.viewportHeight, this.zoomY);
     this.rotationOriginX = this.focusX;
     this.rotationOriginY = this.focusY;
     this.transformedFocusX = this.focusX;

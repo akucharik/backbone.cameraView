@@ -61,10 +61,17 @@ class Animation extends TimelineMax {
             // render
             TweenMax.set(this.camera.content.transformEl, { 
                 css: {
-                    scaleX: this.camera.zoomX,
-                    scaleY: this.camera.zoomY,
-                    x: -x,
-                    y: -y
+                    scaleX: this.camera.content.scaleX,
+                    scaleY: this.camera.content.scaleY,
+                    x: this.camera.content.x,
+                    y: this.camera.content.y
+                }
+            });
+            
+            TweenMax.set(this.camera.content.rotateEl, { 
+                css: {
+                    rotation: this.camera.content.rotation,
+                    transformOrigin: this.camera.rotationOriginX + 'px ' + this.camera.rotationOriginY + 'px'
                 }
             });
 
@@ -76,8 +83,8 @@ class Animation extends TimelineMax {
             // render position without effects applied
             TweenMax.set(this.camera.content.transformEl, { 
                 css: {
-                    x: -this.camera.x,
-                    y: -this.camera.y
+                    x: this.camera.content.x,
+                    y: this.camera.content.y
                 }
             });
             this.camera.isAnimating = false;
@@ -114,6 +121,52 @@ class Animation extends TimelineMax {
                 tween.updateTo({
                     x: position.x,
                     y: position.y
+                });
+            },
+            onStartParams: ['{self}']
+        })), position);
+
+        return this;
+    }
+    
+    /**
+    * Rotates at a specific point.
+    *
+    * @private
+    * @param {number|string} rotation - TODO.
+    * @param {number|string} x - TODO.
+    * @param {number|string} y - TODO.
+    * @param {number} duration - TODO.
+    * @param {Object} [options] - TODO.
+    * @returns {this} self
+    */
+    _rotateAtXY (rotation, x, y, duration, options, position) {
+        this.add(TweenMax.to(this.camera, duration, Object.assign({}, options, {
+            data: {
+                rotation: rotation,
+                x: x,
+                y: y
+            },
+            callbackScope: this,
+            onStart: function (tween) { 
+                var x = tween.data.x === null ? this.camera.focusX : tween.data.x;
+                var y = tween.data.y === null ? this.camera.focusY : tween.data.y;
+                
+                this.camera.rotationOriginX = x;
+                this.camera.rotationOriginY = y;
+                //var focus = new Vector2(tween.data.x, tween.data.y);
+                //var rad = Oculo.Math.degToRad(-tween.data.rotation);
+                //var rotatedFocus = Vector2.transform(focus, new Matrix2(Math.cos(rad), -Math.sin(rad), Math.sin(rad), Math.cos(rad)));
+                
+                //var focusPosition = this.camera.calculatePosition(tween.data.x, tween.data.y, this.camera.viewportWidth, this.camera.viewportHeight, this.camera.zoomX, this.camera.zoomY);
+                //var focusPosition1 = this.camera.calculatePosition(rotatedFocus.x, rotatedFocus.y, this.camera.viewportWidth, this.camera.viewportHeight, this.camera.zoomX, this.camera.zoomY);
+                
+                tween.updateTo({
+                    rotation: tween.data.rotation
+                    //x: focusPosition1.x - focusPosition.x,
+                    //y: focusPosition1.y - focusPosition.y
+                    //x: rotatedFocus.x - tween.data.x,
+                    //y: rotatedFocus.y - tween.data.y
                 });
             },
             onStartParams: ['{self}']
@@ -241,6 +294,21 @@ class Animation extends TimelineMax {
         return this;
     }
  
+    /**
+    * Rotates at the current focus.
+    *
+    * @param {number|string} rotation - The rotation.
+    * @param {number} duration - A duration.
+    * @param {Object} [options] - An object of {@link external:TweenMax|TweenMax} options.
+    * @param {number} [position] - The placement of the effect in the timeline.
+    * @returns {this} self
+    */
+    rotate (rotation, duration, options, position) {
+        this._rotateAtXY(rotation, null, null, duration, options, position);
+
+        return this;
+    }
+    
     /**
     * Shakes the camera.
     *
