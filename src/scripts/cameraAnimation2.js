@@ -133,144 +133,6 @@ class Animation2 extends TimelineMax {
             this.camera._renderDebug();
         }, null, this);
     }
-
-    /**
-    * Zooms in/out at a specific point.
-    *
-    * @private
-    * @param {number} zoomX - A {@link Camera#zoomX|zoomX} value for the x axis.
-    * @param {number} zoomY - A {@link Camera#zoomY|zoomY} value for the y axis.
-    * @param {number} x - A x axis anchor value.
-    * @param {number} y - A y axis anchor value.
-    * @param {number} duration - A duration.
-    * @param {Object} [options] - An object of {@link external:TweenMax|TweenMax} options.
-    * @param {number} [position] - The placement of the effect in the timeline.
-    * @returns {this} self
-    */
-    _zoomAtXY (zoomX, zoomY, x, y, duration, options, position) {
-        this.add(TweenMax.to(this.camera, duration, Object.assign({}, options, {
-            data: {
-                zoomX: this.camera.clampZoom(zoomX === null ? this.camera.zoomX : zoomX),
-                zoomY: this.camera.clampZoom(zoomY === null ? this.camera.zoomY : zoomY),
-                x: x === null ? this.camera.focusX : x,
-                y: y === null ? this.camera.focusY : y
-            },
-            callbackScope: this,
-            onStart: function (tween) { 
-                var anchor = this.camera.checkFocusBounds(tween.data.x, tween.data.y);
-                var focus = this.camera.calculateFocus(this.camera.focusX, this.camera.focusY, anchor.x, anchor.y, this.camera.zoomX / tween.data.zoomX, this.camera.zoomY / tween.data.zoomY);
-                var position = this.camera.calculatePosition(focus.x, focus.y, this.camera.viewportWidth, this.camera.viewportHeight, tween.data.zoomX, tween.data.zoomY);
-
-                this.camera.zoomOriginX = tween.data.x;
-                this.camera.zoomOriginY = tween.data.y;
-
-                tween.updateTo({
-                    x: position.x,
-                    y: position.y,
-                    zoomX: tween.data.zoomX,
-                    zoomY: tween.data.zoomY
-                });
-            },
-            onStartParams: ['{self}']
-        })), position);
-
-        return this;
-    }
-    
-    /**
-    * Focus on a point or an element.
-    *
-    * @param {Object|Element|String} focus - A object with x/y coordinates, an element, or a selector.
-    * @param {number} [focus.x] - The x coordinate on the raw content.
-    * @param {number} [focus.y] - The y coordinate on the raw content.
-    * @param {number} duration - A duration.
-    * @param {Object} [options] - An object of {@link external:TweenMax|TweenMax} options.
-    * @returns {this} self
-    *//**
-    * Focus on a point.
-    *
-    * @param {number} x - The x coordinate on the raw content.
-    * @param {number} y - The y coordinate on the raw content.
-    * @param {number} duration - A duration.
-    * @param {Object} [options] - An object of {@link external:TweenMax|TweenMax} options.
-    * @returns {this} self
-    *
-    * @example
-    * myAnimation.focusOn(document.getElementById('box100'), 1)
-    * myAnimation.focusOn('#box100', 1)
-    * myAnimation.focusOn({x: 200}, 1)
-    * myAnimation.focusOn({y: 200}, 1)
-    * myAnimation.focusOn({x:200, y: 50}, 1)
-    * myAnimation.focusOn(200, 50, 1)
-    */
-    focusOn (focusX, focusY, duration, options) {
-        var element = null;
-        var focus = {};
-        
-        // Focus on an element
-        if (arguments.length > 1 && (isObject(focusX) || isString(focusX))) {
-            options = duration;
-            duration = focusY;
-            focus = focusX;
-        }
-        // Focus on an x/y coordinate
-        else if (arguments.length > 2) {
-            focus.x = focusX;
-            focus.y = focusY;
-        }
-        else {
-            throw new Error(constants.errorMessage.METHOD_SIGNATURE);
-        }
-
-        this.animate({
-            focus: focus
-        }, duration, options);
-
-        return this;
-    }
-    
-    /**
-    * Zooms in/out on an element.
-    *
-    * @param {number|Object} zoom - A zoom value for both axes.
-    * @param {number} [zoom.x] - A {@link Camera.zoomX|zoomX} value for the x axis.
-    * @param {number} [zoom.y] - A {@link Camera.zoomY|zoomY} value for the y axis.
-    * @param {Element} element - An element.
-    * @param {number} duration - A duration.
-    * @param {Object} [options] - An object of {@link external:TweenMax|TweenMax} options.
-    * @returns {this} self
-    *
-    * @example
-    * myAnimation.zoomTo(2, document.getElementById('door'), 1)
-    * myAnimation.zoomTo({x: 2}, document.getElementById('door'), 1)
-    * myAnimation.zoomTo({y: 2}, document.getElementById('door'), 1)
-    * myAnimation.zoomTo({x:2, y: 0.5}, document.getElementById('door'), 1)
-    *//**
-    * Zooms in/out at a point.
-    *
-    * @param {number} zoom - A zoom value for both axes.
-    * @param {number} [zoom.x] - A {@link Camera.zoomX|zoomX} value for the x axis.
-    * @param {number} [zoom.y] - A {@link Camera.zoomY|zoomY} value for the y axis.
-    * @param {number} x - The x coordinate on the raw content.
-    * @param {number} y - The y coordinate on the raw content.
-    * @param {number} duration - A duration.
-    * @param {Object} [options] - An object of {@link external:TweenMax|TweenMax} options.
-    * @returns {this} self
-    *
-    * @example
-    * myAnimation.zoomTo(2, 100, 100, 1)
-    * myAnimation.zoomTo({x: 2}, 100, 100, 1)
-    * myAnimation.zoomTo({y: 2}, 100, 100, 1)
-    * myAnimation.zoomTo({x:2, y: 0.5}, 100, 100, 1)
-    */
-    zoomAt (target, zoom, duration, options) {
-        this.animate({
-            origin: target,
-            zoom: zoom
-        }, duration, options);
-        
-        return this;
-    }
     
     _tween (props, duration, options) {
         this.add(TweenMax.to(this.camera, duration, Object.assign({}, options, {
@@ -285,6 +147,7 @@ class Animation2 extends TimelineMax {
             },
             callbackScope: this,
             onStart: function (tween) {
+                var origin, focus, position;
                 var focusX = isNil(tween.data.focusX) ? this.camera.focusX : tween.data.focusX;
                 var focusY = isNil(tween.data.focusY) ? this.camera.focusY : tween.data.focusY;
                 var originX = isNil(tween.data.originX) ? this.camera.focusX : tween.data.originX;
@@ -293,12 +156,18 @@ class Animation2 extends TimelineMax {
                 var zoomX = this.camera.clampZoom(isNil(tween.data.zoomX) ? this.camera.zoomX : tween.data.zoomX);
                 var zoomY = this.camera.clampZoom(isNil(tween.data.zoomY) ? this.camera.zoomY : tween.data.zoomY);
                 
-                var origin = this.camera.checkFocusBounds(originX, originY);
-                var focus = this.camera.calculateFocus(focusX, focusY, origin.x, origin.y, this.camera.zoomX / zoomX, this.camera.zoomY / zoomY);
-                var position = this.camera.calculatePosition(focus.x, focus.y, this.camera.viewportWidth, this.camera.viewportHeight, zoomX, zoomY);
+                origin = this.camera.checkFocusBounds(originX, originY);
                 
-                this.camera.zoomOriginX = focus.x;
-                this.camera.zoomOriginY = focus.y;
+                if (isNil(tween.data.focusX) && isNil(tween.data.focusY) && isFinite(tween.data.originX) && isFinite(tween.data.originY)) {
+                    focus = this.camera.calculateFocus(this.camera.focusX, this.camera.focusY, origin.x, origin.y, this.camera.zoomX / zoomX, this.camera.zoomY / zoomY);
+                    focusX = focus.x;
+                    focusY = focus.y;
+                }
+                
+                position = this.camera.calculatePosition(focusX, focusY, this.camera.viewportWidth, this.camera.viewportHeight, zoomX, zoomY);
+                
+                this.camera.zoomOriginX = focusX;
+                this.camera.zoomOriginY = focusY;
                 
                 tween.updateTo({
                     rotation: rotation,
@@ -314,12 +183,50 @@ class Animation2 extends TimelineMax {
         return this;
     }
     
+    /**
+    * Animate the camera.
+    *
+    * @param {string|Element|Object} focus - The location to focus on. It can be a selector, an element, or an object with x/y coordinates.
+    * @param {number} [focus.x] - The x coordinate on the raw content.
+    * @param {number} [focus.y] - The y coordinate on the raw content.
+    * @param {string|Element|Object} origin - The location for the zoom's origin. It can be a selector, an element, or an object with x/y coordinates.
+    * @param {number} [origin.x] - The x coordinate on the raw content.
+    * @param {number} [origin.y] - The y coordinate on the raw content.
+    * @param {number|Object} zoom - A zoom value for the axes. It can be a number or an object with x/y zoom values.
+    * @param {number} [zoom.x] - A {@link Camera.zoomX|zoomX} value for the x axis.
+    * @param {number} [zoom.y] - A {@link Camera.zoomY|zoomY} value for the y axis.
+    * @param {number} duration - A duration.
+    * @param {Object} [options] - An object of {@link external:TweenMax|TweenMax} options.
+    * @returns {this} self
+    *
+    * @example
+    * myAnimation.animate({focus: '#box100', zoom: 2}, 1);
+    * myAnimation.animate({focus: {x: 200, y: 50}, zoom: {x: 2}}, 1);
+    * myAnimation.animate({origin: '#box100', zoom: 2}, 1);
+    * myAnimation.animate({origin: {x: 200, y: 50}, zoom: {x: 2}}, 1);
+    */
     animate (props, duration, options) {
         var centre;
         var focus = {};
         var origin = {};
         var rotation = null;
         var zoom = {};
+        
+        if (isString(props.focus)) {
+            props.focus = document.querySelector(props.focus);
+        }
+        
+        // Focus on an element
+        if (isElement(props.focus)) {
+            centre = this.camera.getElementCenter(window, this.camera.content.transformEl.getBoundingClientRect(), props.focus.getBoundingClientRect(), this.camera.zoomX, this.camera.zoomY);
+            focus.x = centre.x;
+            focus.y = centre.y;
+        }
+        // Focus on an x/y coordinate
+        else if (isObject(props.focus)) {
+            focus.x = props.focus.x;
+            focus.y = props.focus.y;
+        }
         
         if (isString(props.origin)) {
             props.origin = document.querySelector(props.origin);
@@ -350,22 +257,6 @@ class Animation2 extends TimelineMax {
             zoom.y = props.zoom.y;
         }
         
-        if (isString(props.focus)) {
-            props.focus = document.querySelector(props.focus);
-        }
-        
-        // Focus on an element
-        if (isElement(props.focus)) {
-            centre = this.camera.getElementCenter(window, this.camera.content.transformEl.getBoundingClientRect(), props.focus.getBoundingClientRect(), this.camera.zoomX, this.camera.zoomY);
-            focus.x = centre.x;
-            focus.y = centre.y;
-        }
-        // Focus on an x/y coordinate
-        else if (isObject(props.focus)) {
-            focus.x = props.focus.x;
-            focus.y = props.focus.y;
-        }
-        
         this._tween({
             focusX: focus.x,
             focusY: focus.y,
@@ -380,9 +271,37 @@ class Animation2 extends TimelineMax {
     }
     
     /**
-    * Zooms in/out at the current focus.
+    * Focus on a specific location.
     *
-    * @param {number|Object} zoom - A zoom value for both axes.
+    * @param {string|Element|Object} target - The location to focus on. It can be a selector, an element, or an object with x/y coordinates.
+    * @param {number} [target.x] - The x coordinate on the raw content.
+    * @param {number} [target.y] - The y coordinate on the raw content.
+    * @param {number} duration - A duration.
+    * @param {Object} [options] - An object of {@link external:TweenMax|TweenMax} options.
+    * @returns {this} self
+    *
+    * @example
+    * myAnimation.focusOn('#box100', 1);
+    * myAnimation.focusOn(document.getElementById('box100'), 1);
+    * myAnimation.focusOn({x:200, y: 50}, 1);
+    * myAnimation.focusOn({x: 200}, 1);
+    * myAnimation.focusOn({y: 200}, 1);
+    */
+    focusOn (target, duration, options) {
+        this.animate({
+            focus: target
+        }, duration, options);
+
+        return this;
+    }
+    
+    /**
+    * Zoom in/out at a specific location.
+    *
+    * @param {string|Element|Object} origin - The location for the zoom's origin. It can be a selector, an element, or an object with x/y coordinates.
+    * @param {number} [origin.x] - The x coordinate on the raw content.
+    * @param {number} [origin.y] - The y coordinate on the raw content.
+    * @param {number|Object} zoom - A zoom value for the axes. The zoom can be a number or an object with x/y zoom values.
     * @param {number} [zoom.x] - A {@link Camera.zoomX|zoomX} value for the x axis.
     * @param {number} [zoom.y] - A {@link Camera.zoomY|zoomY} value for the y axis.
     * @param {number} duration - A duration.
@@ -390,10 +309,35 @@ class Animation2 extends TimelineMax {
     * @returns {this} self
     *
     * @example
-    * myAnimation.zoomTo(2, 1)
-    * myAnimation.zoomTo({x: 2}, 1)
-    * myAnimation.zoomTo({y: 2}, 1)
-    * myAnimation.zoomTo({x:2, y: 0.5}, 1)
+    * myAnimation.zoomAt('#box100', 2, 1);
+    * myAnimation.zoomAt(document.getElementById('box100'), 2, 1);
+    * myAnimation.zoomAt({x: 200, y: 50}, 2, 1);
+    * myAnimation.zoomAt({x: 200, y: 50}, {x: 2, y: 1}, 1);
+    */
+    zoomAt (origin, zoom, duration, options) {
+        this.animate({
+            origin: origin,
+            zoom: zoom
+        }, duration, options);
+        
+        return this;
+    }
+    
+    /**
+    * Zoom in/out at the current focus.
+    *
+    * @param {number|Object} zoom - A zoom value for the axes. It can be a number or an object with x/y zoom values.
+    * @param {number} [zoom.x] - A {@link Camera.zoomX|zoomX} value for the x axis.
+    * @param {number} [zoom.y] - A {@link Camera.zoomY|zoomY} value for the y axis.
+    * @param {number} duration - A duration.
+    * @param {Object} [options] - An object of {@link external:TweenMax|TweenMax} options.
+    * @returns {this} self
+    *
+    * @example
+    * myAnimation.zoomTo(2, 1);
+    * myAnimation.zoomTo({x:2, y: 0.5}, 1);
+    * myAnimation.zoomTo({x: 2}, 1);
+    * myAnimation.zoomTo({y: 2}, 1);
     */
     zoomTo (zoom, duration, options) {
         this.animate({ 
