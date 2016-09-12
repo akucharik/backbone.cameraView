@@ -25,6 +25,7 @@ var isElement = _.isElement;
 var isFinite = _.isFinite;
 var isNil = _.isNil;
 var isObject = _.isObject;
+var isString = _.isString;
 var pick = _.pick;
 var uniqueId = _.uniqueId;
 
@@ -179,7 +180,7 @@ class Animation2 extends TimelineMax {
     /**
     * Focus on a point or an element.
     *
-    * @param {Object|Element} focus - A object with x/y coordinates or an element.
+    * @param {Object|Element|String} focus - A object with x/y coordinates, an element, or a selector.
     * @param {number} [focus.x] - The x coordinate on the raw content.
     * @param {number} [focus.y] - The y coordinate on the raw content.
     * @param {number} duration - A duration.
@@ -196,6 +197,7 @@ class Animation2 extends TimelineMax {
     *
     * @example
     * myAnimation.focusOn(document.getElementById('box100'), 1)
+    * myAnimation.focusOn('#box100', 1)
     * myAnimation.focusOn({x: 200}, 1)
     * myAnimation.focusOn({y: 200}, 1)
     * myAnimation.focusOn({x:200, y: 50}, 1)
@@ -206,7 +208,7 @@ class Animation2 extends TimelineMax {
         var focus = {};
         
         // Focus on an element
-        if (arguments.length > 1 && isObject(arguments[0])) {
+        if (arguments.length > 1 && (isObject(focusX) || isString(focusX))) {
             options = duration;
             duration = focusY;
             focus = focusX;
@@ -261,39 +263,12 @@ class Animation2 extends TimelineMax {
     * myAnimation.zoomTo({y: 2}, 100, 100, 1)
     * myAnimation.zoomTo({x:2, y: 0.5}, 100, 100, 1)
     */
-    zoomAt (zoom, x, y, duration, options, position) {
-        var zoomX = null;
-        var zoomY = null;
-
-        if (isFinite(zoom)) {
-            zoomX = zoom;
-            zoomY = zoom;
-        }
-        else if (isObject(zoom)) {
-            zoomX = zoom.x === undefined ? null : zoom.x;
-            zoomY = zoom.y === undefined ? null : zoom.y;
-        }
-        else {
-            throw new Error(constants.errorMessage.METHOD_SIGNATURE);
-        }
-
-        // Zoom at an element
-        if (arguments.length >= 3 && isElement(x)) {
-            var el = x;
-            var vector = this.camera.getElementFocus(window, this.camera.content.transformEl.getBoundingClientRect(), el.getBoundingClientRect(), this.camera.zoom);
-
-            position = options;
-            options = duration;
-            duration = y;
-            y = vector.y;
-            x = vector.x;
-        }
-        else if (arguments.length < 4 || (!isFinite(x) && !isFinite(y))) {
-            throw new Error(constants.errorMessage.METHOD_SIGNATURE);
-        }
-
-        this._zoomAtXY(zoomX, zoomY, x, y, duration, options, position);
-
+    zoomAt (target, zoom, duration, options) {
+        this.animate({
+            origin: target,
+            zoom: zoom
+        }, duration, options);
+        
         return this;
     }
     
@@ -302,6 +277,8 @@ class Animation2 extends TimelineMax {
             data: {
                 focusX: props.focusX,
                 focusY: props.focusY,
+                originX: props.originX,
+                originY: props.originY,
                 rotation: props.rotation,
                 zoomX: props.zoomX,
                 zoomY: props.zoomY
@@ -310,13 +287,18 @@ class Animation2 extends TimelineMax {
             onStart: function (tween) {
                 var focusX = isNil(tween.data.focusX) ? this.camera.focusX : tween.data.focusX;
                 var focusY = isNil(tween.data.focusY) ? this.camera.focusY : tween.data.focusY;
+                var originX = isNil(tween.data.originX) ? this.camera.focusX : tween.data.originX;
+                var originY = isNil(tween.data.originY) ? this.camera.focusY : tween.data.originY;
                 var rotation = isNil(tween.data.rotation) ? this.camera.endRotation : tween.data.rotation;
                 var zoomX = this.camera.clampZoom(isNil(tween.data.zoomX) ? this.camera.zoomX : tween.data.zoomX);
                 var zoomY = this.camera.clampZoom(isNil(tween.data.zoomY) ? this.camera.zoomY : tween.data.zoomY);
-                var position = this.camera.calculatePosition(focusX, focusY, this.camera.viewportWidth, this.camera.viewportHeight, zoomX, zoomY);
                 
-                this.camera.zoomOriginX = focusX;
-                this.camera.zoomOriginY = focusY;
+                var origin = this.camera.checkFocusBounds(originX, originY);
+                var focus = this.camera.calculateFocus(focusX, focusY, origin.x, origin.y, this.camera.zoomX / zoomX, this.camera.zoomY / zoomY);
+                var position = this.camera.calculatePosition(focus.x, focus.y, this.camera.viewportWidth, this.camera.viewportHeight, zoomX, zoomY);
+                
+                this.camera.zoomOriginX = focus.x;
+                this.camera.zoomOriginY = focus.y;
                 
                 tween.updateTo({
                     rotation: rotation,
@@ -335,8 +317,23 @@ class Animation2 extends TimelineMax {
     animate (props, duration, options) {
         var centre;
         var focus = {};
+        var origin = {};
         var rotation = null;
         var zoom = {};
+        
+        if (isString(props.origin)) {
+            props.origin = document.querySelector(props.origin);
+        }
+        
+        if (isElement(props.origin)) {
+            centre = this.camera.getElementCenter(window, this.camera.content.transformEl.getBoundingClientRect(), props.origin.getBoundingClientRect(), this.camera.zoomX, this.camera.zoomY);
+            origin.x = centre.x;
+            origin.y = centre.y;
+        }
+        else if (isObject(props.origin)) {
+            origin.x = props.origin.x;
+            origin.y = props.origin.y;
+        }
         
         if (isFinite(props.rotation)) {
             rotation = props.rotation;
@@ -353,9 +350,12 @@ class Animation2 extends TimelineMax {
             zoom.y = props.zoom.y;
         }
         
+        if (isString(props.focus)) {
+            props.focus = document.querySelector(props.focus);
+        }
+        
         // Focus on an element
         if (isElement(props.focus)) {
-            console.log(zoom);
             centre = this.camera.getElementCenter(window, this.camera.content.transformEl.getBoundingClientRect(), props.focus.getBoundingClientRect(), this.camera.zoomX, this.camera.zoomY);
             focus.x = centre.x;
             focus.y = centre.y;
@@ -369,6 +369,8 @@ class Animation2 extends TimelineMax {
         this._tween({
             focusX: focus.x,
             focusY: focus.y,
+            originX: origin.x,
+            originY: origin.y,
             rotation: rotation,
             zoomX: zoom.x,
             zoomY: zoom.y
