@@ -66,6 +66,16 @@ class Animation2 extends TimelineMax {
             var x = this.camera.content.x;
             var y = this.camera.content.y;
 
+            if (this.camera.isShaking) {
+                if (this.camera.shakeHorizontal) {
+                    x += Math.random() * this.camera.shakeIntensity * this.camera.width * 2 - this.camera.shakeIntensity * this.camera.width;
+                }
+
+                if (this.camera.shakeVertical) {
+                    y += Math.random() * this.camera.shakeIntensity * this.camera.height * 2 - this.camera.shakeIntensity * this.camera.height;
+                }
+            }
+            
             //var position = this.camera.calculatePosition99(this.camera);
             //x = -position.x;
             //y = -position.y;
@@ -134,7 +144,13 @@ class Animation2 extends TimelineMax {
         }, null, this);
     }
     
-    _tween (props, duration, options) {
+    _animate (props, duration, options) {
+        options = options || {};
+        
+        var shakeTimeline = null;
+        var shake = props.shake;
+        
+        // Core camera properties
         this.add(TweenMax.to(this.camera, duration, Object.assign({}, options, {
             data: {
                 focusX: props.focusX,
@@ -178,8 +194,62 @@ class Animation2 extends TimelineMax {
                 });
             },
             onStartParams: ['{self}']
-        })));
+        })), 0);
+        
+        // Shake effect
+        shake.intensity = isNil(shake.intensity) ? 0 : shake.intensity;
+        shake.direction = isNil(shake.direction) ? Camera.shakeDirection.BOTH : shake.direction;
+        shake.easeIn = shake.easeIn;
+        shake.easeOut = shake.easeOut;
+        
+        if (shake.intensity > 0) {
+            this.camera.shakeHorizontal = shake.direction === Camera.shakeDirection.VERTICAL ? false : true;
+            this.camera.shakeVertical = shake.direction === Camera.shakeDirection.HORIZONTAL ? false : true;
+            
+            shakeTimeline = new TimelineMax(Object.assign({}, options, {
+                callbackScope: this,
+                onStart: function (timeline) {
+                    this.camera.isShaking = true;
+                },
+                onStartParams: ['{self}'],
+                onComplete: function (timeline) {
+                    TweenMax.set(this.camera, { 
+                        shakeIntensity: 0
+                    });
+                    this.camera.isShaking = false;
+                },
+                onCompleteParams: ['{self}']
+            }));
+            
+            if (shake.easeIn || shake.easeOut) {
+                shakeTimeline.fromTo(this.camera, duration * 0.5, {
+                    shakeIntensity: 0
+                }, {
+                    ease: shake.easeIn || Power0.easeNone,
+                    shakeIntensity: shake.intensity
+                }, 0);
 
+                shakeTimeline.to(this.camera, duration * 0.5, {
+                    ease: shake.easeOut || Power0.easeNone,
+                    shakeIntensity: 0
+                }, duration * 0.5);
+            }
+            else if (options.ease) {
+                shakeTimeline.fromTo(this.camera, duration, {
+                    shakeIntensity: 0
+                }, {
+                    ease: options.ease,
+                    shakeIntensity: shake.intensity
+                }, 0);
+            }
+            else {
+                this.camera.shakeIntensity = shake.intensity;
+                shakeTimeline.to(this.camera, duration, {}, 0);
+            }
+            
+            this.add(shakeTimeline, 0);
+        }
+        
         return this;
     }
     
@@ -210,6 +280,7 @@ class Animation2 extends TimelineMax {
         var focus = {};
         var origin = {};
         var rotation = null;
+        var shake = props.shake || {};
         var zoom = {};
         
         if (isString(props.focus)) {
@@ -257,12 +328,13 @@ class Animation2 extends TimelineMax {
             zoom.y = props.zoom.y;
         }
         
-        this._tween({
+        this._animate({
             focusX: focus.x,
             focusY: focus.y,
             originX: origin.x,
             originY: origin.y,
             rotation: rotation,
+            shake: shake,
             zoomX: zoom.x,
             zoomY: zoom.y
         }, duration, options);
@@ -290,6 +362,36 @@ class Animation2 extends TimelineMax {
     focusOn (target, duration, options) {
         this.animate({
             focus: target
+        }, duration, options);
+
+        return this;
+    }
+    
+    /**
+    * Shake the camera.
+    *
+    * @param {number} intensity - A {@link Camera#shakeIntensity|shake intensity}.
+    * @param {number} duration - A duration.
+    * @param {Camera.shakeDirection} [direction=Camera.shakeDirection.BOTH] - A shake direction. 
+    * @param {Object} [options] - An object of {@link external:TimelineMax|TimelineMax} options plus:
+    * @param {Object} [options.easeIn] - An {@link external:Easing|Easing}.
+    * @param {Object} [options.easeOut] - An {@link external:Easing|Easing}.
+    * @returns {this} self
+    *
+    * @example
+    * myAnimation.shake(0.1, 4);
+    * myAnimation.shake(0.1, 4, camera.shakeDirection.HORIZONTAL, { easeIn: Power2.easeIn, easeOut: Power2.easeOut })
+    */
+    shake (intensity, duration, direction, options) {
+        options = options || {};
+        
+        this.animate({
+            shake: {
+                intensity: intensity,
+                direction: direction,
+                easeIn: options.easeIn,
+                easeOut: options.easeOut
+            }
         }, duration, options);
 
         return this;
