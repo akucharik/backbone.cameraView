@@ -5,21 +5,6 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
-
-
-
-// focus: 500, 250      position: 0, 0
-// focus1: 200, 50      position: 300, 200
-// focus50: 350, 150    position: 150, 100
-
-// focus: 500, 250      position: 0, 0
-// focus1: 200, 50      position: 300, 200
-// focus50: 350, 150    position: 150, 100
-
-
-
-
-
 var clamp = _.clamp;
 var isElement = _.isElement;
 var isFinite = _.isFinite;
@@ -131,13 +116,6 @@ class Animation2 extends TimelineMax {
 
         this.eventCallback('onComplete', function () { 
             console.log('camera TL complete');
-            // render position without effects applied
-            TweenMax.set(this.camera.content.transformEl, { 
-                css: {
-                    //x: this.camera.content.x,
-                    //y: this.camera.content.y
-                }
-            });
             this.camera.isAnimating = false;
             this.camera.draggable.enable();
             this.camera._renderDebug();
@@ -147,61 +125,119 @@ class Animation2 extends TimelineMax {
     _animate (props, duration, options) {
         options = options || {};
         
+        var mainTimeline = new TimelineMax();
         var shakeTimeline = null;
-        var shake = props.shake;
         
-        // Core camera properties
-        this.add(TweenMax.to(this.camera, duration, Object.assign({}, options, {
+        var centre;
+        var focus = {};
+        var origin = {};
+        var rotation;
+        var shake = {};
+        var zoom = {};
+        
+        // Focus
+        if (isString(props.focus)) {
+            props.focus = document.querySelector(props.focus);
+        }
+        
+        if (isElement(props.focus)) {
+            centre = this.camera.getElementCenter(window, this.camera.content.transformEl.getBoundingClientRect(), props.focus.getBoundingClientRect(), this.camera.zoomX, this.camera.zoomY);
+            focus.x = centre.x;
+            focus.y = centre.y;
+        }
+        else if (isObject(props.focus)) {
+            focus.x = props.focus.x;
+            focus.y = props.focus.y;
+        }
+        
+        // Origin
+        if (isString(props.origin)) {
+            props.origin = document.querySelector(props.origin);
+        }
+        
+        if (isElement(props.origin)) {
+            centre = this.camera.getElementCenter(window, this.camera.content.transformEl.getBoundingClientRect(), props.origin.getBoundingClientRect(), this.camera.zoomX, this.camera.zoomY);
+            origin.x = centre.x;
+            origin.y = centre.y;
+        }
+        else if (isObject(props.origin)) {
+            origin.x = props.origin.x;
+            origin.y = props.origin.y;
+        }
+        
+        // Rotation
+        if (isFinite(props.rotation)) {
+            rotation = props.rotation;
+        }
+        
+        // Shake
+        if (props.shake) {
+            shake.intensity = isNil(props.shake.intensity) ? 0 : props.shake.intensity;
+            shake.direction = isNil(props.shake.direction) ? Camera.shakeDirection.BOTH : props.shake.direction;
+            shake.easeIn = props.shake.easeIn;
+            shake.easeOut = props.shake.easeOut;    
+        }
+        
+        // Zoom
+        if (isFinite(props.zoom)) {
+            zoom.x = props.zoom;
+            zoom.y = props.zoom;
+        }
+        else if (isObject(props.zoom)) {
+            zoom.x = props.zoom.x;
+            zoom.y = props.zoom.y;
+        }
+        
+        // Tween core camera functions
+        mainTimeline.add(TweenMax.to(this.camera, duration, Object.assign({}, options, {
             data: {
-                focusX: props.focusX,
-                focusY: props.focusY,
-                originX: props.originX,
-                originY: props.originY,
-                rotation: props.rotation,
-                zoomX: props.zoomX,
-                zoomY: props.zoomY
+                focus: focus,
+                origin: origin,
+                rotation: rotation,
+                zoom: zoom
             },
             callbackScope: this,
             onStart: function (tween) {
-                var origin, focus, position;
-                var focusX = isNil(tween.data.focusX) ? this.camera.focusX : tween.data.focusX;
-                var focusY = isNil(tween.data.focusY) ? this.camera.focusY : tween.data.focusY;
-                var originX = isNil(tween.data.originX) ? this.camera.focusX : tween.data.originX;
-                var originY = isNil(tween.data.originY) ? this.camera.focusY : tween.data.originY;
-                var rotation = isNil(tween.data.rotation) ? this.camera.endRotation : tween.data.rotation;
-                var zoomX = this.camera.clampZoom(isNil(tween.data.zoomX) ? this.camera.zoomX : tween.data.zoomX);
-                var zoomY = this.camera.clampZoom(isNil(tween.data.zoomY) ? this.camera.zoomY : tween.data.zoomY);
+                var zoomFocus, position;
+                var focus = {
+                    x: isNil(tween.data.focus.x) ? this.camera.focusX : tween.data.focus.x,
+                    y: isNil(tween.data.focus.y) ? this.camera.focusY : tween.data.focus.y
+                };
+                var origin = {
+                    x: isNil(tween.data.origin.x) ? this.camera.focusX : tween.data.origin.x,
+                    y: isNil(tween.data.origin.y) ? this.camera.focusY : tween.data.origin.y
+                };
+                var rotation = isNil(tween.data.rotation) ? this.camera.rotation : tween.data.rotation;
+                var zoom = {
+                    x: this.camera.clampZoom(isNil(tween.data.zoom.x) ? this.camera.zoomX : tween.data.zoom.x),
+                    y: this.camera.clampZoom(isNil(tween.data.zoom.y) ? this.camera.zoomY : tween.data.zoom.y)
+                };
                 
-                origin = this.camera.checkFocusBounds(originX, originY);
+                origin = this.camera.checkFocusBounds(origin.x, origin.y);
                 
-                if (isNil(tween.data.focusX) && isNil(tween.data.focusY) && isFinite(tween.data.originX) && isFinite(tween.data.originY)) {
-                    focus = this.camera.calculateFocus(this.camera.focusX, this.camera.focusY, origin.x, origin.y, this.camera.zoomX / zoomX, this.camera.zoomY / zoomY);
-                    focusX = focus.x;
-                    focusY = focus.y;
+                if (isNil(tween.data.focus.x) && isNil(tween.data.focus.y) && isFinite(tween.data.origin.x) && isFinite(tween.data.origin.y)) {
+                    zoomFocus = this.camera.calculateFocus(this.camera.focusX, this.camera.focusY, origin.x, origin.y, this.camera.zoomX / zoom.x, this.camera.zoomY / zoom.y);
+                    focus.x = zoomFocus.x;
+                    focus.y = zoomFocus.y;
                 }
                 
-                position = this.camera.calculatePosition(focusX, focusY, this.camera.viewportWidth, this.camera.viewportHeight, zoomX, zoomY);
+                position = this.camera.calculatePosition(focus.x, focus.y, this.camera.viewportWidth, this.camera.viewportHeight, zoom.x, zoom.y);
                 
-                this.camera.zoomOriginX = focusX;
-                this.camera.zoomOriginY = focusY;
+                this.camera.zoomOriginX = focus.x;
+                this.camera.zoomOriginY = focus.y;
                 
                 tween.updateTo({
                     rotation: rotation,
                     x: position.x,
                     y: position.y,
-                    zoomX: zoomX,
-                    zoomY: zoomY
+                    zoomX: zoom.x,
+                    zoomY: zoom.y
                 });
             },
             onStartParams: ['{self}']
         })), 0);
         
-        // Shake effect
-        shake.intensity = isNil(shake.intensity) ? 0 : shake.intensity;
-        shake.direction = isNil(shake.direction) ? Camera.shakeDirection.BOTH : shake.direction;
-        shake.easeIn = shake.easeIn;
-        shake.easeOut = shake.easeOut;
-        
+        // Tween shake effect
         if (shake.intensity > 0) {
             this.camera.shakeHorizontal = shake.direction === Camera.shakeDirection.VERTICAL ? false : true;
             this.camera.shakeVertical = shake.direction === Camera.shakeDirection.HORIZONTAL ? false : true;
@@ -221,7 +257,7 @@ class Animation2 extends TimelineMax {
                 onCompleteParams: ['{self}']
             }));
             
-            if (shake.easeIn || shake.easeOut) {
+            if (shake.easeIn && shake.easeOut) {
                 shakeTimeline.fromTo(this.camera, duration * 0.5, {
                     shakeIntensity: 0
                 }, {
@@ -233,6 +269,22 @@ class Animation2 extends TimelineMax {
                     ease: shake.easeOut || Power0.easeNone,
                     shakeIntensity: 0
                 }, duration * 0.5);
+            }
+            else if (shake.easeIn && !shake.easeOut) {
+                shakeTimeline.fromTo(this.camera, duration, {
+                    shakeIntensity: 0
+                }, {
+                    ease: shake.easeIn || Power0.easeNone,
+                    shakeIntensity: shake.intensity
+                }, 0);
+            }
+            else if (!shake.easeIn && shake.easeOut) {
+                shakeTimeline.fromTo(this.camera, duration, {
+                    shakeIntensity: shake.intensity
+                }, {
+                    ease: shake.easeOut || Power0.easeNone,
+                    shakeIntensity: 0
+                }, 0);
             }
             else if (options.ease) {
                 shakeTimeline.fromTo(this.camera, duration, {
@@ -247,8 +299,10 @@ class Animation2 extends TimelineMax {
                 shakeTimeline.to(this.camera, duration, {}, 0);
             }
             
-            this.add(shakeTimeline, 0);
+            mainTimeline.add(shakeTimeline, 0);
         }
+        
+        this.add(mainTimeline);
         
         return this;
     }
@@ -262,6 +316,11 @@ class Animation2 extends TimelineMax {
     * @param {string|Element|Object} origin - The location for the zoom's origin. It can be a selector, an element, or an object with x/y coordinates.
     * @param {number} [origin.x] - The x coordinate on the raw content.
     * @param {number} [origin.y] - The y coordinate on the raw content.
+    * @param {Object} [shake] - An object of shake effect properties.
+    * @param {number} [shake.intensity] - A {@link Camera#shakeIntensity|shake intensity}.
+    * @param {Camera.shakeDirection} [shake.direction=Camera.shakeDirection.BOTH] - A shake direction. 
+    * @param {Object} [shake.easeIn] - An {@link external:Easing|Easing}.
+    * @param {Object} [shake.easeOut] - An {@link external:Easing|Easing}.
     * @param {number|Object} zoom - A zoom value for the axes. It can be a number or an object with x/y zoom values.
     * @param {number} [zoom.x] - A {@link Camera.zoomX|zoomX} value for the x axis.
     * @param {number} [zoom.y] - A {@link Camera.zoomY|zoomY} value for the y axis.
@@ -276,67 +335,12 @@ class Animation2 extends TimelineMax {
     * myAnimation.animate({origin: {x: 200, y: 50}, zoom: {x: 2}}, 1);
     */
     animate (props, duration, options) {
-        var centre;
-        var focus = {};
-        var origin = {};
-        var rotation = null;
-        var shake = props.shake || {};
-        var zoom = {};
-        
-        if (isString(props.focus)) {
-            props.focus = document.querySelector(props.focus);
-        }
-        
-        // Focus on an element
-        if (isElement(props.focus)) {
-            centre = this.camera.getElementCenter(window, this.camera.content.transformEl.getBoundingClientRect(), props.focus.getBoundingClientRect(), this.camera.zoomX, this.camera.zoomY);
-            focus.x = centre.x;
-            focus.y = centre.y;
-        }
-        // Focus on an x/y coordinate
-        else if (isObject(props.focus)) {
-            focus.x = props.focus.x;
-            focus.y = props.focus.y;
-        }
-        
-        if (isString(props.origin)) {
-            props.origin = document.querySelector(props.origin);
-        }
-        
-        if (isElement(props.origin)) {
-            centre = this.camera.getElementCenter(window, this.camera.content.transformEl.getBoundingClientRect(), props.origin.getBoundingClientRect(), this.camera.zoomX, this.camera.zoomY);
-            origin.x = centre.x;
-            origin.y = centre.y;
-        }
-        else if (isObject(props.origin)) {
-            origin.x = props.origin.x;
-            origin.y = props.origin.y;
-        }
-        
-        if (isFinite(props.rotation)) {
-            rotation = props.rotation;
-        }
-        
-        // Zoom symmetrically
-        if (isFinite(props.zoom)) {
-            zoom.x = props.zoom;
-            zoom.y = props.zoom;
-        }
-        // Zoom asymmetrically
-        else if (isObject(props.zoom)) {
-            zoom.x = props.zoom.x;
-            zoom.y = props.zoom.y;
-        }
-        
         this._animate({
-            focusX: focus.x,
-            focusY: focus.y,
-            originX: origin.x,
-            originY: origin.y,
-            rotation: rotation,
-            shake: shake,
-            zoomX: zoom.x,
-            zoomY: zoom.y
+            focus: props.focus,
+            origin: props.origin,
+            rotation: props.rotation,
+            shake: props.shake,
+            zoom: props.zoom
         }, duration, options);
 
         return this;
@@ -360,7 +364,7 @@ class Animation2 extends TimelineMax {
     * myAnimation.focusOn({y: 200}, 1);
     */
     focusOn (target, duration, options) {
-        this.animate({
+        this._animate({
             focus: target
         }, duration, options);
 
@@ -417,7 +421,7 @@ class Animation2 extends TimelineMax {
     * myAnimation.zoomAt({x: 200, y: 50}, {x: 2, y: 1}, 1);
     */
     zoomAt (origin, zoom, duration, options) {
-        this.animate({
+        this._animate({
             origin: origin,
             zoom: zoom
         }, duration, options);
@@ -442,7 +446,7 @@ class Animation2 extends TimelineMax {
     * myAnimation.zoomTo({y: 2}, 1);
     */
     zoomTo (zoom, duration, options) {
-        this.animate({ 
+        this._animate({ 
             zoom: zoom 
         }, duration, options);
 
