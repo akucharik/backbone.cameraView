@@ -141,7 +141,7 @@ class Animation2 extends TimelineMax {
         }
         
         if (isElement(props.focus)) {
-            centre = this.camera.getElementCenter(window, this.camera.content.transformEl.getBoundingClientRect(), props.focus.getBoundingClientRect(), this.camera.zoomX, this.camera.zoomY);
+            centre = this.camera.getElementCentre(this.camera.content.transformEl, props.focus, this.camera.zoomX, this.camera.zoomY);
             focus.x = centre.x;
             focus.y = centre.y;
         }
@@ -156,7 +156,7 @@ class Animation2 extends TimelineMax {
         }
         
         if (isElement(props.origin)) {
-            centre = this.camera.getElementCenter(window, this.camera.content.transformEl.getBoundingClientRect(), props.origin.getBoundingClientRect(), this.camera.zoomX, this.camera.zoomY);
+            centre = this.camera.getElementCentre(this.camera.content.transformEl, props.origin, this.camera.zoomX, this.camera.zoomY);
             origin.x = centre.x;
             origin.y = centre.y;
         }
@@ -221,8 +221,10 @@ class Animation2 extends TimelineMax {
                     focus.y = zoomFocus.y;
                 }
                 
-                position = this.camera.calculatePosition(focus.x, focus.y, this.camera.viewportWidth, this.camera.viewportHeight, zoom.x, zoom.y);
+                position = this.camera.calculatePosition(focus.x, focus.y, this.camera.viewportWidth, this.camera.viewportHeight, zoom.x, zoom.y, rotation);
                 
+                //this.camera.rotationOriginX = origin.x;
+                //this.camera.rotationOriginY = origin.y;
                 this.camera.zoomOriginX = focus.x;
                 this.camera.zoomOriginY = focus.y;
                 
@@ -366,6 +368,22 @@ class Animation2 extends TimelineMax {
     focusOn (target, duration, options) {
         this._animate({
             focus: target
+        }, duration, options);
+
+        return this;
+    }
+    
+    /**
+    * Rotates at the current focus.
+    *
+    * @param {number|string} rotation - The rotation.
+    * @param {number} duration - A duration.
+    * @param {Object} [options] - An object of {@link external:TweenMax|TweenMax} options.
+    * @returns {this} self
+    */
+    rotate (rotation, duration, options) {
+        this._animate({
+            rotation: rotation
         }, duration, options);
 
         return this;
