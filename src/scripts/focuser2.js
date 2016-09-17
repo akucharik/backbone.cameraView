@@ -192,7 +192,7 @@ var Focuser = function () {
         }
     };
     
-        this.calculateStaticFocusPosition = function (focusX, focusY, cameraWidth, cameraHeight, scaleX, scaleY) {
+    this.calculateStaticFocusPosition = function (focusX, focusY, cameraWidth, cameraHeight, scaleX, scaleY) {
         if (_.isFinite(focusX) && _.isFinite(focusY)) {
             var focus = new Vector2(focusX, focusY).transform(new Matrix2(scaleX, 0, 0, scaleY));
 
@@ -211,6 +211,62 @@ var Focuser = function () {
         var m = new Matrix2(scaleX, 0, 0, scaleY).rotate(Oculo.Math.degToRad(-rotation));
 
         return v.transform(m).subtract(new Vector2(camera.halfViewportWidth, camera.halfViewportHeight));
+    };
+    
+    this.calculatePosition3 = function (focusX, focusY, originX, originY, rotation, scaleX, scaleY, halfViewportWidth, halfViewportHeight) {
+        if (_.isFinite(focusX) && _.isFinite(focusY)) {
+            var deltaScaleX = scaleX - 1;
+            var deltaScaleY = scaleY - 1;
+            var isRotated = rotation !== 0;
+            var isZoomed = scaleX !== 1 && scaleY !== 1;
+            var focus = new Vector2(focusX, focusY);
+            var origin = new Vector2(originX, originY);
+            var rotationMatrix = new Matrix2().rotate(Oculo.Math.degToRad(-rotation));
+            var scaleMatrix = new Matrix2(scaleX, 0, 0, scaleY);
+            
+            //var deltaOrigin = origin.subtract(new Vector2(this.originX, this.originY));
+            //console.log('d origin: ', deltaOrigin);
+            //var originOffset = new Vector2(0, 0);
+            
+            //if (this.isRotated || this.isZoomed) {
+                //originOffset.set(50,50);
+                //originOffset = deltaOrigin.transform(scaleMatrix);
+                //originOffset.set(originOffset.x * (this.content.width - origin.x) / this.content.width, originOffset.y * (this.content.height - origin.y) / this.content.height);
+            //}
+            //console.log('o offset: ', originOffset);
+            
+            var originOffset = new Vector2(0, 0);
+            
+            if (isZoomed) {
+                originOffset = Vector2.clone(origin).transform(new Matrix2(deltaScaleX, 0, 0, deltaScaleY));
+            }
+            console.log('o offset: ', originOffset);
+            var transformedFocus = Vector2.clone(focus).transform(scaleMatrix);
+            
+            // focus: '#box100', origin: 0px 0px, zoom: 1.5
+            // x: -424, y: -174
+            //
+            // focus: '#box100', origin: 50px 50px, zoom: 1.5
+            // x: -449, y: -199
+            //
+            // focus: '#box100', origin: 0px 0px, zoom: 3
+            // x: -349, y: -99
+            //
+            // focus: '#box100', origin: 50px 50px, zoom: 3
+            // x: -449, y: -199
+            
+            
+            var position = new Vector2(transformedFocus.x - originOffset.x - halfViewportWidth, transformedFocus.y - originOffset.y - halfViewportHeight);
+            
+            
+            //var transformedFocus = Vector2.clone(focus).subtract(rotationOrigin).transform(rotationMatrix).add(rotationOrigin).transform(scaleMatrix);
+            //var position = new Vector2(transformedFocus.x  - (cameraWidth / 2), transformedFocus.y - (cameraHeight / 2));
+            
+            return position;
+        }
+        else {
+            throw new Error('Cannot determine position');
+        }
     };
     
     this.getContentPositionAxisValue = function (axisValue, axisFrameSize, scale) {
