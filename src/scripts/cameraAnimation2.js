@@ -216,15 +216,23 @@ class Animation2 extends TimelineMax {
                 origin = this.camera.checkFocusBounds(origin.x, origin.y);
                 
                 if (isNil(tween.data.focus.x) && isNil(tween.data.focus.y) && isFinite(tween.data.origin.x) && isFinite(tween.data.origin.y)) {
-                    zoomFocus = this.camera.calculateFocus(this.camera.focusX, this.camera.focusY, origin.x, origin.y, this.camera.zoomX / zoom.x, this.camera.zoomY / zoom.y);
+                    zoomFocus = this.camera.calculateFocus(this.camera.focusX, this.camera.focusY, origin.x, origin.y, this.camera.zoomX / zoom.x, this.camera.zoomY / zoom.y, rotation);
                     focus.x = zoomFocus.x;
                     focus.y = zoomFocus.y;
                 }
                 
-                position = this.camera.calculatePosition(focus.x, focus.y, this.camera.viewportWidth, this.camera.viewportHeight, zoom.x, zoom.y, rotation);
+                this.camera.rotationOriginX = origin.x;
+                this.camera.rotationOriginY = origin.y;
                 
-                //this.camera.rotationOriginX = origin.x;
-                //this.camera.rotationOriginY = origin.y;
+                //if (focus.x === this.camera.focusX && focus.y === this.camera.focusY) {
+                //    position = this.camera.calculateStaticFocusPosition(focus.x, focus.y, this.camera.viewportWidth, this.camera.viewportHeight, zoom.x, zoom.y);
+                //}
+                //else {
+                    position = this.camera.calculatePosition(focus.x, focus.y, this.camera.viewportWidth, this.camera.viewportHeight, zoom.x, zoom.y, rotation);    
+                //}
+                
+                
+                
                 this.camera.zoomOriginX = focus.x;
                 this.camera.zoomOriginY = focus.y;
                 
@@ -374,14 +382,39 @@ class Animation2 extends TimelineMax {
     }
     
     /**
-    * Rotates at the current focus.
+    * Rotate at the specified location.
+    *
+    * @param {string|Element|Object} origin - The location for the rotation's origin. It can be a selector, an element, or an object with x/y coordinates.
+    * @param {number} [origin.x] - The x coordinate on the raw content.
+    * @param {number} [origin.y] - The y coordinate on the raw content.
+    * @param {number|string} rotation - The rotation.
+    * @param {number} duration - A duration.
+    * @param {Object} [options] - An object of {@link external:TweenMax|TweenMax} options.
+    * @returns {this} self
+    *
+    * @example
+    * myAnimation.rotateAt('#box100', 20, 1);
+    * myAnimation.rotateAt(document.getElementById('box100'), 20, 1);
+    * myAnimation.rotateAt({x: 200, y: 50}, 20, 1);
+    */
+    rotateAt (origin, rotation, duration, options) {
+        this._animate({
+            origin: origin,
+            rotation: rotation
+        }, duration, options);
+
+        return this;
+    }
+    
+    /**
+    * Rotate at the current focus.
     *
     * @param {number|string} rotation - The rotation.
     * @param {number} duration - A duration.
     * @param {Object} [options] - An object of {@link external:TweenMax|TweenMax} options.
     * @returns {this} self
     */
-    rotate (rotation, duration, options) {
+    rotateTo (rotation, duration, options) {
         this._animate({
             rotation: rotation
         }, duration, options);
