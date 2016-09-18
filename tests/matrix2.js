@@ -32,8 +32,8 @@ test('Matrix2', function() {
             m.set(1,2,3,1);
             var i = Matrix2.getInverse(m);
             expect(i.e11).to.equal(-0.2);
-            expect(i.e12).to.equal(-0.4);
-            expect(i.e21).to.equal(-0.6000000000000001);
+            expect(i.e12).to.equal(0.4);
+            expect(i.e21).to.equal(0.6000000000000001);
             expect(i.e22).to.equal(-0.2);
         });
     });
@@ -198,8 +198,8 @@ test('Matrix2', function() {
             m.set(1,2,3,1);
             var i = m.getInverse();
             expect(i.e11).to.equal(-0.2);
-            expect(i.e12).to.equal(-0.4);
-            expect(i.e21).to.equal(-0.6000000000000001);
+            expect(i.e12).to.equal(0.4);
+            expect(i.e21).to.equal(0.6000000000000001);
             expect(i.e22).to.equal(-0.2);
         });
     });

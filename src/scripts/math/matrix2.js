@@ -105,7 +105,7 @@ class Matrix2 {
     * @return {Matrix2} The inverse matrix.
     */
     static getInverse (m) {
-        return Matrix2.multiplyScalar(m, 1 / Matrix2.getDeterminant(m));
+        return Matrix2.multiplyScalar(new Matrix2(m.e22, -m.e12, -m.e21, m.e11), 1 / Matrix2.getDeterminant(m));
     }
     
     /**
