@@ -83,10 +83,29 @@ class Vector2 {
     copy (v) {
         return this.set(v.x, v.y);
     }
+        
+    /**
+    * Determines if the provided vectors are equal.
+    * @param {Vector2} a - The first vector.
+    * @param {Vector2} b - The second vector.
+    * @return {boolean} Whether the vectors are equal.
+    */
+    static equals (a, b) {
+        return a.x === b.x && a.y === b.y;
+    }
+    
+    /**
+    * Determines if the vector equals the provided vector.
+    * @param {Vector2} v - The vector.
+    * @return {boolean} Whether the vector equals the provided vector.
+    */
+    equals (v) {
+        return this.constructor.equals(this, v);
+    }
     
     /**
     * Multiplies a vector by a scalar.
-    * @param {Vector2} m - The vector.
+    * @param {Vector2} v - The vector.
     * @param {number} s - The scalar.
     * @return {Vector2} A new scaled vector.
     */

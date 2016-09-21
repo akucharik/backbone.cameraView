@@ -33,6 +33,19 @@ test('Vector2', function() {
         });
     });
 
+    test('Vector2.equals', function() {
+        assert('should validate that the first vector equals the second vector', function() {
+            v.set(1,2);
+            var v2 = new Vector2(1,2);
+            expect(Vector2.equals(v, v2)).to.be.true;
+        });
+        assert('should validate that the first vector does not equal the second vector', function() {
+            v.set(1,2);
+            var v2 = new Vector2(3,4);
+            expect(Vector2.equals(v, v2)).to.be.false;
+        });
+    });
+    
     test('Vector2.multiplyScalar', function() {
         assert('should multiply vector values by the provided scalar', function() {
             v.set(1,2,3,1);
@@ -125,6 +138,19 @@ test('Vector2', function() {
             var v2 = new Vector2(3,4);
             v.copy(v2);
             expect(v).to.deep.equal(v2);
+        });
+    });
+    
+    test('equals', function() {
+        assert('should validate that the vector equals the provided vector', function() {
+            v.set(1,2);
+            var v2 = new Vector2(1,2);
+            expect(v.equals(v2)).to.be.true;
+        });
+        assert('should validate that the vector does not equal the provided vector', function() {
+            v.set(1,2);
+            var v2 = new Vector2(3,4);
+            expect(v.equals(v2)).to.be.false;
         });
     });
     
