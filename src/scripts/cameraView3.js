@@ -106,13 +106,6 @@ var Camera = function (options) {
     * @default null
     */
     this.debugView = null;
-
-    /**
-    * The default tween options. Used when values are being tweened and options are not provided.
-    * @property {Object} - An object representing the default tween options.
-    * @default
-    */
-    this.defaultTweenOptions = {};
     
     /**
     * @property {Element} - TODO.
@@ -170,20 +163,17 @@ var Camera = function (options) {
     */
     this.maxZoom = 3;
 
+    /**
+    * @property {number} - The 'x' value of the transformation origin.
+    * @default
+    */
     this.originX = 0;
-    this.originY = 0;
     
     /**
-    * @property {number} - The 'x' value of the rotation origin.
+    * @property {number} - The 'y' value of the transformation origin.
     * @default
     */
-    this.rotationOriginX = 0;
-
-    /**
-    * @property {number} - The 'y' value of the rotation origin.
-    * @default
-    */
-    this.rotationOriginY = 0;
+    this.originY = 0;
 
     /**
     * @property {number} - The shake intensity. A value between 0 and 1.
@@ -322,44 +312,11 @@ var Camera = function (options) {
     
     Object.defineProperty(this, 'focus', {
         get: function () {
-            // origin: 0 0, rotation: -20
-            // focus: 554 63
-            
-            // origin: 50 50, rotation: -20
-            // focus: 548 87
-            
-            //var scaleMatrix = new Matrix2(this.zoomX, 0, 0, this.zoomY);
-            //var rotationMatrix = new Matrix2(this.zoomX, 0, 0, this.zoomY).rotate(Oculo.Math.degToRad(this.rotation));
             var transformationMatrix = new Matrix2(this.zoomX, 0, 0, this.zoomY).rotate(Oculo.Math.degToRad(-this.rotation));
-            
             var origin = new Vector2(this.originX, this.originY);
-            //var originOffset = new Vector2(0, 0);
             var originOffset = Vector2.clone(origin).transform(transformationMatrix).subtract(origin);
-            var focus = new Vector2((this.x + originOffset.x + this.halfViewportWidth), (this.y + originOffset.y + this.halfViewportHeight));
-            //console.log('tFocus1: ', focus);
-            focus.transform(transformationMatrix.getInverse());
-            //console.log('tMatrix: ', transformationMatrix);
-            //console.log('focus: ', focus);
-            //console.log('o offset: ', originOffset);
-            
-            
-            var transformedFocus = new Vector2(50,50).transform(transformationMatrix);
-            //console.log('tFocus2: ', transformedFocus);
-            //var position = new Vector2(transformedFocus.x - originOffset.x - this.halfViewportWidth, transformedFocus.y - originOffset.y - this.halfViewportHeight);
-            //console.log('position: ', position);
-            return focus;
-        }
-    });
-    
-    Object.defineProperty(this, 'focusX2', {
-        get: function () {
-            return this.focus.x;
-        }
-    });
-    
-    Object.defineProperty(this, 'focusY2', {
-        get: function () {
-            return this.focus.y;
+
+            return new Vector2((this.x + originOffset.x + this.halfViewportWidth), (this.y + originOffset.y + this.halfViewportHeight)).transform(transformationMatrix.getInverse());
         }
     });
     
@@ -370,7 +327,7 @@ var Camera = function (options) {
     */
     Object.defineProperty(this, 'focusX', {
         get: function () {
-            return _.round((this.halfViewportWidth + this.x) / this.zoomX, 2)
+            return this.focus.x;
         }
     });
     
@@ -381,7 +338,7 @@ var Camera = function (options) {
     */
     Object.defineProperty(this, 'focusY', {
         get: function () {
-            return _.round((this.halfViewportHeight + this.y) / this.zoomY, 2)
+            return this.focus.y;
         }
     });
     
@@ -570,110 +527,6 @@ p._addAnimation = function (animation) {
 * @returns {TimelineMax} The animation timeline.
 */
 p._animate = function (properties, duration, options) {
-    if (properties.rotation) {
-        var rOffsetX, rOffsetY, timeline, tOriginDeltaX, tOriginDeltaY;
-        var rElTransform = this.content.rotateEl._gsTransform || {};
-        // TODO: This must be a 2D matrix. Ensure a 2D matrix is returned.
-        var tMatrix = utils.getTransformMatrix(this.content.rotateEl);
-
-        rOffsetX = rElTransform.x || 0;
-        rOffsetY = rElTransform.y || 0;
-
-        tOriginDeltaX = properties.rotationOriginX - this.rotationOriginX;
-        tOriginDeltaY = properties.rotationOriginY - this.rotationOriginY;
-
-        // Handle 2D smooth origin changed when rotating
-        rOffsetX += (tOriginDeltaX * tMatrix[0] + tOriginDeltaY * tMatrix[2]) - tOriginDeltaX;
-        rOffsetY += (tOriginDeltaX * tMatrix[1] + tOriginDeltaY * tMatrix[3]) - tOriginDeltaY;
-
-//                console.log('rOffset', rOffsetX, rOffsetY);
-//                console.log('tOriginDelta', tOriginDeltaX, tOriginDeltaY);
-    }
-
-    timeline = new TimelineMax({
-        data: {
-            id: uniqueId()
-        },
-        paused: this.isPaused,
-        callbackScope: this,
-        onStart: function (timeline) { 
-            this.isAnimating = true;
-            this.draggable.disable();
-            this._addAnimation(timeline);
-        },
-        onStartParams: ["{self}"],
-        onUpdate: function (timeline) { 
-            this._updateTransformedFocus();
-            
-            this._renderDebug();
-        },
-        onUpdateParams: ["{self}"],
-        onComplete: function (timeline) { 
-            this.isAnimating = false;
-            this.draggable.enable();
-            this._removeAnimation(timeline);
-            this._renderDebug();
-        },
-        onCompleteParams: ["{self}"]
-    });
-
-    timeline.to(this, duration, this.getTweenOptions({ 
-            focusX: properties.focusX,
-            focusY: properties.focusY,
-            rotation: properties.rotation,
-            zoom: properties.zoom,
-            zoomX: properties.zoom,
-            zoomY: properties.zoom
-        }, options), 0)
-        .to(this, 0, this.getTweenOptions({ 
-            rotationOriginX: properties.rotationOriginX,
-            rotationOriginY: properties.rotationOriginY
-        }, options), 0)
-        .to(this.content, duration, this.getTweenOptions({
-            x: properties.contentX,
-            y: properties.contentY
-        }, options), 0)
-        .to(this.content.transformEl, duration, this.getTweenOptions({ css: {
-            scaleX: properties.zoom,
-            scaleY: properties.zoom,
-            x: properties.contentX,
-            y: properties.contentY
-        }}, options), 0)
-        .to(this.content.rotateEl, duration, this.getTweenOptions({ css: {
-            rotation: properties.rotation,
-            transformOrigin: properties.rotationOrigin
-        }}, options), 0)
-        .to(this.content.rotateEl, 0, this.getTweenOptions({ css: {
-            x: rOffsetX,
-            y: rOffsetY
-        }}, options), 0);
-
-    return timeline;
-};
-
-/**
-* Focus the camera on a point.
-*
-* @private
-* @param {number} x - The 'x' position on the unzoomed content.
-* @param {number} y - The 'y' position on the unzoomed content.
-* @param {number} duration - TODO.
-* @param {Object} [options] - TODO.
-* @returns {Camera} The view.
-*/
-p._focusOnXY = function (x, y, duration, options) {
-    var focus = this.checkFocusBounds(x, y);
-    var position = this.getContentPosition(focus.x, focus.y, this.viewportWidth, this.viewportHeight, this.zoom);
-    // TODO: This must be a 2D matrix. Ensure a 2D matrix is returned.
-    var tMatrix = utils.getTransformMatrix(this.content.rotateEl);
-    var tPositionX = position.x * tMatrix[0] + position.y * tMatrix[2];
-    var tPositionY = position.x * tMatrix[1] + position.y * tMatrix[3];
-
-    this._animate({
-        focusX: focus.x,
-        focusY: focus.y,
-        contentX: tPositionX, 
-        contentY: tPositionY }, duration, options);
 
     return this;
 };
@@ -740,82 +593,6 @@ p._renderDebug = function () {
 };
 
 /**
-* Rotates at a specific point.
-*
-* @param {number|string} rotation - TODO.
-* @param {number|string} x - TODO.
-* @param {number|string} y - TODO.
-* @param {number} duration - TODO.
-* @param {Object} [options] - TODO.
-* @returns {Camera} The view.
-*/
-p._rotateAtXY = function (rotation, x, y, duration, options) {
-    var rotationOriginCSS = x + ' ' + y;
-
-    if (isFinite(x) && isFinite(y)) {
-        rotationOriginCSS = x + 'px ' + y + 'px';
-    }
-
-    // TODO: Consider determining focus "onUpdate" of tween (this.focusX * current tMatrix * current rMatrix + tMatrixTranslate, then take out scale)
-    // Determine focus point
-//            var relativeFocusX = this.focusX - x;
-//            var relativeFocusY = y - this.focusY;
-//            console.log(relativeFocusX, relativeFocusY);
-//            var tMatrix = utils.getTransformMatrix(this.content.rotateEl);
-//            var tPositionX = (relativeFocusX * tMatrix[0] + relativeFocusY * tMatrix[2]);
-//            var tPositionY = (relativeFocusX * tMatrix[1] + relativeFocusY * tMatrix[3]);
-
-    this._animate({
-        rotation: rotation,
-        rotationOrigin: rotationOriginCSS,
-        rotationOriginX: x,
-        rotationOriginY: y
-    }, duration, options);
-
-    return this;
-};
-
-/**
-* Calculates the transformed focus coordinates.
-*
-* @private
-* @param {number} x - TODO.
-* @param {number} y - TODO.
-* @param {number} originX - TODO.
-* @param {number} originY - TODO.
-* @param {Array} matrix - TODO.
-* @return TODO.
-*/
-p._transformFocus = function (x, y, originX, originY, matrix) {
-    // TODO: Needs to take into account rotationOrigin changes!!!
-    // rotateAt(30, 300, 300)
-    // rotateAt(5, 200, 200)
-    // 442, 264
-    var relativeFocusX = x - originX;
-    var relativeFocusY = originY - y;
-
-    return {
-        x: originX + (relativeFocusX * matrix[0] + relativeFocusY * matrix[2]) - matrix[4],
-        y: originY - (relativeFocusX * matrix[1] + relativeFocusY * matrix[3]) - matrix[5]
-    };
-};
-
-/**
-* Updates the transformed focus properties.
-*
-* @private
-* @return {Camera} - The view.
-*/
-p._updateTransformedFocus = function () {
-    var transformedFocus = this._transformFocus(this.focusX, this.focusY, this.rotationOriginX, this.rotationOriginY, utils.getTransformMatrix(this.content.rotateEl));
-
-    this.transformedFocusX = transformedFocus.x;
-    this.transformedFocusY = transformedFocus.y;
-
-    return this;
-};
-
-/**
 * Zooms in/out based on wheel input.
 *
 * @private
@@ -845,68 +622,6 @@ p._wheelZoom = function (event) {
             return this._zoomAtXY(zoom, originX, originY, 0);
         }
     }
-};
-
-/**
-* Zooms in/out at a specific point.
-*
-* @param {number} zoom - A {@link Camera.zoom|zoom} ratio.
-* @param {number} x - TODO.
-* @param {number} y - TODO.
-* @param {number} duration - TODO.
-* @param {Object} [options] - TODO.
-* @returns {Camera} The view.
-*/
-p._zoomAtXY = function (zoom, x, y, duration, options) {
-    zoom = this.clampZoom(zoom);
-
-    var focus, position;
-    var anchor = this.checkFocusBounds(x, y);
-    var deltaX = this.focusX - anchor.x;
-    var deltaY = this.focusY - anchor.y;
-    var zoomRatio = this.zoom / zoom;
-
-    this.zoomOriginX = x;
-    this.zoomOriginY = y;
-
-    focus = this.getContentFocus(this.focusX, this.focusY, deltaX, deltaY, zoomRatio);
-
-    position = this.getContentPosition(focus.x, focus.y, this.viewportWidth, this.viewportHeight, zoom);
-
-    this._animate({
-        zoom: zoom, 
-        focusX: focus.x, 
-        focusY: focus.y, 
-        contentX: position.x, 
-        contentY: position.y }, duration, options);
-
-    return this;
-};
-
-/**
-* Zooms in/out and focus the camera on a specific point.
-*
-* @param {number} zoom - A {@link Camera.zoom|zoom} ratio.
-* @param {number} x - TODO.
-* @param {number} y - TODO.
-* @param {number} duration - TODO.
-* @param {Object} [options] - TODO.
-* @returns {Camera} The view.
-*/
-p._zoomOnXY = function (zoom, x, y, duration, options) {
-    zoom = this.clampZoom(zoom);
-
-    var focus = this.checkFocusBounds(x, y);
-    var position = this.getContentPosition(focus.x, focus.y, this.viewportWidth, this.viewportHeight, zoom);
-
-    this._animate({ 
-        zoom: zoom, 
-        focusX: focus.x, 
-        focusY: focus.y, 
-        contentX: position.x, 
-        contentY: position.y }, duration, options);
-
-    return this;
 };
 
 /**
@@ -1065,17 +780,10 @@ p.initialize = function (options) {
         'y',
     ]));
 
-    //this.contentX = this.getContentPositionAxisValue(options.focusX, this.width, this.zoomX) ;
-    //this.contentY = this.getContentPositionAxisValue(options.focusY, this.height, this.zoomY);
-    this.x = this.getContentPositionAxisValue(options.focusX, this.viewportWidth, this.zoomX);
-    this.y = this.getContentPositionAxisValue(options.focusY, this.viewportHeight, this.zoomY);
-    this.rotationOriginX = 0;//this.focusX;
-    this.rotationOriginY = 0;//this.focusY;
-    this.transformedFocusX = this.focusX;
-    this.transformedFocusY = this.focusY;
-
-    //TODO: Create a utility function to build CSS transform-origin value
-    TweenMax.set(this.content.rotateEl, { transformOrigin: this.rotationOriginX + 'px ' + this.rotationOriginY + 'px' });
+    var position = this.calculateCameraPosition(options.focusX, options.focusY, this.halfViewportWidth, this.halfViewportHeight, this.originX, this.originY, this.rotation, this.zoomX, this.zoomY);
+    
+    this.x = position.x;
+    this.y = position.y;
 
     // Set up content
     this.el.appendChild(this.content.el);
@@ -1085,7 +793,6 @@ p.initialize = function (options) {
             // 'this' refers to the Draggable instance
             camera.focusX = (camera.viewportWidth / 2 - this.x) / camera.zoom;
             camera.focusY = (camera.viewportHeight / 2 - this.y) / camera.zoom;
-            camera._updateTransformedFocus();
             camera._renderDebug();
         },
         onDragParams: [this],
@@ -1173,30 +880,8 @@ p.clampZoom = function (value) {
 * @returns {Camera} The view.
 */
 p.focusOn = function (x, y, duration, options) {
-    // Focus on an element
-    if (arguments.length >= 2 && _.isElement(arguments[0])) {
-        var el = x;
-        var duration = y;
-        var options = duration;
-        var position = this.getElementFocus(window, this.content.transformEl.getBoundingClientRect(), el.getBoundingClientRect(), this.zoom);
-
-        this._focusOnXY(position.x, position.y, duration, options);
-    }
-
-    // Focus on an x/y position
-    else if (arguments.length >= 3 && isFinite(arguments[0]) && isFinite(arguments[1])) {
-        this._focusOnXY(x, y, duration, options);
-    }
-
-    else {
-        throw new Error(constants.errorMessage.METHOD_SIGNATURE);
-    }
 
     return this;
-};
-
-p.getTweenOptions = function (properties, options) {
-    return Object.assign({}, this.defaultTweenOptions, properties, options);
 };
 
 /**
@@ -1292,24 +977,6 @@ p.play = function () {
 * @returns {Camera} The view.
 */
 p.rotateAt = function (rotation, x, y, duration, options) {
-    // Rotate at an element
-    if (arguments.length >= 3 && _.isElement(arguments[1])) {
-        var el = x;
-        var duration = y;
-        var options = duration;
-        var position = this.getElementFocus(window, this.content.transformEl.getBoundingClientRect(), el.getBoundingClientRect(), this.zoom);
-
-        this._rotateAtXY(rotation, position.x, position.y, duration, options);
-    }
-
-    // Rotate at an x/y position
-    else if (arguments.length >= 4 && (isFinite(arguments[1]) || isString(arguments[1])) && (isFinite(arguments[2])) || isString(arguments[2])) {
-        this._rotateAtXY(rotation, x, y, duration, options);
-    }
-
-    else {
-        throw new Error(constants.errorMessage.METHOD_SIGNATURE);
-    }
 
     return this;
 };
@@ -1323,7 +990,6 @@ p.rotateAt = function (rotation, x, y, duration, options) {
 * @returns {Camera} The view.
 */
 p.rotateTo = function (rotation, duration, options) {
-    this._rotateAtXY(rotation, this.transformedFocusX, this.transformedFocusY, duration, options);
 
     return this;
 };
@@ -1347,65 +1013,6 @@ p.rotateTo = function (rotation, duration, options) {
 * @returns {Camera} The view.
 */
 p.zoomAt = function (zoom, x, y, duration, options) {
-    // Zoom at an element
-    if (arguments.length >= 3 && _.isElement(arguments[1])) {
-        var el = x;
-        var duration = y;
-        var options = duration;
-        var position = this.getElementFocus(window, this.content.transformEl.getBoundingClientRect(), el.getBoundingClientRect(), this.zoom);
-
-        this._zoomAtXY(zoom, position.x, position.y, duration, options);
-    }
-
-    // Zoom at an x/y position
-    else if (arguments.length >= 4 && isFinite(arguments[1]) && isFinite(arguments[2])) {
-        this._zoomAtXY(zoom, x, y, duration, options);
-    }
-
-    else {
-        throw new Error(constants.errorMessage.METHOD_SIGNATURE);
-    }
-
-    return this;
-};
-
-/**
-* Zooms in/out and focus the camera on a specific element.
-*
-* @param {number} zoom - A {@link Camera.zoom|zoom} ratio.
-* @param {Element} focus - The element.
-* @param {number} duration - TODO.
-* @param {Object} [options] - TODO.
-* @returns {Camera} The view.
-*//**
-* Zooms in/out and focus the camera on a specific point.
-*
-* @param {number} zoom - A {@link Camera.zoom|zoom} ratio.
-* @param {number} x - TODO.
-* @param {number} y - TODO.
-* @param {number} duration - TODO.
-* @param {Object} [options] - TODO.
-* @returns {Camera} The view.
-*/
-p.zoomOn = function (zoom, x, y, duration, options) {
-    // Zoom on an element
-    if (arguments.length >= 3 && _.isElement(arguments[1])) {
-        var el = x;
-        var duration = y;
-        var options = duration;
-        var position = this.getElementFocus(window, this.content.transformEl.getBoundingClientRect(), el.getBoundingClientRect(), this.zoom);
-
-        this._zoomOnXY(zoom, position.x, position.y, duration, options);
-    }
-
-    // Zoom on an x/y position
-    else if (arguments.length >= 4 && isFinite(arguments[1]) && isFinite(arguments[2])) {
-        this._zoomOnXY(zoom, x, y, duration, options);
-    }
-
-    else {
-        throw new Error(constants.errorMessage.METHOD_SIGNATURE);
-    }
 
     return this;
 };
@@ -1419,7 +1026,6 @@ p.zoomOn = function (zoom, x, y, duration, options) {
 * @returns {Camera} The view.
 */
 p.zoomTo = function (zoom, duration, options) {
-    this._zoomAtXY(zoom, this.focusX, this.focusY, duration, options);
 
     return this;
 };

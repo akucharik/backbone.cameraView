@@ -5,13 +5,11 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
-var clamp = _.clamp;
 var isElement = _.isElement;
 var isFinite = _.isFinite;
 var isNil = _.isNil;
 var isObject = _.isObject;
 var isString = _.isString;
-var pick = _.pick;
 var uniqueId = _.uniqueId;
 
 var Matrix2 = Oculo.Matrix2;
@@ -48,51 +46,17 @@ class Animation3 extends TimelineMax {
         }, null, this);
 
         this.eventCallback('onUpdate', function () {
-            var x = this.camera.content.x;
-            var y = this.camera.content.y;
+            var contentPosition = new Vector2(this.camera.content.x, this.camera.content.y);
 
             if (this.camera.isShaking) {
                 if (this.camera.shakeHorizontal) {
-                    x += Math.random() * this.camera.shakeIntensity * this.camera.width * 2 - this.camera.shakeIntensity * this.camera.width;
+                    contentPosition.x += Math.random() * this.camera.shakeIntensity * this.camera.viewportWidth * 2 - this.camera.shakeIntensity * this.camera.viewportWidth;
                 }
 
                 if (this.camera.shakeVertical) {
-                    y += Math.random() * this.camera.shakeIntensity * this.camera.height * 2 - this.camera.shakeIntensity * this.camera.height;
+                    contentPosition.y += Math.random() * this.camera.shakeIntensity * this.camera.viewportHeight * 2 - this.camera.shakeIntensity * this.camera.viewportHeight;
                 }
             }
-            
-            //var position = this.camera.calculatePosition99(this.camera);
-            //x = -position.x;
-            //y = -position.y;
-            
-            //console.log('position: ', x, y);
-            //var position = new Vector2(x, y);
-            //var rad = Oculo.Math.degToRad(this.camera.content.rotation);
-            //var rotatedPosition = Vector2.transform(position, new Matrix2(Math.cos(rad), -Math.sin(rad), Math.sin(rad), Math.cos(rad)));
-            //console.log('rotated: ', rotatedPosition.x, rotatedPosition.y);
-            
-            //var rotatedFocus = Vector2.transform(position, new Matrix2(Math.cos(rad), -Math.sin(rad), Math.sin(rad), Math.cos(rad)));
-            //console.log('rotated focus: ', focus.x, focus.y);
-            
-//            if (this.data.startFocusX && this.data.startFocusY) {
-//                var focus = new Vector2(this.camera.focusX, this.camera.focusY).transform(new Matrix2().rotate(Oculo.Math.degToRad(this.camera.content.rotation)));
-//                var position = this.camera.calculatePosition(focus.x, focus.y, this.camera.viewportWidth, this.camera.viewportHeight, this.camera.zoomX, this.camera.zoomY);
-//                x = -position.x;
-//                y = -position.y;
-//            }
-            
-            //var position = this.camera.calculatePosition2(this.camera, this.camera.focusX3, this.camera.focusY3, this.camera.zoomX, this.camera.zoomY, this.camera.rotation);
-            //x = -position.x;
-            //y = -position.y;
-            //console.log(this.camera.focusX, this.camera.focusY);
-            //console.log(this.camera.focusX3, this.camera.focusY3);
-            
-            // tween content position
-            // 497.49, 248.75
-            // 484.26, 241.3
-            
-            // tween focus
-            // 
             
             // render
             TweenMax.set(this.camera.content.transformEl, { 
@@ -100,17 +64,10 @@ class Animation3 extends TimelineMax {
                     rotation: this.camera.content.rotation,
                     scaleX: this.camera.content.scaleX,
                     scaleY: this.camera.content.scaleY,
-                    x: x,
-                    y: y
+                    x: contentPosition.x,
+                    y: contentPosition.y
                 }
             });
-            
-//            TweenMax.set(this.camera.content.rotateEl, { 
-//                css: {
-//                    rotation: this.camera.content.rotation,
-//                    transformOrigin: this.camera.rotationOriginX + 'px ' + this.camera.rotationOriginY + 'px'
-//                }
-//            });
 
             this.camera._renderDebug();
         }, null, this);
@@ -207,54 +164,68 @@ class Animation3 extends TimelineMax {
                 var isZooming = !isNil(tween.data.zoom.x) || !isNil(tween.data.focus.x);
                 var isAnchored = hasOrigin && !isFocusing;
                 
-                var focus = {
-                    x: isNil(tween.data.focus.x) ? this.camera.focusX : tween.data.focus.x,
-                    y: isNil(tween.data.focus.y) ? this.camera.focusY : tween.data.focus.y
-                };
+                
+                var cameraTransformationMatrix = new Matrix2(this.camera.zoomX, 0, 0, this.camera.zoomY).rotate(Oculo.Math.degToRad(-this.camera.rotation));
                 var origin = {
                     x: isNil(tween.data.origin.x) ? this.camera.originX : tween.data.origin.x,
                     y: isNil(tween.data.origin.y) ? this.camera.originY : tween.data.origin.y
                 };
+                
+                // Smooth origin change
+                var cameraOrigin = new Vector2(this.camera.originX, this.camera.originY);
+                var newOrigin = new Vector2(origin.x, origin.y);
+                var deltaOrigin = Vector2.clone(newOrigin).subtract(cameraOrigin);
+                var originOffset = Vector2.clone(newOrigin).transform(cameraTransformationMatrix).subtract(Vector2.clone(cameraOrigin).transform(cameraTransformationMatrix)).subtract(deltaOrigin);
+                
+                if (deltaOrigin.x !==0 && deltaOrigin.y !==0) {
+                    if (this.camera.isRotated || this.camera.isZoomed) {
+                        TweenMax.set(this.camera, { 
+                            x: this.camera.x - originOffset.x,
+                            y: this.camera.y - originOffset.y
+                        });
+                    }
+                    
+                    TweenMax.set(this.camera, { 
+                        originX: origin.x,
+                        originY: origin.y
+                    });
+                    
+                    TweenMax.set(this.camera.content.transformEl, { 
+                        css: {
+                            transitionDuration: '0s',
+                            transformOrigin: origin.x + 'px ' + origin.y + 'px',
+                            x: this.camera.content.x,
+                            y: this.camera.content.y
+                        }
+                    });    
+                }
+                
+                var focus = new Vector2(isNil(tween.data.focus.x) ? this.camera.focus.x : tween.data.focus.x, isNil(tween.data.focus.y) ? this.camera.focus.y : tween.data.focus.y);
                 var rotation = isNil(tween.data.rotation) ? this.camera.rotation : tween.data.rotation;
                 var zoom = {
                     x: this.camera.clampZoom(isNil(tween.data.zoom.x) ? this.camera.zoomX : tween.data.zoom.x),
                     y: this.camera.clampZoom(isNil(tween.data.zoom.y) ? this.camera.zoomY : tween.data.zoom.y)
                 };
+                                
+                var transformationMatrix = new Matrix2(zoom.x, 0, 0, zoom.y).rotate(Oculo.Math.degToRad(-rotation));
+                var cameraContextPosition = new Vector2();
                 
                 origin = this.camera.checkFocusBounds(origin.x, origin.y);
                 
-                if (isRotating && !isFocusing) {
+                if (isRotating && !isAnchored && !isFocusing) {
                     origin.x = this.camera.focusX;
                     origin.y = this.camera.focusY;
                 }
                 
                 if (isAnchored) {
-                    
-                    
-                    zoomFocus = this.camera.calculateFocus(this.camera.focusX, this.camera.focusY, origin.x, origin.y, zoom.x, zoom.y, rotation);
-                    
-                    var cameraContextAnchorPosition = this.camera.calculateCameraContextPosition(origin.x, origin.y, this.camera.focusX, this.camera.focusY, this.camera.rotation, this.camera.zoomX, this.camera.zoomY);
-                    position = this.camera.calculateCameraPositionByVector(origin.x, origin.y, cameraContextAnchorPosition.x, cameraContextAnchorPosition.y, origin.x, origin.y, rotation, zoom.x, zoom.y);
-                    //var anchoredFocus = this.camera.calculateFocus3(anchoredCameraPosition.x, anchoredCameraPosition.y);
-                    
-                    console.log('cameraContextAnchorPosition: ', cameraContextAnchorPosition);
-                    //console.log('anchoredCameraPosition: ', anchoredCameraPosition);
-                    //console.log('anchoredFocus: ', anchoredFocus);
-                    
-                    //focus.x = anchoredFocus.x;
-                    //focus.y = anchoredFocus.y;
-                    
-                    //focus.x = zoomFocus.x;
-                    //focus.y = zoomFocus.y;
+                    focus.copy(origin);
+                    cameraContextPosition = this.camera.calculateCameraContextPosition(origin.x, origin.y, this.camera.focusX, this.camera.focusY, this.camera.rotation, this.camera.zoomX, this.camera.zoomY);
                 }
                 else {
-                    position = this.camera.calculateCameraPositionByFocus(focus.x, focus.y, origin.x, origin.y, rotation, zoom.x, zoom.y, this.camera.halfViewportWidth, this.camera.halfViewportHeight);
+                    cameraContextPosition.set(this.camera.halfViewportWidth, this.camera.halfViewportHeight);
                 }
-                console.log('isRotating: ', isRotating);
                 
-                
-                this.camera.rotationOriginX = origin.x;
-                this.camera.rotationOriginY = origin.y;
+                position = this.camera.calculateCameraPosition(focus.x, focus.y, cameraContextPosition.x, cameraContextPosition.y, origin.x, origin.y, rotation, zoom.x, zoom.y);
                 
                 // TODO: For dev only
                 var animation = {
@@ -265,57 +236,8 @@ class Animation3 extends TimelineMax {
                 };
                 console.log('props: ', animation);
                 
-                //if (focus.x === this.camera.focusX && focus.y === this.camera.focusY) {
-                //    position = this.camera.calculateStaticFocusPosition(focus.x, focus.y, this.camera.viewportWidth, this.camera.viewportHeight, zoom.x, zoom.y);
-                //}
-                //else {
-                    //position = this.camera.calculateCameraPositionByFocus(focus.x, focus.y, origin.x, origin.y, rotation, zoom.x, zoom.y, this.camera.halfViewportWidth, this.camera.halfViewportHeight);
-                //}
-                
-                
-                
                 this.camera.zoomOriginX = focus.x;
                 this.camera.zoomOriginY = focus.y;
-                
-                
-                var deltaOriginX = origin.x - this.camera.originX;
-                var deltaOriginY = origin.y - this.camera.originY;
-                
-                // Smooth origin change
-                if (deltaOriginX !==0 && deltaOriginY !==0) {
-                    //console.log('f origin: ', origin.x, origin.y);
-                    //console.log('c origin: ', this.camera.originX, this.camera.originY);
-                    //console.log('c position: ', this.camera.x, this.camera.y);
-                    
-                    if (this.camera.isRotated || this.camera.isZoomed) {
-                        TweenMax.set(this.camera, { 
-                            x: this.camera.x - deltaOriginX,
-                            y: this.camera.y - deltaOriginY
-                        });
-                    }
-                    
-                    TweenMax.set(this.camera, { 
-                        originX: origin.x,
-                        originY: origin.y
-                    });
-                    
-                    
-                    
-                    //console.log('n origin: ', this.camera.originX, this.camera.originY);
-                    //console.log('n position: ', this.camera.x, this.camera.y);
-                    
-                    TweenMax.set(this.camera.content.transformEl, { 
-                        css: {
-                            transitionDuration: '0s',
-                            transformOrigin: origin.x + 'px ' + origin.y + 'px',
-                            x: this.camera.content.x,
-                            y: this.camera.content.y
-                        },
-                        onComplete: function () {
-                            console.log('done transforming origin');
-                        }
-                    });    
-                }
                 
                 tween.updateTo({
                     rotation: rotation,
