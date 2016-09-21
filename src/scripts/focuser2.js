@@ -32,47 +32,34 @@ var Focuser = function () {
     };
     
     /**
-    * Get the position within the camera of a point on the content.
+    * Calculate the position within the camera of the provided point on the content.
     *
-    * @param {number} contentX - The x coordinate on the content.
-    * @param {number} contentY - The y coordinate on the content.
-    * @param {number} focusX - The x coordinate on the content that is in focus.
-    * @param {number} focusY - The y coordinate on the content that is in focus.
-    * @param {number} rotation - The rotation.
-    * @param {number} scaleX - The x-axis zoom.
-    * @param {number} scaleY - The y-axis zoom.
-    * @returns {Vector2} The position of the content's point within the camera.
+    * @param {Vector2} contentPosition - The point on the content.
+    * @param {Vector2} focus - The point on the content that is in focus.
+    * @param {Matrix2} transformation - The transformation matrix.
+    * @returns {Vector2} The position within the camera of the provided point on the content.
     */
-    this.calculateCameraContextPosition = function (contentX, contentY, focusX, focusY, rotation, scaleX, scaleY) {
-        var transformationMatrix = new Matrix2(scaleX, 0, 0, scaleY).rotate(Oculo.Math.degToRad(-rotation));
-        var position = new Vector2(contentX, contentY).transform(transformationMatrix);
-        var cameraPosition = this.calculateCameraPosition(focusX, focusY, this.halfViewportWidth, this.halfViewportHeight, 0, 0, rotation, scaleX, scaleY);
+    this.calculateCameraContextPosition = function (contentPosition, focus, transformation) {
+        var cameraContextPosition = new Vector2(this.halfViewportWidth, this.halfViewportHeight);
+        var origin = new Vector2(0, 0);
+        var cameraPosition = this.calculateCameraPosition(focus, cameraContextPosition, origin, transformation);
         
-        return Vector2.clone(position).subtract(cameraPosition);
+        return Vector2.clone(contentPosition).transform(transformation).subtract(cameraPosition);
     };
     
     /**
-    * Get the position of the camera on the content.
+    * Calculate the position of the camera given a point on the content to be placed at a point on the camera.
     *
-    * @param {number} contentX - The x coordinate on the content.
-    * @param {number} contentY - The y coordinate on the content.
-    * @param {number} cameraContextX - The x coordinate on the content that is in focus.
-    * @param {number} cameraContextY - The y coordinate on the content that is in focus.
-    * @param {number} originX - The x coordinate of the origin.
-    * @param {number} originY - The y coordinate of the origin.
-    * @param {number} rotation - The rotation.
-    * @param {number} scaleX - The x-axis zoom.
-    * @param {number} scaleY - The y-axis zoom.
+    * @param {Vector2} contentPosition - The point on the content.
+    * @param {Vector2} cameraContext - The point on the camera.
+    * @param {Vector2} origin - The origin.
+    * @param {Matrix2} transformation - The transformation matrix.
     * @returns {Vector2} The position of the camera.
     */
-    this.calculateCameraPosition = function (contentX, contentY, cameraContextPositionX, cameraContextPositionY, originX, originY, rotation, scaleX, scaleY) {
-        var transformationMatrix = new Matrix2(scaleX, 0, 0, scaleY).rotate(Oculo.Math.degToRad(-rotation));
-        var contentPosition = new Vector2(contentX, contentY).transform(transformationMatrix);
-        var cameraContextPosition = new Vector2(cameraContextPositionX, cameraContextPositionY);
-        var origin = new Vector2(originX, originY);
-        var originOffset = Vector2.clone(origin).transform(transformationMatrix).subtract(origin);
+    this.calculateCameraPosition = function (contentPosition, cameraContextPosition, origin, transformation) {
+        var originOffset = Vector2.clone(origin).transform(transformation).subtract(origin);
         
-        return Vector2.clone(contentPosition).subtract(originOffset, cameraContextPosition);
+        return Vector2.clone(contentPosition).transform(transformation).subtract(originOffset, cameraContextPosition);
     };
 };
 

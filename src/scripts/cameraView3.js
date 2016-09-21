@@ -780,7 +780,11 @@ p.initialize = function (options) {
         'y',
     ]));
 
-    var position = this.calculateCameraPosition(options.focusX, options.focusY, this.halfViewportWidth, this.halfViewportHeight, this.originX, this.originY, this.rotation, this.zoomX, this.zoomY);
+    var focus = new Vector2(options.focusX, options.focusY);
+    var cameraContextPosition = new Vector2(this.halfViewportWidth, this.halfViewportHeight);
+    var origin = new Vector2(this.originX, this.originY);
+    var transformation = new Matrix2(this.content.scaleX, 0, 0, this.content.scaleY).rotate(Oculo.Math.degToRad(this.content.rotation));
+    var position = this.calculateCameraPosition(focus, cameraContextPosition, origin, transformation);
     
     this.x = position.x;
     this.y = position.y;

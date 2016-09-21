@@ -156,28 +156,33 @@ class Animation3 extends TimelineMax {
             },
             callbackScope: this,
             onStart: function (tween) {
-                var zoomFocus, position;
-                
-                var hasOrigin = !isNil(tween.data.origin.x) || !isNil(tween.data.origin.y);
                 var isFocusing = !isNil(tween.data.focus.x) || !isNil(tween.data.focus.y);
                 var isRotating = !isNil(tween.data.rotation) && tween.data.rotation !== this.camera.rotation;
                 var isZooming = !isNil(tween.data.zoom.x) || !isNil(tween.data.focus.x);
-                var isAnchored = hasOrigin && !isFocusing;
+                var isAnchored = (!isNil(tween.data.origin.x) || !isNil(tween.data.origin.y)) && !isFocusing;
                 
-                
-                var cameraTransformationMatrix = new Matrix2(this.camera.zoomX, 0, 0, this.camera.zoomY).rotate(Oculo.Math.degToRad(-this.camera.rotation));
-                var origin = {
-                    x: isNil(tween.data.origin.x) ? this.camera.originX : tween.data.origin.x,
-                    y: isNil(tween.data.origin.y) ? this.camera.originY : tween.data.origin.y
+                var focus = new Vector2(isNil(tween.data.focus.x) ? this.camera.focus.x : tween.data.focus.x, isNil(tween.data.focus.y) ? this.camera.focus.y : tween.data.focus.y);
+                var origin = new Vector2(isNil(tween.data.origin.x) ? this.camera.originX : tween.data.origin.x, isNil(tween.data.origin.y) ? this.camera.originY : tween.data.origin.y);
+                var rotation = isNil(tween.data.rotation) ? this.camera.rotation : tween.data.rotation;
+                var zoom = {
+                    x: this.camera.clampZoom(isNil(tween.data.zoom.x) ? this.camera.zoomX : tween.data.zoom.x),
+                    y: this.camera.clampZoom(isNil(tween.data.zoom.y) ? this.camera.zoomY : tween.data.zoom.y)
                 };
                 
-                // Smooth origin change
-                var cameraOrigin = new Vector2(this.camera.originX, this.camera.originY);
-                var newOrigin = new Vector2(origin.x, origin.y);
-                var deltaOrigin = Vector2.clone(newOrigin).subtract(cameraOrigin);
-                var originOffset = Vector2.clone(newOrigin).transform(cameraTransformationMatrix).subtract(Vector2.clone(cameraOrigin).transform(cameraTransformationMatrix)).subtract(deltaOrigin);
+                var startTransformation = new Matrix2(this.camera.content.scaleX, 0, 0, this.camera.content.scaleY).rotate(Oculo.Math.degToRad(this.camera.content.rotation));
+                var transformation = new Matrix2(zoom.x, 0, 0, zoom.y).rotate(Oculo.Math.degToRad(-rotation));
+                var startOrigin = new Vector2(this.camera.originX, this.camera.originY);
+                var deltaOrigin = new Vector2();
+                var originOffset = new Vector2();
+                var focalPoint = Vector2.clone(focus);
+                var cameraContextPosition = new Vector2();
+                var position = new Vector2();
                 
-                if (deltaOrigin.x !==0 && deltaOrigin.y !==0) {
+                // Smooth origin change
+                if (!origin.equals(startOrigin)) {
+                    deltaOrigin = Vector2.clone(origin).subtract(startOrigin);
+                    originOffset = Vector2.clone(origin).transform(startTransformation).subtract(Vector2.clone(startOrigin).transform(startTransformation)).subtract(deltaOrigin);
+                    
                     if (this.camera.isRotated || this.camera.isZoomed) {
                         TweenMax.set(this.camera, { 
                             x: this.camera.x - originOffset.x,
@@ -200,44 +205,32 @@ class Animation3 extends TimelineMax {
                     });    
                 }
                 
-                var focus = new Vector2(isNil(tween.data.focus.x) ? this.camera.focus.x : tween.data.focus.x, isNil(tween.data.focus.y) ? this.camera.focus.y : tween.data.focus.y);
-                var rotation = isNil(tween.data.rotation) ? this.camera.rotation : tween.data.rotation;
-                var zoom = {
-                    x: this.camera.clampZoom(isNil(tween.data.zoom.x) ? this.camera.zoomX : tween.data.zoom.x),
-                    y: this.camera.clampZoom(isNil(tween.data.zoom.y) ? this.camera.zoomY : tween.data.zoom.y)
-                };
-                                
-                var transformationMatrix = new Matrix2(zoom.x, 0, 0, zoom.y).rotate(Oculo.Math.degToRad(-rotation));
-                var cameraContextPosition = new Vector2();
-                
-                origin = this.camera.checkFocusBounds(origin.x, origin.y);
+                //origin = this.camera.checkFocusBounds(origin.x, origin.y);
                 
                 if (isRotating && !isAnchored && !isFocusing) {
-                    origin.x = this.camera.focusX;
-                    origin.y = this.camera.focusY;
+                    origin.set(this.camera.focusX, this.camera.focusY);
                 }
                 
                 if (isAnchored) {
-                    focus.copy(origin);
-                    cameraContextPosition = this.camera.calculateCameraContextPosition(origin.x, origin.y, this.camera.focusX, this.camera.focusY, this.camera.rotation, this.camera.zoomX, this.camera.zoomY);
+                    focalPoint.copy(origin);
+                    cameraContextPosition = this.camera.calculateCameraContextPosition(origin, this.camera.focus, startTransformation);
                 }
                 else {
                     cameraContextPosition.set(this.camera.halfViewportWidth, this.camera.halfViewportHeight);
                 }
                 
-                position = this.camera.calculateCameraPosition(focus.x, focus.y, cameraContextPosition.x, cameraContextPosition.y, origin.x, origin.y, rotation, zoom.x, zoom.y);
+                position = this.camera.calculateCameraPosition(focalPoint, cameraContextPosition, origin, transformation);
                 
                 // TODO: For dev only
-                var animation = {
+                console.log('props: ', {
                     focus: focus,
                     origin: origin,
                     rotation: rotation,
                     zoom: zoom
-                };
-                console.log('props: ', animation);
+                });
                 
-                this.camera.zoomOriginX = focus.x;
-                this.camera.zoomOriginY = focus.y;
+                this.camera.zoomOriginX = focalPoint.x;
+                this.camera.zoomOriginY = focalPoint.y;
                 
                 tween.updateTo({
                     rotation: rotation,
