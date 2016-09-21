@@ -119,6 +119,15 @@ test('Vector2', function() {
         });
     });
 
+    test('copy', function() {
+        assert('should copy the values from the provided vector into this vector', function() {
+            v.set(1,2);
+            var v2 = new Vector2(3,4);
+            v.copy(v2);
+            expect(v).to.deep.equal(v2);
+        });
+    });
+    
     test('multiplyScalar', function() {
         assert('should multiply its values by the provided value', function() {
             v.set(1,2);

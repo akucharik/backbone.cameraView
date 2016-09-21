@@ -76,6 +76,15 @@ class Vector2 {
     }
     
     /**
+    * Copies the values from the provided vector into this vector.
+    * {Vector2} v - The vector to copy.
+    * @return {this} self
+    */
+    copy (v) {
+        return this.set(v.x, v.y);
+    }
+    
+    /**
     * Multiplies a vector by a scalar.
     * @param {Vector2} m - The vector.
     * @param {number} s - The scalar.
