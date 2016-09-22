@@ -60,6 +60,9 @@ var isString = _.isString;
 var pick = _.pick;
 var uniqueId = _.uniqueId;
 
+var Matrix2 = Oculo.Matrix2;
+var Vector2 = Oculo.Vector2;
+
 /**
 * Factory: Creates a camera to pan and zoom content.
 * Requires {@link external:Lodash} and {@link external:Zepto}.
@@ -162,18 +165,26 @@ var Camera = function (options) {
     * @default
     */
     this.maxZoom = 3;
-
+    
     /**
     * @property {number} - The 'x' value of the transformation origin.
     * @default
     */
-    this.originX = 0;
+    Object.defineProperty(this, 'contentOriginX', {
+        get: function () {
+            return this.content.origin.x;
+        }
+    });
     
     /**
     * @property {number} - The 'y' value of the transformation origin.
     * @default
     */
-    this.originY = 0;
+    Object.defineProperty(this, 'contentOriginY', {
+        get: function () {
+            return this.content.origin.y;
+        }
+    });
 
     /**
     * @property {number} - The shake intensity. A value between 0 and 1.
@@ -200,18 +211,6 @@ var Camera = function (options) {
     * @default
     */
     this.zoomIncrement = 0.01;
-
-    /**
-    * @property {number} - The 'x' value of the zoom origin.
-    * @default
-    */
-    this.zoomOriginX = 0;
-
-    /**
-    * @property {number} - The 'y' value of the zoom origin.
-    * @default
-    */
-    this.zoomOriginY = 0;
 
     /**
     * The width.
@@ -250,18 +249,6 @@ var Camera = function (options) {
                 this.$el.height(value);
                 this.trigger('change:height', value);
             }
-        }
-    });
-    
-    Object.defineProperty(this, 'halfViewportWidth', {
-        get: function () {
-            return this.viewportWidth / 2;
-        }
-    });
-    
-    Object.defineProperty(this, 'halfViewportHeight', {
-        get: function () {
-            return this.viewportHeight / 2;
         }
     });
 
@@ -312,11 +299,10 @@ var Camera = function (options) {
     
     Object.defineProperty(this, 'focus', {
         get: function () {
-            var transformationMatrix = new Matrix2(this.zoomX, 0, 0, this.zoomY).rotate(Oculo.Math.degToRad(-this.rotation));
-            var origin = new Vector2(this.originX, this.originY);
-            var originOffset = Vector2.clone(origin).transform(transformationMatrix).subtract(origin);
+            var transformation = new Matrix2(this.content.scaleX, 0, 0, this.content.scaleY).rotate(Oculo.Math.degToRad(this.content.rotation));
+            var originOffset = this.content.origin.clone().transform(transformation).subtract(this.content.origin);
 
-            return new Vector2((this.x + originOffset.x + this.halfViewportWidth), (this.y + originOffset.y + this.halfViewportHeight)).transform(transformationMatrix.getInverse());
+            return new Vector2(this.x, this.y).add(originOffset, this.viewportCenter).transform(transformation.getInverse());
         }
     });
     
@@ -360,6 +346,39 @@ var Camera = function (options) {
 
         set: function (value) {
             this.content.rotation = -value;
+        }
+    });
+    
+    /**
+    * The center point.
+    * @name Camera#center
+    * @property {Vector2} - Gets the camera's center point.
+    */
+    Object.defineProperty(this, 'viewportCenter', {
+        get: function () {
+            return new Vector2(this.viewportWidth / 2, this.viewportHeight / 2);
+        }
+    });
+    
+    /**
+    * The x coordinate of the center point.
+    * @name Camera#centerX
+    * @property {number} - Gets the x coordinate of the camera's center point.
+    */
+    Object.defineProperty(this, 'viewportCenterX', {
+        get: function () {
+            return this.viewportCenter.x;
+        }
+    });
+    
+    /**
+    * The y coordinate of the center point.
+    * @name Camera#centerY
+    * @property {number} - Gets the y coordinate of the camera's center point.
+    */
+    Object.defineProperty(this, 'viewportCenterY', {
+        get: function () {
+            return this.viewportCenter.y;
         }
     });
     
@@ -412,21 +431,6 @@ var Camera = function (options) {
 
         set: function (value) {
             this.content.y = -value;
-        }
-    });
-    
-    /**
-    * The amount of zoom.
-    * @name Camera#zoom
-    * @property {number} - Gets or sets the zoom. A ratio where 1 = 100%.
-    */
-    Object.defineProperty(this, 'zoom', {
-        get: function () {
-            return this.content.scaleX;
-        },
-
-        set: function (value) {
-            this.content.scaleX = value;
         }
     });
     
@@ -762,8 +766,6 @@ p.initialize = function (options) {
         model: this,
         className: 'oculo-debug'
     });
-    
-    this.zoom = 1;
 
     Object.assign(this, pick(options, [
         'debug',
@@ -781,10 +783,9 @@ p.initialize = function (options) {
     ]));
 
     var focus = new Vector2(options.focusX, options.focusY);
-    var cameraContextPosition = new Vector2(this.halfViewportWidth, this.halfViewportHeight);
-    var origin = new Vector2(this.originX, this.originY);
+    var cameraContextPosition = Vector2.clone(this.viewportCenter);
     var transformation = new Matrix2(this.content.scaleX, 0, 0, this.content.scaleY).rotate(Oculo.Math.degToRad(this.content.rotation));
-    var position = this.calculateCameraPosition(focus, cameraContextPosition, origin, transformation);
+    var position = this.calculateCameraPosition(focus, cameraContextPosition, this.content.origin, transformation);
     
     this.x = position.x;
     this.y = position.y;

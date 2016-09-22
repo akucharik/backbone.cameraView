@@ -40,11 +40,9 @@ var Focuser = function () {
     * @returns {Vector2} The position within the camera of the provided point on the content.
     */
     this.calculateCameraContextPosition = function (contentPosition, focus, transformation) {
-        var cameraContextPosition = new Vector2(this.halfViewportWidth, this.halfViewportHeight);
-        var origin = new Vector2(0, 0);
-        var cameraPosition = this.calculateCameraPosition(focus, cameraContextPosition, origin, transformation);
+        var cameraPosition = this.calculateCameraPosition(focus, this.viewportCenter.clone(), new Vector2(0, 0), transformation);
         
-        return Vector2.clone(contentPosition).transform(transformation).subtract(cameraPosition);
+        return contentPosition.clone().transform(transformation).subtract(cameraPosition);
     };
     
     /**
@@ -57,9 +55,9 @@ var Focuser = function () {
     * @returns {Vector2} The position of the camera.
     */
     this.calculateCameraPosition = function (contentPosition, cameraContextPosition, origin, transformation) {
-        var originOffset = Vector2.clone(origin).transform(transformation).subtract(origin);
+        var originOffset = origin.clone().transform(transformation).subtract(origin);
         
-        return Vector2.clone(contentPosition).transform(transformation).subtract(originOffset, cameraContextPosition);
+        return contentPosition.clone().transform(transformation).subtract(originOffset, cameraContextPosition);
     };
 };
 

@@ -162,7 +162,7 @@ class Animation3 extends TimelineMax {
                 var isAnchored = (!isNil(tween.data.origin.x) || !isNil(tween.data.origin.y)) && !isFocusing;
                 
                 var focus = new Vector2(isNil(tween.data.focus.x) ? this.camera.focus.x : tween.data.focus.x, isNil(tween.data.focus.y) ? this.camera.focus.y : tween.data.focus.y);
-                var origin = new Vector2(isNil(tween.data.origin.x) ? this.camera.originX : tween.data.origin.x, isNil(tween.data.origin.y) ? this.camera.originY : tween.data.origin.y);
+                var origin = new Vector2(isNil(tween.data.origin.x) ? this.camera.content.origin.x : tween.data.origin.x, isNil(tween.data.origin.y) ? this.camera.content.origin.y : tween.data.origin.y);
                 var rotation = isNil(tween.data.rotation) ? this.camera.rotation : tween.data.rotation;
                 var zoom = {
                     x: this.camera.clampZoom(isNil(tween.data.zoom.x) ? this.camera.zoomX : tween.data.zoom.x),
@@ -171,17 +171,14 @@ class Animation3 extends TimelineMax {
                 
                 var startTransformation = new Matrix2(this.camera.content.scaleX, 0, 0, this.camera.content.scaleY).rotate(Oculo.Math.degToRad(this.camera.content.rotation));
                 var transformation = new Matrix2(zoom.x, 0, 0, zoom.y).rotate(Oculo.Math.degToRad(-rotation));
-                var startOrigin = new Vector2(this.camera.originX, this.camera.originY);
-                var deltaOrigin = new Vector2();
                 var originOffset = new Vector2();
-                var focalPoint = Vector2.clone(focus);
+                var focalPoint = focus;
                 var cameraContextPosition = new Vector2();
                 var position = new Vector2();
                 
                 // Smooth origin change
-                if (!origin.equals(startOrigin)) {
-                    deltaOrigin = Vector2.clone(origin).subtract(startOrigin);
-                    originOffset = Vector2.clone(origin).transform(startTransformation).subtract(Vector2.clone(startOrigin).transform(startTransformation)).subtract(deltaOrigin);
+                if (!origin.equals(this.camera.content.origin)) {
+                    originOffset = origin.clone().transform(startTransformation).subtract(this.camera.content.origin.clone().transform(startTransformation), origin.clone().subtract(this.camera.content.origin));
                     
                     if (this.camera.isRotated || this.camera.isZoomed) {
                         TweenMax.set(this.camera, { 
@@ -190,11 +187,7 @@ class Animation3 extends TimelineMax {
                         });
                     }
                     
-                    TweenMax.set(this.camera, { 
-                        originX: origin.x,
-                        originY: origin.y
-                    });
-                    
+                    this.camera.content.origin.copy(origin);
                     TweenMax.set(this.camera.content.transformEl, { 
                         css: {
                             transitionDuration: '0s',
@@ -208,15 +201,15 @@ class Animation3 extends TimelineMax {
                 //origin = this.camera.checkFocusBounds(origin.x, origin.y);
                 
                 if (isRotating && !isAnchored && !isFocusing) {
-                    origin.set(this.camera.focusX, this.camera.focusY);
+                    origin = this.camera.focus;
                 }
                 
                 if (isAnchored) {
-                    focalPoint.copy(origin);
+                    focalPoint = origin;
                     cameraContextPosition = this.camera.calculateCameraContextPosition(origin, this.camera.focus, startTransformation);
                 }
                 else {
-                    cameraContextPosition.set(this.camera.halfViewportWidth, this.camera.halfViewportHeight);
+                    cameraContextPosition = this.camera.viewportCenter;
                 }
                 
                 position = this.camera.calculateCameraPosition(focalPoint, cameraContextPosition, origin, transformation);
@@ -228,9 +221,6 @@ class Animation3 extends TimelineMax {
                     rotation: rotation,
                     zoom: zoom
                 });
-                
-                this.camera.zoomOriginX = focalPoint.x;
-                this.camera.zoomOriginY = focalPoint.y;
                 
                 tween.updateTo({
                     rotation: rotation,
