@@ -169,6 +169,16 @@ test('Vector2', function() {
             expect(v.x).to.equal(1);
             expect(v.y).to.equal(2);
         });
+        assert('should set its x value to the provided value', function() {
+            v.set(1,null);
+            expect(v.x).to.equal(1);
+            expect(v.y).to.equal(0);
+        });
+        assert('should set its y value to the provided value', function() {
+            v.set(null,1);
+            expect(v.x).to.equal(0);
+            expect(v.y).to.equal(1);
+        }); 
     });
 
     test('subtract', function() {

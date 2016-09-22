@@ -1,5 +1,8 @@
 'use strict';
 
+var _ = require('lodash');
+var isNil = _.isNil;
+
 /**
 * Creates a 2D vector from a series of values.
 * @param {number} [x] - The x value.
@@ -135,8 +138,13 @@ class Vector2 {
     * @return {Vector2} The vector.
     */
     set (x, y) {
-        this.x = x;
-        this.y = y;
+        if (!isNil(x)) {
+            this.x = x;    
+        }
+        
+        if (!isNil(y)) {
+            this.y = y;    
+        }
         
         return this;
     }
