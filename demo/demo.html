@@ -25,7 +25,7 @@
                 <div id="point" style="position: absolute; width: 4px; height: 4px; background-color: #ff9900; top: -1000px; left: -1000px; z-index: 1000;"></div>
             </div>
 
-            <div id="content" class="bcv-content">
+            <div id="scene" class="bcv-scene">
                 <img src="images/FFL-Spritesheet-White-1827x1215.png" alt="Final Fantasy Legend Sprites" width="1827" height="1215" />
                 <div id="box100" style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid green;"></div>
                 <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 150px; height: 150px; border: 1px solid green;"></div>
@@ -119,10 +119,14 @@
     <script type="text/javascript" src="../src/scripts/constants.js"></script>
     <script type="text/javascript" src="../src/scripts/utils.js"></script>
     <script type="text/javascript" src="../src/scripts/focuser.js"></script>
+    <script type="text/javascript" src="../src/scripts/focuser2.js"></script>
     <script type="text/javascript" src="../src/scripts/sizableView.js"></script>
-    <script type="text/javascript" src="../src/scripts/cameraContentView.js"></script>
+    <script type="text/javascript" src="../src/scripts/scene.js"></script>
     <script type="text/javascript" src="../src/scripts/cameraView.js"></script>
+    <script type="text/javascript" src="../src/scripts/cameraView3.js"></script>
     <script type="text/javascript" src="../src/scripts/cameraAnimation.js"></script>
+    <script type="text/javascript" src="../src/scripts/cameraAnimation2.js"></script>
+    <script type="text/javascript" src="../src/scripts/cameraAnimation3.js"></script>
     <script type="text/javascript" src="scripts/behaviorView.js"></script>
     <script type="text/javascript" src="scripts/scrollView.js"></script>
     <script type="text/javascript" src="scripts/debugPropertyView.js"></script>
@@ -138,15 +142,15 @@
                 // Views
                 app.camera = new Camera({
                     el: document.getElementById('camera'),
-                    content: document.getElementById('content'),
-                    width: 1002,
-                    height: 502,
+                    scene: '#scene',
+                    width: 1000,
+                    height: 500,
                     focus: {
-                        x: 500,
-                        y: 250
+                        x: 499,
+                        y: 249
                     },
-                    focusX: 500,
-                    focusY: 250,
+                    focusX: 499,
+                    focusY: 249,
                     focusBounds: {
                         left: 0,
                         right: 1827,

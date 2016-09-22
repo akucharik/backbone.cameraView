@@ -7,13 +7,19 @@
     background-color: transparent;
 }
 
+.bcv-scene {
+    position: absolute;
+    transform-origin: 0 0;
+    /*transition-duration: 0.05s;*/
+}
+
 .bcv-content-root {
     position: absolute;
 }
 
 .bcv-transform {
     transform-origin: 0 0;
-    transition-duration: 0.05s;
+    /*transition-duration: 0.05s;*/
 }
 
 .bcv-rotate {

@@ -32,32 +32,32 @@ var Focuser = function () {
     };
     
     /**
-    * Calculate the position within the camera of the provided point on the content.
+    * Calculate the position within the camera of the provided point on the scene.
     *
-    * @param {Vector2} contentPosition - The point on the content.
-    * @param {Vector2} focus - The point on the content that is in focus.
+    * @param {Vector2} scenePosition - The point on the scene.
+    * @param {Vector2} focus - The point on the scene that is in focus.
     * @param {Matrix2} transformation - The transformation matrix.
-    * @returns {Vector2} The position within the camera of the provided point on the content.
+    * @returns {Vector2} The position within the camera of the provided point on the scene.
     */
-    this.calculateCameraContextPosition = function (contentPosition, focus, transformation) {
+    this.calculateCameraContextPosition = function (scenePosition, focus, transformation) {
         var cameraPosition = this.calculateCameraPosition(focus, this.viewportCenter.clone(), new Vector2(0, 0), transformation);
         
-        return contentPosition.clone().transform(transformation).subtract(cameraPosition);
+        return scenePosition.clone().transform(transformation).subtract(cameraPosition);
     };
     
     /**
-    * Calculate the position of the camera given a point on the content to be placed at a point on the camera.
+    * Calculate the position of the camera given a point on the scene to be placed at a point on the camera.
     *
-    * @param {Vector2} contentPosition - The point on the content.
+    * @param {Vector2} scenePosition - The point on the scene.
     * @param {Vector2} cameraContext - The point on the camera.
     * @param {Vector2} origin - The origin.
     * @param {Matrix2} transformation - The transformation matrix.
     * @returns {Vector2} The position of the camera.
     */
-    this.calculateCameraPosition = function (contentPosition, cameraContextPosition, origin, transformation) {
+    this.calculateCameraPosition = function (scenePosition, cameraContextPosition, origin, transformation) {
         var originOffset = origin.clone().transform(transformation).subtract(origin);
         
-        return contentPosition.clone().transform(transformation).subtract(originOffset, cameraContextPosition);
+        return scenePosition.clone().transform(transformation).subtract(originOffset, cameraContextPosition);
     };
 };
 

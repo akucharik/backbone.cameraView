@@ -64,7 +64,7 @@ var Matrix2 = Oculo.Matrix2;
 var Vector2 = Oculo.Vector2;
 
 /**
-* Factory: Creates a camera to pan and zoom content.
+* Factory: Creates a camera to view a scene.
 * Requires {@link external:Lodash} and {@link external:Zepto}.
 * 
 * @constructs Camera
@@ -90,18 +90,18 @@ var Camera = function (options) {
     this.animations = {};
 
     /**
-    * The content's focusable bounds. If set, the camera will keep focus within the bounds.
-    * @property {Object} - An object representing the content's focusable bounds.
+    * The scene's focusable bounds. If set, the camera will keep focus within the bounds.
+    * @property {Object} - An object representing the scene's focusable bounds.
     * @default null
     */
     this.bounds = null;
     
     /**
-    * The content.
-    * @property {Element} - The element to treat as the camera's content.
+    * The scene.
+    * @property {Element} - The element to treat as the camera's scene.
     * @default null
     */
-    this.content = null;
+    this.scene = null;
 
     /**
     * The debugging information view.
@@ -129,7 +129,7 @@ var Camera = function (options) {
     this.focusBounds = null;
 
     /**
-    * @property {boolean} - Whether the content is animating or not.
+    * @property {boolean} - Whether the scene is animating or not.
     * @default
     */
     this.isAnimating = false;
@@ -141,26 +141,26 @@ var Camera = function (options) {
     this.isPaused = false;
 
     /**
-    * @property {boolean} - Whether the content is shaking or not.
+    * @property {boolean} - Whether the scene is shaking or not.
     * @default
     */
     this.isShaking = false;
     
     /**
-    * @property {boolean} - Whether the content has an active CSS transition or not.
+    * @property {boolean} - Whether the scene has an active CSS transition or not.
     * @default
     */
     this.isTransitioning = false;
 
     /**
-    * The minimum value the content can be zoomed.
+    * The minimum value the scene can be zoomed.
     * @property {number} - See {@link Camera.zoom|zoom}.
     * @default
     */
     this.minZoom = 0.5;
 
     /**
-    * The maximum value the content can be zoomws.
+    * The maximum value the scene can be zoomed.
     * @property {number} - See {@link Camera.zoom|zoom}.
     * @default
     */
@@ -170,9 +170,9 @@ var Camera = function (options) {
     * @property {number} - The 'x' value of the transformation origin.
     * @default
     */
-    Object.defineProperty(this, 'contentOriginX', {
+    Object.defineProperty(this, 'sceneOriginX', {
         get: function () {
-            return this.content.origin.x;
+            return this.scene.origin.x;
         }
     });
     
@@ -180,9 +180,51 @@ var Camera = function (options) {
     * @property {number} - The 'y' value of the transformation origin.
     * @default
     */
-    Object.defineProperty(this, 'contentOriginY', {
+    Object.defineProperty(this, 'sceneOriginY', {
         get: function () {
-            return this.content.origin.y;
+            return this.scene.origin.y;
+        }
+    });
+    
+    Object.defineProperty(this, 'sceneRotation', {
+        get: function () {
+            return this.scene.rotation;
+        }
+    });
+    
+    Object.defineProperty(this, 'sceneScaleX', {
+        get: function () {
+            return this.scene.scaleX;
+        }
+    });
+    
+    Object.defineProperty(this, 'sceneScaleY', {
+        get: function () {
+            return this.scene.scaleY;
+        }
+    });
+    
+    Object.defineProperty(this, 'sceneRawWidth', {
+        get: function () {
+            return this.scene.rawWidth;
+        }
+    });
+    
+    Object.defineProperty(this, 'sceneRawHeight', {
+        get: function () {
+            return this.scene.rawHeight;
+        }
+    });
+    
+    Object.defineProperty(this, 'sceneWidth', {
+        get: function () {
+            return this.scene.width;
+        }
+    });
+    
+    Object.defineProperty(this, 'sceneHeight', {
+        get: function () {
+            return this.scene.height;
         }
     });
 
@@ -206,7 +248,7 @@ var Camera = function (options) {
     this.timeline = null;
     
     /**
-    * The base increment at which the content will be zoomed.
+    * The base increment at which the scene will be zoomed.
     * @property {number} - See {@link Camera.zoom|zoom}.
     * @default
     */
@@ -253,32 +295,32 @@ var Camera = function (options) {
     });
 
     /**
-    * The content's x position.
-    * @name Camera#contentX
-    * @property {number} - Gets or sets the content's x position.
+    * The scene's x position.
+    * @name Camera#sceneX
+    * @property {number} - Gets or sets the scene's x position.
     */
-    Object.defineProperty(this, 'contentX', {
+    Object.defineProperty(this, 'sceneX', {
         get: function () {
-            return this.content.x;
+            return this.scene.x;
         },
 
         set: function (value) {
-            this.content.x = value;
+            this.scene.x = value;
         }
     });
     
     /**
-    * The content's y position.
-    * @name Camera#contentY
-    * @property {number} - Gets or sets the content's y position.
+    * The scene's y position.
+    * @name Camera#sceneY
+    * @property {number} - Gets or sets the scene's y position.
     */
-    Object.defineProperty(this, 'contentY', {
+    Object.defineProperty(this, 'sceneY', {
         get: function () {
-            return this.content.y;
+            return this.scene.y;
         },
 
         set: function (value) {
-            this.content.y = value;
+            this.scene.y = value;
         }
     });
     
@@ -299,8 +341,8 @@ var Camera = function (options) {
     
     Object.defineProperty(this, 'focus', {
         get: function () {
-            var transformation = new Matrix2(this.content.scaleX, 0, 0, this.content.scaleY).rotate(Oculo.Math.degToRad(this.content.rotation));
-            var originOffset = this.content.origin.clone().transform(transformation).subtract(this.content.origin);
+            var transformation = new Matrix2(this.scene.scaleX, 0, 0, this.scene.scaleY).rotate(Oculo.Math.degToRad(this.scene.rotation));
+            var originOffset = this.scene.origin.clone().transform(transformation).subtract(this.scene.origin);
 
             return new Vector2(this.x, this.y).add(originOffset, this.viewportCenter).transform(transformation.getInverse());
         }
@@ -341,11 +383,11 @@ var Camera = function (options) {
     */
     Object.defineProperty(this, 'rotation', {
         get: function () {
-            return -this.content.rotation;
+            return -this.scene.rotation;
         },
 
         set: function (value) {
-            this.content.rotation = -value;
+            this.scene.rotation = -value;
         }
     });
     
@@ -405,32 +447,32 @@ var Camera = function (options) {
     });
 
     /**
-    * The camera's x position on the content.
+    * The camera's x position on the scene.
     * @name Camera#x
-    * @property {number} - Gets or sets the camera's x position on the content.
+    * @property {number} - Gets or sets the camera's x position on the scene.
     */
     Object.defineProperty(this, 'x', {
         get: function () {
-            return -this.content.x;
+            return -this.scene.x;
         },
 
         set: function (value) {
-            this.content.x = -value;
+            this.scene.x = -value;
         }
     });
     
     /**
-    * The camera's y position on the content.
+    * The camera's y position on the scene.
     * @name Camera#y
-    * @property {number} - Gets or sets the camera's y position on the content.
+    * @property {number} - Gets or sets the camera's y position on the scene.
     */
     Object.defineProperty(this, 'y', {
         get: function () {
-            return -this.content.y;
+            return -this.scene.y;
         },
 
         set: function (value) {
-            this.content.y = -value;
+            this.scene.y = -value;
         }
     });
     
@@ -447,12 +489,12 @@ var Camera = function (options) {
     */
     Object.defineProperty(this, 'zoomX', {
         get: function () {
-            return this.content.scaleX;
+            return this.scene.scaleX;
         },
 
         set: function (value) {
             this.previousZoomX = this.zoomX;
-            this.content.scaleX = value;
+            this.scene.scaleX = value;
         }
     });
 
@@ -463,12 +505,12 @@ var Camera = function (options) {
     */
     Object.defineProperty(this, 'zoomY', {
         get: function () {
-            return this.content.scaleY;
+            return this.scene.scaleY;
         },
 
         set: function (value) {
             this.previousZoomY = this.zoomY;
-            this.content.scaleY = value;
+            this.scene.scaleY = value;
         }
     });
     
@@ -502,7 +544,7 @@ var p = Camera.prototype;
 
 p._markPoint = function (x, y) {
     var pointElement = document.getElementById('point');
-    var point = new Vector2(x, y).transform(new Matrix2().rotate(Oculo.Math.degToRad(this.content.rotation)));
+    var point = new Vector2(x, y).transform(new Matrix2().rotate(Oculo.Math.degToRad(this.scene.rotation)));
     
     pointElement.style.top = (point.y - 2) + 'px';
     pointElement.style.left = (point.x - 2) + 'px';
@@ -522,7 +564,7 @@ p._addAnimation = function (animation) {
 };
 
 /**
-* Animates the camera's content.
+* Animates the camera's scene.
 *
 * @private
 * @param {Object} properties - TODO.
@@ -617,7 +659,7 @@ p._wheelZoom = function (event) {
         // Performance Optimization: If zoom has not changed, it is at the min or max.
         if (zoom !== this.zoom) {
             if (!this.isTransitioning) {
-                contentRect = this.content.transformEl.getBoundingClientRect();
+                contentRect = this.scene.element.getBoundingClientRect();
                 originX = (event.clientX - contentRect.left) / this.zoom;
                 originY = (event.clientY - contentRect.top) / this.zoom;
             }
@@ -629,7 +671,7 @@ p._wheelZoom = function (event) {
 };
 
 /**
-* Ensure the camera keeps focus within the content's focusable bounds.
+* Ensure the camera keeps focus within the scene's focusable bounds.
 *
 * @returns {Object} The bounded position.
 */
@@ -659,7 +701,7 @@ p.checkBounds = function (position) {
 
 // TODO: Refactor to use use GSAP's Draggable.
 /**
-* Drag the content.
+* Drag the scene.
 *
 * @param {DragEvent} event - The drag event.
 */
@@ -696,7 +738,7 @@ p.drag = function (event) {
 
 // TODO: Refactor into a function that repeats on RAF similar to zoomAt so that decceleration and bounds can work together.
 /**
-* End dragging the content.
+* End dragging the scene.
 *
 * @param {MouseEvent} event - The mouse event.
 */
@@ -757,10 +799,7 @@ p.dragDeccelerate = function (velocity, timeDelta, timestamp) {
 p.initialize = function (options) {
     options = options || {};
 
-    this.content = new CameraContentView({
-        className: 'bcv-content-root',
-        content: options.content
-    })
+    this.scene = new Scene(options.scene);
     
     this.debugView = new DebugView({
         model: this,
@@ -784,16 +823,16 @@ p.initialize = function (options) {
 
     var focus = new Vector2(options.focusX, options.focusY);
     var cameraContextPosition = Vector2.clone(this.viewportCenter);
-    var transformation = new Matrix2(this.content.scaleX, 0, 0, this.content.scaleY).rotate(Oculo.Math.degToRad(this.content.rotation));
-    var position = this.calculateCameraPosition(focus, cameraContextPosition, this.content.origin, transformation);
+    var transformation = new Matrix2(this.scene.scaleX, 0, 0, this.scene.scaleY).rotate(Oculo.Math.degToRad(this.scene.rotation));
+    var position = this.calculateCameraPosition(focus, cameraContextPosition, this.scene.origin, transformation);
     
     this.x = position.x;
     this.y = position.y;
 
-    // Set up content
-    this.el.appendChild(this.content.el);
+    // Set up scene
+    this.el.appendChild(this.scene.element);
 
-    this.draggable = new Draggable(this.content.transformEl, {
+    this.draggable = new Draggable(this.scene.element, {
         onDrag: function (camera) {
             // 'this' refers to the Draggable instance
             camera.focusX = (camera.viewportWidth / 2 - this.x) / camera.zoom;
@@ -802,7 +841,7 @@ p.initialize = function (options) {
         },
         onDragParams: [this],
         onPress: function (camera) {
-//                    var contentRect = camera.content.transformEl.getBoundingClientRect();
+//                    var contentRect = camera.scene.element.getBoundingClientRect();
 //                    
 //                    this.applyBounds({
 //                        top: camera.viewportHeight / 2 - contentRect.height,
@@ -878,8 +917,8 @@ p.clampZoom = function (value) {
 *//**
 * Focus the camera on a point.
 *
-* @param {number} x - The 'x' position on the unzoomed content.
-* @param {number} y - The 'y' position on the unzoomed content.
+* @param {number} x - The 'x' position on the unzoomed scene.
+* @param {number} y - The 'y' position on the unzoomed scene.
 * @param {number} duration - TODO.
 * @param {Object} [options] - TODO.
 * @returns {Camera} The view.
