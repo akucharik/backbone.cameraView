@@ -59,7 +59,7 @@ class Animation3 extends TimelineMax {
             }
             
             // render
-            TweenMax.set(this.camera.scene.element, { 
+            TweenMax.set(this.camera.scene.view, { 
                 css: {
                     rotation: this.camera.scene.rotation,
                     scaleX: this.camera.scene.scaleX,
@@ -99,7 +99,7 @@ class Animation3 extends TimelineMax {
         }
         
         if (isElement(props.focus)) {
-            centre = this.camera.getElementCentre(this.camera.scene.element, props.focus, this.camera.zoomX, this.camera.zoomY);
+            centre = this.camera.getElementCentre(this.camera.scene.view, props.focus, this.camera.zoomX, this.camera.zoomY);
             focus.x = centre.x;
             focus.y = centre.y;
         }
@@ -114,7 +114,7 @@ class Animation3 extends TimelineMax {
         }
         
         if (isElement(props.origin)) {
-            centre = this.camera.getElementCentre(this.camera.scene.element, props.origin, this.camera.zoomX, this.camera.zoomY);
+            centre = this.camera.getElementCentre(this.camera.scene.view, props.origin, this.camera.zoomX, this.camera.zoomY);
             origin.x = centre.x;
             origin.y = centre.y;
         }
@@ -188,7 +188,7 @@ class Animation3 extends TimelineMax {
                     }
                     
                     this.camera.scene.origin.copy(origin);
-                    TweenMax.set(this.camera.scene.element, { 
+                    TweenMax.set(this.camera.scene.view, { 
                         css: {
                             transitionDuration: '0s',
                             transformOrigin: origin.x + 'px ' + origin.y + 'px',

@@ -12,29 +12,28 @@ var Vector2 = Oculo.Vector2;
 /**
 * Creates a scene.
 * 
-* @constructs Scene
-* @param {string|Element} [element] - The element containing the scene. It can be a selector or an element.
+* @class Scene
+* @param {string|Element} [view] - The view for the scene. It can be a selector or an element.
 */
 class Scene {
-    constructor (element) {
-        if (isString(element)) {
-            element = document.querySelector(element);
-        }
-        if (!isElement(element)) {
-            element = document.createElement('div');
-        }
-        
+    constructor (view) {
         /**
         * @property {Element} - The view. An HTML element.
         */
-        this.element = element;
+        this.view = utils.DOM.parseView(view);
 
         /**
-        * @property {number} - The transformation origin.
+        * @property {Vector2} - The transformation origin.
         * @default
         */
         this.origin = new Vector2(0, 0);
 
+        /**
+        * @property {Vector2} - The position.
+        * @default
+        */
+        this.position = new Vector2(0, 0);
+        
         /**
         * @property {number} - The rotation in degrees.
         * @default
@@ -52,34 +51,37 @@ class Scene {
         * @default
         */
         this.scaleY = 1;
-
-        /**
-        * @property {number} - The position on the X axis.
-        * @default
-        */
-        this.x = 0;
-
-        /**
-        * @property {number} - The position on the Y axis.
-        * @default
-        */
-        this.y = 0;
     }   
 }
 
+
 /**
-* The position.
-* @name Scene#position
-* @property {Vector2} - Gets or sets the position.
+* The position on the X axis.
+* @name Scene#x
+* @property {number} - Gets or sets the position on the X axis.
 */
-Object.defineProperty(Scene.prototype, 'position', {
+Object.defineProperty(Scene.prototype, 'x', {
     get: function () {
-        return new Vector2(this.x, this.y);
+        return this.position.x;
     },
     
     set: function (value) {
-        this.x = value.x;
-        this.y = value.y;
+        this.position.set(value, null);
+    }
+});
+
+/**
+* The position on the Y axis.
+* @name Scene#y
+* @property {number} - Gets or sets the position on the Y axis.
+*/
+Object.defineProperty(Scene.prototype, 'y', {
+    get: function () {
+        return this.position.y;
+    },
+    
+    set: function (value) {
+        this.position.set(null, value);
     }
 });
 
@@ -90,9 +92,9 @@ Object.defineProperty(Scene.prototype, 'position', {
 */
 Object.defineProperty(Scene.prototype, 'rawWidth', {
     get: function () {
-        var computedStyle = window.getComputedStyle(this.element);
+        var computedStyle = window.getComputedStyle(this.view);
         
-        return this.element.clientWidth + parseFloat(computedStyle.getPropertyValue('border-left-width')) + parseFloat(computedStyle.getPropertyValue('border-right-width'));
+        return this.view.clientWidth + parseFloat(computedStyle.getPropertyValue('border-left-width')) + parseFloat(computedStyle.getPropertyValue('border-right-width'));
     }
 });
 
@@ -103,9 +105,9 @@ Object.defineProperty(Scene.prototype, 'rawWidth', {
 */
 Object.defineProperty(Scene.prototype, 'rawHeight', {
     get: function () {
-        var computedStyle = window.getComputedStyle(this.element);
+        var computedStyle = window.getComputedStyle(this.view);
         
-        return this.element.clientHeight + parseFloat(computedStyle.getPropertyValue('border-left-width')) + parseFloat(computedStyle.getPropertyValue('border-right-width'));;
+        return this.view.clientHeight + parseFloat(computedStyle.getPropertyValue('border-left-width')) + parseFloat(computedStyle.getPropertyValue('border-right-width'));;
     }
 });
 

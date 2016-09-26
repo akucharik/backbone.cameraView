@@ -97,8 +97,8 @@ var Camera = function (options) {
     this.bounds = null;
     
     /**
-    * The scene.
-    * @property {Element} - The element to treat as the camera's scene.
+    * The scene which the camera is viewing.
+    * @property {Camera.Scene}
     * @default null
     */
     this.scene = null;
@@ -113,12 +113,12 @@ var Camera = function (options) {
     /**
     * @property {Element} - TODO.
     */
-    this.el = options.el;
+    this.view = utils.DOM.parseView(options.view);
     
     /**
     * @property {Element} - TODO.
     */
-    this.$el = $(this.el);
+    this.$view = $(this.view);
     
     /**
     * TODO
@@ -185,6 +185,29 @@ var Camera = function (options) {
             return this.scene.origin.y;
         }
     });
+    
+    /**
+    * The scene's X position.
+    * @name Camera#sceneX
+    * @property {number} - Gets or sets the scene's X position.
+    */
+    Object.defineProperty(this, 'sceneX', {
+        get: function () {
+            return this.scene.position.x;
+        }
+    });
+    
+    /**
+    * The scene's Y position.
+    * @name Camera#sceneY
+    * @property {number} - Gets or sets the scene's Y position.
+    */
+    Object.defineProperty(this, 'sceneY', {
+        get: function () {
+            return this.scene.position.y;
+        }
+    });
+    
     
     Object.defineProperty(this, 'sceneRotation', {
         get: function () {
@@ -261,14 +284,14 @@ var Camera = function (options) {
     */
     Object.defineProperty(this, 'width', {
         get: function () {
-            var computedStyle = window.getComputedStyle(this.el);
+            var computedStyle = window.getComputedStyle(this.view);
 
-            return this.el.clientWidth + parseFloat(computedStyle.getPropertyValue('border-left-width')) + parseFloat(computedStyle.getPropertyValue('border-right-width'));
+            return this.view.clientWidth + parseFloat(computedStyle.getPropertyValue('border-left-width')) + parseFloat(computedStyle.getPropertyValue('border-right-width'));
         },
 
         set: function (value) {
             if (value != this.width) {
-                this.$el.width(value);
+                this.$view.width(value);
                 this.trigger('change:width', value);
             }
         }
@@ -281,46 +304,16 @@ var Camera = function (options) {
     */
     Object.defineProperty(this, 'height', {
         get: function () {
-            var computedStyle = window.getComputedStyle(this.el);
+            var computedStyle = window.getComputedStyle(this.view);
 
-            return this.el.clientHeight + parseFloat(computedStyle.getPropertyValue('border-top-width')) + parseFloat(computedStyle.getPropertyValue('border-bottom-width'));
+            return this.view.clientHeight + parseFloat(computedStyle.getPropertyValue('border-top-width')) + parseFloat(computedStyle.getPropertyValue('border-bottom-width'));
         },
 
         set: function (value) {
             if (value != this.height) {
-                this.$el.height(value);
+                this.$view.height(value);
                 this.trigger('change:height', value);
             }
-        }
-    });
-
-    /**
-    * The scene's x position.
-    * @name Camera#sceneX
-    * @property {number} - Gets or sets the scene's x position.
-    */
-    Object.defineProperty(this, 'sceneX', {
-        get: function () {
-            return this.scene.x;
-        },
-
-        set: function (value) {
-            this.scene.x = value;
-        }
-    });
-    
-    /**
-    * The scene's y position.
-    * @name Camera#sceneY
-    * @property {number} - Gets or sets the scene's y position.
-    */
-    Object.defineProperty(this, 'sceneY', {
-        get: function () {
-            return this.scene.y;
-        },
-
-        set: function (value) {
-            this.scene.y = value;
         }
     });
     
@@ -431,7 +424,7 @@ var Camera = function (options) {
     */
     Object.defineProperty(this, 'viewportWidth', {
         get: function () {
-            return this.el.clientWidth;
+            return this.view.clientWidth;
         }
     });
 
@@ -442,7 +435,7 @@ var Camera = function (options) {
     */
     Object.defineProperty(this, 'viewportHeight', {
         get: function () {
-            return this.el.clientHeight;
+            return this.view.clientHeight;
         }
     });
 
@@ -659,7 +652,7 @@ p._wheelZoom = function (event) {
         // Performance Optimization: If zoom has not changed, it is at the min or max.
         if (zoom !== this.zoom) {
             if (!this.isTransitioning) {
-                contentRect = this.scene.element.getBoundingClientRect();
+                contentRect = this.scene.view.getBoundingClientRect();
                 originX = (event.clientX - contentRect.left) / this.zoom;
                 originY = (event.clientY - contentRect.top) / this.zoom;
             }
@@ -821,8 +814,8 @@ p.initialize = function (options) {
         'y',
     ]));
 
-    var focus = new Vector2(options.focusX, options.focusY);
-    var cameraContextPosition = Vector2.clone(this.viewportCenter);
+    var focus = new Vector2(options.focus.x, options.focus.y);
+    var cameraContextPosition = this.viewportCenter;
     var transformation = new Matrix2(this.scene.scaleX, 0, 0, this.scene.scaleY).rotate(Oculo.Math.degToRad(this.scene.rotation));
     var position = this.calculateCameraPosition(focus, cameraContextPosition, this.scene.origin, transformation);
     
@@ -830,9 +823,9 @@ p.initialize = function (options) {
     this.y = position.y;
 
     // Set up scene
-    this.el.appendChild(this.scene.element);
+    this.view.appendChild(this.scene.view);
 
-    this.draggable = new Draggable(this.scene.element, {
+    this.draggable = new Draggable(this.scene.view, {
         onDrag: function (camera) {
             // 'this' refers to the Draggable instance
             camera.focusX = (camera.viewportWidth / 2 - this.x) / camera.zoom;
@@ -841,7 +834,7 @@ p.initialize = function (options) {
         },
         onDragParams: [this],
         onPress: function (camera) {
-//                    var contentRect = camera.scene.element.getBoundingClientRect();
+//                    var contentRect = camera.scene.view.getBoundingClientRect();
 //                    
 //                    this.applyBounds({
 //                        top: camera.viewportHeight / 2 - contentRect.height,
@@ -855,9 +848,9 @@ p.initialize = function (options) {
     });
 
     // Initialize events
-    this.$el.on('mouseleave', this._onMouseLeave.bind(this));
-    this.$el.on('transitionend', this._onTransitionEnd.bind(this));
-    this.$el.on('wheel', utils.throttleToFrame(this._onWheel.bind(this)));
+    this.$view.on('mouseleave', this._onMouseLeave.bind(this));
+    this.$view.on('transitionend', this._onTransitionEnd.bind(this));
+    this.$view.on('wheel', utils.throttleToFrame(this._onWheel.bind(this)));
 
     this.onInitialize(options);
 

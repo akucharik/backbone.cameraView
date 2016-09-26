@@ -141,7 +141,7 @@
             initialize: function () {
                 // Views
                 app.camera = new Camera({
-                    el: document.getElementById('camera'),
+                    view: '#camera',
                     scene: '#scene',
                     width: 1000,
                     height: 500,
@@ -149,8 +149,6 @@
                         x: 499,
                         y: 249
                     },
-                    focusX: 499,
-                    focusY: 249,
                     focusBounds: {
                         left: 0,
                         right: 1827,

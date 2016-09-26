@@ -5,6 +5,9 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
+var isElement = _.isElement;
+var isString = _.isString;
+
 /**
 * @namespace utils
 * @static
@@ -164,5 +167,20 @@ var utils = {
                 });    
             }
         };
+    }
+};
+
+utils.DOM = {
+    parseView: function (input) {
+        var output = null;
+        
+        if (isString(input)) {
+            output = document.querySelector(input);
+        }
+        if (!isElement(output)) {
+            output = document.createElement('div');
+        }
+        
+        return output;
     }
 };
