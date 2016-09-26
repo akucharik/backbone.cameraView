@@ -167,6 +167,12 @@ var Camera = function (options) {
     this.maxZoom = 3;
     
     /**
+    * @property {Vector2} - The position on the scene.
+    * @default
+    */
+    this.position = new Vector2(0, 0);
+    
+    /**
     * @property {number} - The 'x' value of the transformation origin.
     * @default
     */
@@ -335,9 +341,8 @@ var Camera = function (options) {
     Object.defineProperty(this, 'focus', {
         get: function () {
             var transformation = new Matrix2(this.scene.scaleX, 0, 0, this.scene.scaleY).rotate(Oculo.Math.degToRad(this.scene.rotation));
-            var originOffset = this.scene.origin.clone().transform(transformation).subtract(this.scene.origin);
-
-            return new Vector2(this.x, this.y).add(originOffset, this.viewportCenter).transform(transformation.getInverse());
+            
+            return this.calculateCameraFocus(new Vector2(this.x, this.y), this.viewportCenter, this.scene.origin, transformation);
         }
     });
     
@@ -438,7 +443,7 @@ var Camera = function (options) {
             return this.view.clientHeight;
         }
     });
-
+    
     /**
     * The camera's x position on the scene.
     * @name Camera#x
@@ -446,11 +451,12 @@ var Camera = function (options) {
     */
     Object.defineProperty(this, 'x', {
         get: function () {
-            return -this.scene.x;
+            return this.position.x;
         },
 
         set: function (value) {
-            this.scene.x = -value;
+            this.position.set(value, null);
+            this.scene.position.set(-value, null);
         }
     });
     
@@ -461,11 +467,12 @@ var Camera = function (options) {
     */
     Object.defineProperty(this, 'y', {
         get: function () {
-            return -this.scene.y;
+            return this.position.y;
         },
 
         set: function (value) {
-            this.scene.y = -value;
+            this.position.set(null, value);
+            this.scene.position.set(null, -value);
         }
     });
     

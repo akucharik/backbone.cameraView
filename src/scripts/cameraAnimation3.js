@@ -46,15 +46,16 @@ class Animation3 extends TimelineMax {
         }, null, this);
 
         this.eventCallback('onUpdate', function () {
-            var scenePosition = new Vector2(this.camera.scene.x, this.camera.scene.y);
+            var sceneX = this.camera.scene.position.x;
+            var sceneY = this.camera.scene.position.y;
 
             if (this.camera.isShaking) {
                 if (this.camera.shakeHorizontal) {
-                    scenePosition.x += Math.random() * this.camera.shakeIntensity * this.camera.viewportWidth * 2 - this.camera.shakeIntensity * this.camera.viewportWidth;
+                    sceneX += Math.random() * this.camera.shakeIntensity * this.camera.viewportWidth * 2 - this.camera.shakeIntensity * this.camera.viewportWidth;
                 }
 
                 if (this.camera.shakeVertical) {
-                    scenePosition.y += Math.random() * this.camera.shakeIntensity * this.camera.viewportHeight * 2 - this.camera.shakeIntensity * this.camera.viewportHeight;
+                    sceneY += Math.random() * this.camera.shakeIntensity * this.camera.viewportHeight * 2 - this.camera.shakeIntensity * this.camera.viewportHeight;
                 }
             }
             
@@ -64,8 +65,8 @@ class Animation3 extends TimelineMax {
                     rotation: this.camera.scene.rotation,
                     scaleX: this.camera.scene.scaleX,
                     scaleY: this.camera.scene.scaleY,
-                    x: scenePosition.x,
-                    y: scenePosition.y
+                    x: sceneX,
+                    y: sceneY
                 }
             });
 
@@ -181,10 +182,7 @@ class Animation3 extends TimelineMax {
                     originOffset = origin.clone().transform(startTransformation).subtract(this.camera.scene.origin.clone().transform(startTransformation), origin.clone().subtract(this.camera.scene.origin));
                     
                     if (this.camera.isRotated || this.camera.isZoomed) {
-                        TweenMax.set(this.camera, { 
-                            x: this.camera.x - originOffset.x,
-                            y: this.camera.y - originOffset.y
-                        });
+                        this.camera.position.set(this.camera.x - originOffset.x, this.camera.y - originOffset.y);
                     }
                     
                     this.camera.scene.origin.copy(origin);
@@ -192,8 +190,8 @@ class Animation3 extends TimelineMax {
                         css: {
                             transitionDuration: '0s',
                             transformOrigin: origin.x + 'px ' + origin.y + 'px',
-                            x: this.camera.scene.x,
-                            y: this.camera.scene.y
+                            x: this.camera.scene.position.x,
+                            y: this.camera.scene.position.y
                         }
                     });    
                 }
@@ -206,7 +204,7 @@ class Animation3 extends TimelineMax {
                 
                 if (isAnchored) {
                     focalPoint = origin;
-                    cameraContextPosition = this.camera.calculateCameraContextPosition(origin, this.camera.focus, startTransformation);
+                    cameraContextPosition = this.camera.calculateCameraContextPosition(origin, this.camera.focus, this.camera.viewportCenter, startTransformation);
                 }
                 else {
                     cameraContextPosition = this.camera.viewportCenter;

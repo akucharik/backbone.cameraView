@@ -32,32 +32,48 @@ var Focuser = function () {
     };
     
     /**
-    * Calculate the position within the camera of the provided point on the scene.
+    * Calculate the raw point on the scene on which the camera is focused.
     *
-    * @param {Vector2} scenePosition - The point on the scene.
-    * @param {Vector2} focus - The point on the scene that is in focus.
-    * @param {Matrix2} transformation - The transformation matrix.
-    * @returns {Vector2} The position within the camera of the provided point on the scene.
+    * @param {Vector2} cameraPosition - The camera's position on the scene.
+    * @param {Vector2} cameraCenter - The camera's center point.
+    * @param {Vector2} sceneOrigin - The scene's origin.
+    * @param {Matrix2} sceneTransformation - The scene's transformation matrix.
+    * @returns {Vector2} The camera's focus.
     */
-    this.calculateCameraContextPosition = function (scenePosition, focus, transformation) {
-        var cameraPosition = this.calculateCameraPosition(focus, this.viewportCenter.clone(), new Vector2(0, 0), transformation);
-        
-        return scenePosition.clone().transform(transformation).subtract(cameraPosition);
+    this.calculateCameraFocus = function (cameraPosition, cameraCenter, sceneOrigin, sceneTransformation) {
+        var sceneOriginOffset = sceneOrigin.clone().transform(sceneTransformation).subtract(sceneOrigin);
+
+        return cameraPosition.clone().add(sceneOriginOffset, cameraCenter).transform(sceneTransformation.getInverse());
     };
     
     /**
-    * Calculate the position of the camera given a point on the scene to be placed at a point on the camera.
+    * Calculate the position within the camera of the provided raw point on the scene.
     *
-    * @param {Vector2} scenePosition - The point on the scene.
-    * @param {Vector2} cameraContext - The point on the camera.
-    * @param {Vector2} origin - The origin.
-    * @param {Matrix2} transformation - The transformation matrix.
-    * @returns {Vector2} The position of the camera.
+    * @param {Vector2} scenePosition - The raw point on the scene.
+    * @param {Vector2} cameraFocus - The raw point on the scene on which the camera is focused.
+    * @param {Vector2} cameraCenter - The camera's center point.
+    * @param {Matrix2} sceneTransformation - The scene's transformation matrix.
+    * @returns {Vector2} The position within the camera.
     */
-    this.calculateCameraPosition = function (scenePosition, cameraContextPosition, origin, transformation) {
-        var originOffset = origin.clone().transform(transformation).subtract(origin);
+    this.calculateCameraContextPosition = function (scenePosition, cameraFocus, cameraCenter, sceneTransformation) {
+        var cameraPosition = this.calculateCameraPosition(cameraFocus, cameraCenter, new Vector2(0, 0), sceneTransformation);
         
-        return scenePosition.clone().transform(transformation).subtract(originOffset, cameraContextPosition);
+        return scenePosition.clone().transform(sceneTransformation).subtract(cameraPosition);
+    };
+    
+    /**
+    * Calculate the camera's position on the scene given a raw point on the scene to be placed at a point on the camera.
+    *
+    * @param {Vector2} scenePosition - The raw point on the scene.
+    * @param {Vector2} cameraContext - The point on the camera.
+    * @param {Vector2} sceneOrigin - The scene's origin.
+    * @param {Matrix2} sceneTransformation - The scene's transformation matrix.
+    * @returns {Vector2} The camera's position.
+    */
+    this.calculateCameraPosition = function (scenePosition, cameraContextPosition, sceneOrigin, sceneTransformation) {
+        var sceneOriginOffset = sceneOrigin.clone().transform(sceneTransformation).subtract(sceneOrigin);
+        
+        return scenePosition.clone().transform(sceneTransformation).subtract(sceneOriginOffset, cameraContextPosition);
     };
 };
 
