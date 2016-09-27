@@ -221,6 +221,27 @@ class Matrix2 {
     }
     
     /**
+    * Applies a scale transformation to a matrix.
+    * @param {Matrix2} m - The matrix.
+    * @param {number} x - The amount to scale on the X axis.
+    * @param {number} y - The amount to scale on the Y axis.
+    * @return {Matrix2} A new scaled matrix.
+    */
+    static scale (m, x, y) {
+        return Matrix2.multiplyMatrices(m, new Matrix2(x, 0, 0, y));
+    }
+    
+    /**
+    * Scales the matrix.
+    * @param {number} x - The amount to scale on the X axis.
+    * @param {number} y - The amount to scale on the Y axis.
+    * @return {this} self
+    */
+    scale (x, y) {
+        return this.copy(this.constructor.scale(this, x, y));
+    }
+    
+    /**
     * Sets the matrix values.
     * @param {number} e11
     * @param {number} e12

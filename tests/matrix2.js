@@ -81,6 +81,17 @@ test('Matrix2', function() {
             expect(m1.e22).to.equal(0.9393727128473789);
         });
     });
+    
+    test('Matrix2.scale', function() {
+        assert('should apply a scale to the provided matrix', function() {
+            m.set(1,0,0,1);
+            var m1 = Matrix2.scale(m, 3, 3);
+            expect(m1.e11).to.equal(3);
+            expect(m1.e12).to.equal(0);
+            expect(m1.e21).to.equal(0);
+            expect(m1.e22).to.equal(3);
+        });
+    });
 
     test('Matrix2.toArray', function() {
         assert('should return an Array', function() {
@@ -242,6 +253,17 @@ test('Matrix2', function() {
             expect(m.e12).to.equal(-0.34289780745545134);
             expect(m.e21).to.equal(0.34289780745545134);
             expect(m.e22).to.equal(0.9393727128473789);
+        });
+    });
+    
+    test('scale', function() {
+        assert('should scale the matrix by the provided factors', function() {
+            m.set(1,0,0,1);
+            m.scale(3,3);
+            expect(m.e11).to.equal(3);
+            expect(m.e12).to.equal(0);
+            expect(m.e21).to.equal(0);
+            expect(m.e22).to.equal(3);
         });
     });
     
