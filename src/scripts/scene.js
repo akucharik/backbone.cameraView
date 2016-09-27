@@ -27,70 +27,15 @@ class Scene {
         * @default
         */
         this.origin = new Vector2(0, 0);
-
-        /**
-        * @property {Vector2} - The position.
-        * @default
-        */
-        this.position = new Vector2(0, 0);
-        
-        /**
-        * @property {number} - The rotation in degrees.
-        * @default
-        */
-        this.rotation = 0;
-
-        /**
-        * @property {number} - The scale of the X axis.
-        * @default
-        */
-        this.scaleX = 1;
-
-        /**
-        * @property {number} - The scale of the Y axis.
-        * @default
-        */
-        this.scaleY = 1;
     }   
 }
 
-
 /**
-* The position on the X axis.
-* @name Scene#x
-* @property {number} - Gets or sets the position on the X axis.
+* The width.
+* @name Scene#width
+* @property {number} - Gets the width.
 */
-Object.defineProperty(Scene.prototype, 'x', {
-    get: function () {
-        return this.position.x;
-    },
-    
-    set: function (value) {
-        this.position.set(value, null);
-    }
-});
-
-/**
-* The position on the Y axis.
-* @name Scene#y
-* @property {number} - Gets or sets the position on the Y axis.
-*/
-Object.defineProperty(Scene.prototype, 'y', {
-    get: function () {
-        return this.position.y;
-    },
-    
-    set: function (value) {
-        this.position.set(null, value);
-    }
-});
-
-/**
-* The raw/untransformed width.
-* @name Scene#rawWidth
-* @property {number} - Gets the raw/untransformed width.
-*/
-Object.defineProperty(Scene.prototype, 'rawWidth', {
+Object.defineProperty(Scene.prototype, 'width', {
     get: function () {
         var computedStyle = window.getComputedStyle(this.view);
         
@@ -99,36 +44,14 @@ Object.defineProperty(Scene.prototype, 'rawWidth', {
 });
 
 /**
-* The raw/untransformed height.
-* @name Scene#rawHeight
-* @property {number} - Gets the raw/untransformed height.
+* The height.
+* @name Scene#height
+* @property {number} - Gets the height.
 */
-Object.defineProperty(Scene.prototype, 'rawHeight', {
+Object.defineProperty(Scene.prototype, 'height', {
     get: function () {
         var computedStyle = window.getComputedStyle(this.view);
         
         return this.view.clientHeight + parseFloat(computedStyle.getPropertyValue('border-left-width')) + parseFloat(computedStyle.getPropertyValue('border-right-width'));;
-    }
-});
-
-/**
-* The width.
-* @name Scene#width
-* @property {number} - Gets the width including any applied transformations.
-*/
-Object.defineProperty(Scene.prototype, 'width', {
-    get: function () {
-        return this.rawWidth * this.scaleX;
-    }
-});
-
-/**
-* The height.
-* @name Scene#height
-* @property {number} - Gets the height including any applied transformations.
-*/
-Object.defineProperty(Scene.prototype, 'height', {
-    get: function () {
-        return this.rawHeight * this.scaleY;
     }
 });

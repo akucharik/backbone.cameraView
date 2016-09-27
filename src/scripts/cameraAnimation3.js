@@ -46,27 +46,27 @@ class Animation3 extends TimelineMax {
         }, null, this);
 
         this.eventCallback('onUpdate', function () {
-            var sceneX = this.camera.scene.position.x;
-            var sceneY = this.camera.scene.position.y;
+            var x = this.camera.x;
+            var y = this.camera.y;
 
             if (this.camera.isShaking) {
                 if (this.camera.shakeHorizontal) {
-                    sceneX += Math.random() * this.camera.shakeIntensity * this.camera.viewportWidth * 2 - this.camera.shakeIntensity * this.camera.viewportWidth;
+                    x += Math.random() * this.camera.shakeIntensity * this.camera.viewportWidth * 2 - this.camera.shakeIntensity * this.camera.viewportWidth;
                 }
 
                 if (this.camera.shakeVertical) {
-                    sceneY += Math.random() * this.camera.shakeIntensity * this.camera.viewportHeight * 2 - this.camera.shakeIntensity * this.camera.viewportHeight;
+                    y += Math.random() * this.camera.shakeIntensity * this.camera.viewportHeight * 2 - this.camera.shakeIntensity * this.camera.viewportHeight;
                 }
             }
             
             // render
             TweenMax.set(this.camera.scene.view, { 
                 css: {
-                    rotation: this.camera.scene.rotation,
-                    scaleX: this.camera.scene.scaleX,
-                    scaleY: this.camera.scene.scaleY,
-                    x: sceneX,
-                    y: sceneY
+                    rotation: -this.camera.rotation,
+                    scaleX: this.camera.zoomX,
+                    scaleY: this.camera.zoomY,
+                    x: -x,
+                    y: -y
                 }
             });
 
@@ -170,8 +170,8 @@ class Animation3 extends TimelineMax {
                     y: this.camera.clampZoom(isNil(tween.data.zoom.y) ? this.camera.zoomY : tween.data.zoom.y)
                 };
                 
-                var startTransformation = new Matrix2(this.camera.scene.scaleX, 0, 0, this.camera.scene.scaleY).rotate(Oculo.Math.degToRad(this.camera.scene.rotation));
-                var transformation = new Matrix2(zoom.x, 0, 0, zoom.y).rotate(Oculo.Math.degToRad(-rotation));
+                var startTransformation = new Matrix2().scale(this.camera.zoomX, this.camera.zoomY).rotate(Oculo.Math.degToRad(-this.camera.rotation));
+                var transformation = new Matrix2().scale(zoom.x, zoom.y).rotate(Oculo.Math.degToRad(-rotation));
                 var originOffset = new Vector2();
                 var focalPoint = focus;
                 var cameraContextPosition = new Vector2();
@@ -190,8 +190,8 @@ class Animation3 extends TimelineMax {
                         css: {
                             transitionDuration: '0s',
                             transformOrigin: origin.x + 'px ' + origin.y + 'px',
-                            x: this.camera.scene.position.x,
-                            y: this.camera.scene.position.y
+                            x: -this.camera.x,
+                            y: -this.camera.y
                         }
                     });    
                 }

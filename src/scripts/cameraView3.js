@@ -173,8 +173,15 @@ var Camera = function (options) {
     this.position = new Vector2(0, 0);
     
     /**
-    * @property {number} - The 'x' value of the transformation origin.
+    * @property {number} - The amount of rotation in degrees.
     * @default
+    */
+    this.rotation = 0;
+    
+    /**
+    * The X value of the transformation origin.
+    * @name Camera#sceneOriginX
+    * @property {number} - Gets the X value of the transformation origin.
     */
     Object.defineProperty(this, 'sceneOriginX', {
         get: function () {
@@ -183,77 +190,57 @@ var Camera = function (options) {
     });
     
     /**
-    * @property {number} - The 'y' value of the transformation origin.
-    * @default
+    * The Y value of the transformation origin.
+    * @name Camera#sceneOriginY
+    * @property {number} - Gets the Y value of the transformation origin.
     */
     Object.defineProperty(this, 'sceneOriginY', {
         get: function () {
             return this.scene.origin.y;
         }
     });
-    
+
     /**
-    * The scene's X position.
-    * @name Camera#sceneX
-    * @property {number} - Gets or sets the scene's X position.
+    * The width of the scene.
+    * @name Camera#sceneWidth
+    * @property {number} - Gets the width of the scene.
     */
-    Object.defineProperty(this, 'sceneX', {
-        get: function () {
-            return this.scene.position.x;
-        }
-    });
-    
-    /**
-    * The scene's Y position.
-    * @name Camera#sceneY
-    * @property {number} - Gets or sets the scene's Y position.
-    */
-    Object.defineProperty(this, 'sceneY', {
-        get: function () {
-            return this.scene.position.y;
-        }
-    });
-    
-    
-    Object.defineProperty(this, 'sceneRotation', {
-        get: function () {
-            return this.scene.rotation;
-        }
-    });
-    
-    Object.defineProperty(this, 'sceneScaleX', {
-        get: function () {
-            return this.scene.scaleX;
-        }
-    });
-    
-    Object.defineProperty(this, 'sceneScaleY', {
-        get: function () {
-            return this.scene.scaleY;
-        }
-    });
-    
-    Object.defineProperty(this, 'sceneRawWidth', {
-        get: function () {
-            return this.scene.rawWidth;
-        }
-    });
-    
-    Object.defineProperty(this, 'sceneRawHeight', {
-        get: function () {
-            return this.scene.rawHeight;
-        }
-    });
-    
     Object.defineProperty(this, 'sceneWidth', {
         get: function () {
             return this.scene.width;
         }
     });
     
+    /**
+    * The height of the scene.
+    * @name Camera#sceneHeight
+    * @property {number} - Gets the height of the scene.
+    */
     Object.defineProperty(this, 'sceneHeight', {
         get: function () {
             return this.scene.height;
+        }
+    });
+    
+    /**
+    * The scaled width of the scene.
+    * @name Camera#sceneScaledHeight
+    * @property {number} - Gets the scaled width of the scene.
+    */
+    Object.defineProperty(this, 'sceneScaledWidth', {
+        get: function () {
+            return this.scene.width * this.zoomX;
+        }
+    });
+    
+    /**
+    * The scaled height of the scene.
+    * @name Camera#sceneScaledHeight
+    * @property {number} - Gets the scaled height of the scene.
+    */
+    Object.defineProperty(this, 'sceneScaledHeight', {
+        get: function () {
+            return this.scene.height * this.zoomY;
         }
     });
 
@@ -282,6 +269,18 @@ var Camera = function (options) {
     * @default
     */
     this.zoomIncrement = 0.01;
+    
+    /**
+    * @property {number} - The amount of zoom on the X axis. A ratio where 1 = 100%.
+    * @default
+    */
+    this.zoomX = 1;
+
+    /**
+    * @property {number} - The amount of zoom on the Y axis. A ratio where 1 = 100%.
+    * @default
+    */
+    this.zoomY = 1;
 
     /**
     * The width.
@@ -340,7 +339,7 @@ var Camera = function (options) {
     
     Object.defineProperty(this, 'focus', {
         get: function () {
-            var transformation = new Matrix2(this.scene.scaleX, 0, 0, this.scene.scaleY).rotate(Oculo.Math.degToRad(this.scene.rotation));
+            var transformation = new Matrix2().scale(this.zoomX, this.zoomY).rotate(Oculo.Math.degToRad(-this.rotation));
             
             return this.calculateCameraFocus(new Vector2(this.x, this.y), this.viewportCenter, this.scene.origin, transformation);
         }
@@ -371,21 +370,6 @@ var Camera = function (options) {
     Object.defineProperty(this, 'isRotated', {
         get: function () {
             return this.rotation !== 0;
-        }
-    });
-    
-    /**
-    * The amount of rotation in degrees.
-    * @name Camera#rotation
-    * @property {number} - Gets or sets the rotation.
-    */
-    Object.defineProperty(this, 'rotation', {
-        get: function () {
-            return -this.scene.rotation;
-        },
-
-        set: function (value) {
-            this.scene.rotation = -value;
         }
     });
     
@@ -447,7 +431,7 @@ var Camera = function (options) {
     /**
     * The camera's x position on the scene.
     * @name Camera#x
-    * @property {number} - Gets or sets the camera's x position on the scene.
+    * @property {number} - Gets or sets the camera's X position on the scene.
     */
     Object.defineProperty(this, 'x', {
         get: function () {
@@ -456,14 +440,13 @@ var Camera = function (options) {
 
         set: function (value) {
             this.position.set(value, null);
-            this.scene.position.set(-value, null);
         }
     });
     
     /**
     * The camera's y position on the scene.
     * @name Camera#y
-    * @property {number} - Gets or sets the camera's y position on the scene.
+    * @property {number} - Gets or sets the camera's Y position on the scene.
     */
     Object.defineProperty(this, 'y', {
         get: function () {
@@ -472,45 +455,12 @@ var Camera = function (options) {
 
         set: function (value) {
             this.position.set(null, value);
-            this.scene.position.set(null, -value);
         }
     });
     
     Object.defineProperty(this, 'isZoomed', {
         get: function () {
             return this.zoomX !== 1 && this.zoomY !== 1;
-        }
-    });
-    
-    /**
-    * The amount of zoom on the x-axis.
-    * @name Camera#zoomX
-    * @property {number} - Gets or sets the zoom on the x-axis. A ratio where 1 = 100%.
-    */
-    Object.defineProperty(this, 'zoomX', {
-        get: function () {
-            return this.scene.scaleX;
-        },
-
-        set: function (value) {
-            this.previousZoomX = this.zoomX;
-            this.scene.scaleX = value;
-        }
-    });
-
-    /**
-    * The amount of zoom on the y-axis.
-    * @name Camera#zoomY
-    * @property {number} - Gets or sets the zoom on the y-axis. A ratio where 1 = 100%.
-    */
-    Object.defineProperty(this, 'zoomY', {
-        get: function () {
-            return this.scene.scaleY;
-        },
-
-        set: function (value) {
-            this.previousZoomY = this.zoomY;
-            this.scene.scaleY = value;
         }
     });
     
@@ -544,7 +494,7 @@ var p = Camera.prototype;
 
 p._markPoint = function (x, y) {
     var pointElement = document.getElementById('point');
-    var point = new Vector2(x, y).transform(new Matrix2().rotate(Oculo.Math.degToRad(this.scene.rotation)));
+    var point = new Vector2(x, y).transform(new Matrix2().scale(this.zoomX, this.zoomY).rotate(Oculo.Math.degToRad(-this.rotation)));
     
     pointElement.style.top = (point.y - 2) + 'px';
     pointElement.style.left = (point.x - 2) + 'px';
@@ -823,7 +773,7 @@ p.initialize = function (options) {
 
     var focus = new Vector2(options.focus.x, options.focus.y);
     var cameraContextPosition = this.viewportCenter;
-    var transformation = new Matrix2(this.scene.scaleX, 0, 0, this.scene.scaleY).rotate(Oculo.Math.degToRad(this.scene.rotation));
+    var transformation = new Matrix2().scale(this.zoomX, this.zoomY).rotate(Oculo.Math.degToRad(-this.rotation));
     var position = this.calculateCameraPosition(focus, cameraContextPosition, this.scene.origin, transformation);
     
     this.x = position.x;
