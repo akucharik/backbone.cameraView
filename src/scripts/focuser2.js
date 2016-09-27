@@ -56,7 +56,7 @@ var Focuser = function () {
     * @returns {Vector2} The position within the camera.
     */
     this.calculateCameraContextPosition = function (scenePosition, cameraFocus, cameraCenter, sceneTransformation) {
-        var cameraPosition = this.calculateCameraPosition(cameraFocus, cameraCenter, new Vector2(0, 0), sceneTransformation);
+        var cameraPosition = this.calculateCameraPosition(cameraFocus, cameraCenter, new Vector2(), sceneTransformation);
         
         return scenePosition.clone().transform(sceneTransformation).subtract(cameraPosition);
     };
