@@ -157,7 +157,7 @@ class Animation3 extends TimelineMax {
             },
             callbackScope: this,
             onStart: function (tween) {
-                var isFocusing = !isNil(tween.data.focus.x) || !isNil(tween.data.focus.y);
+                var isFocusing = (isFinite(tween.data.focus.x) && Math.round(tween.data.focus.x) !== Math.round(this.camera.focus.x)) || (isFinite(tween.data.focus.y) && Math.round(tween.data.focus.y) !== Math.round(this.camera.focus.y));
                 var isRotating = !isNil(tween.data.rotation) && tween.data.rotation !== this.camera.rotation;
                 var isZooming = !isNil(tween.data.zoom.x) || !isNil(tween.data.focus.x);
                 var isAnchored = (!isNil(tween.data.origin.x) || !isNil(tween.data.origin.y)) && !isFocusing;
@@ -170,7 +170,6 @@ class Animation3 extends TimelineMax {
                     y: this.camera.clampZoom(isNil(tween.data.zoom.y) ? this.camera.zoomY : tween.data.zoom.y)
                 };
                 
-                var startTransformation = new Matrix2().scale(this.camera.zoomX, this.camera.zoomY).rotate(Oculo.Math.degToRad(-this.camera.rotation));
                 var transformation = new Matrix2().scale(zoom.x, zoom.y).rotate(Oculo.Math.degToRad(-rotation));
                 var originOffset = new Vector2();
                 var focalPoint = focus;
@@ -179,7 +178,7 @@ class Animation3 extends TimelineMax {
                 
                 // Smooth origin change
                 if (!origin.equals(this.camera.scene.origin)) {
-                    originOffset = origin.clone().transform(startTransformation).subtract(this.camera.scene.origin.clone().transform(startTransformation), origin.clone().subtract(this.camera.scene.origin));
+                    originOffset = origin.clone().transform(this.camera.sceneTransformation).subtract(this.camera.scene.origin.clone().transform(this.camera.sceneTransformation), origin.clone().subtract(this.camera.scene.origin));
                     
                     if (this.camera.isRotated || this.camera.isZoomed) {
                         this.camera.position.set(this.camera.x - originOffset.x, this.camera.y - originOffset.y);
@@ -204,7 +203,7 @@ class Animation3 extends TimelineMax {
                 
                 if (isAnchored) {
                     focalPoint = origin;
-                    cameraContextPosition = this.camera.calculateCameraContextPosition(origin, this.camera.focus, this.camera.viewportCenter, startTransformation);
+                    cameraContextPosition = this.camera.calculateCameraContextPosition(origin, this.camera.focus, this.camera.viewportCenter, this.camera.sceneTransformation);
                 }
                 else {
                     cameraContextPosition = this.camera.viewportCenter;

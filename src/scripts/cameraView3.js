@@ -245,6 +245,17 @@ var Camera = function (options) {
     });
 
     /**
+    * The transformation of the scene.
+    * @name Camera#sceneTransformation
+    * @property {Matrix2} - Gets the transformation of the scene.
+    */
+    Object.defineProperty(this, 'sceneTransformation', {
+        get: function () {
+            return new Matrix2().scale(this.zoomX, this.zoomY).rotate(Oculo.Math.degToRad(-this.rotation));
+        }
+    });
+    
+    /**
     * @property {number} - The shake intensity. A value between 0 and 1.
     */
     this.shakeIntensity = 0;
@@ -339,9 +350,7 @@ var Camera = function (options) {
     
     Object.defineProperty(this, 'focus', {
         get: function () {
-            var transformation = new Matrix2().scale(this.zoomX, this.zoomY).rotate(Oculo.Math.degToRad(-this.rotation));
-            
-            return this.calculateCameraFocus(new Vector2(this.x, this.y), this.viewportCenter, this.scene.origin, transformation);
+            return this.calculateCameraFocus(new Vector2(this.x, this.y), this.viewportCenter, this.scene.origin, this.sceneTransformation);
         }
     });
     
@@ -771,13 +780,8 @@ p.initialize = function (options) {
         'y',
     ]));
 
-    var focus = new Vector2(options.focus.x, options.focus.y);
-    var cameraContextPosition = this.viewportCenter;
-    var transformation = new Matrix2().scale(this.zoomX, this.zoomY).rotate(Oculo.Math.degToRad(-this.rotation));
-    var position = this.calculateCameraPosition(focus, cameraContextPosition, this.scene.origin, transformation);
-    
-    this.x = position.x;
-    this.y = position.y;
+    var position = this.calculateCameraPosition(new Vector2(options.focus.x, options.focus.y), this.viewportCenter, this.scene.origin, this.sceneTransformation);
+    this.position.copy(position);
 
     // Set up scene
     this.view.appendChild(this.scene.view);
@@ -785,8 +789,7 @@ p.initialize = function (options) {
     this.draggable = new Draggable(this.scene.view, {
         onDrag: function (camera) {
             // 'this' refers to the Draggable instance
-            camera.focusX = (camera.viewportWidth / 2 - this.x) / camera.zoom;
-            camera.focusY = (camera.viewportHeight / 2 - this.y) / camera.zoom;
+            camera.position.set(-this.x, -this.y);
             camera._renderDebug();
         },
         onDragParams: [this],
@@ -910,6 +913,14 @@ p.render = function () {
     this.onBeforeRender();
     
     this.debugView.render().attach(document.body);
+//    new Animation3(this).animate({
+//        focus: this.focus, 
+//        rotation: this.rotation, 
+//        zoom: { 
+//            x: this.zoomX, 
+//            y: this.zoomY 
+//        }
+//    }, 0);
     
     this.onRender();
 
