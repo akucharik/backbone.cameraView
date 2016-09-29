@@ -17,60 +17,59 @@ var Vector2 = Oculo.Vector2;
 */
 var Focuser = function () {
     /**
-    * Get the x/y focus point for an element.
+    * Get an object's position in the world.
     *
-    * @param {Object} containerRect - The boundingClientRect object for the element that contains all focusable positions.
-    * @param {Element} elRect - The boundingClientRect object for the element on which to determine the focus position.
-    * @param {number} scale - The currently rendered scale ratio.
-    * @returns {Vector2} The element's focus position. An x/y position object representing the center point of the element in relation to the container.
+    * @param {Element} object - The object.
+    * @param {Element} world - The world.
+    * @returns {Vector2} The object's position.
     */
-    this.getElementCentre = function (container, element, scaleX, scaleY) {
-        var x = (element.offsetWidth / 2) + element.offsetLeft - container.offsetLeft; 
-        var y = (element.offsetHeight / 2) + element.offsetTop - container.offsetTop;
+    this.getObjectWorldPosition = function (object, world) {
+        var x = (object.offsetWidth / 2) + object.offsetLeft - world.offsetLeft; 
+        var y = (object.offsetHeight / 2) + object.offsetTop - world.offsetTop;
         
         return new Vector2(x, y);
     };
     
     /**
-    * Calculate the raw point on the scene on which the camera is focused.
+    * Calculate the raw point on the scene on which the camera is positioned.
     *
-    * @param {Vector2} cameraPosition - The camera's position on the scene.
+    * @param {Vector2} cameraOffset - The camera's position on the scene.
     * @param {Vector2} cameraCenter - The camera's center point.
     * @param {Vector2} sceneOrigin - The scene's origin.
     * @param {Matrix2} sceneTransformation - The scene's transformation matrix.
-    * @returns {Vector2} The camera's focus.
+    * @returns {Vector2} The camera's position.
     */
-    this.calculateCameraFocus = function (cameraPosition, cameraCenter, sceneOrigin, sceneTransformation) {
+    this.calculateCameraPosition = function (cameraOffset, cameraCenter, sceneOrigin, sceneTransformation) {
         var sceneOriginOffset = sceneOrigin.clone().transform(sceneTransformation).subtract(sceneOrigin);
 
-        return cameraPosition.clone().add(sceneOriginOffset, cameraCenter).transform(sceneTransformation.getInverse());
+        return cameraOffset.clone().add(sceneOriginOffset, cameraCenter).transform(sceneTransformation.getInverse());
     };
     
     /**
     * Calculate the position within the camera of the provided raw point on the scene.
     *
     * @param {Vector2} scenePosition - The raw point on the scene.
-    * @param {Vector2} cameraFocus - The raw point on the scene on which the camera is focused.
+    * @param {Vector2} cameraPosition - The raw point on the scene on which the camera is positioned.
     * @param {Vector2} cameraCenter - The camera's center point.
     * @param {Matrix2} sceneTransformation - The scene's transformation matrix.
     * @returns {Vector2} The position within the camera.
     */
-    this.calculateCameraContextPosition = function (scenePosition, cameraFocus, cameraCenter, sceneTransformation) {
-        var cameraPosition = this.calculateCameraPosition(cameraFocus, cameraCenter, new Vector2(), sceneTransformation);
+    this.calculateCameraContextPosition = function (scenePosition, cameraPosition, cameraCenter, sceneTransformation) {
+        var cameraOffset = this.calculateCameraOffset(cameraPosition, cameraCenter, new Vector2(), sceneTransformation);
         
-        return scenePosition.clone().transform(sceneTransformation).subtract(cameraPosition);
+        return scenePosition.clone().transform(sceneTransformation).subtract(cameraOffset);
     };
     
     /**
-    * Calculate the camera's position on the scene given a raw point on the scene to be placed at a point on the camera.
+    * Calculate the camera's offset on the scene given a raw point on the scene to be placed at a point on the camera.
     *
     * @param {Vector2} scenePosition - The raw point on the scene.
     * @param {Vector2} cameraContext - The point on the camera.
     * @param {Vector2} sceneOrigin - The scene's origin.
     * @param {Matrix2} sceneTransformation - The scene's transformation matrix.
-    * @returns {Vector2} The camera's position.
+    * @returns {Vector2} The camera's offset.
     */
-    this.calculateCameraPosition = function (scenePosition, cameraContextPosition, sceneOrigin, sceneTransformation) {
+    this.calculateCameraOffset = function (scenePosition, cameraContextPosition, sceneOrigin, sceneTransformation) {
         var sceneOriginOffset = sceneOrigin.clone().transform(sceneTransformation).subtract(sceneOrigin);
         
         return scenePosition.clone().transform(sceneTransformation).subtract(sceneOriginOffset, cameraContextPosition);

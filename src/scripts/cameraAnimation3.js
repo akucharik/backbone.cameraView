@@ -46,10 +46,10 @@ class Animation3 extends TimelineMax {
         }, null, this);
 
         this.eventCallback('onUpdate', function () {
-            var x = this.camera.x;
-            var y = this.camera.y;
+            var x = this.camera.offset.x;
+            var y = this.camera.offset.y;
 
-            this.camera.focus.copy(this.camera.calculateCameraFocus(this.camera.position, this.camera.viewportCenter, this.camera.scene.origin, this.camera.sceneTransformation));
+            this.camera.position.copy(this.camera.calculateCameraPosition(this.camera.offset, this.camera.viewportCenter, this.camera.scene.origin, this.camera.sceneTransformation));
             
             if (this.camera.isShaking) {
                 if (this.camera.shakeHorizontal) {
@@ -83,9 +83,16 @@ class Animation3 extends TimelineMax {
         }, null, this);
     }
     
-    _parsePosition (input) {
-        var centre;
-        var output = {
+    /**
+    * Parse the position of the given input within the world.
+    *
+    * @param {string|Element|Object} [input] - The input to parse.
+    * @param {Element} [world] - The world.
+    * @returns {Object} The position.
+    */
+    _parsePosition (input, world) {
+        var objectPosition;
+        var position = {
             x: null,
             y: null
         };
@@ -95,16 +102,16 @@ class Animation3 extends TimelineMax {
         }
         
         if (isElement(input)) {
-            centre = this.camera.getElementCentre(this.camera.scene.view, input, this.camera.zoomX, this.camera.zoomY);
-            output.x = centre.x;
-            output.y = centre.y;
+            objectPosition = this.camera.getObjectWorldPosition(input, world);
+            position.x = objectPosition.x;
+            position.y = objectPosition.y;
         }
         else if (isObject(input)) {
-            output.x = input.x;
-            output.y = input.y;
+            position.x = input.x;
+            position.y = input.y;
         }
         
-        return output;
+        return position;
     }
     
     _animate (props, duration, options) {
@@ -113,18 +120,17 @@ class Animation3 extends TimelineMax {
         var mainTimeline = new TimelineMax();
         var shakeTimeline = null;
         
-        var centre;
-        var focus = {};
+        var position = {};
         var origin = {};
         var rotation;
         var shake = {};
         var zoom = {};
         
-        // Focus
-        focus = this._parsePosition(props.focus);
+        // Position
+        position = this._parsePosition(props.position, this.camera.scene.view);
         
         // Origin
-        origin = this._parsePosition(props.origin);
+        origin = this._parsePosition(props.origin, this.camera.scene.view);
         
         // Rotation
         if (isFinite(props.rotation)) {
@@ -152,19 +158,19 @@ class Animation3 extends TimelineMax {
         // Tween core camera functions
         mainTimeline.add(TweenMax.to(this.camera, duration, Object.assign({}, options, {
             data: {
-                focus: focus,
+                position: position,
                 origin: origin,
                 rotation: rotation,
                 zoom: zoom
             },
             callbackScope: this,
             onStart: function (tween) {
-                var isFocusing = (isFinite(tween.data.focus.x) && Math.round(tween.data.focus.x) !== Math.round(this.camera.focus.x)) || (isFinite(tween.data.focus.y) && Math.round(tween.data.focus.y) !== Math.round(this.camera.focus.y));
+                var isMoving = (isFinite(tween.data.position.x) && Math.round(tween.data.position.x) !== Math.round(this.camera.position.x)) || (isFinite(tween.data.position.y) && Math.round(tween.data.position.y) !== Math.round(this.camera.position.y));
                 var isRotating = !isNil(tween.data.rotation) && tween.data.rotation !== this.camera.rotation;
-                var isZooming = !isNil(tween.data.zoom.x) || !isNil(tween.data.focus.x);
-                var isAnchored = (!isNil(tween.data.origin.x) || !isNil(tween.data.origin.y)) && !isFocusing;
+                var isZooming = !isNil(tween.data.zoom.x) || !isNil(tween.data.position.x);
+                var isAnchored = (!isNil(tween.data.origin.x) || !isNil(tween.data.origin.y)) && !isMoving;
                 
-                var focus = new Vector2(isNil(tween.data.focus.x) ? this.camera.focus.x : tween.data.focus.x, isNil(tween.data.focus.y) ? this.camera.focus.y : tween.data.focus.y);
+                var position = new Vector2(isNil(tween.data.position.x) ? this.camera.position.x : tween.data.position.x, isNil(tween.data.position.y) ? this.camera.position.y : tween.data.position.y);
                 var origin = new Vector2(isNil(tween.data.origin.x) ? this.camera.scene.origin.x : tween.data.origin.x, isNil(tween.data.origin.y) ? this.camera.scene.origin.y : tween.data.origin.y);
                 var rotation = isNil(tween.data.rotation) ? this.camera.rotation : tween.data.rotation;
                 var zoom = {
@@ -174,16 +180,15 @@ class Animation3 extends TimelineMax {
                 
                 var transformation = new Matrix2().scale(zoom.x, zoom.y).rotate(Oculo.Math.degToRad(-rotation));
                 var originOffset = new Vector2();
-                var focalPoint = focus;
                 var cameraContextPosition = new Vector2();
-                var position = new Vector2();
+                var offset = new Vector2();
                 
                 // Smooth origin change
                 if (!origin.equals(this.camera.scene.origin)) {
                     originOffset = origin.clone().transform(this.camera.sceneTransformation).subtract(this.camera.scene.origin.clone().transform(this.camera.sceneTransformation), origin.clone().subtract(this.camera.scene.origin));
                     
                     if (this.camera.isRotated || this.camera.isZoomed) {
-                        this.camera.position.set(this.camera.x - originOffset.x, this.camera.y - originOffset.y);
+                        this.camera.offset.set(this.camera.offset.x - originOffset.x, this.camera.offset.y - originOffset.y);
                     }
                     
                     this.camera.scene.origin.copy(origin);
@@ -191,31 +196,31 @@ class Animation3 extends TimelineMax {
                         css: {
                             transitionDuration: '0s',
                             transformOrigin: origin.x + 'px ' + origin.y + 'px',
-                            x: -this.camera.x,
-                            y: -this.camera.y
+                            x: -this.camera.offset.x,
+                            y: -this.camera.offset.y
                         }
                     });    
                 }
                 
                 //origin = this.camera.checkFocusBounds(origin.x, origin.y);
                 
-                if (isRotating && !isAnchored && !isFocusing) {
-                    origin = this.camera.focus;
+                if (isRotating && !isAnchored && !isMoving) {
+                    origin = this.camera.position;
                 }
                 
                 if (isAnchored) {
-                    focalPoint = origin;
-                    cameraContextPosition = this.camera.calculateCameraContextPosition(origin, this.camera.focus, this.camera.viewportCenter, this.camera.sceneTransformation);
+                    position = origin;
+                    cameraContextPosition = this.camera.calculateCameraContextPosition(origin, this.camera.position, this.camera.viewportCenter, this.camera.sceneTransformation);
                 }
                 else {
                     cameraContextPosition = this.camera.viewportCenter;
                 }
                 
-                position = this.camera.calculateCameraPosition(focalPoint, cameraContextPosition, origin, transformation);
+                offset = this.camera.calculateCameraOffset(position, cameraContextPosition, origin, transformation);
                 
                 // TODO: For dev only
                 console.log('props: ', {
-                    focus: focus,
+                    position: position,
                     origin: origin,
                     rotation: rotation,
                     zoom: zoom
@@ -223,8 +228,8 @@ class Animation3 extends TimelineMax {
                 
                 tween.updateTo({
                     rotation: rotation,
-                    x: position.x,
-                    y: position.y,
+                    offsetX: offset.x,
+                    offsetY: offset.y,
                     zoomX: zoom.x,
                     zoomY: zoom.y
                 });
@@ -305,9 +310,9 @@ class Animation3 extends TimelineMax {
     /**
     * Animate the camera.
     *
-    * @param {string|Element|Object} focus - The location to focus on. It can be a selector, an element, or an object with x/y coordinates.
-    * @param {number} [focus.x] - The x coordinate on the raw scene.
-    * @param {number} [focus.y] - The y coordinate on the raw scene.
+    * @param {string|Element|Object} position - The location to move to. It can be a selector, an element, or an object with x/y coordinates.
+    * @param {number} [position.x] - The x coordinate on the raw scene.
+    * @param {number} [position.y] - The y coordinate on the raw scene.
     * @param {string|Element|Object} origin - The location for the zoom's origin. It can be a selector, an element, or an object with x/y coordinates.
     * @param {number} [origin.x] - The x coordinate on the raw scene.
     * @param {number} [origin.y] - The y coordinate on the raw scene.
@@ -324,14 +329,14 @@ class Animation3 extends TimelineMax {
     * @returns {this} self
     *
     * @example
-    * myAnimation.animate({focus: '#box100', zoom: 2}, 1);
-    * myAnimation.animate({focus: {x: 200, y: 50}, zoom: {x: 2}}, 1);
+    * myAnimation.animate({position: '#box100', zoom: 2}, 1);
+    * myAnimation.animate({position: {x: 200, y: 50}, zoom: {x: 2}}, 1);
     * myAnimation.animate({origin: '#box100', zoom: 2}, 1);
     * myAnimation.animate({origin: {x: 200, y: 50}, zoom: {x: 2}}, 1);
     */
     animate (props, duration, options) {
         this._animate({
-            focus: props.focus,
+            position: props.position,
             origin: props.origin,
             rotation: props.rotation,
             shake: props.shake,
@@ -342,25 +347,25 @@ class Animation3 extends TimelineMax {
     }
     
     /**
-    * Focus on a specific location.
+    * Move to a specific position.
     *
-    * @param {string|Element|Object} target - The location to focus on. It can be a selector, an element, or an object with x/y coordinates.
-    * @param {number} [target.x] - The x coordinate on the raw scene.
-    * @param {number} [target.y] - The y coordinate on the raw scene.
+    * @param {string|Element|Object} position - The position to move to. It can be a selector, an element, or an object with x/y coordinates.
+    * @param {number} [position.x] - The x coordinate on the raw scene.
+    * @param {number} [position.y] - The y coordinate on the raw scene.
     * @param {number} duration - A duration.
     * @param {Object} [options] - An object of {@link external:TweenMax|TweenMax} options.
     * @returns {this} self
     *
     * @example
-    * myAnimation.focusOn('#box100', 1);
-    * myAnimation.focusOn(document.getElementById('box100'), 1);
-    * myAnimation.focusOn({x:200, y: 50}, 1);
-    * myAnimation.focusOn({x: 200}, 1);
-    * myAnimation.focusOn({y: 200}, 1);
+    * myAnimation.moveTo('#box100', 1);
+    * myAnimation.moveTo(document.getElementById('box100'), 1);
+    * myAnimation.moveTo({x:200, y: 50}, 1);
+    * myAnimation.moveTo({x: 200}, 1);
+    * myAnimation.moveTo({y: 200}, 1);
     */
-    focusOn (target, duration, options) {
+    moveTo (position, duration, options) {
         this._animate({
-            focus: target
+            position: position
         }, duration, options);
 
         return this;
@@ -392,7 +397,7 @@ class Animation3 extends TimelineMax {
     }
     
     /**
-    * Rotate at the current focus.
+    * Rotate at the current position.
     *
     * @param {number|string} rotation - The rotation.
     * @param {number} duration - A duration.
@@ -466,7 +471,7 @@ class Animation3 extends TimelineMax {
     }
     
     /**
-    * Zoom in/out at the current focus.
+    * Zoom in/out at the current position.
     *
     * @param {number|Object} zoom - A zoom value for the axes. It can be a number or an object with x/y zoom values.
     * @param {number} [zoom.x] - A {@link Camera.zoomX|zoomX} value for the x axis.

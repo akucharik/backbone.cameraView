@@ -74,7 +74,7 @@ var Vector2 = Oculo.Vector2;
 * @param {Object} [options] - An object of options. Includes all Backbone.View options. See {@link external:Backbone.View}.
 * @param {number|string|Element} [options.width] - The camera's {@link Camera.width|width}.
 * @param {number|string|Element} [options.height] - The camera's {@link Camera.height|height}.
-* @param {Object|Element} [options.focus] - A {@link Camera.focus|focus} object.
+* @param {Object|Element} [options.position] - A {@link Camera.position|position} object.
 * @param {number} [options.minZoom] - The {@link Camera.minZoom|minimum zoom}.
 * @param {number} [options.maxZoom] - The {@link Camera.maxZoom|maximum zoom}.
 * @param {number} [options.zoom] - A {@link Camera.zoom|zoom} ratio.
@@ -90,18 +90,11 @@ var Camera = function (options) {
     this.animations = {};
 
     /**
-    * The scene's focusable bounds. If set, the camera will keep focus within the bounds.
-    * @property {Object} - An object representing the scene's focusable bounds.
+    * The camera's bounds. If set, the camera will remain within the bounds.
+    * @property {Object} - An object representing the camera's bounds.
     * @default null
     */
     this.bounds = null;
-    
-    /**
-    * The scene which the camera is viewing.
-    * @property {Camera.Scene}
-    * @default null
-    */
-    this.scene = null;
 
     /**
     * The debugging information view.
@@ -111,22 +104,19 @@ var Camera = function (options) {
     this.debugView = null;
     
     /**
-    * @property {Element} - TODO.
+    * The default ease.
+    * @name Camera#defaultEase
+    * @property {Object} - Gets or sets the default ease.
     */
-    this.view = utils.DOM.parseView(options.view);
-    
-    /**
-    * @property {Element} - TODO.
-    */
-    this.$view = $(this.view);
-    
-    /**
-    * TODO
-    *
-    * @property {Object} - TODO
-    * @default null
-    */
-    this.focusBounds = null;
+    Object.defineProperty(this, 'defaultEase', {
+        get: function () {
+            return TweenLite.defaultEase;
+        },
+
+        set: function (value) {
+            TweenLite.defaultEase = value;
+        }
+    });
 
     /**
     * @property {boolean} - Whether the scene is animating or not.
@@ -141,6 +131,17 @@ var Camera = function (options) {
     this.isPaused = false;
 
     /**
+    * Whether the camera is rotated or not.
+    * @name Camera#isRotated
+    * @property {number} - Gets whether the camera is rotated or not.
+    */
+    Object.defineProperty(this, 'isRotated', {
+        get: function () {
+            return this.rotation !== 0;
+        }
+    });
+    
+    /**
     * @property {boolean} - Whether the scene is shaking or not.
     * @default
     */
@@ -153,12 +154,16 @@ var Camera = function (options) {
     this.isTransitioning = false;
 
     /**
-    * The minimum value the scene can be zoomed.
-    * @property {number} - See {@link Camera.zoom|zoom}.
-    * @default
+    * Whether the camera is zoomed or not.
+    * @name Camera#isZoomed
+    * @property {number} - Gets whether the camera is zoomed or not.
     */
-    this.minZoom = 0.5;
-
+    Object.defineProperty(this, 'isZoomed', {
+        get: function () {
+            return this.zoomX !== 1 && this.zoomY !== 1;
+        }
+    });
+    
     /**
     * The maximum value the scene can be zoomed.
     * @property {number} - See {@link Camera.zoom|zoom}.
@@ -167,16 +172,96 @@ var Camera = function (options) {
     this.maxZoom = 3;
     
     /**
-    * @property {Vector2} - The position on the scene.
+    * The minimum value the scene can be zoomed.
+    * @property {number} - See {@link Camera.zoom|zoom}.
+    * @default
+    */
+    this.minZoom = 0.5;
+    
+    /**
+    * @property {Vector2} - The offset on the scene.
+    * @default
+    */
+    this.offset = new Vector2();
+    
+    /**
+    * The camera's X offset on the scene.
+    * @name Camera#x
+    * @property {number} - Gets or sets the camera's X offset on the scene.
+    */
+    Object.defineProperty(this, 'offsetX', {
+        get: function () {
+            return this.offset.x;
+        },
+
+        set: function (value) {
+            this.offset.set(value, null);
+        }
+    });
+    
+    /**
+    * The camera's Y offset on the scene.
+    * @name Camera#y
+    * @property {number} - Gets or sets the camera's Y offset on the scene.
+    */
+    Object.defineProperty(this, 'offsetY', {
+        get: function () {
+            return this.offset.y;
+        },
+
+        set: function (value) {
+            this.offset.set(null, value);
+        }
+    });
+    
+    /**
+    * @property {Vector2} - The position within the world.
     * @default
     */
     this.position = new Vector2();
+    
+    /**
+    * The camera's X position within the world.
+    * @name Camera#x
+    * @property {number} - Gets or sets the camera's X position within the world.
+    */
+    Object.defineProperty(this, 'x', {
+        get: function () {
+            return this.position.x;
+        },
+
+        set: function (value) {
+            this.position.set(value, null);
+        }
+    });
+    
+    /**
+    * The camera's Y position within the world.
+    * @name Camera#y
+    * @property {number} - Gets or sets the camera's Y position within the world.
+    */
+    Object.defineProperty(this, 'y', {
+        get: function () {
+            return this.position.y;
+        },
+
+        set: function (value) {
+            this.position.set(null, value);
+        }
+    });
     
     /**
     * @property {number} - The amount of rotation in degrees.
     * @default
     */
     this.rotation = 0;
+    
+    /**
+    * The scene which the camera is viewing.
+    * @property {Camera.Scene}
+    * @default null
+    */
+    this.scene = null;
     
     /**
     * The X value of the transformation origin.
@@ -272,111 +357,15 @@ var Camera = function (options) {
     */
     this.shakeVertical = true;
     
-    this.timeline = null;
+    /**
+    * @property {Element} - The view.
+    */
+    this.view = utils.DOM.parseView(options.view);
     
     /**
-    * The base increment at which the scene will be zoomed.
-    * @property {number} - See {@link Camera.zoom|zoom}.
-    * @default
+    * @property {Element} - TODO.
     */
-    this.zoomIncrement = 0.01;
-    
-    /**
-    * @property {number} - The amount of zoom on the X axis. A ratio where 1 = 100%.
-    * @default
-    */
-    this.zoomX = 1;
-
-    /**
-    * @property {number} - The amount of zoom on the Y axis. A ratio where 1 = 100%.
-    * @default
-    */
-    this.zoomY = 1;
-
-    /**
-    * The width.
-    * @name Camera#width
-    * @property {number} - Gets or sets the view's width. Includes border and padding. A "change:width" event is emitted if the value has changed.
-    */
-    Object.defineProperty(this, 'width', {
-        get: function () {
-            var computedStyle = window.getComputedStyle(this.view);
-
-            return this.view.clientWidth + parseFloat(computedStyle.getPropertyValue('border-left-width')) + parseFloat(computedStyle.getPropertyValue('border-right-width'));
-        },
-
-        set: function (value) {
-            if (value != this.width) {
-                this.$view.width(value);
-                this.trigger('change:width', value);
-            }
-        }
-    });
-
-    /**
-    * The height.
-    * @name Camera#height
-    * @property {number} - Gets or sets the view's height. Includes border and padding. A "change:height" event is emitted if the value has changed.
-    */
-    Object.defineProperty(this, 'height', {
-        get: function () {
-            var computedStyle = window.getComputedStyle(this.view);
-
-            return this.view.clientHeight + parseFloat(computedStyle.getPropertyValue('border-top-width')) + parseFloat(computedStyle.getPropertyValue('border-bottom-width'));
-        },
-
-        set: function (value) {
-            if (value != this.height) {
-                this.$view.height(value);
-                this.trigger('change:height', value);
-            }
-        }
-    });
-    
-    /**
-    * The default ease.
-    * @name Camera#defaultEase
-    * @property {Object} - Gets or sets the default ease.
-    */
-    Object.defineProperty(this, 'defaultEase', {
-        get: function () {
-            return TweenLite.defaultEase;
-        },
-
-        set: function (value) {
-            TweenLite.defaultEase = value;
-        }
-    });
-    
-    this.focus = new Vector2();
-    
-    /**
-    * The x position on which the camera is focused.
-    * @name Camera#focusX
-    * @property {number} - Gets the x position on which the camera is focused.
-    */
-    Object.defineProperty(this, 'focusX', {
-        get: function () {
-            return this.focus.x;
-        }
-    });
-    
-    /**
-    * The y position on which the camera is focused.
-    * @name Camera#focusY
-    * @property {number} - Gets the y position on which the camera is focused.
-    */
-    Object.defineProperty(this, 'focusY', {
-        get: function () {
-            return this.focus.y;
-        }
-    });
-    
-    Object.defineProperty(this, 'isRotated', {
-        get: function () {
-            return this.rotation !== 0;
-        }
-    });
+    this.$view = $(this.view);
     
     /**
     * The center point.
@@ -434,40 +423,63 @@ var Camera = function (options) {
     });
     
     /**
-    * The camera's x position on the scene.
-    * @name Camera#x
-    * @property {number} - Gets or sets the camera's X position on the scene.
+    * The width.
+    * @name Camera#width
+    * @property {number} - Gets or sets the view's width. Includes border and padding. A "change:width" event is emitted if the value has changed.
     */
-    Object.defineProperty(this, 'x', {
+    Object.defineProperty(this, 'width', {
         get: function () {
-            return this.position.x;
+            var computedStyle = window.getComputedStyle(this.view);
+
+            return this.view.clientWidth + parseFloat(computedStyle.getPropertyValue('border-left-width')) + parseFloat(computedStyle.getPropertyValue('border-right-width'));
         },
 
         set: function (value) {
-            this.position.set(value, null);
+            if (value != this.width) {
+                this.$view.width(value);
+                this.trigger('change:width', value);
+            }
+        }
+    });
+
+    /**
+    * The height.
+    * @name Camera#height
+    * @property {number} - Gets or sets the view's height. Includes border and padding. A "change:height" event is emitted if the value has changed.
+    */
+    Object.defineProperty(this, 'height', {
+        get: function () {
+            var computedStyle = window.getComputedStyle(this.view);
+
+            return this.view.clientHeight + parseFloat(computedStyle.getPropertyValue('border-top-width')) + parseFloat(computedStyle.getPropertyValue('border-bottom-width'));
+        },
+
+        set: function (value) {
+            if (value != this.height) {
+                this.$view.height(value);
+                this.trigger('change:height', value);
+            }
         }
     });
     
     /**
-    * The camera's y position on the scene.
-    * @name Camera#y
-    * @property {number} - Gets or sets the camera's Y position on the scene.
+    * The base increment at which the scene will be zoomed.
+    * @property {number} - See {@link Camera.zoom|zoom}.
+    * @default
     */
-    Object.defineProperty(this, 'y', {
-        get: function () {
-            return this.position.y;
-        },
-
-        set: function (value) {
-            this.position.set(null, value);
-        }
-    });
+    this.zoomIncrement = 0.01;
     
-    Object.defineProperty(this, 'isZoomed', {
-        get: function () {
-            return this.zoomX !== 1 && this.zoomY !== 1;
-        }
-    });
+    /**
+    * @property {number} - The amount of zoom on the X axis. A ratio where 1 = 100%.
+    * @default
+    */
+    this.zoomX = 1;
+
+    /**
+    * @property {number} - The amount of zoom on the Y axis. A ratio where 1 = 100%.
+    * @default
+    */
+    this.zoomY = 1;
     
     this.initialize(options);
     
@@ -626,7 +638,7 @@ p._wheelZoom = function (event) {
 };
 
 /**
-* Ensure the camera keeps focus within the scene's focusable bounds.
+* Ensure the camera keeps within the bounds.
 *
 * @returns {Object} The bounded position.
 */
@@ -745,22 +757,30 @@ p.dragDeccelerate = function (velocity, timeDelta, timestamp) {
     }
 };
 
-p._parsePosition = function (input) {
-    var output = new Vector2();
+/**
+* Parse the position of the given input within the world.
+*
+* @param {string|Element|Object} [input] - The input to parse.
+* @param {Element} [world] - The world.
+* @returns {Vector2} The position.
+*/
+p._parsePosition = function (input, world) {
+    var objectPosition;
+    var position = new Vector2();
     
     if (isString(input)) {
         input = document.querySelector(input);
     }
 
     if (isElement(input)) {
-        centre = this.camera.getElementCentre(this.scene.view, input, this.zoomX, this.zoomY);
-        output.copy(centre);
+        objectPosition = this.camera.getObjectWorldPosition(input, world);
+        position.copy(objectPosition);
     }
     else if (isObject(input)) {
-        output.copy(input);
+        position.copy(input);
     }
     
-    return output;
+    return position;
 };
 
 /**
@@ -783,7 +803,7 @@ p.initialize = function (options) {
         'debug',
         'defaultEase',
         'bounds',
-        'focusBounds',
+        'bounds',
         'zoom',
         'minZoom',
         'maxZoom',
@@ -794,9 +814,8 @@ p.initialize = function (options) {
         'y',
     ]));
     
-    this.focus.copy(this._parsePosition(options.focus));
-    var position = this.calculateCameraPosition(new Vector2(options.focus.x, options.focus.y), this.viewportCenter, this.scene.origin, this.sceneTransformation);
-    this.position.copy(position);
+    this.position.copy(this._parsePosition(options.position, this.scene.view));
+    this.offset.copy(this.calculateCameraOffset(this.position, this.viewportCenter, this.scene.origin, this.sceneTransformation));
 
     // Set up scene
     this.view.appendChild(this.scene.view);
@@ -804,9 +823,9 @@ p.initialize = function (options) {
     this.draggable = new Draggable(this.scene.view, {
         onDrag: function (camera) {
             // 'this' refers to the Draggable instance
-            var position = camera.calculateCameraFocus(new Vector2(-this.x, -this.y), camera.viewportCenter, camera.scene.origin, camera.sceneTransformation);
-            camera.focus.copy(position);
-            camera.position.set(-this.x, -this.y);
+            var offset = new Vector2(-this.x, -this.y);
+            camera.position.copy(camera.calculateCameraPosition(offset, camera.viewportCenter, camera.scene.origin, camera.sceneTransformation));
+            camera.offset.copy(offset);
             camera._renderDebug();
         },
         onDragParams: [this],
@@ -840,25 +859,25 @@ p.initialize = function (options) {
 * @param {number} x - TODO.
 * @param {number} y - TODO.
 */
-p.checkFocusBounds = function (x, y) {
-    if (x <= this.focusBounds.left)
+p.checkBounds = function (x, y) {
+    if (x <= this.bounds.left)
     {
-        x = this.focusBounds.left;
+        x = this.bounds.left;
     }
 
-    if (x >= this.focusBounds.right)
+    if (x >= this.bounds.right)
     {
-        x = this.focusBounds.right;
+        x = this.bounds.right;
     }
 
-    if (y <= this.focusBounds.top)
+    if (y <= this.bounds.top)
     {
-        y = this.focusBounds.top;
+        y = this.bounds.top;
     }
 
-    if (y >= this.focusBounds.bottom)
+    if (y >= this.bounds.bottom)
     {
-        y = this.focusBounds.bottom;
+        y = this.bounds.bottom;
     }
 
     return { 
@@ -878,14 +897,14 @@ p.clampZoom = function (value) {
 };
 
 /**
-* Focus the camera on an element.
+* Move the camera on an element.
 *
-* @param {Element} focus - An element.
+* @param {Element} position - An element.
 * @param {number} duration - TODO.
 * @param {Object} [options] - TODO.
 * @returns {Camera} The view.
 *//**
-* Focus the camera on a point.
+* Move the camera on a point.
 *
 * @param {number} x - The 'x' position on the unzoomed scene.
 * @param {number} y - The 'y' position on the unzoomed scene.
@@ -893,7 +912,7 @@ p.clampZoom = function (value) {
 * @param {Object} [options] - TODO.
 * @returns {Camera} The view.
 */
-p.focusOn = function (x, y, duration, options) {
+p.moveTo = function (x, y, duration, options) {
 
     return this;
 };
@@ -931,7 +950,7 @@ p.render = function () {
     
     this.debugView.render().attach(document.body);
 //    new Animation3(this).animate({
-//        focus: this.focus, 
+//        position: this.position, 
 //        rotation: this.rotation, 
 //        zoom: { 
 //            x: this.zoomX, 
@@ -984,7 +1003,7 @@ p.play = function () {
 * Rotates at a specific element.
 *
 * @param {number|string} rotation - TODO.
-* @param {Element} focus - The element.
+* @param {Element} position - The element.
 * @param {number} duration - TODO.
 * @param {Object} [options] - TODO.
 * @returns {Camera} The view.
@@ -1004,7 +1023,7 @@ p.rotateAt = function (rotation, x, y, duration, options) {
 };
 
 /**
-* Rotates at the current focus.
+* Rotates at the current position.
 *
 * @param {number|string} rotation - TODO.
 * @param {number} duration - TODO.
@@ -1020,7 +1039,7 @@ p.rotateTo = function (rotation, duration, options) {
 * Zooms in/out at a specific element.
 *
 * @param {number} zoom - A {@link Camera.zoom|zoom} ratio.
-* @param {Element} focus - The element.
+* @param {Element} position - The element.
 * @param {number} duration - TODO.
 * @param {Object} [options] - TODO.
 * @returns {Camera} The view.
@@ -1040,7 +1059,7 @@ p.zoomAt = function (zoom, x, y, duration, options) {
 };
 
 /**
-* Zooms in/out at the current focus.
+* Zooms in/out at the current position.
 *
 * @param {number} zoom - A {@link Camera.zoom|zoom} ratio.
 * @param {number} duration - TODO.
