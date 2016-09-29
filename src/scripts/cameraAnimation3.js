@@ -49,6 +49,8 @@ class Animation3 extends TimelineMax {
             var x = this.camera.x;
             var y = this.camera.y;
 
+            this.camera.focus.copy(this.camera.calculateCameraFocus(this.camera.position, this.camera.viewportCenter, this.camera.scene.origin, this.camera.sceneTransformation));
+            
             if (this.camera.isShaking) {
                 if (this.camera.shakeHorizontal) {
                     x += Math.random() * this.camera.shakeIntensity * this.camera.viewportWidth * 2 - this.camera.shakeIntensity * this.camera.viewportWidth;
@@ -81,6 +83,30 @@ class Animation3 extends TimelineMax {
         }, null, this);
     }
     
+    _parsePosition (input) {
+        var centre;
+        var output = {
+            x: null,
+            y: null
+        };
+        
+        if (isString(input)) {
+            input = document.querySelector(input);
+        }
+        
+        if (isElement(input)) {
+            centre = this.camera.getElementCentre(this.camera.scene.view, input, this.camera.zoomX, this.camera.zoomY);
+            output.x = centre.x;
+            output.y = centre.y;
+        }
+        else if (isObject(input)) {
+            output.x = input.x;
+            output.y = input.y;
+        }
+        
+        return output;
+    }
+    
     _animate (props, duration, options) {
         options = options || {};
         
@@ -95,34 +121,10 @@ class Animation3 extends TimelineMax {
         var zoom = {};
         
         // Focus
-        if (isString(props.focus)) {
-            props.focus = document.querySelector(props.focus);
-        }
-        
-        if (isElement(props.focus)) {
-            centre = this.camera.getElementCentre(this.camera.scene.view, props.focus, this.camera.zoomX, this.camera.zoomY);
-            focus.x = centre.x;
-            focus.y = centre.y;
-        }
-        else if (isObject(props.focus)) {
-            focus.x = props.focus.x;
-            focus.y = props.focus.y;
-        }
+        focus = this._parsePosition(props.focus);
         
         // Origin
-        if (isString(props.origin)) {
-            props.origin = document.querySelector(props.origin);
-        }
-        
-        if (isElement(props.origin)) {
-            centre = this.camera.getElementCentre(this.camera.scene.view, props.origin, this.camera.zoomX, this.camera.zoomY);
-            origin.x = centre.x;
-            origin.y = centre.y;
-        }
-        else if (isObject(props.origin)) {
-            origin.x = props.origin.x;
-            origin.y = props.origin.y;
-        }
+        origin = this._parsePosition(props.origin);
         
         // Rotation
         if (isFinite(props.rotation)) {

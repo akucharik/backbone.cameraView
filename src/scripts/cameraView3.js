@@ -170,7 +170,7 @@ var Camera = function (options) {
     * @property {Vector2} - The position on the scene.
     * @default
     */
-    this.position = new Vector2(0, 0);
+    this.position = new Vector2();
     
     /**
     * @property {number} - The amount of rotation in degrees.
@@ -348,11 +348,7 @@ var Camera = function (options) {
         }
     });
     
-    Object.defineProperty(this, 'focus', {
-        get: function () {
-            return this.calculateCameraFocus(new Vector2(this.x, this.y), this.viewportCenter, this.scene.origin, this.sceneTransformation);
-        }
-    });
+    this.focus = new Vector2();
     
     /**
     * The x position on which the camera is focused.
@@ -749,6 +745,24 @@ p.dragDeccelerate = function (velocity, timeDelta, timestamp) {
     }
 };
 
+p._parsePosition = function (input) {
+    var output = new Vector2();
+    
+    if (isString(input)) {
+        input = document.querySelector(input);
+    }
+
+    if (isElement(input)) {
+        centre = this.camera.getElementCentre(this.scene.view, input, this.zoomX, this.zoomY);
+        output.copy(centre);
+    }
+    else if (isObject(input)) {
+        output.copy(input);
+    }
+    
+    return output;
+};
+
 /**
 * Called on the view this when the view has been created. This method is not meant to be overridden. If you need to access initialization, use {@link Camera#onInitialize|onInitialize}.
 *
@@ -779,7 +793,8 @@ p.initialize = function (options) {
         'x',
         'y',
     ]));
-
+    
+    this.focus.copy(this._parsePosition(options.focus));
     var position = this.calculateCameraPosition(new Vector2(options.focus.x, options.focus.y), this.viewportCenter, this.scene.origin, this.sceneTransformation);
     this.position.copy(position);
 
@@ -789,6 +804,8 @@ p.initialize = function (options) {
     this.draggable = new Draggable(this.scene.view, {
         onDrag: function (camera) {
             // 'this' refers to the Draggable instance
+            var position = camera.calculateCameraFocus(new Vector2(-this.x, -this.y), camera.viewportCenter, camera.scene.origin, camera.sceneTransformation);
+            camera.focus.copy(position);
             camera.position.set(-this.x, -this.y);
             camera._renderDebug();
         },
