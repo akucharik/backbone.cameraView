@@ -27,7 +27,20 @@ class Scene {
         * @default
         */
         this.origin = new Vector2(0, 0);
-    }   
+    }
+    
+    /**
+    * Get an object's position in the world.
+    *
+    * @param {Element} object - The object.
+    * @returns {Vector2} The object's position.
+    */
+    getObjectWorldPosition (object) {
+        var x = (object.offsetWidth / 2) + object.offsetLeft - this.view.offsetLeft; 
+        var y = (object.offsetHeight / 2) + object.offsetTop - this.view.offsetTop;
+
+        return new Vector2(x, y);
+    }
 }
 
 /**

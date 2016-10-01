@@ -87,10 +87,9 @@ class Animation3 extends TimelineMax {
     * Parse the position of the given input within the world.
     *
     * @param {string|Element|Object} [input] - The input to parse.
-    * @param {Element} [world] - The world.
     * @returns {Object} The position.
     */
-    _parsePosition (input, world) {
+    _parsePosition (input) {
         var objectPosition;
         var position = {
             x: null,
@@ -102,7 +101,7 @@ class Animation3 extends TimelineMax {
         }
         
         if (isElement(input)) {
-            objectPosition = this.camera.getObjectWorldPosition(input, world);
+            objectPosition = this.camera.scene.getObjectWorldPosition(input);
             position.x = objectPosition.x;
             position.y = objectPosition.y;
         }
@@ -127,10 +126,10 @@ class Animation3 extends TimelineMax {
         var zoom = {};
         
         // Position
-        position = this._parsePosition(props.position, this.camera.scene.view);
+        position = this._parsePosition(props.position);
         
         // Origin
-        origin = this._parsePosition(props.origin, this.camera.scene.view);
+        origin = this._parsePosition(props.origin);
         
         // Rotation
         if (isFinite(props.rotation)) {

@@ -69,7 +69,6 @@ var Vector2 = Oculo.Vector2;
 * 
 * @constructs Camera
 * @extends external:Backbone.View
-* @mixes Focuser
 * @mixes SizableView
 * @param {Object} [options] - An object of options. Includes all Backbone.View options. See {@link external:Backbone.View}.
 * @param {number|string|Element} [options.width] - The camera's {@link Camera.width|width}.
@@ -545,20 +544,6 @@ p._animate = function (properties, duration, options) {
 };
 
 /**
-* Get an object's position in the world.
-*
-* @param {Element} object - The object.
-* @param {Element} world - The world.
-* @returns {Vector2} The object's position.
-*/
-p.getObjectWorldPosition = function (object, world) {
-    var x = (object.offsetWidth / 2) + object.offsetLeft - world.offsetLeft; 
-    var y = (object.offsetHeight / 2) + object.offsetTop - world.offsetTop;
-
-    return new Vector2(x, y);
-};
-
-/**
 * Calculate the raw point on the scene on which the camera is positioned.
 *
 * @param {Vector2} cameraOffset - The camera's position on the scene.
@@ -820,10 +805,9 @@ p.dragDeccelerate = function (velocity, timeDelta, timestamp) {
 * Parse the position of the given input within the world.
 *
 * @param {string|Element|Object} [input] - The input to parse.
-* @param {Element} [world] - The world.
 * @returns {Vector2} The position.
 */
-p._parsePosition = function (input, world) {
+p._parsePosition = function (input) {
     var objectPosition;
     var position = new Vector2();
     
@@ -832,7 +816,7 @@ p._parsePosition = function (input, world) {
     }
 
     if (isElement(input)) {
-        objectPosition = this.camera.getObjectWorldPosition(input, world);
+        objectPosition = this.camera.scene.getObjectWorldPosition(input);
         position.copy(objectPosition);
     }
     else if (isObject(input)) {
@@ -873,7 +857,7 @@ p.initialize = function (options) {
         'y',
     ]));
     
-    this.position.copy(this._parsePosition(options.position, this.scene.view));
+    this.position.copy(this._parsePosition(options.position));
     this.offset.copy(this.calculateCameraOffset(this.position, this.viewportCenter, this.scene.origin, this.sceneTransformation));
 
     // Set up scene
