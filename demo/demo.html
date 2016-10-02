@@ -142,21 +142,34 @@
                 app.camera = new Camera({
                     view: '#camera',
                     scene: '#scene',
-                    width: 1000,
-                    height: 500,
-                    position: {
-                        x: 499,
-                        y: 249
-                    },
                     bounds: {
                         left: 0,
                         right: 1827,
                         top: 0,
                         bottom: 1219
                     },
+                    debug: true,
                     defaultEase: Power2.easeOut,
-                    debug: true
-                }).render();
+                    position: {
+                        x: 499,
+                        y: 249
+                    },
+                    rotation: 0,
+                    zoom: {
+                        x: 1,
+                        y: 1
+                    },
+                    width: 1000,
+                    height: 500
+                });
+                
+                // Animations
+                app.animations = {
+                    box100: new Animation3(app.camera).animate({position: '#box100', rotation:-20, zoom: 1.5}, 2),
+                    rotateAt200: new Animation3(app.camera).animate({origin: {x:200, y:200}, rotation:-10, zoom: 1.5}, 2)
+                };
+            
+                app.camera.render();
 
                 $('#flick').on('click', app.flick);
                 $('#focusOn').on('click', app.focusOn);

@@ -41,7 +41,6 @@ class Animation3 extends TimelineMax {
         this.camera = camera;
         
         this.eventCallback('onStart', function () { 
-            this.camera.isAnimating = true;
             this.camera.draggable.disable();
         }, null, this);
 
@@ -49,7 +48,7 @@ class Animation3 extends TimelineMax {
             var x = this.camera.offset.x;
             var y = this.camera.offset.y;
 
-            this.camera.position.copy(this.camera.calculateCameraPosition(this.camera.offset, this.camera.viewportCenter, this.camera.scene.origin, this.camera.sceneTransformation));
+            this.camera.position.copy(this.camera._calculatePosition(this.camera.offset, this.camera.viewportCenter, this.camera.scene.origin, this.camera.sceneTransformation));
             
             if (this.camera.isShaking) {
                 if (this.camera.shakeHorizontal) {
@@ -77,7 +76,6 @@ class Animation3 extends TimelineMax {
 
         this.eventCallback('onComplete', function () { 
             console.log('camera TL complete');
-            this.camera.isAnimating = false;
             this.camera.draggable.enable();
             this.camera._renderDebug();
         }, null, this);
@@ -161,8 +159,9 @@ class Animation3 extends TimelineMax {
                 origin: origin,
                 rotation: rotation,
                 zoom: zoom
-            },
+            }, 
             callbackScope: this,
+            immediateRender: false,
             onStart: function (tween) {
                 var isMoving = (isFinite(tween.data.position.x) && Math.round(tween.data.position.x) !== Math.round(this.camera.position.x)) || (isFinite(tween.data.position.y) && Math.round(tween.data.position.y) !== Math.round(this.camera.position.y));
                 var isRotating = !isNil(tween.data.rotation) && tween.data.rotation !== this.camera.rotation;
@@ -209,13 +208,13 @@ class Animation3 extends TimelineMax {
                 
                 if (isAnchored) {
                     position = origin;
-                    cameraContextPosition = this.camera.calculateCameraContextPosition(origin, this.camera.position, this.camera.viewportCenter, this.camera.sceneTransformation);
+                    cameraContextPosition = this.camera._calculateContextPosition(origin, this.camera.position, this.camera.viewportCenter, this.camera.sceneTransformation);
                 }
                 else {
                     cameraContextPosition = this.camera.viewportCenter;
                 }
                 
-                offset = this.camera.calculateCameraOffset(position, cameraContextPosition, origin, transformation);
+                offset = this.camera._calculateOffset(position, cameraContextPosition, origin, transformation);
                 
                 // TODO: For dev only
                 console.log('props: ', {
@@ -237,7 +236,7 @@ class Animation3 extends TimelineMax {
         })), 0);
         
         // Tween shake effect
-        if (shake.intensity > 0) {
+        if (duration > 0 && shake.intensity > 0) {
             this.camera.shakeHorizontal = shake.direction === Camera.shakeDirection.VERTICAL ? false : true;
             this.camera.shakeVertical = shake.direction === Camera.shakeDirection.HORIZONTAL ? false : true;
             

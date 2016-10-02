@@ -84,6 +84,11 @@ var Camera = function (options) {
     Object.assign(this, Backbone.Events);
     
     /**
+    * @property {Animation3} - The active camera animation.
+    */
+    this.animation = new Animation3(this);
+    
+    /**
     * @property {Object} - An object containing of all current and future animations.
     */
     this.animations = {};
@@ -118,16 +123,26 @@ var Camera = function (options) {
     });
 
     /**
-    * @property {boolean} - Whether the scene is animating or not.
-    * @default
+    * Whether the scene is animating or not.
+    * @name Camera#isAnimating
+    * @property {boolean} - Gets whether the scene is animating or not.
     */
-    this.isAnimating = false;
+    Object.defineProperty(this, 'isAnimating', {
+        get: function () {
+            return this.animation.isActive();
+        }
+    });
 
     /**
-    * @property {boolean} - Whether the camera is paused or not.
-    * @default
+    * Whether the camera is paused or not.
+    * @name Camera#isPaused
+    * @property {boolean} - Gets whether the camera is paused or not.
     */
-    this.isPaused = false;
+    Object.defineProperty(this, 'isPaused', {
+        get: function () {
+            return this.animation.paused();
+        }
+    });
 
     /**
     * Whether the camera is rotated or not.
@@ -544,15 +559,16 @@ p._animate = function (properties, duration, options) {
 };
 
 /**
-* Calculate the raw point on the scene on which the camera is positioned.
+* Calculate the camera's position given the state of the scene.
 *
+* @private
 * @param {Vector2} cameraOffset - The camera's position on the scene.
 * @param {Vector2} cameraCenter - The camera's center point.
 * @param {Vector2} sceneOrigin - The scene's origin.
 * @param {Matrix2} sceneTransformation - The scene's transformation matrix.
 * @returns {Vector2} The camera's position.
 */
-p.calculateCameraPosition = function (cameraOffset, cameraCenter, sceneOrigin, sceneTransformation) {
+p._calculatePosition = function (cameraOffset, cameraCenter, sceneOrigin, sceneTransformation) {
     var sceneOriginOffset = sceneOrigin.clone().transform(sceneTransformation).subtract(sceneOrigin);
 
     return cameraOffset.clone().add(sceneOriginOffset, cameraCenter).transform(sceneTransformation.getInverse());
@@ -561,14 +577,15 @@ p.calculateCameraPosition = function (cameraOffset, cameraCenter, sceneOrigin, s
 /**
 * Calculate the position within the camera of the provided raw point on the scene.
 *
+* @private
 * @param {Vector2} scenePosition - The raw point on the scene.
 * @param {Vector2} cameraPosition - The raw point on the scene on which the camera is positioned.
 * @param {Vector2} cameraCenter - The camera's center point.
 * @param {Matrix2} sceneTransformation - The scene's transformation matrix.
 * @returns {Vector2} The position within the camera.
 */
-p.calculateCameraContextPosition = function (scenePosition, cameraPosition, cameraCenter, sceneTransformation) {
-    var cameraOffset = this.calculateCameraOffset(cameraPosition, cameraCenter, new Vector2(), sceneTransformation);
+p._calculateContextPosition = function (scenePosition, cameraPosition, cameraCenter, sceneTransformation) {
+    var cameraOffset = this._calculateOffset(cameraPosition, cameraCenter, new Vector2(), sceneTransformation);
 
     return scenePosition.clone().transform(sceneTransformation).subtract(cameraOffset);
 };
@@ -576,13 +593,14 @@ p.calculateCameraContextPosition = function (scenePosition, cameraPosition, came
 /**
 * Calculate the camera's offset on the scene given a raw point on the scene to be placed at a point on the camera.
 *
+* @private
 * @param {Vector2} scenePosition - The raw point on the scene.
 * @param {Vector2} cameraContext - The point on the camera.
 * @param {Vector2} sceneOrigin - The scene's origin.
 * @param {Matrix2} sceneTransformation - The scene's transformation matrix.
 * @returns {Vector2} The camera's offset.
 */
-p.calculateCameraOffset = function (scenePosition, cameraContextPosition, sceneOrigin, sceneTransformation) {
+p._calculateOffset = function (scenePosition, cameraContextPosition, sceneOrigin, sceneTransformation) {
     var sceneOriginOffset = sceneOrigin.clone().transform(sceneTransformation).subtract(sceneOrigin);
 
     return scenePosition.clone().transform(sceneTransformation).subtract(sceneOriginOffset, cameraContextPosition);
@@ -804,6 +822,7 @@ p.dragDeccelerate = function (velocity, timeDelta, timestamp) {
 /**
 * Parse the position of the given input within the world.
 *
+* @private
 * @param {string|Element|Object} [input] - The input to parse.
 * @returns {Vector2} The position.
 */
@@ -835,39 +854,35 @@ p._parsePosition = function (input) {
 p.initialize = function (options) {
     options = options || {};
 
+    Object.assign(this, pick(options, [
+        'debug',
+        'defaultEase',
+        'bounds',
+        'maxZoom',
+        'minZoom',
+        'zoomIncrement',
+        'width',
+        'height'
+    ]));
+    
+    var position = this._parsePosition(options.position);
+    this.x = position.x;
+    this.y = position.y;
+    
     this.scene = new Scene(options.scene);
+    this.view.appendChild(this.scene.view);
     
     this.debugView = new DebugView({
         model: this,
         className: 'oculo-debug'
     });
-
-    Object.assign(this, pick(options, [
-        'debug',
-        'defaultEase',
-        'bounds',
-        'bounds',
-        'zoom',
-        'minZoom',
-        'maxZoom',
-        'zoomIncrement',
-        'width',
-        'height',
-        'x',
-        'y',
-    ]));
-    
-    this.position.copy(this._parsePosition(options.position));
-    this.offset.copy(this.calculateCameraOffset(this.position, this.viewportCenter, this.scene.origin, this.sceneTransformation));
-
-    // Set up scene
-    this.view.appendChild(this.scene.view);
+    this.debugView.render().attach(document.body);
 
     this.draggable = new Draggable(this.scene.view, {
         onDrag: function (camera) {
             // 'this' refers to the Draggable instance
             var offset = new Vector2(-this.x, -this.y);
-            camera.position.copy(camera.calculateCameraPosition(offset, camera.viewportCenter, camera.scene.origin, camera.sceneTransformation));
+            camera.position.copy(camera._calculatePosition(offset, camera.viewportCenter, camera.scene.origin, camera.sceneTransformation));
             camera.offset.copy(offset);
             camera._renderDebug();
         },
@@ -885,12 +900,12 @@ p.initialize = function (options) {
         onPressParams: [this],
         zIndexBoost: false
     });
-
+    
     // Initialize events
     this.$view.on('mouseleave', this._onMouseLeave.bind(this));
     this.$view.on('transitionend', this._onTransitionEnd.bind(this));
     this.$view.on('wheel', utils.throttleToFrame(this._onWheel.bind(this)));
-
+    
     this.onInitialize(options);
 
     return this;
@@ -988,18 +1003,21 @@ p.onRender = function () {
 *
 * @returns {Camera} The view.
 */
-p.render = function () {
+p.render = function (animation) {
     this.onBeforeRender();
     
-    this.debugView.render().attach(document.body);
-//    new Animation3(this).animate({
-//        position: this.position, 
-//        rotation: this.rotation, 
-//        zoom: { 
-//            x: this.zoomX, 
-//            y: this.zoomY 
-//        }
-//    }, 0);
+    if (animation) {
+        this.animation = animation;
+        animation.resume();
+    }
+    else {
+        this.animation = new Animation3(this).animate({
+            position: this.position,
+            origin: this.scene.origin,
+            rotation: this.rotation,
+            zoom: this.zoom
+        }, 0).resume();
+    }
     
     this.onRender();
 
@@ -1012,12 +1030,8 @@ p.render = function () {
 * @returns {Camera} The view.
 */
 p.pause = function () {
-    Object.keys(this.animations).forEach(function (key) {
-        this.animations[key].pause();
-    }, this);
-
-    this.isPaused = true;
-    this.isAnimating = false;
+    this.animation.pause();
+    this._renderDebug();
 
     return this;
 };
@@ -1028,16 +1042,7 @@ p.pause = function () {
 * @returns {Camera} The view.
 */
 p.play = function () {
-    var animationsKeys = Object.keys(this.animations);
-
-    animationsKeys.forEach(function (key) {
-        this.animations[key].resume();
-    }, this);
-
-    this.isPaused = false;
-    if (animationsKeys.length > 0) {
-        this.isAnimating = true;    
-    }
+    this.animation.play();
 
     return this;
 };
