@@ -170,7 +170,9 @@
                 // Animations
                 app.animations = {
                     box100: new Animation3(app.camera).animate({position: '#box100', rotation:-20, zoom: 1.5}, 2),
-                    rotateAt200: new Animation3(app.camera).animate({origin: {x:200, y:200}, rotation:-10, zoom: 1.5}, 2)
+                    rotateAt200: new Animation3(app.camera).animate({origin: {x:200, y:200}, rotation:-10, zoom: 1.5}, 2),
+                    scale50: new Animation3(app.camera).animate({zoom: 0.5}, 2),
+                    scale200: new Animation3(app.camera).animate({zoom: 2}, 2)
                 };
             
                 app.camera.render();
