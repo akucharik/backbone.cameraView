@@ -161,23 +161,39 @@ var Camera = function (options) {
             var offset = new Vector2(-this.x, -this.y);
             camera.position.copy(camera._calculatePosition(offset, camera.viewportCenter, camera.scene.origin, camera.sceneTransformation));
             camera.offset.copy(offset);
-            if (camera.debug) {
-                camera._renderDebug();
-            }
+            camera._renderDebug();
         },
         onDragParams: [this],
-        onPress: function (camera) {
-//            var contentRect = camera.scene.view.getBoundingClientRect();
-//
-//            this.applyBounds({
-//                top: camera.viewportHeight / 2 - contentRect.height,
-//                left: camera.viewportWidth / 2 - contentRect.width,
-//                width: contentRect.width * 2,
-//                height: contentRect.height * 2
-//            });
-            this.applyBounds(camera.view);
+        onDragStart: function (camera) {
+            var sceneRect = camera.scene.view.getBoundingClientRect();
+            var bounds = {
+                top: 0,
+                left: 0,
+                width: 0,
+                height: 0
+            };
+            
+            var cameraSceneDiff = {
+                width: sceneRect.width - camera.viewportWidth,
+                height: sceneRect.height - camera.viewportHeight
+            };
+            
+            if (cameraSceneDiff.width > 0 && cameraSceneDiff.height > 0) {
+                bounds.left = -cameraSceneDiff.width;
+                bounds.top = -cameraSceneDiff.height;
+                bounds.width = sceneRect.width + cameraSceneDiff.width;
+                bounds.height = sceneRect.height + cameraSceneDiff.height;
+            }
+            else {
+                bounds.left = camera.viewportCenter.x;
+                bounds.top = camera.viewportCenter.y;
+                bounds.width = 0;
+                bounds.height = 0;
+            }
+            
+            this.applyBounds(bounds);
         },
-        onPressParams: [this],
+        onDragStartParams: [this],
         zIndexBoost: false
     });
     
