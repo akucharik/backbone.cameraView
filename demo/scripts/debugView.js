@@ -54,7 +54,7 @@ var DebugView = Backbone.View.extend({
         var template = '<div class="oculo-panel-handle"></div>';
         var compiledTemplate = _.template(template, { variable: 'data' });
         
-        this.el.innerHTML = compiledTemplate(this);
+        this.el.innerHTML = compiledTemplate();
         this.el.appendChild(this.childView.render().el);
         this.trigger('render');
         

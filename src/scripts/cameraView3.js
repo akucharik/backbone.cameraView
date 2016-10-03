@@ -60,6 +60,8 @@ var isString = _.isString;
 var pick = _.pick;
 var uniqueId = _.uniqueId;
 
+//var DebugView = DebugView;
+//var Scene = Scene;
 var Matrix2 = Oculo.Matrix2;
 var Vector2 = Oculo.Vector2;
 
@@ -80,8 +82,17 @@ var Vector2 = Oculo.Vector2;
 * @param {number} [options.zoomIncrement] - The base {@link Camera.zoomIncrement|zoom increment}.
 */
 var Camera = function (options) {
+    options = options || {};
+    options.position = this._parsePosition(options.position);
+    
     // Compose object
     Object.assign(this, Backbone.Events);
+    
+    /**
+    * The scene which the camera is viewing.
+    * @property {Camera.Scene}
+    */
+    this.scene = new Scene(options.scene);
     
     /**
     * @property {Animation3} - The active camera animation.
@@ -101,11 +112,10 @@ var Camera = function (options) {
     this.bounds = null;
 
     /**
-    * The debugging information view.
-    * @property {Backbone.View} - The debugging information view.
-    * @default null
+    * @property {Object} - Whether the camera is in debug mode or not.
+    * @default false
     */
-    this.debugView = null;
+    this.debug = options.debug ? true : false;
     
     /**
     * The default ease.
@@ -121,7 +131,9 @@ var Camera = function (options) {
             TweenLite.defaultEase = value;
         }
     });
-
+    
+    this.defaultEase = options.defaultEase || Power2.easeOut;
+    
     /**
     * Whether the scene is animating or not.
     * @name Camera#isAnimating
@@ -134,6 +146,41 @@ var Camera = function (options) {
     });
 
     /**
+    * @property {boolean} - Whether the camera's position is draggable or not.
+    * @default false
+    */
+    this.isDraggable = options.draggable ? true : false;
+    
+    /**
+    * @property {external:Draggable} - The drag control.
+    * @default null
+    */
+    this.draggable = !this.isDraggable ? null : new Draggable(this.scene.view, {
+        onDrag: function (camera) {
+            // 'this' refers to the Draggable instance
+            var offset = new Vector2(-this.x, -this.y);
+            camera.position.copy(camera._calculatePosition(offset, camera.viewportCenter, camera.scene.origin, camera.sceneTransformation));
+            camera.offset.copy(offset);
+            if (camera.debug) {
+                camera._renderDebug();
+            }
+        },
+        onDragParams: [this],
+        onPress: function (camera) {
+//            var contentRect = camera.scene.view.getBoundingClientRect();
+//
+//            this.applyBounds({
+//                top: camera.viewportHeight / 2 - contentRect.height,
+//                left: camera.viewportWidth / 2 - contentRect.width,
+//                width: contentRect.width * 2,
+//                height: contentRect.height * 2
+//            });
+        },
+        onPressParams: [this],
+        zIndexBoost: false
+    });
+    
+    /**
     * Whether the camera is paused or not.
     * @name Camera#isPaused
     * @property {boolean} - Gets whether the camera is paused or not.
@@ -144,6 +191,12 @@ var Camera = function (options) {
         }
     });
 
+    /**
+    * @property {boolean} - Whether the camera has been rendered or not.
+    * @default
+    */
+    this.isRendered = false;
+    
     /**
     * Whether the camera is rotated or not.
     * @name Camera#isRotated
@@ -181,16 +234,16 @@ var Camera = function (options) {
     /**
     * The maximum value the scene can be zoomed.
     * @property {number} - See {@link Camera.zoom|zoom}.
-    * @default
+    * @default 3
     */
-    this.maxZoom = 3;
+    this.maxZoom = isFinite(options.maxZoom) ? options.maxZoom : 3;
     
     /**
     * The minimum value the scene can be zoomed.
     * @property {number} - See {@link Camera.zoom|zoom}.
-    * @default
+    * @default 0.5
     */
-    this.minZoom = 0.5;
+    this.minZoom = isFinite(options.minZoom) ? options.minZoom : 0.5;
     
     /**
     * @property {Vector2} - The offset on the scene.
@@ -232,7 +285,7 @@ var Camera = function (options) {
     * @property {Vector2} - The position within the world.
     * @default
     */
-    this.position = new Vector2();
+    this.position = new Vector2(options.position.x, options.position.y);
     
     /**
     * The camera's X position within the world.
@@ -269,13 +322,6 @@ var Camera = function (options) {
     * @default
     */
     this.rotation = 0;
-    
-    /**
-    * The scene which the camera is viewing.
-    * @property {Camera.Scene}
-    * @default null
-    */
-    this.scene = null;
     
     /**
     * The X value of the transformation origin.
@@ -440,6 +486,7 @@ var Camera = function (options) {
     * The width.
     * @name Camera#width
     * @property {number} - Gets or sets the view's width. Includes border and padding. A "change:width" event is emitted if the value has changed.
+    * @default 960
     */
     Object.defineProperty(this, 'width', {
         get: function () {
@@ -455,11 +502,14 @@ var Camera = function (options) {
             }
         }
     });
+    
+    this.width = isFinite(options.width) ? options.width : 960;
 
     /**
     * The height.
     * @name Camera#height
     * @property {number} - Gets or sets the view's height. Includes border and padding. A "change:height" event is emitted if the value has changed.
+    * @default 540
     */
     Object.defineProperty(this, 'height', {
         get: function () {
@@ -476,12 +526,14 @@ var Camera = function (options) {
         }
     });
     
+    this.height = isFinite(options.height) ? options.height : 540;
+    
     /**
     * The base increment at which the scene will be zoomed.
     * @property {number} - See {@link Camera.zoom|zoom}.
-    * @default
+    * @default 0.01
     */
-    this.zoomIncrement = 0.01;
+    this.zoomIncrement =  isFinite(options.zoomIncrement) ? options.zoomIncrement : 0.01;
     
     /**
     * @property {number} - The amount of zoom on the X axis. A ratio where 1 = 100%.
@@ -495,8 +547,21 @@ var Camera = function (options) {
     */
     this.zoomY = 1;
     
-    this.initialize(options);
+    /**
+    * The debugging information view.
+    * @property {Backbone.View} - The debugging information view.
+    */
+    this.debugView = new DebugView({
+        model: this,
+        className: 'oculo-debug'
+    });
     
+    // Initialize events
+    this.view.addEventListener('mouseleave', this._onMouseLeave.bind(this));
+    this.view.addEventListener('transitionend', this._onTransitionEnd.bind(this));
+    this.view.addEventListener('wheel', utils.throttleToFrame(this._onWheel.bind(this)));
+    
+    this.initialize(options);
 };
 
 /**
@@ -846,68 +911,12 @@ p._parsePosition = function (input) {
 };
 
 /**
-* Called on the view this when the view has been created. This method is not meant to be overridden. If you need to access initialization, use {@link Camera#onInitialize|onInitialize}.
+* Called when the camera has been created. The default implementation of initialize is a no-op. Override this function with your own code.
 *
-* @param {Object} [options] - An object of options. Includes all Backbone.View options. See {@link external:Backbone.View}.
-* @returns {Camera} The view.
+* @param {Object} [options] - The options passed to the constructor when the camera was created.
+* @returns {this} self
 */
 p.initialize = function (options) {
-    options = options || {};
-
-    Object.assign(this, pick(options, [
-        'debug',
-        'defaultEase',
-        'bounds',
-        'maxZoom',
-        'minZoom',
-        'zoomIncrement',
-        'width',
-        'height'
-    ]));
-    
-    var position = this._parsePosition(options.position);
-    this.x = position.x;
-    this.y = position.y;
-    
-    this.scene = new Scene(options.scene);
-    this.view.appendChild(this.scene.view);
-    
-    this.debugView = new DebugView({
-        model: this,
-        className: 'oculo-debug'
-    });
-    this.debugView.render().attach(document.body);
-
-    this.draggable = new Draggable(this.scene.view, {
-        onDrag: function (camera) {
-            // 'this' refers to the Draggable instance
-            var offset = new Vector2(-this.x, -this.y);
-            camera.position.copy(camera._calculatePosition(offset, camera.viewportCenter, camera.scene.origin, camera.sceneTransformation));
-            camera.offset.copy(offset);
-            camera._renderDebug();
-        },
-        onDragParams: [this],
-        onPress: function (camera) {
-//                    var contentRect = camera.scene.view.getBoundingClientRect();
-//                    
-//                    this.applyBounds({
-//                        top: camera.viewportHeight / 2 - contentRect.height,
-//                        left: camera.viewportWidth / 2 - contentRect.width,
-//                        width: contentRect.width * 2,
-//                        height: contentRect.height * 2
-//                    });
-        },
-        onPressParams: [this],
-        zIndexBoost: false
-    });
-    
-    // Initialize events
-    this.$view.on('mouseleave', this._onMouseLeave.bind(this));
-    this.$view.on('transitionend', this._onTransitionEnd.bind(this));
-    this.$view.on('wheel', utils.throttleToFrame(this._onWheel.bind(this)));
-    
-    this.onInitialize(options);
-
     return this;
 };
 
@@ -983,15 +992,6 @@ p.onBeforeRender = function () {
 };
 
 /**
-* Triggered after the camera has intialized.
-*
-* @param {Object} [options] - An object of options. Includes all Backbone.View options. See {@link external:Backbone.View}.
-*/
-p.onInitialize = function (options) {
-
-};
-
-/**
 * Triggered after the camera has rendered.
 */
 p.onRender = function () {
@@ -1006,9 +1006,19 @@ p.onRender = function () {
 p.render = function (animation) {
     this.onBeforeRender();
     
+    if (!this.isRendered) {
+        this.view.appendChild(this.scene.view);
+        
+        if (this.debug) {
+            this.debugView.render().attach(document.body);
+        }
+        
+        this.isRendered = true;
+    }
+    
     if (animation) {
         this.animation = animation;
-        animation.resume();
+        animation.invalidate().restart();
     }
     else {
         this.animation = new Animation3(this).animate({
@@ -1016,7 +1026,7 @@ p.render = function (animation) {
             origin: this.scene.origin,
             rotation: this.rotation,
             zoom: this.zoom
-        }, 0).resume();
+        }, 0).restart();
     }
     
     this.onRender();

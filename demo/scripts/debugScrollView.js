@@ -26,7 +26,7 @@ var DebugScrollView = Backbone.View.extend({
         var template = '<h2>Debug Info</h2>';
         var compiledTemplate = _.template(template, { variable: 'data' });
         
-        this.scrollElement.innerHTML = compiledTemplate(this);
+        this.scrollElement.innerHTML = compiledTemplate();
         this.scrollElement.appendChild(this.childView.render().el);
         this.trigger('render');
         

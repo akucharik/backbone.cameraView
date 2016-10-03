@@ -41,7 +41,9 @@ class Animation3 extends TimelineMax {
         this.camera = camera;
         
         this.eventCallback('onStart', function () { 
-            this.camera.draggable.disable();
+            if (this.camera.isDraggable) {
+                this.camera.draggable.disable();    
+            }
         }, null, this);
 
         this.eventCallback('onUpdate', function () {
@@ -76,7 +78,9 @@ class Animation3 extends TimelineMax {
 
         this.eventCallback('onComplete', function () { 
             console.log('camera TL complete');
-            this.camera.draggable.enable();
+            if (this.camera.isDraggable) {
+                this.camera.draggable.enable();
+            }
             this.camera._renderDebug();
         }, null, this);
     }
