@@ -175,6 +175,7 @@ var Camera = function (options) {
 //                width: contentRect.width * 2,
 //                height: contentRect.height * 2
 //            });
+            this.applyBounds(camera.view);
         },
         onPressParams: [this],
         zIndexBoost: false
@@ -191,6 +192,12 @@ var Camera = function (options) {
         }
     });
 
+    /**
+    * @property {boolean} - Whether the camera is pressed or not.
+    * @default
+    */
+    this.isPressed = false;
+    
     /**
     * @property {boolean} - Whether the camera has been rendered or not.
     * @default
@@ -557,7 +564,14 @@ var Camera = function (options) {
     });
     
     // Initialize events
-    this.view.addEventListener('mouseleave', this._onMouseLeave.bind(this));
+    this.view.addEventListener('mousedown', this._onPress.bind(this));
+    this.view.addEventListener('mouseup', this._onRelease.bind(this));
+    this.view.addEventListener('mouseleave', this._onLeave.bind(this));
+    this.view.addEventListener('mousemove', this._onMove.bind(this));
+    this.view.addEventListener('touchstart', this._onPress.bind(this));
+    this.view.addEventListener('touchend', this._onRelease.bind(this));
+    this.view.addEventListener('touchcancel', this._onRelease.bind(this));
+    this.view.addEventListener('touchmove', this._onMove.bind(this));
     this.view.addEventListener('transitionend', this._onTransitionEnd.bind(this));
     this.view.addEventListener('wheel', utils.throttleToFrame(this._onWheel.bind(this)));
     
@@ -587,6 +601,64 @@ Camera.shakeDirection = {
 * @lends Camera.prototype
 */
 var p = Camera.prototype;
+
+/**
+* Handle the leave event.
+*
+* @private
+* @param {MouseEvent|TouchEvent} event - The event.
+*/
+p._onLeave = function (event) {
+    this._endDrag(event);
+    document.querySelector('body').style.removeProperty('overflow');
+};
+
+/**
+* Handle the move event.
+*
+* @private
+* @param {MouseEvent|TouchEvent} event - The event.
+*/
+p._onMove = function (event) {
+    if (this.isPressed) {
+        this.draggable.startDrag(event);
+    }
+};
+
+/**
+* Handle the press event.
+*
+* @private
+* @param {MouseEvent|TouchEvent} event - The event.
+*/
+p._onPress = function (event) {
+    this.isPressed = true;
+    this._renderDebug();
+};
+
+/**
+* Handle the release event.
+*
+* @private
+* @param {MouseEvent|TouchEvent} event - The event.
+*/
+p._onRelease = function (event) {
+    this._endDrag(event);
+};
+
+/**
+* End dragging.
+*
+* @private
+* @param {MouseEvent|TouchEvent} event - The event.
+*/
+p._endDrag = function (event) {
+    if (this.isPressed) {
+        this.draggable.endDrag(event);
+        this.isPressed = false;
+        this._renderDebug();
+    }
+};
 
 p._markPoint = function (x, y) {
     var pointElement = document.getElementById('point');
@@ -682,16 +754,6 @@ p._removeAnimation = function (animation) {
     delete this.animations[animation.data.id];
 
     return animation;
-};
-
-/**
-* Handle the mouseleave event.
-*
-* @private
-* @param {MouseEvent} event - The mouse event.
-*/
-p._onMouseLeave = function (event) {
-    document.querySelector('body').style.removeProperty('overflow');
 };
 
 /**
@@ -1026,7 +1088,7 @@ p.render = function (animation) {
             origin: this.scene.origin,
             rotation: this.rotation,
             zoom: this.zoom
-        }, 0).restart();
+        }, 0).resume();
     }
     
     this.onRender();
