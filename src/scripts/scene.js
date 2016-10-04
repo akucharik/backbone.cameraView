@@ -26,7 +26,7 @@ class Scene {
         * @property {Vector2} - The transformation origin.
         * @default
         */
-        this.origin = new Vector2(0, 0);
+        this.origin = new Vector2();
     }
     
     /**

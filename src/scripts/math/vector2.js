@@ -1,6 +1,9 @@
 'use strict';
 
 var _ = require('lodash');
+
+//Utilities
+var isFinite = _.isFinite;
 var isNil = _.isNil;
 
 /**
@@ -14,13 +17,13 @@ class Vector2 {
         * The x value.
         * @default 0
         */
-        this.x = x || 0;
+        this.x = (x !== undefined) ? x : 0;
         
         /**
         * The y value.
         * @default 0
         */
-        this.y = y || 0;
+        this.y = (y !== undefined) ? y : 0;
     }
 
     /**
@@ -138,13 +141,8 @@ class Vector2 {
     * @return {Vector2} The vector.
     */
     set (x, y) {
-        if (!isNil(x)) {
-            this.x = x;    
-        }
-        
-        if (!isNil(y)) {
-            this.y = y;    
-        }
+        this.x = x;
+        this.y = y;
         
         return this;
     }

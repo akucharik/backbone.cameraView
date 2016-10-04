@@ -24,29 +24,27 @@ class Matrix2 {
     constructor (e11, e12, e21, e22) {
         /**
         * @property {number} e11
-        * @default 1
+        * @default
         */
-        this.e11 = null;
+        this.e11 = 1;
         
         /**
         * @property {number} e12
-        * @default 0
+        * @default
         */
-        this.e12 = null;
+        this.e12 = 0;
         
         /**
         * @property {number} e21
-        * @default 0
+        * @default
         */
-        this.e21 = null;
+        this.e21 = 0;
         
         /**
         * @property {number} e22
-        * @default 1
+        * @default
         */
-        this.e22 = null;
-        
-        this.setToIdentity();
+        this.e22 = 1;
         
         if (arguments.length === 4) {
             this.set(e11, e12, e21, e22);

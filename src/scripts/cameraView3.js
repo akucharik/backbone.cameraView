@@ -285,7 +285,7 @@ var Camera = function (options) {
         },
 
         set: function (value) {
-            this.offset.set(value, null);
+            this.offset.x = value;
         }
     });
     
@@ -300,7 +300,7 @@ var Camera = function (options) {
         },
 
         set: function (value) {
-            this.offset.set(null, value);
+            this.offset.y = value;
         }
     });
     
@@ -321,7 +321,7 @@ var Camera = function (options) {
         },
 
         set: function (value) {
-            this.position.set(value, null);
+            this.position.x = value;
         }
     });
     
@@ -336,7 +336,7 @@ var Camera = function (options) {
         },
 
         set: function (value) {
-            this.position.set(null, value);
+            this.position.y = value;
         }
     });
     
@@ -457,7 +457,7 @@ var Camera = function (options) {
     */
     Object.defineProperty(this, 'viewportCenter', {
         get: function () {
-            return new Vector2(this.viewportWidth / 2, this.viewportHeight / 2);
+            return new Vector2(this.viewportWidth, this.viewportHeight).multiplyScalar(0.5);
         }
     });
     
@@ -556,7 +556,7 @@ var Camera = function (options) {
     * @property {number} - See {@link Camera.zoom|zoom}.
     * @default 0.01
     */
-    this.zoomIncrement =  isFinite(options.zoomIncrement) ? options.zoomIncrement : 0.01;
+    this.zoomIncrement = isFinite(options.zoomIncrement) ? options.zoomIncrement : 0.01;
     
     /**
     * @property {number} - The amount of zoom on the X axis. A ratio where 1 = 100%.
@@ -590,6 +590,10 @@ var Camera = function (options) {
     this.view.addEventListener('touchmove', this._onMove.bind(this));
     this.view.addEventListener('transitionend', this._onTransitionEnd.bind(this));
     this.view.addEventListener('wheel', utils.throttleToFrame(this._onWheel.bind(this)));
+    
+    if (this.isDraggable) {
+        this.view.style.cursor = 'move';
+    }
     
     this.initialize(options);
 };
