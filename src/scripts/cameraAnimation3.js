@@ -42,7 +42,7 @@ class Animation3 extends TimelineMax {
         
         this.eventCallback('onStart', function () { 
             if (this.camera.isDraggable) {
-                this.camera.draggable.disable();    
+                this.camera.draggable.disable();
             }
         }, null, this);
 
@@ -79,7 +79,34 @@ class Animation3 extends TimelineMax {
         this.eventCallback('onComplete', function () { 
             console.log('camera TL complete');
             if (this.camera.isDraggable) {
-                this.camera.draggable.enable();
+                var sceneRect = this.camera.scene.view.getBoundingClientRect();
+                var bounds = {
+                    top: 0,
+                    left: 0,
+                    width: 0,
+                    height: 0
+                };
+
+                var cameraSceneDiff = {
+                    width: sceneRect.width - this.camera.viewportWidth,
+                    height: sceneRect.height - this.camera.viewportHeight
+                };
+
+                if (cameraSceneDiff.width > 0 && cameraSceneDiff.height > 0) {
+                    bounds.left = -cameraSceneDiff.width;
+                    bounds.top = -cameraSceneDiff.height;
+                    bounds.width = sceneRect.width + cameraSceneDiff.width;
+                    bounds.height = sceneRect.height + cameraSceneDiff.height;
+                }
+                else {
+                    bounds.left = this.camera.viewportCenter.x;
+                    bounds.top = this.camera.viewportCenter.y;
+                    bounds.width = 0;
+                    bounds.height = 0;
+                }
+                this.camera.bounds = bounds;
+                
+                this.camera.draggable.update().applyBounds(this.camera.bounds).enable();
             }
             this.camera._renderDebug();
         }, null, this);

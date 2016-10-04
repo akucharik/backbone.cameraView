@@ -105,13 +105,6 @@ var Camera = function (options) {
     this.animations = {};
 
     /**
-    * The camera's bounds. If set, the camera will remain within the bounds.
-    * @property {Object} - An object representing the camera's bounds.
-    * @default null
-    */
-    this.bounds = null;
-
-    /**
     * @property {Object} - Whether the camera is in debug mode or not.
     * @default false
     */
@@ -150,52 +143,12 @@ var Camera = function (options) {
     * @default false
     */
     this.isDraggable = options.draggable ? true : false;
-    
+
     /**
-    * @property {external:Draggable} - The drag control.
-    * @default null
+    * @property {boolean} - Whether the camera is being dragged or not.
+    * @default false
     */
-    this.draggable = !this.isDraggable ? null : new Draggable(this.scene.view, {
-        onDrag: function (camera) {
-            // 'this' refers to the Draggable instance
-            var offset = new Vector2(-this.x, -this.y);
-            camera.position.copy(camera._calculatePosition(offset, camera.viewportCenter, camera.scene.origin, camera.sceneTransformation));
-            camera.offset.copy(offset);
-            camera._renderDebug();
-        },
-        onDragParams: [this],
-        onDragStart: function (camera) {
-            var sceneRect = camera.scene.view.getBoundingClientRect();
-            var bounds = {
-                top: 0,
-                left: 0,
-                width: 0,
-                height: 0
-            };
-            
-            var cameraSceneDiff = {
-                width: sceneRect.width - camera.viewportWidth,
-                height: sceneRect.height - camera.viewportHeight
-            };
-            
-            if (cameraSceneDiff.width > 0 && cameraSceneDiff.height > 0) {
-                bounds.left = -cameraSceneDiff.width;
-                bounds.top = -cameraSceneDiff.height;
-                bounds.width = sceneRect.width + cameraSceneDiff.width;
-                bounds.height = sceneRect.height + cameraSceneDiff.height;
-            }
-            else {
-                bounds.left = camera.viewportCenter.x;
-                bounds.top = camera.viewportCenter.y;
-                bounds.width = 0;
-                bounds.height = 0;
-            }
-            
-            this.applyBounds(bounds);
-        },
-        onDragStartParams: [this],
-        zIndexBoost: false
-    });
+    this.isDragging = false;
     
     /**
     * Whether the camera is paused or not.
@@ -571,6 +524,35 @@ var Camera = function (options) {
     this.zoomY = 1;
     
     /**
+    * The camera's bounds. If set, the camera will remain within the bounds.
+    * @property {Object} - An object representing the camera's bounds.
+    * @default null
+    */
+    this.bounds = {
+        left: 0,
+        top: 0,
+        width: this.viewportWidth,
+        height: this.viewportHeight
+    };
+    
+    /**
+    * @property {external:Draggable} - The drag control.
+    * @default null
+    */
+    this.draggable = !this.isDraggable ? null : new Draggable(this.scene.view, {
+        bounds: this.bounds,
+        onDrag: function (camera) {
+            // 'this' refers to the Draggable instance
+            var offset = new Vector2(-this.x, -this.y);
+            camera.position.copy(camera._calculatePosition(offset, camera.viewportCenter, camera.scene.origin, camera.sceneTransformation));
+            camera.offset.copy(offset);
+            camera._renderDebug();
+        },
+        onDragParams: [this],
+        zIndexBoost: false
+    });
+    
+    /**
     * The debugging information view.
     * @property {Backbone.View} - The debugging information view.
     */
@@ -579,20 +561,94 @@ var Camera = function (options) {
         className: 'oculo-debug'
     });
     
-    // Initialize events
-    this.view.addEventListener('mousedown', this._onPress.bind(this));
-    this.view.addEventListener('mouseup', this._onRelease.bind(this));
-    this.view.addEventListener('mouseleave', this._onLeave.bind(this));
-    this.view.addEventListener('mousemove', this._onMove.bind(this));
-    this.view.addEventListener('touchstart', this._onPress.bind(this));
-    this.view.addEventListener('touchend', this._onRelease.bind(this));
-    this.view.addEventListener('touchcancel', this._onRelease.bind(this));
-    this.view.addEventListener('touchmove', this._onMove.bind(this));
-    this.view.addEventListener('transitionend', this._onTransitionEnd.bind(this));
-    this.view.addEventListener('wheel', utils.throttleToFrame(this._onWheel.bind(this)));
+    // Initialize standard events and behaviors
+    var onDragstart = (event) => {
+        event.preventDefault();
+        return false;
+    };
+    
+    var onPress = (event) => {
+        if (this.isDraggable) {
+            this.view.addEventListener('mouseup', onDragRelease);
+            this.view.addEventListener('mouseleave', onDragLeave);
+            this.view.addEventListener('mousemove', onDragMove);
+            this.view.addEventListener('touchend', onDragRelease);
+            this.view.addEventListener('touchcancel', onDragRelease);
+            this.view.addEventListener('touchmove', onDragMove);
+        }
+        
+        this.isPressed = true;
+        this._renderDebug();
+    };
+    
+    var onRelease = (event) => {
+        release();
+    };
+    
+    var onLeave = (event) => {
+        release();
+    };
+    
+    var onTransitionEnd = (event) => {
+        this.isTransitioning = false;
+    };
+    
+    var release = () => {
+        this.isPressed = false;
+        this._renderDebug();
+    };
+    
+    this.view.addEventListener('dragstart', onDragstart);
+    this.view.addEventListener('mousedown', onPress);
+    this.view.addEventListener('mouseup', onRelease);
+    this.view.addEventListener('mouseleave', onLeave);
+    this.view.addEventListener('touchstart', onPress);
+    this.view.addEventListener('touchend', onRelease);
+    this.view.addEventListener('touchcancel', onRelease);
+    this.view.addEventListener('transitionend', onTransitionEnd);
+    
+    // Initialize drag events and behaviors
+    var onDragRelease = (event) => {
+        endDrag(event);
+    };
+    
+    var onDragLeave = (event) => {
+        endDrag(event);
+    };
+    
+    var onDragMove = (event) => {
+        if (this.isPressed && !this.isDragging) {
+            this.draggable.startDrag(event);
+            this.isDragging = true;
+        }
+    };
+    
+    var endDrag = (event) => {
+        if (this.isDragging) {
+            this.draggable.endDrag(event);
+            this.view.removeEventListener('mouseup', onDragRelease);
+            this.view.removeEventListener('mouseleave', onDragLeave);
+            this.view.removeEventListener('mousemove', onDragMove);
+            this.view.removeEventListener('touchend', onDragRelease);
+            this.view.removeEventListener('touchcancel', onDragRelease);
+            this.view.removeEventListener('touchmove', onDragMove);
+            this.isDragging = false;
+            this._renderDebug();
+        }
+    };
     
     if (this.isDraggable) {
         this.view.style.cursor = 'move';
+    }
+    
+    // Initialize zoom events and behaviors
+    var onZoomLeave = (event) => {
+        document.body.style.removeProperty('overflow');
+    };
+
+    if (this.isZoomable) {
+        this.view.addEventListener('mouseleave', onZoomLeave);
+        this.view.addEventListener('wheel', utils.throttleToFrame(this._onWheel.bind(this)));
     }
     
     this.initialize(options);
@@ -621,64 +677,6 @@ Camera.shakeDirection = {
 * @lends Camera.prototype
 */
 var p = Camera.prototype;
-
-/**
-* Handle the leave event.
-*
-* @private
-* @param {MouseEvent|TouchEvent} event - The event.
-*/
-p._onLeave = function (event) {
-    this._endDrag(event);
-    document.querySelector('body').style.removeProperty('overflow');
-};
-
-/**
-* Handle the move event.
-*
-* @private
-* @param {MouseEvent|TouchEvent} event - The event.
-*/
-p._onMove = function (event) {
-    if (this.isPressed) {
-        this.draggable.startDrag(event);
-    }
-};
-
-/**
-* Handle the press event.
-*
-* @private
-* @param {MouseEvent|TouchEvent} event - The event.
-*/
-p._onPress = function (event) {
-    this.isPressed = true;
-    this._renderDebug();
-};
-
-/**
-* Handle the release event.
-*
-* @private
-* @param {MouseEvent|TouchEvent} event - The event.
-*/
-p._onRelease = function (event) {
-    this._endDrag(event);
-};
-
-/**
-* End dragging.
-*
-* @private
-* @param {MouseEvent|TouchEvent} event - The event.
-*/
-p._endDrag = function (event) {
-    if (this.isPressed) {
-        this.draggable.endDrag(event);
-        this.isPressed = false;
-        this._renderDebug();
-    }
-};
 
 p._markPoint = function (x, y) {
     var pointElement = document.getElementById('point');
@@ -777,19 +775,6 @@ p._removeAnimation = function (animation) {
 };
 
 /**
-* Handle the end of a camera transition.
-*
-* @private
-* @param {Event} event - The event object.
-* @returns {Camera} The view.
-*/
-p._onTransitionEnd = function (event) {
-    this.isTransitioning = false;
-
-    return this;
-};
-
-/**
 * Handle wheel input.
 *
 * @private
@@ -822,7 +807,7 @@ p._renderDebug = function () {
 * @returns {Camera} The view.
 */
 p._wheelZoom = function (event) {
-    document.querySelector('body').style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
 
     if (event.deltaY && !this.isAnimating) {
 

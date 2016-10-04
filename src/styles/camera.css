@@ -10,6 +10,13 @@
 .bcv-scene {
     position: absolute;
     transform-origin: 0 0;
+    touch-action: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -moz-user-drag: none;
+    -webkit-user-drag: none;
+    user-drag: none;
     /*transition-duration: 0.05s;*/
 }
 
