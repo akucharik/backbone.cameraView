@@ -44,6 +44,10 @@ class Animation3 extends TimelineMax {
             if (this.camera.isDraggable) {
                 this.camera.draggable.disable();
             }
+            
+            if (this.camera.isManualZoomable) {
+                this.camera.isManualZoomEnabled = false;
+            }
         }, null, this);
 
         this.eventCallback('onUpdate', function () {
@@ -92,22 +96,27 @@ class Animation3 extends TimelineMax {
                     height: sceneRect.height - this.camera.viewportHeight
                 };
 
-                if (cameraSceneDiff.width > 0 && cameraSceneDiff.height > 0) {
-                    bounds.left = -cameraSceneDiff.width;
-                    bounds.top = -cameraSceneDiff.height;
-                    bounds.width = sceneRect.width + cameraSceneDiff.width;
-                    bounds.height = sceneRect.height + cameraSceneDiff.height;
-                }
-                else {
+//                if (cameraSceneDiff.width > 0 && cameraSceneDiff.height > 0) {
+//                    bounds.left = -cameraSceneDiff.width;
+//                    bounds.top = -cameraSceneDiff.height;
+//                    bounds.width = sceneRect.width + cameraSceneDiff.width;
+//                    bounds.height = sceneRect.height + cameraSceneDiff.height;
+//                }
+//                else {
                     bounds.left = this.camera.viewportCenter.x;
                     bounds.top = this.camera.viewportCenter.y;
                     bounds.width = 0;
                     bounds.height = 0;
-                }
+//                }
                 this.camera.bounds = bounds;
                 
                 this.camera.draggable.update().applyBounds(this.camera.bounds).enable();
             }
+            
+            if (this.camera.isManualZoomable) {
+                this.camera.isManualZoomEnabled = true;
+            }
+            
             this.camera._renderDebug();
         }, null, this);
     }

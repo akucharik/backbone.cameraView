@@ -145,6 +145,22 @@ var Camera = function (options) {
     this.isDraggable = options.draggable ? true : false;
 
     /**
+    * @property {boolean} - Whether the camera's drag capability is enabled or not.
+    * @default false
+    */
+    Object.defineProperty(this, 'isDragEnabled', {
+        get: function () {
+            var isEnabled = false;
+            
+            if (this.draggable) {
+                isEnabled = this.draggable.enabled();
+            }
+            
+            return isEnabled;
+        }
+    });
+    
+    /**
     * @property {boolean} - Whether the camera is being dragged or not.
     * @default false
     */
@@ -195,7 +211,19 @@ var Camera = function (options) {
     * @default
     */
     this.isTransitioning = false;
-
+    
+    /**
+    * @property {boolean} - Whether the camera is manually zoomable or not.
+    * @default false
+    */
+    this.isManualZoomable = options.manualZoomable ? true : false;    
+    
+    /**
+    * @property {boolean} - Whether the manual zoom is enabled or not.
+    * @default false
+    */
+    this.isManualZoomEnabled = options.manualZoomable ? true : false; 
+    
     /**
     * Whether the camera is zoomed or not.
     * @name Camera#isZoomed
@@ -645,10 +673,43 @@ var Camera = function (options) {
     var onZoomLeave = (event) => {
         document.body.style.removeProperty('overflow');
     };
+    
+    var onZoomWheel = (event) => {
+        event.preventDefault();
+        document.body.style.overflow = 'hidden';
+        
+        if (event.deltaY && this.isManualZoomEnabled) {
+            var direction = event.deltaY > 0 ? constants.zoom.OUT : constants.zoom.IN;
+            var cameraRect;
+            var cameraContextPosition = new Vector2();
+            var sceneContextPosition = new Vector2();
+            var origin = this.scene.origin;
+            var zoom = {
+                x: this.clampZoom(this.zoomX + this.zoomIncrement * Math.abs(event.deltaY) * this.zoomX * (direction === constants.zoom.IN ? 1 : -1)),
+                y: this.clampZoom(this.zoomY + this.zoomIncrement * Math.abs(event.deltaY) * this.zoomY * (direction === constants.zoom.IN ? 1 : -1))
+            };
+            var zoomRatio = this.zoomX / this.zoomY;
 
-    if (this.isZoomable) {
+            // Performance Optimization: If zoom has not changed because it's at the min/max, don't zoom.
+            if (zoom.x !== this.zoomX && zoom.y !== this.zoomY) {
+                cameraRect = this.view.getBoundingClientRect();
+                cameraContextPosition.set(event.clientX - cameraRect.left, event.clientY - cameraRect.top);
+                sceneContextPosition = this._calculatePosition(this.offset, cameraContextPosition, this.scene.origin, this.sceneTransformation);
+
+                if (Math.round(origin.x) !== Math.round(sceneContextPosition.x) || Math.round(origin.y) !== Math.round(sceneContextPosition.y)) {
+                    origin = this._calculatePosition(this.offset, cameraContextPosition, this.scene.origin, this.sceneTransformation);
+                }
+
+                this.animation = new Animation3(this).zoomAt(origin, zoom, 0).resume();
+            }
+        }
+        
+        //document.body.style.removeProperty('overflow');
+    };
+
+    if (this.isManualZoomable) {
         this.view.addEventListener('mouseleave', onZoomLeave);
-        this.view.addEventListener('wheel', utils.throttleToFrame(this._onWheel.bind(this)));
+        this.view.addEventListener('wheel', utils.throttleToFrame(onZoomWheel));
     }
     
     this.initialize(options);
@@ -714,19 +775,19 @@ p._animate = function (properties, duration, options) {
 };
 
 /**
-* Calculate the camera's position given the state of the scene.
+* Calculate the position in the scene given the state of the camera and the scene.
 *
 * @private
 * @param {Vector2} cameraOffset - The camera's position on the scene.
-* @param {Vector2} cameraCenter - The camera's center point.
+* @param {Vector2} cameraContextPosition - The position within the camera.
 * @param {Vector2} sceneOrigin - The scene's origin.
 * @param {Matrix2} sceneTransformation - The scene's transformation matrix.
 * @returns {Vector2} The camera's position.
 */
-p._calculatePosition = function (cameraOffset, cameraCenter, sceneOrigin, sceneTransformation) {
+p._calculatePosition = function (cameraOffset, cameraContextPosition, sceneOrigin, sceneTransformation) {
     var sceneOriginOffset = sceneOrigin.clone().transform(sceneTransformation).subtract(sceneOrigin);
 
-    return cameraOffset.clone().add(sceneOriginOffset, cameraCenter).transform(sceneTransformation.getInverse());
+    return cameraOffset.clone().add(sceneOriginOffset, cameraContextPosition).transform(sceneTransformation.getInverse());
 };
 
 /**
@@ -775,20 +836,6 @@ p._removeAnimation = function (animation) {
 };
 
 /**
-* Handle wheel input.
-*
-* @private
-* @param {MouseEvent} event - A MouseEvent object.
-* @returns {Camera} The view.
-*/
-p._onWheel = function (event) {
-    event.preventDefault();
-    this._wheelZoom(event);
-
-    return this;
-};
-
-/**
 * Render debug info.
 *
 * @private
@@ -796,38 +843,6 @@ p._onWheel = function (event) {
 p._renderDebug = function () {
     if (this.debug) {
         this.debugView.update();
-    }
-};
-
-/**
-* Zooms in/out based on wheel input.
-*
-* @private
-* @param {MouseEvent} event - A MouseEvent object.
-* @returns {Camera} The view.
-*/
-p._wheelZoom = function (event) {
-    document.body.style.overflow = 'hidden';
-
-    if (event.deltaY && !this.isAnimating) {
-
-        var contentRect;
-        var direction = event.deltaY > 0 ? constants.zoom.OUT : constants.zoom.IN;
-        var originX = this.zoomOriginX;
-        var originY = this.zoomOriginY;
-        var zoom = clamp(this.zoom + this.zoomIncrement * Math.abs(event.deltaY) * this.zoom * (direction === constants.zoom.IN ? 1 : -1), this.minZoom, this.maxZoom);
-
-        // Performance Optimization: If zoom has not changed, it is at the min or max.
-        if (zoom !== this.zoom) {
-            if (!this.isTransitioning) {
-                contentRect = this.scene.view.getBoundingClientRect();
-                originX = (event.clientX - contentRect.left) / this.zoom;
-                originY = (event.clientY - contentRect.top) / this.zoom;
-            }
-
-            this.isTransitioning = true;
-            return this._zoomAtXY(zoom, originX, originY, 0);
-        }
     }
 };
 
@@ -1029,6 +1044,47 @@ p.checkBounds = function (x, y) {
 p.clampZoom = function (value) {
     return clamp(value, this.minZoom, this.maxZoom);
 };
+
+// TODO: Temp rework of clampZoom to figure out maintaining aspect ratio.
+p._clampZoom = function (x, y) {
+    var zoomRatio = this.zoomX / this.zoomY;
+    var clampedZoom = {
+        x: x,
+        y: y
+    };
+    
+    if (x > this.maxZoom || y > this.maxZoom) {
+        var maxZoomXDiff = x - this.maxZoom;
+        var maxZoomYDiff = y - this.maxZoom;
+        
+        if (maxZoomXDiff > maxZoomYDiff) {
+            clampedZoom.x = this.maxZoom;
+            clampedZoom.y = clampedZoom.x / zoomRatio; 
+        }
+        if (maxZoomYDiff > maxZoomXDiff) {
+            clampedZoom.y = this.maxZoom;
+            clampedZoom.x = clampedZoom.y / zoomRatio; 
+        }
+    }
+    
+    if (x < this.minZoom || y < this.minZoom) {
+        var minZoomXDiff = Math.abs(x - this.minZoom);
+        var minZoomYDiff = Math.abs(y - this.minZoom);
+        
+        if (minZoomXDiff > minZoomYDiff) {
+            clampedZoom.x = this.minZoom;
+            clampedZoom.y = clampedZoom.x / zoomRatio; 
+        }
+        if (minZoomYDiff > minZoomXDiff) {
+            clampedZoom.y = this.minZoom;
+            clampedZoom.x = clampedZoom.y * zoomRatio; 
+        }
+    }
+    
+
+    
+    return clampedZoom;
+}
 
 /**
 * Move the camera on an element.

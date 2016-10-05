@@ -153,7 +153,7 @@
                     draggable: true,
                     //maxZoom: 6,
                     //minZoom: 0.2,
-                    //zoomable: true,
+                    manualZoomable: true,
                     position: {
                         x: 499,
                         y: 249
@@ -173,8 +173,9 @@
                     box100: new Animation3(app.camera).animate({position: '#box100', rotation:-20, zoom: 1.5}, 2),
                     rotateAt200: new Animation3(app.camera).animate({origin: {x:200, y:200}, rotation:-10}, 2),
                     rotateTo20: new Animation3(app.camera).animate({rotation:-20}, 2),
-                    scale50: new Animation3(app.camera).animate({zoom: 0.5}, 2),
-                    scale200: new Animation3(app.camera).animate({zoom: 2}, 2)
+                    zoom50: new Animation3(app.camera).zoomTo(0.5, 2),
+                    zoom200: new Animation3(app.camera).zoomTo(2, 2),
+                    zoomX200: new Animation3(app.camera).zoomTo({x: 2}, 2)
                 };
             
                 app.camera.render();
