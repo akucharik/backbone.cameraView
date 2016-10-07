@@ -231,7 +231,7 @@ var Camera = function (options) {
     */
     Object.defineProperty(this, 'isZoomed', {
         get: function () {
-            return this.zoomX !== 1 && this.zoomY !== 1;
+            return this.zoom !== 1;
         }
     });
     
@@ -325,7 +325,7 @@ var Camera = function (options) {
     * @property {number} - The amount of rotation in degrees.
     * @default
     */
-    this.rotation = 0;
+    this.rotation = options.rotation || 0;
     
     /**
     * The X value of the transformation origin.
@@ -378,7 +378,7 @@ var Camera = function (options) {
     */
     Object.defineProperty(this, 'sceneScaledWidth', {
         get: function () {
-            return this.scene.width * this.zoomX;
+            return this.scene.width * this.zoom;
         }
     });
     
@@ -389,7 +389,7 @@ var Camera = function (options) {
     */
     Object.defineProperty(this, 'sceneScaledHeight', {
         get: function () {
-            return this.scene.height * this.zoomY;
+            return this.scene.height * this.zoom;
         }
     });
 
@@ -400,7 +400,7 @@ var Camera = function (options) {
     */
     Object.defineProperty(this, 'sceneTransformation', {
         get: function () {
-            return new Matrix2().scale(this.zoomX, this.zoomY).rotate(Oculo.Math.degToRad(-this.rotation));
+            return new Matrix2().scale(this.zoom, this.zoom).rotate(Oculo.Math.degToRad(-this.rotation));
         }
     });
     
@@ -540,16 +540,10 @@ var Camera = function (options) {
     this.zoomIncrement = isFinite(options.zoomIncrement) ? options.zoomIncrement : 0.01;
     
     /**
-    * @property {number} - The amount of zoom on the X axis. A ratio where 1 = 100%.
+    * @property {number} - The amount of zoom. A ratio where 1 = 100%.
     * @default
     */
-    this.zoomX = 1;
-
-    /**
-    * @property {number} - The amount of zoom on the Y axis. A ratio where 1 = 100%.
-    * @default
-    */
-    this.zoomY = 1;
+    this.zoom = options.zoom || 1;
     
     /**
     * The camera's bounds. If set, the camera will remain within the bounds.
@@ -684,18 +678,16 @@ var Camera = function (options) {
             var cameraContextPosition = new Vector2();
             var sceneContextPosition = new Vector2();
             var origin = this.scene.origin;
-            var zoom = {
-                x: this.clampZoom(this.zoomX + this.zoomIncrement * Math.abs(event.deltaY) * this.zoomX * (direction === constants.zoom.IN ? 1 : -1)),
-                y: this.clampZoom(this.zoomY + this.zoomIncrement * Math.abs(event.deltaY) * this.zoomY * (direction === constants.zoom.IN ? 1 : -1))
-            };
-            var zoomRatio = this.zoomX / this.zoomY;
+            var zoom = this.clampZoom(this.zoom + this.zoomIncrement * Math.abs(event.deltaY) * this.zoom * (direction === constants.zoom.IN ? 1 : -1));
 
             // Performance Optimization: If zoom has not changed because it's at the min/max, don't zoom.
-            if (zoom.x !== this.zoomX && zoom.y !== this.zoomY) {
+            if (zoom !== this.zoom) {
                 cameraRect = this.view.getBoundingClientRect();
                 cameraContextPosition.set(event.clientX - cameraRect.left, event.clientY - cameraRect.top);
                 sceneContextPosition = this._calculatePosition(this.offset, cameraContextPosition, this.scene.origin, this.sceneTransformation);
-
+                console.log('offset: ', this.offset);
+                console.log('ccp: ', cameraContextPosition);
+                console.log('scp: ', sceneContextPosition);
                 if (Math.round(origin.x) !== Math.round(sceneContextPosition.x) || Math.round(origin.y) !== Math.round(sceneContextPosition.y)) {
                     origin = this._calculatePosition(this.offset, cameraContextPosition, this.scene.origin, this.sceneTransformation);
                 }
@@ -741,7 +733,7 @@ var p = Camera.prototype;
 
 p._markPoint = function (x, y) {
     var pointElement = document.getElementById('point');
-    var point = new Vector2(x, y).transform(new Matrix2().scale(this.zoomX, this.zoomY).rotate(Oculo.Math.degToRad(-this.rotation)));
+    var point = new Vector2(x, y).transform(new Matrix2().scale(this.zoom, this.zoom).rotate(Oculo.Math.degToRad(-this.rotation)));
     
     pointElement.style.top = (point.y - 2) + 'px';
     pointElement.style.left = (point.x - 2) + 'px';
@@ -1046,42 +1038,48 @@ p.clampZoom = function (value) {
 };
 
 // TODO: Temp rework of clampZoom to figure out maintaining aspect ratio.
-p._clampZoom = function (x, y) {
-    var zoomRatio = this.zoomX / this.zoomY;
+p._clampZoom = function (x, y, maintainRatio) {
     var clampedZoom = {
         x: x,
         y: y
     };
+    var zoomXDiff = 0;
+    var zoomYDiff = 0;
+    var zoomRatio = this.zoomX / this.zoomY;
     
-    if (x > this.maxZoom || y > this.maxZoom) {
-        var maxZoomXDiff = x - this.maxZoom;
-        var maxZoomYDiff = y - this.maxZoom;
-        
-        if (maxZoomXDiff > maxZoomYDiff) {
-            clampedZoom.x = this.maxZoom;
-            clampedZoom.y = clampedZoom.x / zoomRatio; 
-        }
-        if (maxZoomYDiff > maxZoomXDiff) {
-            clampedZoom.y = this.maxZoom;
-            clampedZoom.x = clampedZoom.y / zoomRatio; 
-        }
-    }
-    
-    if (x < this.minZoom || y < this.minZoom) {
-        var minZoomXDiff = Math.abs(x - this.minZoom);
-        var minZoomYDiff = Math.abs(y - this.minZoom);
-        
-        if (minZoomXDiff > minZoomYDiff) {
-            clampedZoom.x = this.minZoom;
-            clampedZoom.y = clampedZoom.x / zoomRatio; 
-        }
-        if (minZoomYDiff > minZoomXDiff) {
-            clampedZoom.y = this.minZoom;
-            clampedZoom.x = clampedZoom.y * zoomRatio; 
-        }
-    }
-    
+    if (maintainRatio === true) {
+        if (x > this.maxZoom || y > this.maxZoom) {
+            var zoomXDiff = x - this.maxZoom;
+            var zoomYDiff = y - this.maxZoom;
 
+            if (zoomXDiff > zoomYDiff) {
+                clampedZoom.x = this.maxZoom;
+                clampedZoom.y = this.maxZoom / zoomRatio; 
+            }
+            if (zoomYDiff > zoomXDiff) {
+                clampedZoom.y = this.maxZoom;
+                clampedZoom.x = this.maxZoom / zoomRatio; 
+            }
+        }
+
+        if (x < this.minZoom || y < this.minZoom) {
+            var zoomXDiff = x - this.minZoom;
+            var zoomYDiff = y - this.minZoom;
+
+            if (zoomXDiff < zoomYDiff) {
+                clampedZoom.x = this.minZoom;
+                clampedZoom.y = this.minZoom * zoomRatio; 
+            }
+            if (zoomYDiff < zoomXDiff) {
+                clampedZoom.y = this.minZoom;
+                clampedZoom.x = this.minZoom * zoomRatio; 
+            }
+        }
+    }
+    else {
+        clampedZoom.x = clamp(x, this.minZoom, this.maxZoom);
+        clampedZoom.y = clamp(y, this.minZoom, this.maxZoom);
+    }
     
     return clampedZoom;
 }

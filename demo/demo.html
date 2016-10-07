@@ -142,12 +142,12 @@
                 app.camera = new Camera({
                     view: '#camera',
                     scene: '#scene',
-                    bounds: {
-                        left: 0,
-                        right: 1827,
-                        top: 0,
-                        bottom: 1219
-                    },
+                    //bounds: {
+                    //    left: 0,
+                    //    right: 1827,
+                    //    top: 0,
+                    //    bottom: 1219
+                    //},
                     debug: true,
                     //defaultEase: Power2.easeOut,
                     draggable: true,
@@ -159,10 +159,7 @@
                         y: 249
                     },
                     rotation: 0,
-                    zoom: {
-                        x: 1,
-                        y: 1
-                    },
+                    zoom: 1,
                     //zoomIncrement: 0.5,
                     width: 1000,
                     height: 500
@@ -170,12 +167,11 @@
                 
                 // Animations
                 app.animations = {
-                    box100: new Animation3(app.camera).animate({position: '#box100', rotation:-20, zoom: 1.5}, 2),
-                    rotateAt200: new Animation3(app.camera).animate({origin: {x:200, y:200}, rotation:-10}, 2),
-                    rotateTo20: new Animation3(app.camera).animate({rotation:-20}, 2),
-                    zoom50: new Animation3(app.camera).zoomTo(0.5, 2),
-                    zoom200: new Animation3(app.camera).zoomTo(2, 2),
-                    zoomX200: new Animation3(app.camera).zoomTo({x: 2}, 2)
+                    moveTobox100: new Animation3(app.camera).animate({position: '#box100', rotation:-20, zoom: 1.5}, 2),
+                    rotateAt200: new Animation3(app.camera).rotateAt({x:200, y:200}, -10, 2),
+                    rotateTo20: new Animation3(app.camera).rotateTo(-20, 2),
+                    zoomTo50: new Animation3(app.camera).zoomTo(0.5, 2),
+                    zoomTo200: new Animation3(app.camera).zoomTo(2, 2),
                 };
             
                 app.camera.render();
