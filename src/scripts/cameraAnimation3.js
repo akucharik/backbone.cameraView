@@ -52,18 +52,19 @@ class Animation3 extends TimelineMax {
         }, null, this);
 
         this.eventCallback('onUpdate', function () {
-            var x = this.camera.offset.x;
-            var y = this.camera.offset.y;
-
+            var offset;
+            
             this.camera.position.copy(this.camera._calculatePosition(this.camera.offset, this.camera.viewportCenter, this.camera.scene.origin, this.camera.sceneTransformation));
+            this.camera.applyBounds();
+            offset = this.camera.offset.clone();
             
             if (this.camera.isShaking) {
                 if (this.camera.shakeHorizontal) {
-                    x += Math.random() * this.camera.shakeIntensity * this.camera.viewportWidth * 2 - this.camera.shakeIntensity * this.camera.viewportWidth;
+                    offset.x += Math.random() * this.camera.shakeIntensity * this.camera.viewportWidth * 2 - this.camera.shakeIntensity * this.camera.viewportWidth;
                 }
 
                 if (this.camera.shakeVertical) {
-                    y += Math.random() * this.camera.shakeIntensity * this.camera.viewportHeight * 2 - this.camera.shakeIntensity * this.camera.viewportHeight;
+                    offset.y += Math.random() * this.camera.shakeIntensity * this.camera.viewportHeight * 2 - this.camera.shakeIntensity * this.camera.viewportHeight;
                 }
             }
             
@@ -73,8 +74,8 @@ class Animation3 extends TimelineMax {
                     rotation: -this.camera.rotation,
                     scaleX: this.camera.zoom,
                     scaleY: this.camera.zoom,
-                    x: -x,
-                    y: -y
+                    x: -offset.x,
+                    y: -offset.y
                 }
             });
 
@@ -84,38 +85,12 @@ class Animation3 extends TimelineMax {
         this.eventCallback('onComplete', function () { 
             console.log('camera TL complete');
             
-            // TODO: Handling bounds should occur on each update, not on complete
             if (this.camera.isDraggable) {
-                var sceneRect = this.camera.scene.view.getBoundingClientRect();
-                var bounds = {
-                    top: 0,
-                    left: 0,
-                    width: 0,
-                    height: 0
-                };
-
-                var cameraSceneDiff = {
-                    width: sceneRect.width - this.camera.viewportWidth,
-                    height: sceneRect.height - this.camera.viewportHeight
-                };
-
-//                if (cameraSceneDiff.width > 0 && cameraSceneDiff.height > 0) {
-//                    bounds.left = -cameraSceneDiff.width;
-//                    bounds.top = -cameraSceneDiff.height;
-//                    bounds.width = sceneRect.width + cameraSceneDiff.width;
-//                    bounds.height = sceneRect.height + cameraSceneDiff.height;
-//                }
-//                else {
-                    bounds.left = this.camera.viewportCenter.x;
-                    bounds.top = this.camera.viewportCenter.y;
-                    bounds.width = 0;
-                    bounds.height = 0;
-//                }
-                this.camera.bounds = bounds;
-                
-                this.camera.draggable.update().applyBounds(this.camera.bounds).enable();
-                this.camera.offset.set(-this.camera.draggable.x, -this.camera.draggable.y);
-                this.camera.position.copy(this.camera._calculatePosition(this.camera.offset, this.camera.viewportCenter, this.camera.scene.origin, this.camera.sceneTransformation));
+                this.camera.draggable.update().applyBounds(this.camera._calculateSceneBounds()).enable();
+            }
+            
+            if (this.camera.hasBounds) {
+                this.camera.draggable.applyBounds(this.camera._calculateSceneBounds());
             }
             
             if (this.camera.isManualZoomable) {

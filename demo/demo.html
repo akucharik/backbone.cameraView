@@ -148,6 +148,14 @@
                     //    top: 0,
                     //    bottom: 1219
                     //},
+                    bounds: function () {
+                        return {
+                            minX: 0,
+                            minY: 0,
+                            maxX: this.sceneWidth,
+                            maxY: this.sceneHeight
+                        };
+                    },
                     debug: true,
                     //defaultEase: Power2.easeOut,
                     draggable: true,
@@ -168,6 +176,7 @@
                 // Animations
                 app.animations = {
                     moveTobox100: new Animation3(app.camera).animate({position: '#box100', rotation:-20, zoom: 1.5}, 2),
+                    moveTo2000: new Animation3(app.camera).animate({position: {x:2000, y:500}, zoom: 1.5}, 2),
                     rotateAt200: new Animation3(app.camera).rotateAt({x:200, y:200}, -10, 2),
                     rotateTo20: new Animation3(app.camera).rotateTo(-20, 2),
                     zoomTo50: new Animation3(app.camera).zoomTo(0.5, 2),

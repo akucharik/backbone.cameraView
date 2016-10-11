@@ -55,6 +55,7 @@
 var clamp = _.clamp;
 var isElement = _.isElement;
 var isFinite = _.isFinite;
+var isFunction = _.isFunction;
 var isObject = _.isObject;
 var isString = _.isString;
 var pick = _.pick;
@@ -83,10 +84,26 @@ var Vector2 = Oculo.Vector2;
 */
 var Camera = function (options) {
     options = options || {};
+    this.config = options || {};
     options.position = this._parsePosition(options.position);
     
     // Compose object
     Object.assign(this, Backbone.Events);
+    
+    /**
+    * @property {Element} - The view.
+    */
+    this.view = utils.DOM.parseView(options.view);
+    
+    /**
+    * @property {Element} - TODO.
+    */
+    this.$view = $(this.view);
+    
+    
+    
+    
+    
     
     /**
     * The scene which the camera is viewing.
@@ -422,16 +439,6 @@ var Camera = function (options) {
     this.shakeVertical = true;
     
     /**
-    * @property {Element} - The view.
-    */
-    this.view = utils.DOM.parseView(options.view);
-    
-    /**
-    * @property {Element} - TODO.
-    */
-    this.$view = $(this.view);
-    
-    /**
     * The center point.
     * @name Camera#center
     * @property {Vector2} - Gets the camera's center point.
@@ -546,23 +553,92 @@ var Camera = function (options) {
     this.zoom = options.zoom || 1;
     
     /**
-    * The camera's bounds. If set, the camera will remain within the bounds.
+    * The camera's bounds. Set to null if you desire no bounds.
     * @property {Object} - An object representing the camera's bounds.
-    * @default null
+    * @default The size of the world/scene.
     */
-    this.bounds = {
-        left: 0,
-        top: 0,
-        width: this.viewportWidth,
-        height: this.viewportHeight
+    this.bounds = options.bounds !== undefined ? options.bounds : function () {
+        return {
+            minX: this.viewportCenter.x,
+            minY: this.viewportCenter.y,
+            maxX: this.sceneWidth - this.viewportCenter.x,
+            maxY: this.sceneHeight - this.viewportCenter.y
+        }
     };
+    
+    Object.defineProperty(this, 'hasBounds', {
+        get: function () {
+            return this.bounds !== null;
+        }
+    });
+    
+    this.minX = null;
+    this.minY = null;
+    this.maxX = null;
+    this.maxY = null;
+    
+    this._updateBounds = function (newBounds) {
+        var bounds = {};
+        
+        if (isFunction(newBounds)) {
+            bounds = newBounds.call(this);
+        }
+        else {
+            bounds.minX = newBounds.minX;
+            bounds.minY = newBounds.minY;
+            bounds.maxX = newBounds.maxX;
+            bounds.maxY = newBounds.maxY;
+        }
+        
+        this.minX = bounds.minX;
+        this.minY = bounds.minY;
+        this.maxX = bounds.maxX;
+        this.maxY = bounds.maxY;
+        
+        return this;
+    };
+    
+    this._calculateSceneBounds = function () {
+        if (!this.hasBounds) {
+            return null;
+        }
+        else {
+            var minOffset = this._calculateOffset(new Vector2(this.maxX, this.maxY), this.viewportCenter, this.scene.origin, this.sceneTransformation);
+            var maxOffset = this._calculateOffset(new Vector2(this.minX, this.minY), this.viewportCenter, this.scene.origin, this.sceneTransformation);
+
+            return {
+                minX: -minOffset.x,
+                minY: -minOffset.y,
+                maxX: -maxOffset.x,
+                maxY: -maxOffset.y
+            };
+        }
+    };
+    
+    this.applyBounds = function (bounds) {
+        if (bounds) {
+            this.bounds = bounds;
+        }
+        
+        if (this.hasBounds) {
+            this._updateBounds(this.bounds);
+            this.position.set(clamp(this.position.x, this.minX, this.maxX), clamp(this.position.y, this.minY, this.maxY));
+            this.offset.copy(this._calculateOffset(this.position, this.viewportCenter, this.scene.origin, this.sceneTransformation));
+        }
+        
+        return this;
+    };
+    
+    this._updateBounds(this.bounds);
+    
+    
     
     /**
     * @property {external:Draggable} - The drag control.
     * @default null
     */
     this.draggable = !this.isDraggable ? null : new Draggable(this.scene.view, {
-        bounds: this.bounds,
+        bounds: this._calculateSceneBounds(),
         onDrag: function (camera) {
             // 'this' refers to the Draggable instance
             var offset = new Vector2(-this.x, -this.y);
@@ -838,35 +914,6 @@ p._renderDebug = function () {
     }
 };
 
-/**
-* Ensure the camera keeps within the bounds.
-*
-* @returns {Object} The bounded position.
-*/
-p.checkBounds = function (position) {
-    if (position.x <= this.bounds.left)
-    {
-        position.x = this.bounds.left;
-    }
-
-    if (position.x >= this.bounds.right)
-    {
-        position.x = this.bounds.right;
-    }
-
-    if (position.y <= this.bounds.top)
-    {
-        position.y = this.bounds.top;
-    }
-
-    if (position.y >= this.bounds.bottom)
-    {
-        position.y = this.bounds.bottom;
-    }
-
-    return position;
-};
-
 // TODO: Refactor to use use GSAP's Draggable.
 /**
 * Drag the scene.
@@ -904,7 +951,6 @@ p.drag = function (event) {
     return this;
 };
 
-// TODO: Refactor into a function that repeats on RAF similar to zoomAt so that decceleration and bounds can work together.
 /**
 * End dragging the scene.
 *
@@ -992,39 +1038,6 @@ p._parsePosition = function (input) {
 */
 p.initialize = function (options) {
     return this;
-};
-
-/**
-* TODO
-*
-* @param {number} x - TODO.
-* @param {number} y - TODO.
-*/
-p.checkBounds = function (x, y) {
-    if (x <= this.bounds.left)
-    {
-        x = this.bounds.left;
-    }
-
-    if (x >= this.bounds.right)
-    {
-        x = this.bounds.right;
-    }
-
-    if (y <= this.bounds.top)
-    {
-        y = this.bounds.top;
-    }
-
-    if (y >= this.bounds.bottom)
-    {
-        y = this.bounds.bottom;
-    }
-
-    return { 
-        x: x, 
-        y: y 
-    };
 };
 
 /**
