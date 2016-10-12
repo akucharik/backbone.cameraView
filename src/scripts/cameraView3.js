@@ -553,10 +553,102 @@ var Camera = function (options) {
     this.zoom = options.zoom || 1;
     
     /**
-    * The camera's bounds. Set to null if you desire no bounds.
+    * The camera's bounds. Set to null if no bounds are desired.
     * @property {Object} - An object representing the camera's bounds.
-    * @default The size of the world/scene.
+    * @default The size of the scene/world.
     */
+//    this.bounds = options.bounds !== undefined ? options.bounds : function () {
+//        return {
+//            minX: this.viewportCenter.x,
+//            minY: this.viewportCenter.y,
+//            maxX: this.sceneWidth - this.viewportCenter.x,
+//            maxY: this.sceneHeight - this.viewportCenter.y
+//        }
+//    };
+    
+    this._bounds = null;
+    
+    Object.defineProperty(this, 'bounds', {
+        get: function () {
+            return this._bounds;
+        },
+        
+        set: function (value) {
+            var bounds;
+            
+            this._bounds = value;
+        
+            if (value === null) {
+                bounds = {
+                    minX: null,
+                    minY: null,
+                    maxX: null,
+                    maxY: null
+                };
+            }
+            else if (isFunction(value)) {
+                bounds = value.call(this);
+            }
+            else {
+                bounds = value;
+            }
+            
+            this.minX = bounds.minX;
+            this.minY = bounds.minY;
+            this.maxX = bounds.maxX;
+            this.maxY = bounds.maxY;
+        }
+    });
+    
+    Object.defineProperty(this, 'hasBounds', {
+        get: function () {
+            return this._bounds !== null;
+        }
+    });
+    
+    this.minX = null;
+    this.minY = null;
+    this.maxX = null;
+    this.maxY = null;
+    
+    this._calculateDraggableBounds = function () {
+        var bounds = null;
+        
+        if (this.hasBounds) {
+            var minOffset = new Vector2();
+            var maxOffset = new Vector2();
+            
+            minOffset.copy(this._calculateOffset(new Vector2(this.maxX, this.maxY), this.viewportCenter, this.scene.origin, this.sceneTransformation));
+            maxOffset.copy(this._calculateOffset(new Vector2(this.minX, this.minY), this.viewportCenter, this.scene.origin, this.sceneTransformation));
+
+            bounds = {
+                minX: -minOffset.x,
+                minY: -minOffset.y,
+                maxX: -maxOffset.x,
+                maxY: -maxOffset.y
+            }
+        }
+        
+        return bounds;
+    };
+    
+    this.applyBounds = function (newBounds) {
+        if (newBounds !== undefined) {
+            this.bounds = newBounds;
+        }
+        
+        if (this.hasBounds) {
+            this.position.set(clamp(this.position.x, this.minX, this.maxX), clamp(this.position.y, this.minY, this.maxY));
+            this.offset.copy(this._calculateOffset(this.position, this.viewportCenter, this.scene.origin, this.sceneTransformation));
+        }
+        
+        if (this.isDraggable) {
+            this.draggable.applyBounds(this._calculateDraggableBounds());
+        }
+        
+        return this;
+    };
+    
     this.bounds = options.bounds !== undefined ? options.bounds : function () {
         return {
             minX: this.viewportCenter.x,
@@ -566,71 +658,6 @@ var Camera = function (options) {
         }
     };
     
-    Object.defineProperty(this, 'hasBounds', {
-        get: function () {
-            return this.bounds !== null;
-        }
-    });
-    
-    this.minX = null;
-    this.minY = null;
-    this.maxX = null;
-    this.maxY = null;
-    
-    this._updateBounds = function (newBounds) {
-        var bounds = {};
-        
-        if (isFunction(newBounds)) {
-            bounds = newBounds.call(this);
-        }
-        else {
-            bounds.minX = newBounds.minX;
-            bounds.minY = newBounds.minY;
-            bounds.maxX = newBounds.maxX;
-            bounds.maxY = newBounds.maxY;
-        }
-        
-        this.minX = bounds.minX;
-        this.minY = bounds.minY;
-        this.maxX = bounds.maxX;
-        this.maxY = bounds.maxY;
-        
-        return this;
-    };
-    
-    this._calculateSceneBounds = function () {
-        if (!this.hasBounds) {
-            return null;
-        }
-        else {
-            var minOffset = this._calculateOffset(new Vector2(this.maxX, this.maxY), this.viewportCenter, this.scene.origin, this.sceneTransformation);
-            var maxOffset = this._calculateOffset(new Vector2(this.minX, this.minY), this.viewportCenter, this.scene.origin, this.sceneTransformation);
-
-            return {
-                minX: -minOffset.x,
-                minY: -minOffset.y,
-                maxX: -maxOffset.x,
-                maxY: -maxOffset.y
-            };
-        }
-    };
-    
-    this.applyBounds = function (bounds) {
-        if (bounds) {
-            this.bounds = bounds;
-        }
-        
-        if (this.hasBounds) {
-            this._updateBounds(this.bounds);
-            this.position.set(clamp(this.position.x, this.minX, this.maxX), clamp(this.position.y, this.minY, this.maxY));
-            this.offset.copy(this._calculateOffset(this.position, this.viewportCenter, this.scene.origin, this.sceneTransformation));
-        }
-        
-        return this;
-    };
-    
-    this._updateBounds(this.bounds);
-    
     
     
     /**
@@ -638,7 +665,7 @@ var Camera = function (options) {
     * @default null
     */
     this.draggable = !this.isDraggable ? null : new Draggable(this.scene.view, {
-        bounds: this._calculateSceneBounds(),
+        bounds: this._calculateDraggableBounds(),
         onDrag: function (camera) {
             // 'this' refers to the Draggable instance
             var offset = new Vector2(-this.x, -this.y);
