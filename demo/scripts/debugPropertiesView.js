@@ -7,9 +7,7 @@
 
 var DebugPropertiesView = Backbone.View.extend({
     initialize: function (options) {
-        var properties = Object.getOwnPropertyNames(this.model).sort().filter(function (property) {
-            return typeof this[property] !== 'function' && typeof this[property] !== 'object';
-        }, this.model);
+        var properties = Object.getOwnPropertyNames(this.model).sort().filter(property => typeof this.model[property] !== 'function' && (typeof this.model[property] !== 'object' || this.model[property] === null));
         
         this.childViews = new Array(properties.length);
         

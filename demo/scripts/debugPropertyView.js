@@ -28,7 +28,7 @@ var DebugPropertyView = Backbone.View.extend({
     },
     
     update: function () {
-        this.el.querySelector('.value').innerHTML = this.model[this.property];
+        this.el.querySelector('.value').innerHTML = this.model[this.property] === null ? 'null' : this.model[this.property];
         this.trigger('update');
         
         return this;
