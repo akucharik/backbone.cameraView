@@ -294,12 +294,11 @@ class Animation3 extends TimelineMax {
             }
             else {
                 this.camera.shakeIntensity = shake.intensity;
-                shakeTimeline.to(this.camera, duration, {}, 0);
-//                shakeTimeline.fromTo(this.camera, duration, {
-//                    shakeIntensity: shake.intensity
-//                }, {
-//                    shakeIntensity: shake.intensity
-//                }, 0);
+                shakeTimeline.fromTo(this.camera, duration, {
+                    shakeIntensity: shake.intensity
+                }, {
+                    shakeIntensity: shake.intensity
+                }, 0);
             }
             
             mainTimeline.add(shakeTimeline, 0);
