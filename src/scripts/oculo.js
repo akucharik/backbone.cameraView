@@ -1,6 +1,6 @@
 'use strict';
 
-import Animation from './cameraAnimation3';
+import Animation from './animation';
 import Math from './math/math';
 import Matrix2 from './math/matrix2';
 import Vector2 from './math/vector2';

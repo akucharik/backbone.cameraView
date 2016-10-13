@@ -138,7 +138,7 @@ class Animation extends TimelineMax {
             shake.easeOut = props.shake.easeOut;    
         }
         
-        // Tween core camera functions
+        // Tween core camera properties
         mainTimeline.add(TweenMax.to(this.camera, duration, Object.assign({}, options, {
             data: {
                 position: position,
