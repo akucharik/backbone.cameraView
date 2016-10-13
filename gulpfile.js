@@ -1,5 +1,6 @@
 'use strict';
 
+var babelify = require('babelify');
 var browserify = require('browserify');
 var buffer = require('vinyl-buffer');
 var del = require('del');
@@ -38,7 +39,10 @@ gulp.task('clean', function () {
 });
 
 gulp.task('scripts', ['clean'], function () {
-    return browserify(build.scripts.source).bundle()
+    return browserify(build.scripts.source, { debug: true })
+        .transform(babelify)
+        .bundle()
+        .on('error', function (error) { console.log('Error: ' + error.message); })
         .pipe(source(build.scripts.sourceName))
         .pipe(gulp.dest(build.scripts.dest))
         // Minify

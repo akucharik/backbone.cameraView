@@ -5,6 +5,11 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
+import _ from 'lodash';
+import Matrix2 from './math/matrix2';
+import Vector2 from './math/vector2';
+
+//Utilities
 var clamp = _.clamp;
 var isElement = _.isElement;
 var isFinite = _.isFinite;
@@ -13,21 +18,18 @@ var isObject = _.isObject;
 var isString = _.isString;
 var uniqueId = _.uniqueId;
 
-var Matrix2 = Oculo.Matrix2;
-var Vector2 = Oculo.Vector2;
-
 /**
 * @class Camera.Animation
 * @constructor
 * @memberof Camera
 * @extends external:TimelineMax
-* @param {Camera} camera - The camera on which the animation will be applied.
+* @param {Camera} camera - The camera to be animated.
 * @param {Object} [options] - An object of {@link external:TweenMax|TweenMax} options.
 *
 * @example
-* var myAnimation = new Camera.Animation(myCamera, { paused: true }).zoomTo(2,1).shake(0.1,2).resume();
+* var myAnimation = new Camera.Animation(myCamera).zoomTo(2,1).shake(0.1,2).resume();
 */
-class Animation3 extends TimelineMax {
+class Animation extends TimelineMax {
     constructor (camera, options) {
         super(Object.assign({}, options, {
             data: {
@@ -47,7 +49,7 @@ class Animation3 extends TimelineMax {
             }
             
             if (this.camera.isManualZoomable) {
-                this.camera.isManualZoomEnabled = false;
+                this.camera.disableManualZoom();
             }
         }, null, this);
 
@@ -90,7 +92,7 @@ class Animation3 extends TimelineMax {
             }
             
             if (this.camera.isManualZoomable) {
-                this.camera.isManualZoomEnabled = true;
+                this.camera.enableManualZoom();
             }
             
             this.camera._renderDebug();
@@ -98,35 +100,14 @@ class Animation3 extends TimelineMax {
     }
     
     /**
-    * Parse the position of the given input within the world.
+    * Animate the camera.
     *
-    * @param {string|Element|Object} [input] - The input to parse.
-    * @returns {Object} The position.
+    * @private
+    * @param {Object} props - The properties to animate.
+    * @param {number} duration - A duration.
+    * @param {Object} [options] - An object of {@link external:TweenMax|TweenMax} options.
+    * @returns {this} self
     */
-    _parsePosition (input) {
-        var objectPosition;
-        var position = {
-            x: null,
-            y: null
-        };
-        
-        if (isString(input)) {
-            input = document.querySelector(input);
-        }
-        
-        if (isElement(input)) {
-            objectPosition = this.camera.scene.getObjectWorldPosition(input);
-            position.x = objectPosition.x;
-            position.y = objectPosition.y;
-        }
-        else if (isObject(input)) {
-            position.x = input.x;
-            position.y = input.y;
-        }
-        
-        return position;
-    }
-    
     _animate (props, duration, options) {
         options = options || {};
         
@@ -310,20 +291,53 @@ class Animation3 extends TimelineMax {
     }
     
     /**
+    * Parse the position of the given input within the scene/world.
+    *
+    * @private
+    * @param {string|Element|Object} [input] - The input to parse.
+    * @returns {Object} The position.
+    */
+    _parsePosition (input) {
+        var objectPosition;
+        var position = {
+            x: null,
+            y: null
+        };
+        
+        if (isString(input)) {
+            input = document.querySelector(input);
+        }
+        
+        if (isElement(input)) {
+            objectPosition = this.camera.scene.getObjectWorldPosition(input);
+            position.x = objectPosition.x;
+            position.y = objectPosition.y;
+        }
+        else if (isObject(input)) {
+            position.x = input.x;
+            position.y = input.y;
+        }
+        
+        return position;
+    }
+    
+    /**
     * Animate the camera.
     *
-    * @param {string|Element|Object} position - The location to move to. It can be a selector, an element, or an object with x/y coordinates.
-    * @param {number} [position.x] - The x coordinate on the raw scene.
-    * @param {number} [position.y] - The y coordinate on the raw scene.
-    * @param {string|Element|Object} origin - The location for the zoom's origin. It can be a selector, an element, or an object with x/y coordinates.
-    * @param {number} [origin.x] - The x coordinate on the raw scene.
-    * @param {number} [origin.y] - The y coordinate on the raw scene.
-    * @param {Object} [shake] - An object of shake effect properties.
-    * @param {number} [shake.intensity] - A {@link Camera#shakeIntensity|shake intensity}.
-    * @param {Camera.shakeDirection} [shake.direction=Camera.shakeDirection.BOTH] - A shake direction. 
-    * @param {Object} [shake.easeIn] - An {@link external:Easing|Easing}.
-    * @param {Object} [shake.easeOut] - An {@link external:Easing|Easing}.
-    * @param {number} zoom - A zoom value.
+    * @param {Object} props - The properties to animate.
+    * @param {string|Element|Object} [props.position] - The location to move to. It can be a selector, an element, or an object with x/y coordinates.
+    * @param {number} [props.position.x] - The x coordinate on the raw scene.
+    * @param {number} [props.position.y] - The y coordinate on the raw scene.
+    * @param {string|Element|Object} [props.origin] - The location for the zoom's origin. It can be a selector, an element, or an object with x/y coordinates.
+    * @param {number} [props.origin.x] - The x coordinate on the raw scene.
+    * @param {number} [props.origin.y] - The y coordinate on the raw scene.
+    * @param {number|string} [props.rotation] - The rotation.
+    * @param {Object} [props.shake] - An object of shake effect properties.
+    * @param {number} [props.shake.intensity] - A {@link Camera#shakeIntensity|shake intensity}.
+    * @param {Camera.shakeDirection} [props.shake.direction=Camera.shakeDirection.BOTH] - A shake direction. 
+    * @param {Object} [props.shake.easeIn] - An {@link external:Easing|Easing}.
+    * @param {Object} [props.shake.easeOut] - An {@link external:Easing|Easing}.
+    * @param {number} [props.zoom] - A zoom value.
     * @param {number} duration - A duration.
     * @param {Object} [options] - An object of {@link external:TweenMax|TweenMax} options.
     * @returns {this} self
@@ -403,6 +417,9 @@ class Animation3 extends TimelineMax {
     * @param {number} duration - A duration.
     * @param {Object} [options] - An object of {@link external:TweenMax|TweenMax} options.
     * @returns {this} self
+    *
+    * @example
+    * myAnimation.rotateTo(20, 1);
     */
     rotateTo (rotation, duration, options) {
         this._animate({
@@ -486,3 +503,5 @@ class Animation3 extends TimelineMax {
         return this;
     }
 }
+
+export default Animation;

@@ -112,9 +112,9 @@ var Camera = function (options) {
     this.scene = new Scene(options.scene);
     
     /**
-    * @property {Animation3} - The active camera animation.
+    * @property {Oculo.Animation} - The active camera animation.
     */
-    this.animation = new Animation3(this);
+    this.animation = new Oculo.Animation(this);
     
     /**
     * @property {Object} - An object containing of all current and future animations.
@@ -795,7 +795,7 @@ var Camera = function (options) {
                     origin = this._calculatePosition(this.offset, cameraContextPosition, this.scene.origin, this.sceneTransformation);
                 }
 
-                this.animation = new Animation3(this).zoomAt(origin, zoom, 0).resume();
+                this.animation = new Oculo.Animation(this).zoomAt(origin, zoom, 0).resume();
             }
         }
         
@@ -1068,6 +1068,28 @@ p.initialize = function (options) {
 };
 
 /**
+* Disables manual zoom.
+*
+* @returns {this} self
+*/
+p.disableManualZoom = function () {
+    this.isManualZoomEnabled = false;
+    
+    return this;
+};
+
+/**
+* Enables manual zoom.
+*
+* @returns {this} self
+*/
+p.enableManualZoom = function () {
+    this.isManualZoomEnabled = true;
+    
+    return this;
+};
+
+/**
 * TODO
 *
 * @param {number} value - TODO.
@@ -1182,7 +1204,7 @@ p.render = function (animation) {
         animation.invalidate().restart();
     }
     else {
-        this.animation = new Animation3(this).animate({
+        this.animation = new Oculo.Animation(this).animate({
             position: this.position,
             origin: this.scene.origin,
             rotation: this.rotation,
