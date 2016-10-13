@@ -5,18 +5,17 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
-import _ from 'lodash';
+import { 
+    clamp, 
+    isElement, 
+    isFinite, 
+    isNil, 
+    isObject, 
+    isString, 
+    uniqueId 
+} from 'lodash';
 import Matrix2 from './math/matrix2';
 import Vector2 from './math/vector2';
-
-//Utilities
-var clamp = _.clamp;
-var isElement = _.isElement;
-var isFinite = _.isFinite;
-var isNil = _.isNil;
-var isObject = _.isObject;
-var isString = _.isString;
-var uniqueId = _.uniqueId;
 
 /**
 * @class Camera.Animation

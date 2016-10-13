@@ -1,17 +1,14 @@
 'use strict';
 
-var _ = require('lodash');
-
-//Utilities
-var isArrayLike = _.isArrayLike;
+import { isArrayLike } from 'lodash';
 
 /**
 * Create 2x2 matrix from a series of values.
 * 
 * Represented like:
 * 
-* | a | b |
-* | c | d |
+* | e11 | e12 |
+* | e21 | e22 |
 *
 * @class Matrix2
 * @constructor
@@ -344,4 +341,4 @@ Object.defineProperty(Matrix2.prototype, 'rows', {
     value: 2
 });
 
-module.exports = Matrix2;
+export default Matrix2;

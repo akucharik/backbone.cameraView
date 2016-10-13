@@ -6,7 +6,7 @@
 * @class Oculo.Math
 * @static
 */
-var Math = {
+const Math = {
     /**
     * Convert degrees to radians.
     * @param {number} degrees - The degrees value.
@@ -42,4 +42,4 @@ Object.defineProperty(Math, 'radToDegFactor', {
     value: 180 / window.Math.PI
 });
 
-module.exports = Math;
+export default Math;

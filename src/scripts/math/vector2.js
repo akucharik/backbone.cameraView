@@ -1,10 +1,9 @@
 'use strict';
 
-var _ = require('lodash');
-
-//Utilities
-var isFinite = _.isFinite;
-var isNil = _.isNil;
+import { 
+    isFinite, 
+    isNil 
+} from 'lodash';
 
 /**
 * Creates a 2D vector from a series of values.
@@ -250,4 +249,4 @@ class Vector2 {
     }
 }
 
-module.exports = Vector2;
+export default Vector2;

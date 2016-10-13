@@ -1,11 +1,13 @@
 'use strict';
 
-var test = require('mocha').describe;
-var beforeEach = require('mocha').beforeEach;
-var assert = require('mocha').it;
-var expect = require('chai').expect;
-var Matrix2D = require('../src/scripts/math/matrix2D');
-    
+import { 
+    beforeEach, 
+    describe as test, 
+    it as assert 
+} from 'mocha';
+import { expect } from 'chai';
+import Matrix2D from '../src/scripts/math/matrix2D';
+
 test('Matrix2D', function() {
     var m;
 

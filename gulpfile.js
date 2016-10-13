@@ -1,6 +1,7 @@
 'use strict';
 
 var babelify = require('babelify');
+var babelRegister = require('babel-register');
 var browserify = require('browserify');
 var buffer = require('vinyl-buffer');
 var del = require('del');
@@ -78,6 +79,9 @@ gulp.task('tests', function () {
             read: false
         })
 		.pipe(mocha({
+            compilers: {
+                js: babelRegister
+            },
             reporter: 'nyan'
         }));
 });

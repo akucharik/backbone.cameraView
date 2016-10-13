@@ -1,6 +1,6 @@
 'use strict';
 
-var Matrix2 = require('./Matrix2');
+import Matrix2 from './Matrix2';
 
 /**
 * Create 2x3 matrix from a series of values.
@@ -311,4 +311,4 @@ Object.defineProperty(Matrix2D.prototype, 'rows', {
     value: 2
 });
 
-module.exports = Matrix2D;
+export default Matrix2D;
