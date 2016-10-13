@@ -176,8 +176,8 @@
                     moveTo2000: new Oculo.Animation(app.camera).animate({position: {x:2000, y:500}, zoom: 1.5}, 2),
                     rotateAt200: new Oculo.Animation(app.camera).rotateAt({x:200, y:200}, -10, 2),
                     rotateTo20: new Oculo.Animation(app.camera).rotateTo(-20, 2),
-                    shake: new Oculo.Animation(app.camera).shake(0.1, 2, Camera.shakeDirection.BOTH),
-                    shakeSmooth: new Oculo.Animation(app.camera).shake(0.1, 2, Camera.shakeDirection.BOTH, { easeIn: Power2.easeIn, easeOut: Power2.easeOut }),
+                    shake: new Oculo.Animation(app.camera).shake(0.1, 2, Oculo.Animation.shakeDirection.BOTH),
+                    shakeSmooth: new Oculo.Animation(app.camera).shake(0.1, 2, Oculo.Animation.shakeDirection.BOTH, { easeIn: Power2.easeIn, easeOut: Power2.easeOut }),
                     zoomTo50: new Oculo.Animation(app.camera).zoomTo(0.5, 2),
                     zoomTo200: new Oculo.Animation(app.camera).zoomTo(2, 2),
                 };

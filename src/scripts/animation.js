@@ -18,7 +18,7 @@ import Matrix2 from './math/matrix2';
 import Vector2 from './math/vector2';
 
 /**
-* @class Camera.Animation
+* @class Oculo.Animation
 * @constructor
 * @memberof Camera
 * @extends external:TimelineMax
@@ -26,7 +26,7 @@ import Vector2 from './math/vector2';
 * @param {Object} [options] - An object of {@link external:TweenMax|TweenMax} options.
 *
 * @example
-* var myAnimation = new Camera.Animation(myCamera).zoomTo(2,1).shake(0.1,2).resume();
+* var myAnimation = new Oculo.Animation(myCamera).zoomTo(2,1).shake(0.1,2).resume();
 */
 class Animation extends TimelineMax {
     constructor (camera, options) {
@@ -133,7 +133,7 @@ class Animation extends TimelineMax {
         // Shake
         if (props.shake) {
             shake.intensity = isNil(props.shake.intensity) ? 0 : props.shake.intensity;
-            shake.direction = isNil(props.shake.direction) ? Camera.shakeDirection.BOTH : props.shake.direction;
+            shake.direction = isNil(props.shake.direction) ? Oculo.Animation.shakeDirection.BOTH : props.shake.direction;
             shake.easeIn = props.shake.easeIn;
             shake.easeOut = props.shake.easeOut;    
         }
@@ -214,8 +214,8 @@ class Animation extends TimelineMax {
         
         // Tween shake effect
         if (duration > 0 && shake.intensity > 0) {
-            this.camera.shakeHorizontal = shake.direction === Camera.shakeDirection.VERTICAL ? false : true;
-            this.camera.shakeVertical = shake.direction === Camera.shakeDirection.HORIZONTAL ? false : true;
+            this.camera.shakeHorizontal = shake.direction === Oculo.Animation.shakeDirection.VERTICAL ? false : true;
+            this.camera.shakeVertical = shake.direction === Oculo.Animation.shakeDirection.HORIZONTAL ? false : true;
             
             shakeTimeline = new TimelineMax(Object.assign({}, options, {
                 callbackScope: this,
@@ -333,7 +333,7 @@ class Animation extends TimelineMax {
     * @param {number|string} [props.rotation] - The rotation.
     * @param {Object} [props.shake] - An object of shake effect properties.
     * @param {number} [props.shake.intensity] - A {@link Camera#shakeIntensity|shake intensity}.
-    * @param {Camera.shakeDirection} [props.shake.direction=Camera.shakeDirection.BOTH] - A shake direction. 
+    * @param {Oculo.Animation.shakeDirection} [props.shake.direction=Oculo.Animation.shakeDirection.BOTH] - A shake direction. 
     * @param {Object} [props.shake.easeIn] - An {@link external:Easing|Easing}.
     * @param {Object} [props.shake.easeOut] - An {@link external:Easing|Easing}.
     * @param {number} [props.zoom] - A zoom value.
@@ -433,7 +433,7 @@ class Animation extends TimelineMax {
     *
     * @param {number} intensity - A {@link Camera#shakeIntensity|shake intensity}.
     * @param {number} duration - A duration.
-    * @param {Camera.shakeDirection} [direction=Camera.shakeDirection.BOTH] - A shake direction. 
+    * @param {Oculo.Animation.shakeDirection} [direction=Oculo.Animation.shakeDirection.BOTH] - A shake direction. 
     * @param {Object} [options] - An object of {@link external:TimelineMax|TimelineMax} options plus:
     * @param {Object} [options.easeIn] - An {@link external:Easing|Easing}.
     * @param {Object} [options.easeOut] - An {@link external:Easing|Easing}.
@@ -441,7 +441,7 @@ class Animation extends TimelineMax {
     *
     * @example
     * myAnimation.shake(0.1, 4);
-    * myAnimation.shake(0.1, 4, camera.shakeDirection.HORIZONTAL, { easeIn: Power2.easeIn, easeOut: Power2.easeOut })
+    * myAnimation.shake(0.1, 4, Oculo.Animation.shakeDirection.HORIZONTAL, { easeIn: Power2.easeIn, easeOut: Power2.easeOut })
     */
     shake (intensity, duration, direction, options) {
         options = options || {};
@@ -501,6 +501,25 @@ class Animation extends TimelineMax {
 
         return this;
     }
+}
+
+/**
+* Shake directions.
+* @enum {number}
+*/
+Animation.shakeDirection = {
+    /**
+    * Both the x and y axes.
+    */
+    BOTH: 0,
+    /**
+    * The x axis.
+    */
+    HORIZONTAL: 1,
+    /**
+    * The y axis.
+    */
+    VERTICAL: 2
 }
 
 export default Animation;

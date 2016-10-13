@@ -811,25 +811,6 @@ var Camera = function (options) {
 };
 
 /**
-* Shake directions.
-* @enum {number}
-*/
-Camera.shakeDirection = {
-    /**
-    * Both the x and y axes.
-    */
-    BOTH: 0,
-    /**
-    * The x axis.
-    */
-    HORIZONTAL: 1,
-    /**
-    * The y axis.
-    */
-    VERTICAL: 2
-};
-
-/**
 * @lends Camera.prototype
 */
 var p = Camera.prototype;
