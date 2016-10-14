@@ -55,6 +55,13 @@ var Focuser = function () {
             y: _.round((elRect.height / scale / 2) + (elRect.top / scale + window.scrollY) - (containerRect.top / scale + window.scrollY), 2)
         };
     };
+    
+    this.getElementCenter = function (window, containerRect, elRect, scaleX, scaleY) {
+        return {
+            x: _.round((elRect.width / scaleX / 2) + (elRect.left / scaleX + window.scrollX) - (containerRect.left / scaleX + window.scrollX), 2),
+            y: _.round((elRect.height / scaleY / 2) + (elRect.top / scaleY + window.scrollY) - (containerRect.top / scaleY + window.scrollY), 2)
+        };
+    };
 
     /**
     * Get the x/y container offset to focus/center on a position.
@@ -74,7 +81,100 @@ var Focuser = function () {
         else {
             throw new Error('Cannot determine focus offset from an invalid position');
         }
-    }
+    };
+    
+    /**
+    * Get the x/y focus position given a different current focus.
+    *
+    * @param {number} focusX - The x value of the current focus (at a scale ratio of 1).
+    * @param {number} focusY - The y value of the current focus (at a scale ratio of 1).
+    * @param {number} deltaX - The x delta between the current focus and the zoom anchor.
+    * @param {number} deltaY - The y delta between the current focus and the zoom anchor.
+    * @param {number} scale - The destination scale ratio.
+    * @returns {Object} The focus. An x/y point object representing the position of the focus in order to maintain the zoom anchor.
+    */
+    this.getContentFocus = function (focusX, focusY, deltaX, deltaY, scaleRatio) {
+        if (_.isFinite(focusX) &amp;&amp; _.isFinite(focusY)) {
+            return {
+                x: focusX - deltaX + (deltaX * scaleRatio),
+                y: focusY - deltaY + (deltaY * scaleRatio)
+            };
+        }
+        else {
+            throw new Error('Cannot determine focus');
+        }
+    };
+    
+    this.getContentFocusAxisValue = function (axisValue, newAxisValue, scaleRatio) {
+        if (_.isFinite(axisValue) &amp;&amp; _.isFinite(newAxisValue)) {
+            var deltaAxisValue = axisValue - newAxisValue;
+            
+            return axisValue - deltaAxisValue + (deltaAxisValue * scaleRatio);
+        }
+        else {
+            throw new Error('Cannot determine focus');
+        }
+    };
+    
+    this.calculateFocus = function (focusX, focusY, anchorX, anchorY, scaleRatioX, scaleRatioY) {
+        if (_.isFinite(focusX) &amp;&amp; _.isFinite(focusY) &amp;&amp; _.isFinite(anchorX) &amp;&amp; _.isFinite(anchorY)) {
+            var deltaX = focusX - anchorX;
+            var deltaY = focusY - anchorY;
+            
+            return {
+                x: focusX - deltaX + (deltaX * scaleRatioX),
+                y: focusY - deltaY + (deltaY * scaleRatioY)
+            }
+            axisValue - deltaAxisValue + (deltaAxisValue * scaleRatio);
+        }
+        else {
+            throw new Error('Cannot determine focus');
+        }
+    };
+    
+    /**
+    * Get the x/y position of the content in relation to the frame given a focus position.
+    *
+    * @param {number} positionX - The x value that will be brought to focus (at a scale ratio of 1).
+    * @param {number} positionY - The y value that will be brought to focus (at a scale ratio of 1).
+    * @param {number} frameWidth - The frame width.
+    * @param {number} frameHeight - The frame height.
+    * @param {number} scale - The destination scale ratio.
+    * @returns {Object} The position. An x/y point object representing the position of the content within the frame.
+    */
+    this.getContentPosition = function (positionX, positionY, frameWidth, frameHeight, scale) {
+        if (_.isFinite(positionX) &amp;&amp; _.isFinite(positionY)) {
+            return {
+                x: _.round((frameWidth / 2) - (positionX * scale), 2),
+                y: _.round((frameHeight / 2) - (positionY * scale), 2)
+            };
+        }
+        else {
+            throw new Error('Cannot determine position');
+        }
+    };
+    
+    this.calculatePosition = function (focusX, focusY, cameraWidth, cameraHeight, scaleX, scaleY) {
+        if (_.isFinite(focusX) &amp;&amp; _.isFinite(focusY)) {
+            return {
+                x: _.round((focusX * scaleX) - (cameraWidth / 2), 2),
+                y: _.round((focusY * scaleY) - (cameraHeight / 2), 2)
+            };
+        }
+        else {
+            throw new Error('Cannot determine position');
+        }
+    };
+    
+    this.getContentPositionAxisValue = function (axisValue, axisFrameSize, scale) {
+        if (_.isFinite(axisValue)) {
+            return _.round((axisFrameSize / 2) - (axisValue * scale), 2);
+        }
+        else {
+            throw new Error('Cannot determine position');
+        }
+    };
+    
 };
 
 Focuser.prototype.constructor = Focuser;</code></pre>
@@ -87,13 +187,13 @@ Focuser.prototype.constructor = Focuser;</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Externals</h3><ul><li><a href="external-Backbone.html">Backbone</a></li><li><a href="external-jQuery.html">jQuery</a></li><li><a href="external-lodash.html">lodash</a></li><li><a href="external-underscore.html">underscore</a></li><li><a href="external-zepto.html">zepto</a></li></ul><h3>Classes</h3><ul><li><a href="CameraView.html">CameraView</a></li><li><a href="Focuser.html">Focuser</a></li></ul><h3>Namespaces</h3><ul><li><a href="constants.html">constants</a></li><li><a href="utils.html">utils</a></li></ul><h3>Mixins</h3><ul><li><a href="SizableView.html">SizableView</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Externals</h3><ul><li><a href="external-Backbone.html">Backbone</a></li><li><a href="external-Easing.html">Easing</a></li><li><a href="external-Lodash.html">Lodash</a></li><li><a href="external-TimelineMax.html">TimelineMax</a></li><li><a href="external-TweenMax.html">TweenMax</a></li><li><a href="external-Zepto.html">Zepto</a></li></ul><h3>Classes</h3><ul><li><a href="Camera.html">Camera</a></li><li><a href="Camera.Animation.html">Animation</a></li><li><a href="CameraContentView.html">CameraContentView</a></li><li><a href="Focuser.html">Focuser</a></li><li><a href="Matrix2.html">Matrix2</a></li><li><a href="Matrix2D.html">Matrix2D</a></li><li><a href="Oculo.Math.html">Math</a></li><li><a href="Vector2.html">Vector2</a></li></ul><h3>Namespaces</h3><ul><li><a href="constants.html">constants</a></li><li><a href="utils.html">utils</a></li></ul><h3>Mixins</h3><ul><li><a href="SizableView.html">SizableView</a></li></ul><h3>Global</h3><ul><li><a href="global.html#clamp">clamp</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Sun Mar 06 2016 22:40:30 GMT-0500 (EST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Tue Sep 06 2016 20:04:49 GMT-0400 (EDT)
 </footer>
 
 <script> prettyPrint(); </script>

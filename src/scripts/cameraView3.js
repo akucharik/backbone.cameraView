@@ -777,12 +777,12 @@ var Camera = function (options) {
         document.body.style.overflow = 'hidden';
         
         if (event.deltaY && this.isManualZoomEnabled) {
-            var direction = event.deltaY > 0 ? constants.zoom.OUT : constants.zoom.IN;
+            var direction = event.deltaY > 0 ? Camera.zoomDirection.OUT : Camera.zoomDirection.IN;
             var cameraRect;
             var cameraContextPosition = new Vector2();
             var sceneContextPosition = new Vector2();
             var origin = this.scene.origin;
-            var zoom = this.clampZoom(this.zoom + this.zoomIncrement * Math.abs(event.deltaY) * this.zoom * (direction === constants.zoom.IN ? 1 : -1));
+            var zoom = this.clampZoom(this.zoom + this.zoomIncrement * Math.abs(event.deltaY) * this.zoom * (direction === Camera.zoomDirection.IN ? 1 : -1));
 
             // Performance Optimization: If zoom has not changed because it's at the min/max, don't zoom.
             if (zoom !== this.zoom) {
@@ -1292,4 +1292,22 @@ p.zoomAt = function (zoom, x, y, duration, options) {
 p.zoomTo = function (zoom, duration, options) {
 
     return this;
+};
+
+/**
+* Enum for zoom direction.
+* @enum {number}
+* @memberof constants
+*/
+Camera.zoomDirection = {
+    /**
+    * Zoom in.
+    * @readonly
+    */
+    IN: 1,
+    /**
+    * Zoom out.
+    * @readonly
+    */
+    OUT: 0
 };
