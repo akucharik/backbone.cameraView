@@ -612,27 +612,6 @@ var Camera = function (options) {
     this.maxX = null;
     this.maxY = null;
     
-    this._calculateDraggableBounds = function () {
-        var bounds = null;
-        
-        if (this.hasBounds) {
-            var minOffset = new Vector2();
-            var maxOffset = new Vector2();
-            
-            minOffset.copy(this._calculateOffset(new Vector2(this.maxX, this.maxY), this.viewportCenter, this.scene.origin, this.sceneTransformation));
-            maxOffset.copy(this._calculateOffset(new Vector2(this.minX, this.minY), this.viewportCenter, this.scene.origin, this.sceneTransformation));
-
-            bounds = {
-                minX: -minOffset.x,
-                minY: -minOffset.y,
-                maxX: -maxOffset.x,
-                maxY: -maxOffset.y
-            }
-        }
-        
-        return bounds;
-    };
-    
     this.applyBounds = function (newBounds) {
         if (newBounds !== undefined) {
             this.bounds = newBounds;
@@ -641,10 +620,6 @@ var Camera = function (options) {
         if (this.hasBounds) {
             this.position.set(clamp(this.position.x, this.minX, this.maxX), clamp(this.position.y, this.minY, this.maxY));
             this.offset.copy(this._calculateOffset(this.position, this.viewportCenter, this.scene.origin, this.sceneTransformation));
-        }
-        
-        if (this.isDraggable) {
-            this.draggable.applyBounds(this._calculateDraggableBounds());
         }
         
         return this;
@@ -659,19 +634,25 @@ var Camera = function (options) {
         }
     };
     
-    
-    
     /**
     * @property {external:Draggable} - The drag control.
     * @default null
     */
     this.draggable = !this.isDraggable ? null : new Draggable(this.scene.view, {
-        bounds: this._calculateDraggableBounds(),
         onDrag: function (camera) {
-            // 'this' refers to the Draggable instance
-            var offset = new Vector2(-this.x, -this.y);
-            camera.position.copy(camera._calculatePosition(offset, camera.viewportCenter, camera.scene.origin, camera.sceneTransformation));
-            camera.offset.copy(offset);
+            camera.position.copy(camera._calculatePosition(new Vector2(-this.x, -this.y), camera.viewportCenter, camera.scene.origin, camera.sceneTransformation));
+            
+            if (camera.hasBounds) {
+                // Manually tween draggable to consistently enforce bounds based on camera position
+                camera.applyBounds();
+                TweenMax.set(camera.scene.view, { 
+                    css: { 
+                        x: -camera.offset.x, 
+                        y: -camera.offset.y
+                    }
+                });
+            }
+            
             camera._renderDebug();
         },
         onDragParams: [this],
