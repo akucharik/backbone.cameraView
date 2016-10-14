@@ -53,9 +53,7 @@ class Scene {
 */
 Object.defineProperty(Scene.prototype, 'width', {
     get: function () {
-        var computedStyle = window.getComputedStyle(this.view);
-        
-        return this.view.clientWidth + parseFloat(computedStyle.getPropertyValue('border-left-width')) + parseFloat(computedStyle.getPropertyValue('border-right-width'));
+        return this.view.offsetWidth;
     }
 });
 
@@ -66,9 +64,7 @@ Object.defineProperty(Scene.prototype, 'width', {
 */
 Object.defineProperty(Scene.prototype, 'height', {
     get: function () {
-        var computedStyle = window.getComputedStyle(this.view);
-        
-        return this.view.clientHeight + parseFloat(computedStyle.getPropertyValue('border-left-width')) + parseFloat(computedStyle.getPropertyValue('border-right-width'));;
+        return this.view.offsetHeight;
     }
 });
 
