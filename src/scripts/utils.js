@@ -5,14 +5,16 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
-var isElement = _.isElement;
-var isString = _.isString;
+import { 
+    isElement,
+    isString
+} from 'lodash';
 
 /**
 * @namespace utils
 * @static
 */
-var utils = {
+const Utils = {
     /**
     * Get the CSS transform value for an element.
     *
@@ -170,7 +172,7 @@ var utils = {
     }
 };
 
-utils.DOM = {
+Utils.DOM = {
     parseView: function (input) {
         var output = null;
         
@@ -184,3 +186,5 @@ utils.DOM = {
         return output;
     }
 };
+
+export default Utils;

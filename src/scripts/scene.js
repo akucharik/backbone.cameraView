@@ -5,9 +5,12 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
-var isElement = _.isElement;
-var isString = _.isString;
-var Vector2 = Oculo.Vector2;
+import { 
+    isElement,
+    isString
+} from 'lodash';
+import Utils from './utils';
+import Vector2 from './math/vector2';
 
 /**
 * Creates a scene.
@@ -20,7 +23,7 @@ class Scene {
         /**
         * @property {Element} - The view. An HTML element.
         */
-        this.view = utils.DOM.parseView(view);
+        this.view = Utils.DOM.parseView(view);
 
         /**
         * @property {Vector2} - The transformation origin.
@@ -68,3 +71,5 @@ Object.defineProperty(Scene.prototype, 'height', {
         return this.view.clientHeight + parseFloat(computedStyle.getPropertyValue('border-left-width')) + parseFloat(computedStyle.getPropertyValue('border-right-width'));;
     }
 });
+
+export default Scene;

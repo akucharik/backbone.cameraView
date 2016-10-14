@@ -62,8 +62,9 @@ var pick = _.pick;
 var uniqueId = _.uniqueId;
 
 //var DebugView = DebugView;
-//var Scene = Scene;
+var Scene = Oculo.Scene;
 var Matrix2 = Oculo.Matrix2;
+var utils = Oculo.Utils;
 var Vector2 = Oculo.Vector2;
 
 /**
@@ -107,7 +108,7 @@ var Camera = function (options) {
     
     /**
     * The scene which the camera is viewing.
-    * @property {Camera.Scene}
+    * @property {Oculo.Scene}
     */
     this.scene = new Scene(options.scene);
     
