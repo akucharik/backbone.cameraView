@@ -107,6 +107,60 @@ class Vector2 {
     equals (v) {
         return this.constructor.equals(this, v);
     }
+
+    /**
+    * Takes the max of the provided vectors.
+    * @param {...Vector2} v - A vector.
+    * @return {Vector2} A new vector that is the max of the provided vectors.
+    */
+    static max (v) {
+        let vectors = Array.prototype.slice.call(arguments);
+
+        return vectors.reduce((a, b) => new Vector2(Math.max(a.x, b.x), Math.max(a.y, b.y)));
+    }
+    
+    /**
+    * Sets itself to the max among itself and the provided vectors.
+    * @param {...Vector2} v - A vector.
+    * @return {Vector2} The vector.
+    */
+    max (v) {
+        var v1;
+        var vectors = Array.prototype.slice.call(arguments);
+        
+        vectors.unshift(this);
+        v1 = this.constructor.max.apply(null, vectors);
+        this.copy(v1);
+
+        return this;
+    }
+    
+    /**
+    * Takes the min of the provided vectors.
+    * @param {...Vector2} v - A vector.
+    * @return {Vector2} A new vector that is the min of the provided vectors.
+    */
+    static min (v) {
+        let vectors = Array.prototype.slice.call(arguments);
+
+        return vectors.reduce((a, b) => new Vector2(Math.min(a.x, b.x), Math.min(a.y, b.y)));
+    }
+    
+    /**
+    * Sets itself to the min among itself and the provided vectors.
+    * @param {...Vector2} v - A vector.
+    * @return {Vector2} The vector.
+    */
+    min (v) {
+        var v1;
+        var vectors = Array.prototype.slice.call(arguments);
+        
+        vectors.unshift(this);
+        v1 = this.constructor.min.apply(null, vectors);
+        this.copy(v1);
+
+        return this;
+    }
     
     /**
     * Multiplies a vector by a scalar.

@@ -48,6 +48,26 @@ test('Vector2', function() {
         });
     });
     
+    test('Vector2.max', function() {
+        assert('should return a vector with the max values of the provided vectors', function() {
+            v.set(1,2);
+            var v2 = new Vector2(3,10);
+            var v3 = new Vector2(11,4);
+            var v4 = Vector2.max(v, v2, v3);
+            expect(v4).to.deep.equal(new Vector2(11,10));
+        });
+    });
+    
+    test('Vector2.min', function() {
+        assert('should return a vector with the min values of the provided vectors', function() {
+            v.set(1,2);
+            var v2 = new Vector2(3,-10);
+            var v3 = new Vector2(-11,4);
+            var v4 = Vector2.min(v, v2, v3);
+            expect(v4).to.deep.equal(new Vector2(-11,-10));
+        });
+    });
+    
     test('Vector2.multiplyScalar', function() {
         assert('should multiply vector values by the provided scalar', function() {
             v.set(1,2,3,1);
@@ -153,6 +173,26 @@ test('Vector2', function() {
             v.set(1,2);
             var v2 = new Vector2(3,4);
             expect(v.equals(v2)).to.be.false;
+        });
+    });
+    
+    test('max', function() {
+        assert('should set its values to the max values among itself and the provided vectors', function() {
+            v.set(1,2);
+            var v2 = new Vector2(10,3);
+            var v3 = new Vector2(4,11);
+            v.max(v2, v3);
+            expect(v).to.deep.equal(new Vector2(10,11));
+        });
+    });
+    
+    test('min', function() {
+        assert('should set its values to the min values among itself and the provided vectors', function() {
+            v.set(1,2);
+            var v2 = new Vector2(-10,3);
+            var v3 = new Vector2(4,-11);
+            v.min(v2, v3);
+            expect(v).to.deep.equal(new Vector2(-10,-11));
         });
     });
     
