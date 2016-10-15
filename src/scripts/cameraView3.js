@@ -553,21 +553,37 @@ var Camera = function (options) {
     this.zoom = options.zoom || 1;
     
     /**
-    * The camera's bounds. Set to null if no bounds are desired.
-    * @property {Object} - An object representing the camera's bounds.
-    * @default The size of the scene/world.
+    * The internally managed bounds.
+    *
+    * @private
+    * @property {null|function|Object} - The camera's bounds.
     */
-//    this.bounds = options.bounds !== undefined ? options.bounds : function () {
-//        return {
-//            minX: this.viewportCenter.x,
-//            minY: this.viewportCenter.y,
-//            maxX: this.sceneWidth - this.viewportCenter.x,
-//            maxY: this.sceneHeight - this.viewportCenter.y
-//        }
-//    };
-    
     this._bounds = null;
     
+    /**
+    * The camera's bounds. The minimum and maximum position values for the camera. Set to null if no bounds are desired.
+    *
+    * @name Camera#bounds
+    * @property {null|function|Object} - Gets or sets the bounds.
+    * @default The size of the scene/world.
+    *
+    * @example <caption>As a bounds object</caption>
+    * { 
+    *   minX: 0, 
+    *   minY: 0, 
+    *   maxX: this.sceneWidth, 
+    *   maxY: this.sceneHeight
+    * }
+    * @example <caption>As a function that returns a bounds object</caption>
+    * function () { 
+    *   return { 
+    *     minX: this.viewportCenter.x, 
+    *     minY: this.viewportCenter.y, 
+    *     maxX: this.sceneWidth - this.viewportCenter.x, 
+    *     maxY: this.sceneHeight - this.viewportCenter.y 
+    *   } 
+    * }
+    */
     Object.defineProperty(this, 'bounds', {
         get: function () {
             return this._bounds;
