@@ -755,28 +755,30 @@ var Camera = function (options) {
     };
     
     this.onZoomWheel = (event) => {
-        event.preventDefault();
-        document.body.style.overflow = 'hidden';
-        
-        if (event.deltaY && this.isManualZoomEnabled) {
-            var direction = event.deltaY > 0 ? Camera.zoomDirection.OUT : Camera.zoomDirection.IN;
-            var cameraRect;
-            var cameraContextPosition = new Vector2();
-            var sceneContextPosition = new Vector2();
-            var origin = this.scene.origin;
-            var zoom = this._clampZoom(this.zoom + this.zoomIncrement * Math.abs(event.deltaY) * this.zoom * (direction === Camera.zoomDirection.IN ? 1 : -1));
+        if (this.isManualZoomEnabled) {
+            event.preventDefault();
+            document.body.style.overflow = 'hidden';
 
-            // Performance Optimization: If zoom has not changed because it's at the min/max, don't zoom.
-            if (zoom !== this.zoom) {
-                cameraRect = this.view.getBoundingClientRect();
-                cameraContextPosition.set(event.clientX - cameraRect.left, event.clientY - cameraRect.top);
-                sceneContextPosition = this._calculatePosition(this.offset, cameraContextPosition, this.scene.origin, this.sceneTransformation);
-                
-                if (Math.round(origin.x) !== Math.round(sceneContextPosition.x) || Math.round(origin.y) !== Math.round(sceneContextPosition.y)) {
-                    origin = this._calculatePosition(this.offset, cameraContextPosition, this.scene.origin, this.sceneTransformation);
+            if (event.deltaY) {
+                var direction = event.deltaY > 0 ? Camera.zoomDirection.OUT : Camera.zoomDirection.IN;
+                var cameraRect;
+                var cameraContextPosition = new Vector2();
+                var sceneContextPosition = new Vector2();
+                var origin = this.scene.origin;
+                var zoom = this._clampZoom(this.zoom + this.zoomIncrement * Math.abs(event.deltaY) * this.zoom * (direction === Camera.zoomDirection.IN ? 1 : -1));
+
+                // Performance Optimization: If zoom has not changed because it's at the min/max, don't zoom.
+                if (zoom !== this.zoom) {
+                    cameraRect = this.view.getBoundingClientRect();
+                    cameraContextPosition.set(event.clientX - cameraRect.left, event.clientY - cameraRect.top);
+                    sceneContextPosition = this._calculatePosition(this.offset, cameraContextPosition, this.scene.origin, this.sceneTransformation);
+
+                    if (Math.round(origin.x) !== Math.round(sceneContextPosition.x) || Math.round(origin.y) !== Math.round(sceneContextPosition.y)) {
+                        origin = this._calculatePosition(this.offset, cameraContextPosition, this.scene.origin, this.sceneTransformation);
+                    }
+
+                    this.animation = new Oculo.Animation(this, { paused: false }).zoomAt(origin, zoom, 0);
                 }
-
-                this.animation = new Oculo.Animation(this, { paused: false }).zoomAt(origin, zoom, 0);
             }
         }
     };
