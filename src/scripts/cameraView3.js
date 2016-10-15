@@ -969,12 +969,12 @@ p.render = function (animation) {
         animation.invalidate().restart();
     }
     else {
-        this.animation = new Oculo.Animation(this).animate({
+        this.animation = new Oculo.Animation(this, { paused: false }).animate({
             position: this.position,
             origin: this.scene.origin,
             rotation: this.rotation,
             zoom: this.zoom
-        }, 0).resume();
+        }, 0);
     }
     
     this.onRender();
@@ -1012,7 +1012,7 @@ p.play = function () {
 * @returns {this} self
 */
 p.animate = function (props, duration, options) {
-    this.animation = new Oculo.Animation(this).animate(props, duration, options).play();
+    this.animation = new Oculo.Animation(this, { paused: false }).animate(props, duration, options);
     
     return this;
 };
@@ -1024,7 +1024,7 @@ p.animate = function (props, duration, options) {
 * @returns {this} self
 */
 p.moveTo = function (position, duration, options) {
-    this.animation = new Oculo.Animation(this).moveTo(position, duration, options).play();
+    this.animation = new Oculo.Animation(this, { paused: false }).moveTo(position, duration, options);
     
     return this;
 };
@@ -1036,7 +1036,7 @@ p.moveTo = function (position, duration, options) {
 * @returns {this} self
 */
 p.rotateAt = function (rotation, x, y, duration, options) {
-    this.animation = new Oculo.Animation(this).rotateAt(origin, rotation, duration, options).play();
+    this.animation = new Oculo.Animation(this, { paused: false }).rotateAt(origin, rotation, duration, options);
     
     return this;
 };
@@ -1048,7 +1048,7 @@ p.rotateAt = function (rotation, x, y, duration, options) {
 * @returns {this} self
 */
 p.rotateTo = function (rotation, duration, options) {
-    this.animation = new Oculo.Animation(this).rotateTo(rotation, duration, options).play();
+    this.animation = new Oculo.Animation(this, { paused: false }).rotateTo(rotation, duration, options);
     
     return this;
 };
@@ -1060,7 +1060,7 @@ p.rotateTo = function (rotation, duration, options) {
 * @returns {this} self
 */
 p.shake = function (intensity, duration, direction, options) {
-    this.animation = new Oculo.Animation(this).shake(intensity, duration, direction, options).play();
+    this.animation = new Oculo.Animation(this, { paused: false }).shake(intensity, duration, direction, options);
     
     return this;
 };
@@ -1072,7 +1072,7 @@ p.shake = function (intensity, duration, direction, options) {
 * @returns {this} self
 */
 p.zoomAt = function (origin, zoom, duration, options) {
-    this.animation = new Oculo.Animation(this).zoomAt(origin, zoom, duration, options).play();
+    this.animation = new Oculo.Animation(this, { paused: false }).zoomAt(origin, zoom, duration, options);
     
     return this;
 };
@@ -1084,7 +1084,7 @@ p.zoomAt = function (origin, zoom, duration, options) {
 * @returns {this} self
 */
 p.zoomTo = function (zoom, duration, options) {
-    this.animation = new Oculo.Animation(this).zoomTo(zoom, duration, options).play();
+    this.animation = new Oculo.Animation(this, { paused: false }).zoomTo(zoom, duration, options);
     
     return this;
 };
