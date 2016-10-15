@@ -30,12 +30,12 @@ import Vector2 from './math/vector2';
 */
 class Animation extends TimelineMax {
     constructor (camera, options) {
-        super(Object.assign({}, options, {
+        super(Object.assign({}, {
             data: {
                 id: uniqueId()
             },
             paused: true
-        }));
+        }, options));
                                    
         /**
         * @property {Camera} - The camera on which the animation will be applied.

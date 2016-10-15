@@ -750,11 +750,11 @@ var Camera = function (options) {
     }
     
     // Initialize zoom events and behaviors
-    var onZoomLeave = (event) => {
+    this.onZoomLeave = (event) => {
         document.body.style.removeProperty('overflow');
     };
     
-    var onZoomWheel = (event) => {
+    this.onZoomWheel = (event) => {
         event.preventDefault();
         document.body.style.overflow = 'hidden';
         
@@ -771,23 +771,19 @@ var Camera = function (options) {
                 cameraRect = this.view.getBoundingClientRect();
                 cameraContextPosition.set(event.clientX - cameraRect.left, event.clientY - cameraRect.top);
                 sceneContextPosition = this._calculatePosition(this.offset, cameraContextPosition, this.scene.origin, this.sceneTransformation);
-                console.log('offset: ', this.offset);
-                console.log('ccp: ', cameraContextPosition);
-                console.log('scp: ', sceneContextPosition);
+                
                 if (Math.round(origin.x) !== Math.round(sceneContextPosition.x) || Math.round(origin.y) !== Math.round(sceneContextPosition.y)) {
                     origin = this._calculatePosition(this.offset, cameraContextPosition, this.scene.origin, this.sceneTransformation);
                 }
 
-                this.animation = new Oculo.Animation(this).zoomAt(origin, zoom, 0).resume();
+                this.animation = new Oculo.Animation(this, { paused: false }).zoomAt(origin, zoom, 0);
             }
         }
-        
-        //document.body.style.removeProperty('overflow');
     };
 
     if (this.isManualZoomable) {
-        this.view.addEventListener('mouseleave', onZoomLeave);
-        this.view.addEventListener('wheel', utils.throttleToFrame(onZoomWheel));
+        this.view.addEventListener('mouseleave', this.onZoomLeave);
+        this.view.addEventListener('wheel', utils.throttleToFrame(this.onZoomWheel));
     }
     
     this.initialize(options);
