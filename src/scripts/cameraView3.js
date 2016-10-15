@@ -5,7 +5,6 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
-
 /**
 * The Backbone library.
 * @external Backbone
@@ -763,7 +762,7 @@ var Camera = function (options) {
             var cameraContextPosition = new Vector2();
             var sceneContextPosition = new Vector2();
             var origin = this.scene.origin;
-            var zoom = this.clampZoom(this.zoom + this.zoomIncrement * Math.abs(event.deltaY) * this.zoom * (direction === Camera.zoomDirection.IN ? 1 : -1));
+            var zoom = this._clampZoom(this.zoom + this.zoomIncrement * Math.abs(event.deltaY) * this.zoom * (direction === Camera.zoomDirection.IN ? 1 : -1));
 
             // Performance Optimization: If zoom has not changed because it's at the min/max, don't zoom.
             if (zoom !== this.zoom) {
@@ -803,33 +802,6 @@ p._markPoint = function (x, y) {
     
     pointElement.style.top = (point.y - 2) + 'px';
     pointElement.style.left = (point.x - 2) + 'px';
-};
-
-/**
-* Add an animation to the animations object.
-*
-* @private
-* @param {TimelineMax} animation - A TimelineMax object.
-* @returns {TimelineMax} The animation.
-*/
-p._addAnimation = function (animation) {
-    this.animations[animation.data.id] = animation;
-
-    return animation;
-};
-
-/**
-* Animates the camera's scene.
-*
-* @private
-* @param {Object} properties - TODO.
-* @param {number} duration - TODO.
-* @param {Object} [options] - TODO.
-* @returns {TimelineMax} The animation timeline.
-*/
-p._animate = function (properties, duration, options) {
-
-    return this;
 };
 
 /**
@@ -881,117 +853,14 @@ p._calculateOffset = function (scenePosition, cameraContextPosition, sceneOrigin
 };
 
 /**
-* Removes an animation from the animations object.
+* Clamp the zoom.
 *
 * @private
-* @param {TimelineMax} animation - A TimelineMax object.
-* @returns {TimelineMax} The animation.
+* @param {number} value - A zoom value.
+* @returns {number} The clamped zoom value.
 */
-p._removeAnimation = function (animation) {
-    delete this.animations[animation.data.id];
-
-    return animation;
-};
-
-/**
-* Render debug info.
-*
-* @private
-*/
-p._renderDebug = function () {
-    if (this.debug) {
-        this.debugView.update();
-    }
-};
-
-// TODO: Refactor to use use GSAP's Draggable.
-/**
-* Drag the scene.
-*
-* @param {DragEvent} event - The drag event.
-*/
-p.drag = function (event) {
-    var dragDelta = {
-        x: (this.dragStartX - event.clientX) / this.scale,
-        y: (this.dragStartY - event.clientY) / this.scale
-    };
-    var newFocus = {
-        x: this.focus.x + dragDelta.x,
-        y: this.focus.y + dragDelta.y
-    };
-
-    var eventTimeDelta = event.timeStamp - this.previousEventTime;
-
-    this.velocity = {
-        x: dragDelta.x / (eventTimeDelta / 1000),
-        y: dragDelta.y / (eventTimeDelta / 1000)
-    };
-
-    // Log timestamp
-    this.previousEventTime = event.timeStamp;
-
-    // Set x/y point for calculating next move distance
-    this.dragStartX = event.clientX;
-    this.dragStartY = event.clientY;
-
-    this.focusOn(newFocus, { 
-        duration: '0s'
-    });
-
-    return this;
-};
-
-/**
-* End dragging the scene.
-*
-* @param {MouseEvent} event - The mouse event.
-*/
-p.dragEnd = function (event) {
-    var _this = this;
-    var eventTimeDelta = event.timeStamp - this.previousEventTime;
-
-    // Only apply momentum movement if dragging has not stopped
-    if (eventTimeDelta < 66.6) {
-        var previousTime = performance.now();
-        window.requestAnimationFrame(function (timestamp) { 
-            _this.dragDeccelerate(_this.velocity, timestamp - previousTime, timestamp);
-        });
-    }
-
-    this.isDragging = false;
-
-    return this;
-};
-
-// TODO: Messy animation/decceleration.
-// Clean up to generic accelerate that takes args: acceleration, velocity, threshold
-p.dragDeccelerate = function (velocity, timeDelta, timestamp) {
-    velocity.x = velocity.x || 0;
-    velocity.y = velocity.y || 0;
-
-    var _this = this;
-    var newFocus, newVelocity;
-    var previousTime = timestamp;
-
-    newFocus = {
-        x: this.focus.x + velocity.x * (timeDelta / 1000),
-        y: this.focus.y + velocity.y * (timeDelta / 1000)
-    };
-
-    this.focusOn(newFocus, { 
-        duration: '100ms'
-    });
-
-    newVelocity = {
-        x: velocity.x * (1 - 0.1),
-        y: velocity.y * (1 - 0.1)
-    };
-
-    if (Math.abs(velocity.x - newVelocity.x) > 3 || Math.abs(velocity.x - newVelocity.y) > 3) {
-        window.requestAnimationFrame(function (timestamp) { 
-            _this.dragDeccelerate(newVelocity, timestamp - previousTime, timestamp);
-        });    
-    }
+p._clampZoom = function (value) {
+    return clamp(value, this.minZoom, this.maxZoom);
 };
 
 /**
@@ -1021,13 +890,14 @@ p._parsePosition = function (input) {
 };
 
 /**
-* Called when the camera has been created. The default implementation of initialize is a no-op. Override this function with your own code.
+* Render debug info.
 *
-* @param {Object} [options] - The options passed to the constructor when the camera was created.
-* @returns {this} self
+* @private
 */
-p.initialize = function (options) {
-    return this;
+p._renderDebug = function () {
+    if (this.debug) {
+        this.debugView.update();
+    }
 };
 
 /**
@@ -1053,80 +923,12 @@ p.enableManualZoom = function () {
 };
 
 /**
-* TODO
+* Called when the camera has been created. The default implementation of initialize is a no-op. Override this function with your own code.
 *
-* @param {number} value - TODO.
-* @returns {number} The clamped zoom.
+* @param {Object} [options] - The options passed to the constructor when the camera was created.
+* @returns {this} self
 */
-p.clampZoom = function (value) {
-    return clamp(value, this.minZoom, this.maxZoom);
-};
-
-// TODO: Temp rework of clampZoom to figure out maintaining aspect ratio.
-p._clampZoom = function (x, y, maintainRatio) {
-    var clampedZoom = {
-        x: x,
-        y: y
-    };
-    var zoomXDiff = 0;
-    var zoomYDiff = 0;
-    var zoomRatio = this.zoomX / this.zoomY;
-    
-    if (maintainRatio === true) {
-        if (x > this.maxZoom || y > this.maxZoom) {
-            var zoomXDiff = x - this.maxZoom;
-            var zoomYDiff = y - this.maxZoom;
-
-            if (zoomXDiff > zoomYDiff) {
-                clampedZoom.x = this.maxZoom;
-                clampedZoom.y = this.maxZoom / zoomRatio; 
-            }
-            if (zoomYDiff > zoomXDiff) {
-                clampedZoom.y = this.maxZoom;
-                clampedZoom.x = this.maxZoom / zoomRatio; 
-            }
-        }
-
-        if (x < this.minZoom || y < this.minZoom) {
-            var zoomXDiff = x - this.minZoom;
-            var zoomYDiff = y - this.minZoom;
-
-            if (zoomXDiff < zoomYDiff) {
-                clampedZoom.x = this.minZoom;
-                clampedZoom.y = this.minZoom * zoomRatio; 
-            }
-            if (zoomYDiff < zoomXDiff) {
-                clampedZoom.y = this.minZoom;
-                clampedZoom.x = this.minZoom * zoomRatio; 
-            }
-        }
-    }
-    else {
-        clampedZoom.x = clamp(x, this.minZoom, this.maxZoom);
-        clampedZoom.y = clamp(y, this.minZoom, this.maxZoom);
-    }
-    
-    return clampedZoom;
-}
-
-/**
-* Move the camera on an element.
-*
-* @param {Element} position - An element.
-* @param {number} duration - TODO.
-* @param {Object} [options] - TODO.
-* @returns {Camera} The view.
-*//**
-* Move the camera on a point.
-*
-* @param {number} x - The 'x' position on the unzoomed scene.
-* @param {number} y - The 'y' position on the unzoomed scene.
-* @param {number} duration - TODO.
-* @param {Object} [options] - TODO.
-* @returns {Camera} The view.
-*/
-p.moveTo = function (x, y, duration, options) {
-
+p.initialize = function (options) {
     return this;
 };
 
@@ -1183,7 +985,7 @@ p.render = function (animation) {
 /**
 * Pauses all animations.
 *
-* @returns {Camera} The view.
+* @returns {this} self
 */
 p.pause = function () {
     this.animation.pause();
@@ -1195,7 +997,7 @@ p.pause = function () {
 /**
 * Plays all animations from the current playhead position.
 *
-* @returns {Camera} The view.
+* @returns {this} self
 */
 p.play = function () {
     this.animation.play();
@@ -1204,74 +1006,86 @@ p.play = function () {
 };
 
 /**
-* Rotates at a specific element.
+* 
 *
-* @param {number|string} rotation - TODO.
-* @param {Element} position - The element.
-* @param {number} duration - TODO.
-* @param {Object} [options] - TODO.
-* @returns {Camera} The view.
-*//**
-* Rotates at a specific point.
+* @see {@link Camera.Animation#animate|Animation.animate}
+* @returns {this} self
+*/
+p.animate = function (props, duration, options) {
+    this.animation = new Oculo.Animation(this).animate(props, duration, options).play();
+    
+    return this;
+};
+
+/**
+* 
 *
-* @param {number|string} rotation - TODO.
-* @param {string|string} x - TODO.
-* @param {string|string} y - TODO.
-* @param {number} duration - TODO.
-* @param {Object} [options] - TODO.
-* @returns {Camera} The view.
+* @see {@link Camera.Animation#moveTo|Animation.moveTo}
+* @returns {this} self
+*/
+p.moveTo = function (position, duration, options) {
+    this.animation = new Oculo.Animation(this).moveTo(position, duration, options).play();
+    
+    return this;
+};
+
+/**
+* 
+*
+* @see {@link Camera.Animation#rotateAt|Animation.rotateAt}
+* @returns {this} self
 */
 p.rotateAt = function (rotation, x, y, duration, options) {
-
+    this.animation = new Oculo.Animation(this).rotateAt(origin, rotation, duration, options).play();
+    
     return this;
 };
 
 /**
-* Rotates at the current position.
+* 
 *
-* @param {number|string} rotation - TODO.
-* @param {number} duration - TODO.
-* @param {Object} [options] - TODO.
-* @returns {Camera} The view.
+* @see {@link Camera.Animation#rotateTo|Animation.rotateTo}
+* @returns {this} self
 */
 p.rotateTo = function (rotation, duration, options) {
-
+    this.animation = new Oculo.Animation(this).rotateTo(rotation, duration, options).play();
+    
     return this;
 };
 
 /**
-* Zooms in/out at a specific element.
+* 
 *
-* @param {number} zoom - A {@link Camera.zoom|zoom} ratio.
-* @param {Element} position - The element.
-* @param {number} duration - TODO.
-* @param {Object} [options] - TODO.
-* @returns {Camera} The view.
-*//**
-* Zooms in/out at a specific point.
-*
-* @param {number} zoom - A {@link Camera.zoom|zoom} ratio.
-* @param {number} x - TODO.
-* @param {number} y - TODO.
-* @param {number} duration - TODO.
-* @param {Object} [options] - TODO.
-* @returns {Camera} The view.
+* @see {@link Camera.Animation#shake|Animation.shake}
+* @returns {this} self
 */
-p.zoomAt = function (zoom, x, y, duration, options) {
+p.shake = function (intensity, duration, direction, options) {
+    this.animation = new Oculo.Animation(this).shake(intensity, duration, direction, options).play();
+    
+    return this;
+};
 
+/**
+* 
+*
+* @see {@link Camera.Animation#zoomAt|Animation.zoomAt}
+* @returns {this} self
+*/
+p.zoomAt = function (origin, zoom, duration, options) {
+    this.animation = new Oculo.Animation(this).zoomAt(origin, zoom, duration, options).play();
+    
     return this;
 };
 
 /**
 * Zooms in/out at the current position.
 *
-* @param {number} zoom - A {@link Camera.zoom|zoom} ratio.
-* @param {number} duration - TODO.
-* @param {Object} [options] - TODO.
-* @returns {Camera} The view.
+* @see {@link Camera.Animation#zoomTo|Animation.zoomTo}
+* @returns {this} self
 */
 p.zoomTo = function (zoom, duration, options) {
-
+    this.animation = new Oculo.Animation(this).zoomTo(zoom, duration, options).play();
+    
     return this;
 };
 

@@ -157,7 +157,7 @@ class Animation extends TimelineMax {
                 var position = new Vector2(isFinite(tween.data.position.x) ? tween.data.position.x : this.camera.position.x, isFinite(tween.data.position.y) ? tween.data.position.y : this.camera.position.y);
                 var origin = new Vector2(isFinite(tween.data.origin.x) ? tween.data.origin.x : this.camera.position.x, isFinite(tween.data.origin.y) ? tween.data.origin.y : this.camera.position.y);
                 var rotation = isFinite(tween.data.rotation) ? tween.data.rotation : this.camera.rotation;
-                var zoom = this.camera.clampZoom(isFinite(tween.data.zoom) ? tween.data.zoom : this.camera.zoom);
+                var zoom = this.camera._clampZoom(isFinite(tween.data.zoom) ? tween.data.zoom : this.camera.zoom);
                 
                 var transformation = new Matrix2().scale(zoom, zoom).rotate(Oculo.Math.degToRad(-rotation));
                 var originOffset = new Vector2();
