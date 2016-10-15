@@ -670,76 +670,76 @@ var Camera = function (options) {
     });
     
     // Initialize standard events and behaviors
-    var onDragstart = (event) => {
+    this.onDragstart = (event) => {
         event.preventDefault();
         return false;
     };
     
-    var onPress = (event) => {
+    this.onPress = (event) => {
         if (this.isDraggable) {
-            this.view.addEventListener('mouseup', onDragRelease);
-            this.view.addEventListener('mouseleave', onDragLeave);
-            this.view.addEventListener('mousemove', onDragMove);
-            this.view.addEventListener('touchend', onDragRelease);
-            this.view.addEventListener('touchcancel', onDragRelease);
-            this.view.addEventListener('touchmove', onDragMove);
+            this.view.addEventListener('mouseup', this.onDragRelease);
+            this.view.addEventListener('mouseleave', this.onDragLeave);
+            this.view.addEventListener('mousemove', this.onDragMove);
+            this.view.addEventListener('touchend', this.onDragRelease);
+            this.view.addEventListener('touchcancel', this.onDragRelease);
+            this.view.addEventListener('touchmove', this.onDragMove);
         }
         
         this.isPressed = true;
         this._renderDebug();
     };
     
-    var onRelease = (event) => {
-        release();
+    this.onRelease = (event) => {
+        this.release();
     };
     
-    var onLeave = (event) => {
-        release();
+    this.onLeave = (event) => {
+        this.release();
     };
     
-    var onTransitionEnd = (event) => {
+    this.onTransitionEnd = (event) => {
         this.isTransitioning = false;
     };
     
-    var release = () => {
+    this.release = () => {
         this.isPressed = false;
         this._renderDebug();
     };
     
-    this.view.addEventListener('dragstart', onDragstart);
-    this.view.addEventListener('mousedown', onPress);
-    this.view.addEventListener('mouseup', onRelease);
-    this.view.addEventListener('mouseleave', onLeave);
-    this.view.addEventListener('touchstart', onPress);
-    this.view.addEventListener('touchend', onRelease);
-    this.view.addEventListener('touchcancel', onRelease);
-    this.view.addEventListener('transitionend', onTransitionEnd);
+    this.view.addEventListener('dragstart', this.onDragstart);
+    this.view.addEventListener('mousedown', this.onPress);
+    this.view.addEventListener('mouseup', this.onRelease);
+    this.view.addEventListener('mouseleave', this.onLeave);
+    this.view.addEventListener('touchstart', this.onPress);
+    this.view.addEventListener('touchend', this.onRelease);
+    this.view.addEventListener('touchcancel', this.onRelease);
+    this.view.addEventListener('transitionend', this.onTransitionEnd);
     
     // Initialize drag events and behaviors
-    var onDragRelease = (event) => {
-        endDrag(event);
+    this.onDragRelease = (event) => {
+        this.endDrag(event);
     };
     
-    var onDragLeave = (event) => {
-        endDrag(event);
+    this.onDragLeave = (event) => {
+        this.endDrag(event);
     };
     
-    var onDragMove = (event) => {
+    this.onDragMove = (event) => {
         if (this.isPressed && !this.isDragging) {
             this.draggable.startDrag(event);
             this.isDragging = true;
         }
     };
     
-    var endDrag = (event) => {
+    this.endDrag = (event) => {
         if (this.isDragging) {
             this.draggable.endDrag(event);
-            this.view.removeEventListener('mouseup', onDragRelease);
-            this.view.removeEventListener('mouseleave', onDragLeave);
-            this.view.removeEventListener('mousemove', onDragMove);
-            this.view.removeEventListener('touchend', onDragRelease);
-            this.view.removeEventListener('touchcancel', onDragRelease);
-            this.view.removeEventListener('touchmove', onDragMove);
+            this.view.removeEventListener('mouseup', this.onDragRelease);
+            this.view.removeEventListener('mouseleave', this.onDragLeave);
+            this.view.removeEventListener('mousemove', this.onDragMove);
+            this.view.removeEventListener('touchend', this.onDragRelease);
+            this.view.removeEventListener('touchcancel', this.onDragRelease);
+            this.view.removeEventListener('touchmove', this.onDragMove);
             this.isDragging = false;
             this._renderDebug();
         }
