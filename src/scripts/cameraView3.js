@@ -644,15 +644,17 @@ var Camera = function (options) {
             if (camera.hasBounds) {
                 // Manually tween draggable to consistently enforce bounds based on camera position
                 camera.applyBounds();
-                TweenMax.set(camera.scene.view, { 
+                TweenMax.set(this.target, { 
                     css: { 
                         x: -camera.offset.x, 
                         y: -camera.offset.y
-                    }
+                    },
+                    onComplete: function (camera) {
+                        camera._renderDebug();
+                    },
+                    onCompleteParams: [camera]
                 });
             }
-            
-            camera._renderDebug();
         },
         onDragParams: [this],
         zIndexBoost: false
