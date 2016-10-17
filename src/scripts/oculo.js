@@ -1,7 +1,7 @@
 'use strict';
 
 import Animation from './animation';
-import Camera from './cameraView3';
+import Camera from './camera';
 import Math from './math/math';
 import Matrix2 from './math/matrix2';
 import Scene from './scene';
