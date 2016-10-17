@@ -1,6 +1,7 @@
 'use strict';
 
 import Animation from './animation';
+import Camera from './cameraView3';
 import Math from './math/math';
 import Matrix2 from './math/matrix2';
 import Scene from './scene';
@@ -9,6 +10,7 @@ import Vector2 from './math/vector2';
 
 const Oculo = {
     Animation: Animation,
+    Camera: Camera,
     Math: Math,
     Matrix2: Matrix2,
     Scene: Scene,

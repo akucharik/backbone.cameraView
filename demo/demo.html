@@ -117,7 +117,6 @@
     <script type="text/javascript" src="../src/scripts/lib/TweenMax.min.js"></script>
     <script type="text/javascript" src="../build/scripts/oculo.js"></script>
     <script type="text/javascript" src="../src/scripts/sizableView.js"></script>
-    <script type="text/javascript" src="../src/scripts/cameraView3.js"></script>
     <script type="text/javascript" src="scripts/behaviorView.js"></script>
     <script type="text/javascript" src="scripts/scrollView.js"></script>
     <script type="text/javascript" src="scripts/debugPropertyView.js"></script>
@@ -131,7 +130,7 @@
 
             initialize: function () {
                 // Views
-                app.camera = new Camera({
+                app.camera = new Oculo.Camera({
                     view: '#camera',
                     scene: '#scene',
                     bounds: function () {
