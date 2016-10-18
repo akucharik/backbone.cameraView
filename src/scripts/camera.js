@@ -47,19 +47,17 @@
 * @external Easing
 * @see http://greensock.com/docs/#/HTML5/GSAP/Easing/
 */
-
-import { 
-    clamp,
-    isElement,
-    isFinite,
-    isFunction,
-    isObject,
-    isString,
-} from 'lodash';
-import Matrix2 from './math/matrix2';
-import Scene from './scene';
-import Utils from './utils';
-import Vector2 from './math/vector2';
+    
+import clamp      from 'lodash/clamp';
+import isElement  from 'lodash/isElement';
+import isFinite   from 'lodash/isFinite';
+import isFunction from 'lodash/isFunction';
+import isObject   from 'lodash/isObject';
+import isString   from 'lodash/isString';
+import Matrix2    from './math/matrix2';
+import Scene      from './scene';
+import Utils      from './utils';
+import Vector2    from './math/vector2';
 
 /**
 * Factory: Creates a camera to view a scene.

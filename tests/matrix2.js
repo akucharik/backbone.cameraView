@@ -3,10 +3,9 @@
 import { 
     beforeEach, 
     describe as test, 
-    it as assert 
-} from 'mocha';
-import { expect } from 'chai';
-import Matrix2 from '../src/scripts/math/matrix2';
+    it as assert } from 'mocha';
+import { expect }  from 'chai';
+import Matrix2     from '../src/scripts/math/matrix2';
     
 test('Matrix2', function() {
     var m;

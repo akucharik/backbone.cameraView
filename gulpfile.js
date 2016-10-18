@@ -16,27 +16,18 @@ var uglifycss = require('gulp-uglifycss');
 
 var build = {
     destDirectory:  './build',
-    libraries: {
-        destDirectory: './build/scripts',
-        destFileName: 'oculo-libraries.js',
-        destPath: function () {
-            return build.libraries.destDirectory + build.libraries.destFileName;
-        }
-    },
     scripts: {
         destDirectory: './build/scripts',
         destFileName: 'oculo.js',
-        destPath: function () {
-            return build.scripts.destDirectory + build.scripts.destFileName;
+        libraries: {
+            dest: ['./build/scripts/TweenMax.min.js', './build/scripts/Draggable.min.js'],
+            source: ['./src/scripts/lib/TweenMax.min.js', './src/scripts/lib/Draggable.min.js']
         },
         source: './src/scripts/oculo.js'
     },
     styles: {
         destDirectory: './build/styles',
         destFileName: 'oculo.css',
-        destPath: function () {
-            return build.styles.destDirectory + build.styles.destFileName;
-        },
         source: './src/styles/**/*.sass'
     },
     tests: {
@@ -48,48 +39,36 @@ var docs = {
     destDirectory: './docs'
 };
 
-gulp.task('build', ['tests', 'docs', 'styles', 'libraries', 'scripts'], function () {
-    
+// set up default task
+gulp.task('default', ['build']);
+
+gulp.task('build', ['test:scripts', 'compile:styles', 'compile:libraries', 'compile:scripts'], function () {
+    return;
 });
 
-gulp.task('cleanBuild', function () {
-    return del(build.destDirectory);
-});
-
-gulp.task('cleanDocs', function () {
+gulp.task('clean:docs', function () {
     return del(docs.destDirectory);
 });
 
-gulp.task('cleanLibraries', function () {
-    return del(build.libraries.destPath());
+gulp.task('clean:libraries', function () {
+    return del(build.scripts.libraries.dest);
 });
 
-gulp.task('cleanScripts', function () {
-    return del(build.scripts.destPath());
+gulp.task('clean:scripts', function () {
+    return del(build.scripts.destDirectory);
 });
 
-gulp.task('cleanStyles', function () {
-    return del(build.styles.destPath());
+gulp.task('clean:styles', function () {
+    return del(build.styles.destDirectory);
 });
 
-gulp.task('docs', ['cleanDocs'], function () {
-	executeChildProcess('node ./node_modules/jsdoc/jsdoc.js -c jsdocconfig.json');
+gulp.task('compile:libraries', ['clean:libraries'], function () {
+    return gulp.src(build.scripts.libraries.source)
+        .pipe(gulp.dest(build.scripts.destDirectory));
 });
 
-gulp.task('libraries', ['cleanLibraries'], function () {
-    return browserify()
-        .require('gsap')
-        .bundle()
-        .on('error', function (error) { 
-            console.log('Error: ' + error.message); 
-        })
-        .pipe(source(build.libraries.destFileName))
-        .pipe(gulp.dest(build.libraries.destDirectory))
-});
-
-gulp.task('scripts', ['cleanScripts'], function () {
+gulp.task('compile:scripts', ['clean:scripts', 'compile:libraries'], function () {
     return browserify(build.scripts.source, { debug: true })
-        .external('gsap')
         .transform(babelify)
         .bundle()
         .on('error', function (error) { 
@@ -98,15 +77,15 @@ gulp.task('scripts', ['cleanScripts'], function () {
         .pipe(source(build.scripts.destFileName))
         .pipe(gulp.dest(build.scripts.destDirectory))
         // Minify
-//        .pipe(buffer())
-//        .pipe(uglify())
-//        .pipe(rename({
-//            suffix: '.min'
-//        }))
-//        .pipe(gulp.dest(build.scripts.destDirectory));
+        .pipe(buffer())
+        .pipe(uglify())
+        .pipe(rename({
+            suffix: '.min'
+        }))
+        .pipe(gulp.dest(build.scripts.destDirectory));
 });
 
-gulp.task('styles', ['cleanStyles'], function () {
+gulp.task('compile:styles', ['clean:styles'], function () {
     return gulp.src(build.styles.source)
         .pipe(sass({
             outputStyle: 'expanded'
@@ -121,11 +100,11 @@ gulp.task('styles', ['cleanStyles'], function () {
         .pipe(gulp.dest(build.styles.destDirectory));
 });
 
-gulp.task('styles:watch', ['cleanStyles'], function () {
-    gulp.watch(build.styles.source, ['sass']);
+gulp.task('generate:docs', ['clean:docs'], function () {
+	executeChildProcess('node ./node_modules/jsdoc/jsdoc.js -c jsdocconfig.json');
 });
 
-gulp.task('tests', function () {
+gulp.task('test:scripts', function () {
 	return gulp.src(build.tests.source, {
             read: false
         })
@@ -137,5 +116,6 @@ gulp.task('tests', function () {
         }));
 });
 
-// set up default task
-gulp.task('default', ['build']);
+gulp.task('watch:styles', ['clean:styles'], function () {
+    gulp.watch(build.styles.source, ['sass']);
+});

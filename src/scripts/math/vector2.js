@@ -1,9 +1,7 @@
 'use strict';
 
-import { 
-    isFinite, 
-    isNil 
-} from 'lodash';
+import isFinite from 'lodash/isFinite';
+import isNil    from 'lodash/isNil';
 
 /**
 * Creates a 2D vector from a series of values.

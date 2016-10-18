@@ -5,12 +5,10 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
-import { 
-    isElement,
-    isString
-} from 'lodash';
-import Utils from './utils';
-import Vector2 from './math/vector2';
+import isElement from 'lodash/isElement';
+import isString  from 'lodash/isString';
+import Utils     from './utils';
+import Vector2   from './math/vector2';
 
 /**
 * Creates a scene.

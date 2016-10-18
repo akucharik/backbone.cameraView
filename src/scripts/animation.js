@@ -5,17 +5,15 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
-import { 
-    clamp, 
-    isElement, 
-    isFinite, 
-    isNil, 
-    isObject, 
-    isString, 
-    uniqueId 
-} from 'lodash';
-import Matrix2 from './math/matrix2';
-import Vector2 from './math/vector2';
+import clamp     from 'lodash/clamp';
+import isElement from 'lodash/isElement';
+import isFinite  from 'lodash/isFinite';
+import isNil     from 'lodash/isNil';
+import isObject  from 'lodash/isObject';
+import isString  from 'lodash/isString';
+import uniqueId  from 'lodash/uniqueId';
+import Matrix2   from './math/matrix2';
+import Vector2   from './math/vector2';
 
 /**
 * @class Oculo.Animation

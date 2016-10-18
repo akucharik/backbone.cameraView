@@ -1,6 +1,6 @@
 'use strict';
 
-import { isArrayLike } from 'lodash';
+import isArrayLike from 'lodash/isArrayLike';
 
 /**
 * Create 2x2 matrix from a series of values.

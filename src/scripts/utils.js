@@ -5,10 +5,8 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
-import { 
-    isElement,
-    isString
-} from 'lodash';
+import isElement from 'lodash/isElement';
+import isString  from 'lodash/isString';
 
 /**
 * @namespace utils
