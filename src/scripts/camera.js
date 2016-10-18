@@ -52,6 +52,7 @@ import clamp      from 'lodash/clamp';
 import isElement  from 'lodash/isElement';
 import isFinite   from 'lodash/isFinite';
 import isFunction from 'lodash/isFunction';
+import isNil      from 'lodash/isNil';
 import isObject   from 'lodash/isObject';
 import isString   from 'lodash/isString';
 import Matrix2    from './math/matrix2';
@@ -90,16 +91,20 @@ class Camera {
         this.view = Utils.DOM.parseView(options.view);
 
         /**
-        * @property {Element} - TODO.
-        */
-        this.$view = $(this.view);
-
-        /**
         * The scene which the camera is viewing.
         * @property {Oculo.Scene}
         */
         this.scene = new Scene(options.scene);
 
+        /**
+        * The debugging information view.
+        * @property {Backbone.View} - The debugging information view.
+        */
+        this.debugView = new DebugView({
+            model: this,
+            className: 'oculo-debug'
+        });
+        
         /**
         * @property {Oculo.Animation} - The active camera animation.
         */
@@ -484,49 +489,31 @@ class Camera {
 
         /**
         * The width.
+        * @readonly
         * @name Camera#width
-        * @property {number} - Gets or sets the view's width. Includes border and padding. A "change:width" event is emitted if the value has changed.
+        * @property {number} - Gets the view's width. Includes border and padding.
         * @default 960
         */
         Object.defineProperty(this, 'width', {
             get: function () {
-                var computedStyle = window.getComputedStyle(this.view);
-
-                return this.view.clientWidth + parseFloat(computedStyle.getPropertyValue('border-left-width')) + parseFloat(computedStyle.getPropertyValue('border-right-width'));
-            },
-
-            set: function (value) {
-                if (value != this.width) {
-                    this.$view.width(value);
-                    this.trigger('change:width', value);
-                }
+                return this.view.offsetWidth;
             }
         });
 
-        this.width = isFinite(options.width) ? options.width : 960;
-
         /**
         * The height.
+        * @readonly
         * @name Camera#height
-        * @property {number} - Gets or sets the view's height. Includes border and padding. A "change:height" event is emitted if the value has changed.
+        * @property {number} - Gets the view's height. Includes border and padding.
         * @default 540
         */
         Object.defineProperty(this, 'height', {
             get: function () {
-                var computedStyle = window.getComputedStyle(this.view);
-
-                return this.view.clientHeight + parseFloat(computedStyle.getPropertyValue('border-top-width')) + parseFloat(computedStyle.getPropertyValue('border-bottom-width'));
-            },
-
-            set: function (value) {
-                if (value != this.height) {
-                    this.$view.height(value);
-                    this.trigger('change:height', value);
-                }
+                return this.view.offsetHeight;
             }
         });
-
-        this.height = isFinite(options.height) ? options.height : 540;
+        
+        this.setSize(options.width || 960, options.height || 540);
 
         /**
         * The base increment at which the scene will be zoomed.
@@ -665,15 +652,6 @@ class Camera {
             zIndexBoost: false
         });
 
-        /**
-        * The debugging information view.
-        * @property {Backbone.View} - The debugging information view.
-        */
-        this.debugView = new DebugView({
-            model: this,
-            className: 'oculo-debug'
-        });
-
         // Initialize standard events and behaviors
         this.onDragstart = (event) => {
             event.preventDefault();
@@ -793,9 +771,12 @@ class Camera {
             this.view.addEventListener('wheel', Utils.throttleToFrame(this.onZoomWheel));
         }
 
+        // Initialize custom events and behaviors
+        this.listenTo(this, 'change:size', this._onResize);
+        
         this.initialize(options);
     }
-
+    
     _markPoint (x, y) {
         var pointElement = document.getElementById('point');
         var point = new Vector2(x, y).transform(new Matrix2().scale(this.zoom, this.zoom).rotate(Oculo.Math.degToRad(-this.rotation)));
@@ -863,6 +844,10 @@ class Camera {
         return clamp(value, this.minZoom, this.maxZoom);
     }
 
+    _onResize () {
+        console.log('resized');
+    }
+    
     /**
     * Parse the position of the given input within the world.
     *
@@ -981,6 +966,34 @@ class Camera {
         return this;
     }
 
+    /**
+    * Sets the size of the camera.
+    *
+    * @param {number|string} width - The width.
+    * @param {number|string} height - The height.
+    * @returns {this} self
+    */
+    setSize (width, height) {
+        var hasChanged = false;
+        
+        if (!isNil(width) && width !== this.width) {
+            TweenMax.set(this.view, { css: { width: width }});
+            hasChanged = true;
+        }
+        
+        if (!isNil(height) && height !== this.height) {
+            TweenMax.set(this.view, { css: { height: height }});
+            hasChanged = true;
+        }
+
+        if (hasChanged) {
+            this.trigger('change:size');
+            this._renderDebug();
+        }
+        
+        return this;
+    }
+    
     /**
     * Pauses all animations.
     *

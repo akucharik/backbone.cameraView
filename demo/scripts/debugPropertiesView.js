@@ -7,17 +7,7 @@
 
 var DebugPropertiesView = Backbone.View.extend({
     initialize: function (options) {
-        var properties = Object.getOwnPropertyNames(this.model).sort().filter(property => typeof this.model[property] !== 'function' && (typeof this.model[property] !== 'object' || this.model[property] === null));
-        
-        this.childViews = new Array(properties.length);
-        
-        properties.forEach(function (property, index) {
-            this.childViews[index] = new DebugPropertyView({
-                model: this.model,
-                property: property,
-                tagName: 'li'
-            });
-        }, this);
+        this.childViews = [];
         
         this.listenTo(this, 'attach', this._attachChildren);
         
@@ -26,9 +16,29 @@ var DebugPropertiesView = Backbone.View.extend({
 //        this.listenTo(this, 'update', function () { console.log('update properties: ' + this.cid); });
     },
     
+    updateChildren: function () {
+        var properties = Object.getOwnPropertyNames(this.model).sort().filter(property => typeof this.model[property] !== 'function' && (typeof this.model[property] !== 'object' || this.model[property] === null) && property.indexOf('_') !== 0);
+        
+        if (properties.length !== this.childViews.length) {
+            this.destroyChildViews();
+            this.childViews = new Array(properties.length);
+        
+            properties.forEach(function (property, index) {
+                this.childViews[index] = new DebugPropertyView({
+                    model: this.model,
+                    property: property,
+                    tagName: 'li'
+                });
+            }, this);
+            
+            this.render();
+        }
+    },
+    
     render: function() {
         var fragment = document.createDocumentFragment();
         
+        this.updateChildren();
         this.childViews.forEach(function (view) {
             fragment.appendChild(view.render().el);
         });
@@ -39,6 +49,7 @@ var DebugPropertiesView = Backbone.View.extend({
     },
     
     update: function () {
+        this.updateChildren();
         this.childViews.forEach(function (view) {
             view.update();
         });
@@ -48,11 +59,15 @@ var DebugPropertiesView = Backbone.View.extend({
     },
     
     destroy: function () {
+        this.destroyChildViews();
+        this.trigger('destroy');
+        this.remove();
+    },
+    
+    destroyChildViews: function () {
         this.childViews.forEach(function (view) {
             view.destroy();
         });
-        this.trigger('destroy');
-        this.remove();
     },
     
     _attachChildren: function () {
