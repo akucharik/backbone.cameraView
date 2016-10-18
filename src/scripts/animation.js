@@ -147,23 +147,23 @@ class Animation extends TimelineMax {
             callbackScope: this,
             immediateRender: false,
             onStart: function (tween) {
-                var isMoving = (isFinite(tween.data.position.x) && Math.round(tween.data.position.x) !== Math.round(this.camera.position.x)) || (isFinite(tween.data.position.y) && Math.round(tween.data.position.y) !== Math.round(this.camera.position.y));
-                var isRotating = isFinite(tween.data.rotation) && tween.data.rotation !== this.camera.rotation;
-                var isZooming = isFinite(tween.data.zoom) && tween.data.zoom !== this.camera.zoom;
-                var isAnchored = isFinite(tween.data.origin.x) || isFinite(tween.data.origin.y) && !isMoving;
+                tween.data.isMoving = (isFinite(tween.data.position.x) && Math.round(tween.data.position.x) !== Math.round(this.camera.position.x)) || (isFinite(tween.data.position.y) && Math.round(tween.data.position.y) !== Math.round(this.camera.position.y));
+                tween.data.isRotating = isFinite(tween.data.rotation) && tween.data.rotation !== this.camera.rotation;
+                tween.data.isZooming = isFinite(tween.data.zoom) && tween.data.zoom !== this.camera.zoom;
+                tween.data.isAnchored = isFinite(tween.data.origin.x) || isFinite(tween.data.origin.y) && !tween.data.isMoving;
                 
-                var position = new Vector2(isFinite(tween.data.position.x) ? tween.data.position.x : this.camera.position.x, isFinite(tween.data.position.y) ? tween.data.position.y : this.camera.position.y);
-                var origin = new Vector2(isFinite(tween.data.origin.x) ? tween.data.origin.x : this.camera.position.x, isFinite(tween.data.origin.y) ? tween.data.origin.y : this.camera.position.y);
-                var rotation = isFinite(tween.data.rotation) ? tween.data.rotation : this.camera.rotation;
-                var zoom = this.camera._clampZoom(isFinite(tween.data.zoom) ? tween.data.zoom : this.camera.zoom);
+                var position = tween.data.endPosition = new Vector2(isFinite(tween.data.position.x) ? tween.data.position.x : this.camera.position.x, isFinite(tween.data.position.y) ? tween.data.position.y : this.camera.position.y);
+                var origin = tween.data.endOrigin = new Vector2(isFinite(tween.data.origin.x) ? tween.data.origin.x : this.camera.position.x, isFinite(tween.data.origin.y) ? tween.data.origin.y : this.camera.position.y);
+                var rotation = tween.data.endRotation = isFinite(tween.data.rotation) ? tween.data.rotation : this.camera.rotation;
+                var zoom = tween.data.endZoom = this.camera._clampZoom(isFinite(tween.data.zoom) ? tween.data.zoom : this.camera.zoom);
                 
                 var transformation = new Matrix2().scale(zoom, zoom).rotate(Oculo.Math.degToRad(-rotation));
                 var originOffset = new Vector2();
                 var cameraContextPosition = this.camera.viewportCenter;
                 var offset = new Vector2();
                 
-                if (isAnchored) {
-                    position = origin;
+                if (tween.data.isAnchored) {
+                    position = tween.data.endPosition = origin;
                     cameraContextPosition = this.camera._calculateContextPosition(origin, this.camera.position, this.camera.viewportCenter, this.camera.sceneTransformation);
                 }
                 
@@ -171,10 +171,10 @@ class Animation extends TimelineMax {
                 
                 // TODO: For dev only
                 console.log('props: ', {
-                    isAnchored: isAnchored,
-                    isMoving: isMoving,
-                    isRotating: isRotating,
-                    isZooming: isZooming,
+                    isAnchored: tween.data.isAnchored,
+                    isMoving: tween.data.isMoving,
+                    isRotating: tween.data.isRotating,
+                    isZooming: tween.data.isZooming,
                     position: position,
                     origin: origin,
                     rotation: rotation,
@@ -216,6 +216,9 @@ class Animation extends TimelineMax {
             this.camera.shakeVertical = shake.direction === Oculo.Animation.shakeDirection.HORIZONTAL ? false : true;
             
             shakeTimeline = new TimelineMax(Object.assign({}, options, {
+                data: {
+                    type: 'fx'
+                },
                 callbackScope: this,
                 onStart: function (timeline) {
                     this.camera.isShaking = true;

@@ -145,7 +145,8 @@ class Camera {
         */
         Object.defineProperty(this, 'isAnimating', {
             get: function () {
-                return this.animation.isActive();
+                var progress = this.animation.progress();
+                return progress > 0 && progress < 1;
             }
         });
 
@@ -772,7 +773,47 @@ class Camera {
         }
 
         // Initialize custom events and behaviors
-        this.listenTo(this, 'change:size', this._onResize);
+        this.onResize = () => {
+            console.log('resized');
+
+            var offset = this._calculateOffset(this.position, this.viewportCenter, this.scene.origin, new Matrix2().scale(this.zoom, this.zoom).rotate(Oculo.Math.degToRad(-this.rotation)));
+
+            //new Oculo.Animation(this, { paused: false }).moveTo(this.position, 0);
+
+            // TODO: instantly tween to keep center
+            TweenMax.set(this, {
+                offsetX: offset.x,
+                offsetY: offset.y,
+                overwrite: false
+            });
+
+            TweenMax.set(this.scene.view, {
+                css: {
+                    x: -offset.x,
+                    y: -offset.y
+                }
+            });
+
+            if (this.isAnimating) {
+                var inProgressTimeline = this.animation.getChildren(false, false, true).filter((timeline) => {
+                    var progress = timeline.progress();
+                    return progress > 0 && progress < 1
+                })[0];
+
+                var tween = inProgressTimeline.getChildren(false, true, false)[0];
+
+                if (tween.data.isMoving) {
+                    offset = this._calculateOffset(tween.data.endPosition, this.viewportCenter, tween.data.endOrigin, new Matrix2().scale(tween.data.endZoom, tween.data.endZoom).rotate(Oculo.Math.degToRad(-tween.data.endRotation)));
+
+                    tween.updateTo({
+                        offsetX: offset.x,
+                        offsetY: offset.y
+                    });
+                }
+            }
+        }
+        
+        this.listenTo(this, 'change:size', this.onResize);
         
         this.initialize(options);
     }
@@ -842,10 +883,6 @@ class Camera {
     */
     _clampZoom (value) {
         return clamp(value, this.minZoom, this.maxZoom);
-    }
-
-    _onResize () {
-        console.log('resized');
     }
     
     /**

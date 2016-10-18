@@ -151,7 +151,7 @@
                         x: 499,
                         y: 249
                     },
-                    rotation: -120,
+                    rotation: 0,
                     zoom: 1,
                     //zoomIncrement: 0.5,
                     width: 1000,
@@ -162,6 +162,7 @@
                 app.animations = {
                     moveTobox100: new Oculo.Animation(app.camera).animate({position: '#box100', rotation:-20, zoom: 1.5}, 2),
                     moveTo2000: new Oculo.Animation(app.camera).animate({position: {x:2000, y:500}, zoom: 1.5}, 2),
+                    moveTo800Slow: new Oculo.Animation(app.camera).animate({position: {x:800}}, 6),
                     rotateAt200: new Oculo.Animation(app.camera).rotateAt({x:200, y:200}, -10, 2),
                     rotateTo20: new Oculo.Animation(app.camera).rotateTo(-20, 2),
                     shake: new Oculo.Animation(app.camera).shake(0.1, 2, Oculo.Animation.shakeDirection.BOTH),
