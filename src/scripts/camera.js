@@ -641,13 +641,11 @@ class Camera {
                         css: { 
                             x: -camera.offset.x, 
                             y: -camera.offset.y
-                        },
-                        onComplete: function (camera) {
-                            camera._renderDebug();
-                        },
-                        onCompleteParams: [camera]
+                        }
                     });
                 }
+                
+                camera._renderDebug();
             },
             onDragParams: [this],
             zIndexBoost: false
@@ -656,6 +654,8 @@ class Camera {
         // Initialize standard events and behaviors
         this.onDragstart = (event) => {
             event.preventDefault();
+            event.stopPropagation();
+            
             return false;
         };
 
@@ -734,83 +734,73 @@ class Camera {
         }
 
         // Initialize zoom events and behaviors
-        this.onZoomLeave = (event) => {
-            document.body.style.removeProperty('overflow');
-        };
-
         this.onZoomWheel = (event) => {
-            if (this.isManualZoomEnabled) {
-                event.preventDefault();
-                document.body.style.overflow = 'hidden';
+            if (this.isManualZoomEnabled === false) {
+                return;
+            }
+            
+            event.preventDefault();
+            event.stopPropagation();
 
-                if (event.deltaY) {
-                    var direction = event.deltaY > 0 ? Camera.zoomDirection.OUT : Camera.zoomDirection.IN;
-                    var cameraRect;
-                    var cameraContextPosition = new Vector2();
-                    var sceneContextPosition = new Vector2();
-                    var origin = this.scene.origin;
-                    var zoom = this._clampZoom(this.zoom + this.zoomIncrement * Math.abs(event.deltaY) * this.zoom * (direction === Camera.zoomDirection.IN ? 1 : -1));
+            if (event.deltaY) {
+                var direction = event.deltaY > 0 ? Camera.zoomDirection.OUT : Camera.zoomDirection.IN;
+                var cameraRect;
+                var cameraContextPosition = new Vector2();
+                var sceneContextPosition = new Vector2();
+                var origin = this.scene.origin;
+                var zoom = this._clampZoom(this.zoom + this.zoomIncrement * Math.abs(event.deltaY) * this.zoom * (direction === Camera.zoomDirection.IN ? 1 : -1));
 
-                    // Performance Optimization: If zoom has not changed because it's at the min/max, don't zoom.
-                    if (zoom !== this.zoom) {
-                        cameraRect = this.view.getBoundingClientRect();
-                        cameraContextPosition.set(event.clientX - cameraRect.left, event.clientY - cameraRect.top);
-                        sceneContextPosition = this._calculatePosition(this.offset, cameraContextPosition, this.scene.origin, this.sceneTransformation);
+                // Performance Optimization: If zoom has not changed because it's at the min/max, don't zoom.
+                if (zoom !== this.zoom) {
+                    cameraRect = this.view.getBoundingClientRect();
+                    cameraContextPosition.set(event.clientX - cameraRect.left, event.clientY - cameraRect.top);
+                    sceneContextPosition = this._calculatePosition(this.offset, cameraContextPosition, this.scene.origin, this.sceneTransformation);
 
-                        if (Math.round(origin.x) !== Math.round(sceneContextPosition.x) || Math.round(origin.y) !== Math.round(sceneContextPosition.y)) {
-                            origin = this._calculatePosition(this.offset, cameraContextPosition, this.scene.origin, this.sceneTransformation);
-                        }
-
-                        this.animation = new Oculo.Animation(this, { paused: false }).zoomAt(origin, zoom, 0);
+                    if (Math.round(origin.x) !== Math.round(sceneContextPosition.x) || Math.round(origin.y) !== Math.round(sceneContextPosition.y)) {
+                        origin = this._calculatePosition(this.offset, cameraContextPosition, this.scene.origin, this.sceneTransformation);
                     }
+
+                    this.animation = new Oculo.Animation(this, { paused: false }).zoomAt(origin, zoom, 0);
                 }
             }
         };
 
         if (this.isManualZoomable) {
-            this.view.addEventListener('mouseleave', this.onZoomLeave);
-            this.view.addEventListener('wheel', Utils.throttleToFrame(this.onZoomWheel));
+            this.view.addEventListener('wheel', this.onZoomWheel);
         }
 
         // Initialize custom events and behaviors
         this.onResize = () => {
-            console.log('resized');
+            var wasPaused = this.isPaused;
+            
+            // Maintain camera position and update any active animations
+            this.pause();
+            new Oculo.Animation(this, { 
+                paused: false, 
+                onComplete: function (wasPaused) {
+                    // 'this' is bound to the Animation via the Animation class
+                    if (this.camera.isAnimating) {
+                        var inProgressTimeline, tween, props;
+                        
+                        inProgressTimeline = this.camera.animation.getChildren(false, false, true).filter((timeline) => {
+                            var progress = timeline.progress();
+                            return progress > 0 && progress < 1;
+                        })[0];
 
-            var offset = this._calculateOffset(this.position, this.viewportCenter, this.scene.origin, new Matrix2().scale(this.zoom, this.zoom).rotate(Oculo.Math.degToRad(-this.rotation)));
+                        tween = inProgressTimeline.getChildren(false, true, false)[0];
 
-            //new Oculo.Animation(this, { paused: false }).moveTo(this.position, 0);
-
-            // TODO: instantly tween to keep center
-            TweenMax.set(this, {
-                offsetX: offset.x,
-                offsetY: offset.y,
-                overwrite: false
-            });
-
-            TweenMax.set(this.scene.view, {
-                css: {
-                    x: -offset.x,
-                    y: -offset.y
-                }
-            });
-
-            if (this.isAnimating) {
-                var inProgressTimeline = this.animation.getChildren(false, false, true).filter((timeline) => {
-                    var progress = timeline.progress();
-                    return progress > 0 && progress < 1
-                })[0];
-
-                var tween = inProgressTimeline.getChildren(false, true, false)[0];
-
-                if (tween.data.isMoving) {
-                    offset = this._calculateOffset(tween.data.endPosition, this.viewportCenter, tween.data.endOrigin, new Matrix2().scale(tween.data.endZoom, tween.data.endZoom).rotate(Oculo.Math.degToRad(-tween.data.endRotation)));
-
-                    tween.updateTo({
-                        offsetX: offset.x,
-                        offsetY: offset.y
-                    });
-                }
-            }
+                        if (tween.data.isMoving) {
+                            props = Oculo.Animation._calculateTweenProps(this.camera, tween.data.endOrigin, tween.data.endPosition, tween.data.endRotation, tween.data.endZoom);
+                            tween.updateTo(props.tweenProps);
+                        }
+                    }
+                    
+                    if (!wasPaused) {
+                        this.camera.resume();
+                    }
+                },
+                onCompleteParams: [wasPaused]
+            }).moveTo(this.position, 0, { overwrite: false });
         }
         
         this.listenTo(this, 'change:size', this.onResize);
@@ -987,7 +977,7 @@ class Camera {
 
         if (animation) {
             this.animation = animation;
-            animation.invalidate().restart();
+            animation.invalidate().restart(false, false);
         }
         else {
             this.animation = new Oculo.Animation(this, { paused: false }).animate({
@@ -1032,8 +1022,9 @@ class Camera {
     }
     
     /**
-    * Pauses all animations.
+    * Pauses the camera animation.
     *
+    * @see {@link external:TimelineMax|TimelineMax}
     * @returns {this} self
     */
     pause () {
@@ -1044,12 +1035,25 @@ class Camera {
     }
 
     /**
-    * Plays all animations from the current playhead position.
+    * Plays the camera animation forward from the current playhead position.
     *
+    * @see {@link external:TimelineMax|TimelineMax}
     * @returns {this} self
     */
     play () {
         this.animation.play();
+
+        return this;
+    }
+    
+    /**
+    * Resumes playing the camera animation from the current playhead position.
+    *
+    * @see {@link external:TimelineMax|TimelineMax}
+    * @returns {this} self
+    */
+    resume () {
+        this.animation.resume();
 
         return this;
     }
