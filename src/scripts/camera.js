@@ -604,13 +604,15 @@ class Camera {
         this.maxX = null;
         this.maxY = null;
 
-        this.applyBounds = function (newBounds) {
+        this.applyBounds = function (position, newBounds) {
+            position = position || this.position;
+            
             if (newBounds !== undefined) {
                 this.bounds = newBounds;
             }
 
             if (this.hasBounds) {
-                this.position.set(clamp(this.position.x, this.minX, this.maxX), clamp(this.position.y, this.minY, this.maxY));
+                this.position.set(clamp(position.x, this.minX, this.maxX), clamp(position.y, this.minY, this.maxY));
                 this.offset.copy(this._calculateOffset(this.position, this.viewportCenter, this.scene.origin, this.sceneTransformation));
             }
 
@@ -632,17 +634,21 @@ class Camera {
         */
         this.draggable = !this.isDraggable ? null : new Draggable(this.scene.view, {
             onDrag: function (camera) {
-                camera.position.copy(camera._calculatePosition(new Vector2(-this.x, -this.y), camera.viewportCenter, camera.scene.origin, camera.sceneTransformation));
+                var position = camera._calculatePosition(new Vector2(-this.x, -this.y), camera.viewportCenter, camera.scene.origin, camera.sceneTransformation);
 
                 if (camera.hasBounds) {
                     // Manually tween draggable to consistently enforce bounds based on camera position
-                    camera.applyBounds();
+                    camera.applyBounds(position);
                     TweenMax.set(this.target, { 
                         css: { 
                             x: -camera.offset.x, 
                             y: -camera.offset.y
                         }
                     });
+                }
+                else {
+                    camera.position.copy(position);
+                    camera.offset.set(-this.x, -this.y);
                 }
                 
                 camera._renderDebug();

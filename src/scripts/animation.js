@@ -80,10 +80,10 @@ class Animation extends TimelineMax {
     * @param {Object} config - An object of {@link external:TweenMax|TweenMax} options.
     */
     static _onUpdate (camera, config) {
-        var offset;
+        var offset, position;
             
-        camera.position.copy(camera._calculatePosition(camera.offset, camera.viewportCenter, camera.scene.origin, camera.sceneTransformation));
-        camera.applyBounds();
+        position = camera._calculatePosition(camera.offset, camera.viewportCenter, camera.scene.origin, camera.sceneTransformation);
+        camera.applyBounds(position);
         offset = camera.offset.clone();
 
         if (camera.isShaking) {
@@ -105,7 +105,7 @@ class Animation extends TimelineMax {
                 x: -offset.x,
                 y: -offset.y
             },
-            force3D: true
+            force3D: false
         });
 
         if (config.onUpdate !== undefined) {
