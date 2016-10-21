@@ -148,35 +148,48 @@ class Animation extends TimelineMax {
         config = config || {};
         
         var animation = new Oculo.Animation(camera);
-        var parsedProps = Animation._parseProps(props, camera);
-        var props = Animation._calculateTweenProps(camera, parsedProps.origin, parsedProps.position, parsedProps.rotation, parsedProps.zoom);
+        var parsedProps = animation._parseProps(props, camera);
+        var props = animation._calculateEndProps(parsedProps.origin, parsedProps.position, parsedProps.rotation, parsedProps.zoom, camera);
+                
+        // Smooth origin change
+        if (!props.endOrigin.equals(camera.scene.origin)) {
+            animation._updateOrigin(props.endOrigin, camera);
+        }
         
-        var tween = TweenMax.set(camera, Object.assign({}, config, props.tweenProps, {
+        animation.add(TweenMax.set(camera, Object.assign({}, config, {
+            data: props,
+            offsetX: props.endOffset.x,
+            offsetY: props.endOffset.y,
+            rotation: props.endRotation,
+            zoom: props.endZoom,
             onUpdate: Animation._onUpdate,
             onUpdateParams: [camera, config],
             onComplete: Animation._onComplete,
             onCompleteParams: [camera, config]
-        }));
+        })));
         
         return animation;
     }
     
-    static _parseProps (props, camera) {
+    /**
+    * Parses the provided animation properties.
+    *
+    * @private
+    * @param {Object} props - The properties.
+    * @param {Oculo.Camera} camera - The camera.
+    * @returns {Object} - The parsed properties.
+    */
+    _parseProps (props, camera) {
         var parsedProps = {
             position: {},
             origin: {},
-            rotation: null,
+            rotation: props.rotation,
             shake: {},
             zoom: props.zoom
         };
         
         parsedProps.position = Utils.parsePosition(props.position, camera.scene.view);
-        
         parsedProps.origin = Utils.parsePosition(props.origin, camera.scene.view);
-        
-        if (isFinite(props.rotation)) {
-            parsedProps.rotation = props.rotation;
-        }
         
         if (props.shake) {
             parsedProps.shake.intensity = isNil(props.shake.intensity) ? 0 : props.shake.intensity;
@@ -188,96 +201,74 @@ class Animation extends TimelineMax {
         return parsedProps;
     }
     
-    static _calculateTweenProps (camera, sourceOrigin, sourcePosition, sourceRotation, sourceZoom) {
+    /**
+    * Calculates the end property values.
+    *
+    * @private
+    * @param {Object|Vector2} sourceOrigin - The source origin.
+    * @param {Object|Vector2} sourcePosition - The source position.
+    * @param {number} sourceRotation - The source rotation.
+    * @param {number} sourceZoom - The source zoom.
+    * @param {Oculo.Camera} camera - The camera.
+    * @returns {Object} - The end properties.
+    */
+    _calculateEndProps (sourceOrigin, sourcePosition, sourceRotation, sourceZoom, camera) {
         var position = new Vector2(isFinite(sourcePosition.x) ? sourcePosition.x : camera.position.x, isFinite(sourcePosition.y) ? sourcePosition.y : camera.position.y);
         var origin = new Vector2(isFinite(sourceOrigin.x) ? sourceOrigin.x : camera.scene.origin.x, isFinite(sourceOrigin.y) ? sourceOrigin.y : camera.scene.origin.y);
         var rotation = isFinite(sourceRotation) ? sourceRotation : camera.rotation;
         var zoom = camera._clampZoom(isFinite(sourceZoom) ? sourceZoom : camera.zoom);
         var transformation = new Matrix2().scale(zoom, zoom).rotate(Oculo.Math.degToRad(-rotation));
-        var originOffset = new Vector2();
         var cameraContextPosition = camera.viewportCenter;
         var offset = new Vector2();
-        var data = {};
-        var endProps = {};
-        var tweenProps = {};
 
-        data.isMoving = isFinite(sourcePosition.x) || isFinite(sourcePosition.y);
-        data.isRotating = isFinite(sourceRotation) && sourceRotation !== camera.rotation;
-        data.isZooming = isFinite(sourceZoom) && sourceZoom !== camera.zoom;
+        var isMoving = isFinite(sourcePosition.x) || isFinite(sourcePosition.y);
+        var isRotating = isFinite(sourceRotation) && sourceRotation !== camera.rotation;
+        var isZooming = isFinite(sourceZoom) && sourceZoom !== camera.zoom;
 
-        if (!data.isMoving && !isFinite(sourceOrigin.x) && !isFinite(sourceOrigin.y)) {
+        if (!isMoving && !isFinite(sourceOrigin.x) && !isFinite(sourceOrigin.y)) {
             origin.copy(camera.position);
         }
         
-        if (!data.isMoving) {
+        if (!isMoving) {
             position.copy(origin);
             cameraContextPosition = camera._calculateContextPosition(origin, camera.position, camera.viewportCenter, camera.sceneTransformation);
         }
 
         offset = camera._calculateOffset(position, cameraContextPosition, origin, transformation);
 
-        endProps.endOrigin = origin;
-        endProps.endPosition = position;
-        endProps.endRotation = rotation;
-        endProps.endZoom = zoom;
-
-        if (data.isMoving) {
-            tweenProps.offsetX = offset.x;
-            tweenProps.offsetY = offset.y;
-        }
-
-        if (data.isRotating) {
-            tweenProps.rotation = rotation;
-        }
-
-        if (data.isZooming) {
-            tweenProps.zoom = zoom;
-        }
-
-        // TODO: For dev only
-//                console.log('props: ', {
-//                    isMoving: data.isMoving,
-//                    isRotating: data.isRotating,
-//                    isZooming: data.isZooming,
-//                    sourcePosition: sourcePosition,
-//                    sourceOrigin: sourceOrigin,
-//                    sourceRotation: sourceRotation,
-//                    sourceZoom: sourceZoom,
-//                    startOrigin: tween.data.startOrigin,
-//                    startPosition: tween.data.startPosition,
-//                    startRotation: tween.data.startRotation,
-//                    startZoom: tween.data.startZoom,
-//                    endOrigin: endProps.endOrigin,
-//                    endPosition: endProps.endPosition,
-//                    endRotation: endProps.endRotation,
-//                    endZoom: endProps.endZoom
-//                });
-                console.log('tween props: ', tweenProps);
-
-        // Smooth origin change
-        if (!origin.equals(camera.scene.origin)) {
-            originOffset = origin.clone().transform(camera.sceneTransformation).subtract(camera.scene.origin.clone().transform(camera.sceneTransformation), origin.clone().subtract(camera.scene.origin));
-
-            if (camera.isRotated || camera.isZoomed) {
-                camera.offset.set(camera.offset.x - originOffset.x, camera.offset.y - originOffset.y);
-            }
-
-            camera.scene.origin.copy(origin);
-            TweenMax.set(camera.scene.view, { 
-                css: {
-                    transitionDuration: '0s',
-                    transformOrigin: origin.x + 'px ' + origin.y + 'px',
-                    x: -camera.offset.x,
-                    y: -camera.offset.y
-                },
-            });
-        }
-
-        return { 
-            data: data,
-            endProps: endProps,
-            tweenProps: tweenProps
+        return {
+            isMoving: isMoving,
+            isRotating: isRotating,
+            isZooming: isZooming,
+            endOffset: offset,
+            endOrigin: origin,
+            endRotation: rotation,
+            endZoom: zoom
         };
+    }
+    
+    /**
+    * Updates the origin.
+    *
+    * @private
+    * @param {Vector2} origin - The origin.
+    * @param {Oculo.Camera} camera - The camera.
+    */
+    _updateOrigin (origin, camera) {
+        var originOffset = origin.clone().transform(camera.sceneTransformation).subtract(camera.scene.origin.clone().transform(camera.sceneTransformation), origin.clone().subtract(camera.scene.origin));
+
+        if (camera.isRotated || camera.isZoomed) {
+            camera.offset.set(camera.offset.x - originOffset.x, camera.offset.y - originOffset.y);
+        }
+
+        camera.scene.origin.copy(origin);
+        TweenMax.set(camera.scene.view, { 
+            css: {
+                transformOrigin: origin.x + 'px ' + origin.y + 'px',
+                x: -camera.offset.x,
+                y: -camera.offset.y
+            },
+        });
     }
     
     /**
@@ -294,9 +285,9 @@ class Animation extends TimelineMax {
         
         var mainTimeline = new TimelineMax();
         var shakeTimeline = null;
-        var parsedProps = Oculo.Animation._parseProps(props, this.camera);
-        var position = parsedProps.position;
+        var parsedProps = this._parseProps(props, this.camera);
         var origin = parsedProps.origin;
+        var position = parsedProps.position;
         var rotation = parsedProps.rotation;
         var shake = parsedProps.shake;
         var zoom = parsedProps.zoom;
@@ -312,18 +303,21 @@ class Animation extends TimelineMax {
             callbackScope: this,
             immediateRender: false,
             onStart: function (tween) {
-                var props = Animation._calculateTweenProps(this.camera, tween.data.sourceOrigin, tween.data.sourcePosition, tween.data.sourceRotation, tween.data.sourceZoom);
+                var props = this._calculateEndProps(tween.data.sourceOrigin, tween.data.sourcePosition, tween.data.sourceRotation, tween.data.sourceZoom, this.camera);
                 
-                tween.data.isMoving = props.data.isMoving;
-                tween.data.isRotating = props.data.isRotating;
-                tween.data.isZooming = props.data.isZooming;
+                Object.assign(tween.data, props);
                 
-                tween.data.endOrigin = props.endProps.endOrigin;
-                tween.data.endPosition = props.endProps.endPosition;
-                tween.data.endRotation = props.endProps.endRotation;
-                tween.data.endZoom = props.endProps.endZoom;
+                // Smooth origin change
+                if (!props.endOrigin.equals(this.camera.scene.origin)) {
+                    this._updateOrigin(props.endOrigin, this.camera);
+                }
                 
-                tween.updateTo(props.tweenProps);
+                tween.updateTo({
+                    offsetX: props.endOffset.x,
+                    offsetY: props.endOffset.y,
+                    rotation: props.endRotation,
+                    zoom: props.endZoom
+                });
             },
             onStartParams: ['{self}']
         })), 0);
