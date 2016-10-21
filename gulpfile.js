@@ -20,8 +20,8 @@ var build = {
         destDirectory: './build/scripts',
         destFileName: 'oculo.js',
         libraries: {
-            dest: ['./build/scripts/TweenMax.min.js', './build/scripts/Draggable.min.js'],
-            source: ['./src/scripts/lib/TweenMax.min.js', './src/scripts/lib/Draggable.min.js']
+            dest: ['./build/scripts/TweenMax.min.js', './build/scripts/Draggable.min.js', './build/scripts/ModifiersPlugin.min.js'],
+            source: ['./src/scripts/lib/TweenMax.min.js', './src/scripts/lib/Draggable.min.js', './src/scripts/lib/ModifiersPlugin.min.js']
         },
         source: './src/scripts/oculo.js'
     },
@@ -77,12 +77,12 @@ gulp.task('compile:scripts', ['clean:scripts', 'compile:libraries'], function ()
         .pipe(source(build.scripts.destFileName))
         .pipe(gulp.dest(build.scripts.destDirectory))
         // Minify
-        .pipe(buffer())
-        .pipe(uglify())
-        .pipe(rename({
-            suffix: '.min'
-        }))
-        .pipe(gulp.dest(build.scripts.destDirectory));
+//        .pipe(buffer())
+//        .pipe(uglify())
+//        .pipe(rename({
+//            suffix: '.min'
+//        }))
+//        .pipe(gulp.dest(build.scripts.destDirectory));
 });
 
 gulp.task('compile:styles', ['clean:styles'], function () {
@@ -92,12 +92,12 @@ gulp.task('compile:styles', ['clean:styles'], function () {
         }).on('error', sass.logError))
         .pipe(gulp.dest(build.styles.destDirectory))
         // Minify
-        .pipe(buffer())
-        .pipe(uglifycss())
-        .pipe(rename({
-            suffix: '.min'
-        }))
-        .pipe(gulp.dest(build.styles.destDirectory));
+//        .pipe(buffer())
+//        .pipe(uglifycss())
+//        .pipe(rename({
+//            suffix: '.min'
+//        }))
+//        .pipe(gulp.dest(build.styles.destDirectory));
 });
 
 gulp.task('generate:docs', ['clean:docs'], function () {
