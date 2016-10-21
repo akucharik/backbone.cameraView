@@ -778,13 +778,17 @@ class Camera {
 
         // Initialize custom events and behaviors
         this.onResize = () => {
+            var wasAnimating = this.isAnimating;
             var wasPaused = this.isPaused;
-            
+
             // Maintain camera position and update any active animations
-            this.pause();
+            if (this.isAnimating) {
+                this.pause();
+            }
+            
             new Oculo.Animation(this, { 
                 paused: false, 
-                onComplete: function (wasPaused) {
+                onComplete: function (wasAnimating, wasPaused) {
                     // 'this' is bound to the Animation via the Animation class
                     if (this.camera.isAnimating) {
                         var inProgressTimeline, tween, props;
@@ -801,12 +805,12 @@ class Camera {
                             tween.updateTo(props.tweenProps);
                         }
                     }
-                    
-                    if (!wasPaused) {
+
+                    if (wasAnimating && !wasPaused) {
                         this.camera.resume();
                     }
                 },
-                onCompleteParams: [wasPaused]
+                onCompleteParams: [wasAnimating, wasPaused]
             }).moveTo(this.position, 0, { overwrite: false });
         }
         
