@@ -80,7 +80,6 @@ class Camera {
     constructor (options) {
         options = options || {};
         this.config = options || {};
-        options.position = this._parsePosition(options.position);
 
         // Compose object
         Object.assign(this, Backbone.Events);
@@ -104,6 +103,8 @@ class Camera {
             model: this,
             className: 'oculo-debug'
         });
+        
+        options.position = Utils.parsePosition(options.position, this.scene.view);
         
         /**
         * @property {Oculo.Animation} - The active camera animation.
@@ -879,32 +880,6 @@ class Camera {
     */
     _clampZoom (value) {
         return clamp(value, this.minZoom, this.maxZoom);
-    }
-    
-    /**
-    * Parse the position of the given input within the world.
-    *
-    * @private
-    * @param {string|Element|Object} [input] - The input to parse.
-    * @returns {Vector2} The position.
-    */
-    _parsePosition (input) {
-        var objectPosition;
-        var position = new Vector2();
-
-        if (isString(input)) {
-            input = document.querySelector(input);
-        }
-
-        if (isElement(input)) {
-            objectPosition = this.camera.scene.getObjectWorldPosition(input);
-            position.copy(objectPosition);
-        }
-        else if (isObject(input)) {
-            position.copy(input);
-        }
-
-        return position;
     }
 
     /**

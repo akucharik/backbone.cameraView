@@ -14,6 +14,7 @@ import isObject   from 'lodash/isObject';
 import isString   from 'lodash/isString';
 import uniqueId   from 'lodash/uniqueId';
 import Matrix2    from './math/matrix2';
+import Utils      from './utils';
 import Vector2    from './math/vector2';
 
 /**
@@ -169,9 +170,9 @@ class Animation extends TimelineMax {
             zoom: props.zoom
         };
         
-        parsedProps.position = Oculo.Animation._parsePosition(props.position, camera);
+        parsedProps.position = Utils.parsePosition(props.position, camera.scene.view);
         
-        parsedProps.origin = Oculo.Animation._parsePosition(props.origin, camera);
+        parsedProps.origin = Utils.parsePosition(props.origin, camera.scene.view);
         
         if (isFinite(props.rotation)) {
             parsedProps.rotation = props.rotation;
@@ -405,38 +406,6 @@ class Animation extends TimelineMax {
         this.add(mainTimeline);
         
         return this;
-    }
-    
-    /**
-    * Parse the position of the given input within the scene/world.
-    *
-    * @private
-    * @param {string|Element|Object} [input] - The input to parse.
-    * @param {Oculo.Camera} camera - The camera.
-    * @returns {Object} The position.
-    */
-    static _parsePosition (input, camera) {
-        var objectPosition;
-        var position = {
-            x: null,
-            y: null
-        };
-        
-        if (isString(input)) {
-            input = document.querySelector(input);
-        }
-        
-        if (isElement(input)) {
-            objectPosition = camera.scene.getObjectWorldPosition(input);
-            position.x = objectPosition.x;
-            position.y = objectPosition.y;
-        }
-        else if (isObject(input)) {
-            position.x = input.x;
-            position.y = input.y;
-        }
-        
-        return position;
     }
     
     /**

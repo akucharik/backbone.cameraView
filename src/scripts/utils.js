@@ -6,7 +6,9 @@
 */
 
 import isElement from 'lodash/isElement';
+import isObject  from 'lodash/isObject';
 import isString  from 'lodash/isString';
+import Vector2   from './math/vector2';
 
 /**
 * @namespace utils
@@ -167,10 +169,56 @@ const Utils = {
                 });    
             }
         };
+    },
+    
+    /**
+    * Parse the position of the given input within the world.
+    *
+    * @private
+    * @param {string|Element|Object} [input] - The input to parse.
+    * @param {Element} world - The world.
+    * @returns {Object} The parsed position as an x/y position object.
+    */
+    parsePosition: function (input, world) {
+        var objectPosition;
+        var position = {
+            x: null,
+            y: null
+        };
+        
+        if (isString(input)) {
+            input = document.querySelector(input);
+        }
+        
+        if (isElement(input)) {
+            objectPosition = Utils.DOM.getObjectWorldPosition(input, world);
+            position.x = objectPosition.x;
+            position.y = objectPosition.y;
+        }
+        else if (isObject(input)) {
+            position.x = input.x;
+            position.y = input.y;
+        }
+        
+        return position;
     }
 };
 
 Utils.DOM = {
+    /**
+    * Get an object's position in the world.
+    *
+    * @param {Element} object - The object.
+    * @param {Element} world - The world.
+    * @returns {Vector2} The object's position.
+    */
+    getObjectWorldPosition: function (object, world) {
+        var x = (object.offsetWidth / 2) + object.offsetLeft - world.offsetLeft;
+        var y = (object.offsetHeight / 2) + object.offsetTop - world.offsetTop;
+
+        return new Vector2(x, y);
+    },
+    
     parseView: function (input) {
         var output = null;
         
