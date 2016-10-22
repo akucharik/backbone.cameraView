@@ -15,6 +15,11 @@ var uglify = require('gulp-uglify');
 var uglifycss = require('gulp-uglifycss');
 
 var build = {
+    demo: {
+        destDirectory: './demo/scripts',
+        destFileName: 'demo.js',
+        source: './demo/src/scripts/demo.js'
+    },
     destDirectory:  './build',
     scripts: {
         destDirectory: './build/scripts',
@@ -60,6 +65,24 @@ gulp.task('clean:scripts', function () {
 
 gulp.task('clean:styles', function () {
     return del(build.styles.destDirectory);
+});
+
+gulp.task('compile:demo', function () {
+    return browserify(build.demo.source, { debug: true })
+        .transform(babelify)
+        .bundle()
+        .on('error', function (error) { 
+            console.log('Error: ' + error.message); 
+        })
+        .pipe(source(build.demo.destFileName))
+        .pipe(gulp.dest(build.demo.destDirectory))
+        // Minify
+//        .pipe(buffer())
+//        .pipe(uglify())
+//        .pipe(rename({
+//            suffix: '.min'
+//        }))
+//        .pipe(gulp.dest(build.scripts.destDirectory));
 });
 
 gulp.task('compile:libraries', ['clean:libraries'], function () {

@@ -110,6 +110,8 @@
         </div>
     </div>
     
+    <div id="dropdown"></div>
+    
     <script type="text/javascript" src="../src/scripts/lib/zepto.min.js"></script>
     <script type="text/javascript" src="../src/scripts/lib/lodash.min.js"></script>
     <script type="text/javascript" src="../src/scripts/lib/backbone-min.js"></script>
@@ -123,6 +125,8 @@
     <script type="text/javascript" src="scripts/debugPropertiesView.js"></script>
     <script type="text/javascript" src="scripts/debugScrollView.js"></script>
     <script type="text/javascript" src="scripts/debugView.js"></script>
+    
+    <script type="text/javascript" src="scripts/demo.js"></script>
     
     <script type="text/javascript">
         // App
@@ -161,12 +165,13 @@
                 // Animations
                 app.animations = {
                     moveTobox100: new Oculo.Animation(app.camera).animate({position: '#box100', rotation:-20, zoom: 1.5}, 2),
-                    moveTo2000: new Oculo.Animation(app.camera).animate({position: {x:2000, y:500}, zoom: 1.5}, 2),
-                    moveTo800Slow: new Oculo.Animation(app.camera).animate({position: {x:800}}, 6),
-                    rotateAt200: new Oculo.Animation(app.camera).rotateAt({x:200, y:200}, -10, 2),
+                    moveTo2000: new Oculo.Animation(app.camera).animate({position: {x:2000, y:500}, zoom: 1}, 2),
+                    moveTo800Slow: new Oculo.Animation(app.camera).animate({position: {x:800}, zoom: 1.5}, 8),
+                    rotateAt200: new Oculo.Animation(app.camera).rotateAt({x:200, y:200}, -50, 5),
                     rotateTo20: new Oculo.Animation(app.camera).rotateTo(-20, 2),
                     shake: new Oculo.Animation(app.camera).shake(0.1, 2, Oculo.Animation.shakeDirection.BOTH),
-                    shakeSmooth: new Oculo.Animation(app.camera).shake(0.1, 2, Oculo.Animation.shakeDirection.BOTH, { easeIn: Power2.easeIn, easeOut: Power2.easeOut }),
+                    shakeSmooth: new Oculo.Animation(app.camera).shake(0.1, 4, Oculo.Animation.shakeDirection.BOTH, { easeIn: Power2.easeIn, easeOut: Power2.easeOut }),
+                    zoomAt100: new Oculo.Animation(app.camera).zoomAt({x:100, y:100}, 2, 2),
                     zoomTo50: new Oculo.Animation(app.camera).zoomTo(0.5, 2),
                     zoomTo200: new Oculo.Animation(app.camera).zoomTo(2, 2),
                 };
