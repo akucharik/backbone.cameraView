@@ -5,24 +5,17 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
-import React           from 'react';
-import data            from '../data/data';
-import ShakeEaseInList from '../containers/shakeEaseInList';
-import DropdownList    from './dropdownlist';
+import React         from 'react';
+import data          from '../data/data';
+import actions       from '../actions';
+import BehaviorGroup from '../containers/behaviorGroup';
+import DropdownList  from '../containers/dropdownList';
 
-class App extends React.Component {
-    constructor (props) {
-        super(props);
-    }
-    
-    render () {
-        return (
-            <div>
-                <DropdownList items={data.behaviorTypes} itemTextKey='text' itemValueKey='value' />
-                <ShakeEaseInList items={data.easingList} itemTextKey='text' itemValueKey='value' />
-            </div>
-        );
-    }
-}
+const App = () => (
+    <div>
+        <DropdownList items={data.behaviorGroups} itemTextKey='text' itemValueKey='value' valueKey='behaviorGroup' onChange={actions.updateBehaviorGroup} />
+        <BehaviorGroup />
+    </div>
+);
 
 export default App;

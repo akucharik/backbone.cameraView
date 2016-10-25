@@ -9,13 +9,39 @@ import actions from './actions';
 
 const reducers = {};
 
+reducers.behaviorGroup = function (value, action) {
+    if (value === undefined) {
+        value = 'move';
+    }
+    
+    switch (action.type) {
+        case actions.type.UPDATE_BEHAVIOR_GROUP:
+            return action.behaviorGroup;
+        default: 
+            return value;
+    }
+};
+
 reducers.shakeEaseIn = function (value, action) {
     if (value === undefined) {
-        value = 'Power2.easeIn';
+        value = 'Power0.easeNone';
     }
     
     switch (action.type) {
         case actions.type.UPDATE_SHAKE_EASEIN:
+            return action.easing;
+        default: 
+            return value;
+    }
+};
+
+reducers.shakeEaseOut = function (value, action) {
+    if (value === undefined) {
+        value = 'Power0.easeNone';
+    }
+    
+    switch (action.type) {
+        case actions.type.UPDATE_SHAKE_EASEOUT:
             return action.easing;
         default: 
             return value;
@@ -28,7 +54,9 @@ reducers.app = function (state, action) {
     }
 
     return {
-        shakeEaseIn: reducers.shakeEaseIn(state.shakeEaseIn, action)
+        behaviorGroup: reducers.behaviorGroup(state.behaviorGroup, action),
+        shakeEaseIn: reducers.shakeEaseIn(state.shakeEaseIn, action),
+        shakeEaseOut: reducers.shakeEaseOut(state.shakeEaseOut, action)
     };
 };
 

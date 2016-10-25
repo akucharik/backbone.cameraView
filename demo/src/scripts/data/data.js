@@ -41,7 +41,7 @@ const data = {
     lookups: {}
 };
 
-data.behaviorTypes = [
+data.behaviorGroups = [
     {
         text: 'Move',
         value: 'move'
@@ -61,10 +61,10 @@ data.behaviorTypes = [
 ];
 
 data.lookups.behaviorType = {
-    move: data.behaviorTypes[0],
-    rotate: data.behaviorTypes[1],
-    zoom: data.behaviorTypes[2],
-    effect: data.behaviorTypes[4]
+    move: data.behaviorGroups[0],
+    rotate: data.behaviorGroups[1],
+    zoom: data.behaviorGroups[2],
+    effect: data.behaviorGroups[4]
 };
 
 data.behaviors = {

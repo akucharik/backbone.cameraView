@@ -66,13 +66,11 @@ window.onload = () => {
         'Sine.easeInOut': com.greensock.easing.Sine.easeInOut
     };
     
-    console.log('state: ', store.getState());
+    console.log('initial state: ', store.getState());
     
     let subscription = store.subscribe(() => 
         console.log('state: ', store.getState())
     );
-    
-    store.dispatch(actions.updateShakeEaseIn('Back.easeIn'));
     
     ReactDOM.render(
         <Provider store={store}>
@@ -80,10 +78,4 @@ window.onload = () => {
         </Provider>, 
         document.getElementById('app')
     );
-    
-    ReactDOM.render(<DropdownList items={data.behaviorTypes} itemTextKey='text' itemValueKey='value' onChange={Demo.eventHandlers.onBehaviorChange} />, document.getElementById('dropdown'));
-                    
-    ReactDOM.render(<DropdownList items={data.easingList} itemTextKey='text' itemValueKey='value' onChange={Demo.eventHandlers.onShakeEaseInChange} />, document.getElementById('shakeEaseIn'));
-                    
-    ReactDOM.render(<DropdownList items={data.easingList} itemTextKey='text' itemValueKey='value' onChange={Demo.eventHandlers.onShakeEaseOutChange} />, document.getElementById('shakeEaseOut'));
 }
