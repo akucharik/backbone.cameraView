@@ -17,7 +17,7 @@ class DropdownList extends React.Component {
         
         this.onChange = (event) => {
             if (this.props.onChange) {
-                this.props.onChange(event.target.value);
+                this.props.onChange.call(this, event.target.value);
             }
 
             this.setState({
