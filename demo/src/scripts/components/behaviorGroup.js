@@ -5,18 +5,17 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
-import React        from 'react';
-import data         from '../data/data';
-import actions      from '../actions';
-import DropdownList from '../containers/dropdownList';
+import React          from 'react';
+import MoveToControls from '../components/moveToControls';
+import ShakeControls  from '../components/shakeControls';
 
 const BehaviorGroup = ({ behaviorGroup }) => (
     <div>
-        {behaviorGroup === 'effect' &&
-            <DropdownList items={data.easingList} itemTextKey='text' itemValueKey='value' valueKey='shakeEaseIn' onChange={actions.updateShakeEaseIn} />
+        {behaviorGroup === 'move' &&
+            <MoveToControls />
         }
         {behaviorGroup === 'effect' &&
-            <DropdownList items={data.easingList} itemTextKey='text' itemValueKey='value' valueKey='shakeEaseOut' onChange={actions.updateShakeEaseOut} />
+            <ShakeControls />
         }
     </div>
 );

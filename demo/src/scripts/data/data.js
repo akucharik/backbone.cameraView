@@ -168,4 +168,16 @@ data.fields = {
     }
 };
 
+data.shakeDirections = [{
+        text: 'Both',
+        value: 'Both'
+    }, { 
+        text: 'Horizontal',
+        value: 'Horizontal'
+    },{
+        text: 'Vertical',
+        value: 'Vertical'
+    }
+];
+
 export default data;
