@@ -26,8 +26,9 @@ const actions = {
     },
     rotateTo: function () {
         let state = store.getState();
+        let duration = data.duration[state.rotateToDuration];
 
-        camera.rotateTo(state.rotateToAmount, state.rotateToDuration);
+        camera.rotateTo(parseFloat(state.rotateToRotation), duration, { ease: state.rotateToEase });
     },
     setSize: function () {
         let state = store.getState();

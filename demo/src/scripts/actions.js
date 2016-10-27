@@ -14,6 +14,11 @@ const actions = {
         UPDATE_MOVETO_TARGET: 'UPDATE_MOVETO_TARGET',
         UPDATE_MOVETO_EASE: 'UPDATE_MOVETO_EASE',
         
+        // rotateTo
+        UPDATE_ROTATETO_ROTATION: 'UPDATE_ROTATETO_ROTATION',
+        UPDATE_ROTATETO_DURATION: 'UPDATE_ROTATETO_DURATION',
+        UPDATE_ROTATETO_EASE: 'UPDATE_ROTATETO_EASE',
+        
         // setSize
         UPDATE_SETSIZE_HEIGHT: 'UPDATE_SETSIZE_HEIGHT',
         UPDATE_SETSIZE_WIDTH: 'UPDATE_SETSIZE_WIDTH',
@@ -34,7 +39,7 @@ actions.updateBehaviorGroup = function (group) {
     };
 };
 
-// MoveTo
+// moveTo
 actions.updateMoveToDuration = function (duration) {
     return {
         type: actions.type.UPDATE_MOVETO_DURATION,
@@ -56,6 +61,28 @@ actions.updateMoveToTarget = function (target) {
     };
 };
 
+// rotateTo
+actions.updateRotateToRotation = function (value) {
+    return {
+        type: actions.type.UPDATE_ROTATETO_ROTATION,
+        rotation: value
+    };
+};
+
+actions.updateRotateToDuration = function (duration) {
+    return {
+        type: actions.type.UPDATE_ROTATETO_DURATION,
+        duration: duration
+    };
+};
+
+actions.updateRotateToEase = function (ease) {
+    return {
+        type: actions.type.UPDATE_ROTATETO_EASE,
+        ease: ease
+    };
+};
+
 // setSize
 actions.updateSetSizeHeight = function (height) {
     return {
@@ -71,7 +98,7 @@ actions.updateSetSizeWidth = function (width) {
     };
 };
 
-// Shake
+// shake
 actions.updateShakeDirection = function (direction) {
     return {
         type: actions.type.UPDATE_SHAKE_DIRECTION,

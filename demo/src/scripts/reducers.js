@@ -63,6 +63,46 @@ reducers.moveToTarget = function (value, action) {
     }
 };
 
+// rotateTo
+reducers.rotateToRotation = function (value, action) {
+    if (value === undefined) {
+        value = 0;
+    }
+    
+    switch (action.type) {
+        case actions.type.UPDATE_ROTATETO_ROTATION:
+            return action.rotation;
+        default: 
+            return value;
+    }
+};
+
+reducers.rotateToDuration = function (value, action) {
+    if (value === undefined) {
+        value = data.durationList[data.lookups.durationList['1']].value;
+    }
+    
+    switch (action.type) {
+        case actions.type.UPDATE_ROTATETO_DURATION:
+            return action.duration;
+        default: 
+            return value;
+    }
+};
+
+reducers.rotateToEase = function (value, action) {
+    if (value === undefined) {
+        value = data.ease.None;
+    }
+    
+    switch (action.type) {
+        case actions.type.UPDATE_ROTATETO_EASE:
+            return action.ease;
+        default: 
+            return value;
+    }
+};
+
 // setSize
 reducers.setSizeHeight = function (value, action) {
     if (value === undefined) {
@@ -166,6 +206,9 @@ reducers.app = function (state, action) {
         moveToDuration: reducers.moveToDuration(state.moveToDuration, action),
         moveToEase: reducers.moveToEase(state.moveToEase, action),
         moveToTarget: reducers.moveToTarget(state.moveToTarget, action),
+        rotateToRotation: reducers.rotateToRotation(state.rotateToRotation, action),
+        rotateToDuration: reducers.rotateToDuration(state.rotateToDuration, action),
+        rotateToEase: reducers.rotateToEase(state.rotateToEase, action),
         setSizeHeight: reducers.setSizeHeight(state.setSizeHeight, action),
         setSizeWidth: reducers.setSizeWidth(state.setSizeWidth, action),
         shakeDirection: reducers.shakeDirection(state.shakeDirection, action),

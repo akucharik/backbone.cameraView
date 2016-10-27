@@ -5,21 +5,25 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
-import React          from 'react';
-import MoveToControls from '../components/moveToControls';
-import SetSizeControls from '../components/setSizeControls';
-import ShakeControls  from '../components/shakeControls';
+import React            from 'react';
+import MoveToControls   from '../components/moveToControls';
+import RotateToControls from '../components/rotateToControls';
+import SetSizeControls  from '../components/setSizeControls';
+import ShakeControls    from '../components/shakeControls';
 
 const BehaviorGroup = ({ behaviorGroup }) => (
     <div>
-        {behaviorGroup === 'move' &&
+        {behaviorGroup === 'moveTo' &&
             <MoveToControls />
         }
-        {behaviorGroup === 'effect' &&
-            <ShakeControls />
+        {behaviorGroup === 'rotateTo' &&
+            <RotateToControls />
         }
         {behaviorGroup === 'setSize' &&
             <SetSizeControls />
+        }
+        {behaviorGroup === 'shake' &&
+            <ShakeControls />
         }
     </div>
 );

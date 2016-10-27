@@ -42,17 +42,17 @@ const data = {
 };
 
 data.behaviorGroups = [{
-        text: 'Move',
-        value: 'move'
+        text: 'Move To',
+        value: 'moveTo'
     }, {
-        text: 'Rotate',
-        value: 'rotate'
+        text: 'Rotate To',
+        value: 'rotateTo'
     }, {
-        text: 'Zoom',
-        value: 'zoom'
+        text: 'Zoom To',
+        value: 'zoomTo'
     }, {
-        text: 'Effect',
-        value: 'effect'
+        text: 'Shake',
+        value: 'shake'
     }, {
         text: 'Resize',
         value: 'setSize'
