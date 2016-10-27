@@ -10,29 +10,28 @@ import data          from '../data/data';
 import actions       from '../actions';
 import cameraActions from '../cameraActions';
 import DropdownList  from '../containers/dropdownList';
-import Textbox       from '../containers/textbox';
 
 const ShakeControls = () => (
     <div>
         <div>
             <label>Intensity</label>
-            <Textbox valueKey='shakeIntensity' onChange={actions.updateShakeIntensity} />
+            <DropdownList items={data.shakeIntensityList} valueKey='shakeIntensity' onChange={actions.updateShakeIntensity} />
         </div>
         <div>
             <label>Duration</label>
-            <Textbox valueKey='shakeDuration' onChange={actions.updateShakeDuration} />
+            <DropdownList items={data.durationList} valueKey='shakeDuration' onChange={actions.updateShakeDuration} />
         </div>
         <div>
             <label>Direction</label>
-            <DropdownList items={data.shakeDirections} itemTextKey='text' itemValueKey='value' valueKey='shakeDirection' onChange={actions.updateShakeDirection} />
+            <DropdownList items={data.shakeDirectionList} valueKey='shakeDirection' onChange={actions.updateShakeDirection} />
         </div>
         <div>
             <label>Ease in</label>
-            <DropdownList items={data.easingList} itemTextKey='text' itemValueKey='value' valueKey='shakeEaseIn' onChange={actions.updateShakeEaseIn} />
+            <DropdownList items={data.easeList} valueKey='shakeEaseIn' onChange={actions.updateShakeEaseIn} />
         </div>
         <div>
             <label>Ease out</label>
-            <DropdownList items={data.easingList} itemTextKey='text' itemValueKey='value' valueKey='shakeEaseOut' onChange={actions.updateShakeEaseOut} />
+            <DropdownList items={data.easeList} valueKey='shakeEaseOut' onChange={actions.updateShakeEaseOut} />
         </div>
         <div>
             <button onClick={cameraActions.shake}>Shake</button>

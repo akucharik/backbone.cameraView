@@ -41,22 +41,21 @@ const data = {
     lookups: {}
 };
 
-data.behaviorGroups = [
-    {
+data.behaviorGroups = [{
         text: 'Move',
         value: 'move'
-    },
-    {
+    }, {
         text: 'Rotate',
         value: 'rotate'
-    },
-    {
+    }, {
         text: 'Zoom',
         value: 'zoom'
-    },
-    {
+    }, {
         text: 'Effect',
         value: 'effect'
+    }, {
+        text: 'Resize',
+        value: 'setSize'
     }
 ];
 
@@ -66,6 +65,8 @@ data.lookups.behaviorType = {
     zoom: data.behaviorGroups[2],
     effect: data.behaviorGroups[4]
 };
+
+
 
 data.behaviors = {
     moveTo: {
@@ -100,8 +101,77 @@ data.behaviors = {
     }
 };
 
-data.easingList = [
-    { text: 'Power0.easeNone', value: 'Power0.easeNone' },
+data.duration = {
+    '0': 0,
+    '0.5': 0.5,
+    '1': 1,
+    '2': 2,
+    '4': 4
+};
+
+data.durationList = [{
+        text: '0',
+        value: '0'
+    },{
+        text: '0.5',
+        value: '0.5'
+    },{
+        text: '1',
+        value: '1'
+    },{
+        text: '2',
+        value: '2'
+    },{
+        text: '4',
+        value: '4'
+    }
+];
+
+data.lookups.durationList = {
+    '0': 0,
+    '0.5': 1,
+    '1': 2,
+    '2': 3,
+    '4': 4,
+};
+
+// Easing
+data.ease = {
+    'None': '',
+    'Power1.easeIn': 'Power1.easeIn',
+    'Power1.easeOut': 'Power1.easeOut',
+    'Power1.easeInOut': 'Power1.easeInOut',
+    'Power2.easeIn': 'Power2.easeIn',
+    'Power2.easeOut': 'Power2.easeOut',
+    'Power2.easeInOut': 'Power2.easeInOut',
+    'Power3.easeIn': 'Power3.easeIn',
+    'Power3.easeOut': 'Power3.easeOut',
+    'Power3.easeInOut': 'Power3.easeInOut',
+    'Power4.easeIn': 'Power4.easeIn',
+    'Power4.easeOut': 'Power4.easeOut',
+    'Power4.easeInOut': 'Power4.easeInOut',
+    'Back.easeIn': 'Back.easeIn',
+    'Back.easeOut': 'Back.easeOut',
+    'Back.easeInOut': 'Back.easeInOut',
+    'Elastic.easeIn': 'Elastic.easeIn',
+    'Elastic.easeOut': 'Elastic.easeOut',
+    'Elastic.easeInOut': 'Elastic.easeInOut',
+    'Bounce.easeIn': 'Bounce.easeIn',
+    'Bounce.easeOut': 'Bounce.easeOut',
+    'Bounce.easeInOut': 'Bounce.easeInOut',
+    'Circ.easeIn': 'Circ.easeIn',
+    'Circ.easeOut': 'Circ.easeOut',
+    'Circ.easeInOut': 'Circ.easeInOut',
+    'Expo.easeIn': 'Expo.easeIn',
+    'Expo.easeOut': 'Expo.easeOut',
+    'Expo.easeInOut': 'Expo.easeInOut',
+    'Sine.easeIn': 'Sine.easeIn',
+    'Sine.easeOut': 'Sine.easeOut',
+    'Sine.easeInOut': 'Sine.easeInOut'
+};
+
+data.easeList = [
+    { text: 'None', value: 'None' },
     { text: 'Power1.easeIn', value: 'Power1.easeIn' },
     { text: 'Power1.easeOut', value: 'Power1.easeOut' },
     { text: 'Power1.easeInOut', value: 'Power1.easeInOut' },
@@ -133,6 +203,40 @@ data.easingList = [
     { text: 'Sine.easeOut', value: 'Sine.easeOut' },
     { text: 'Sine.easeInOut', value: 'Sine.easeInOut' }
 ];
+
+data.lookups.easeList = {
+    'None': 0,
+    'Power1.easeIn': 1,
+    'Power1.easeOut': 2,
+    'Power1.easeInOut': 3,
+    'Power2.easeIn': 4,
+    'Power2.easeOut': 5,
+    'Power2.easeInOut': 6,
+    'Power3.easeIn': 7,
+    'Power3.easeOut': 8,
+    'Power3.easeInOut': 8,
+    'Power4.easeIn': 9,
+    'Power4.easeOut': 10,
+    'Power4.easeInOut': 11,
+    'Back.easeIn': 12,
+    'Back.easeOut': 13,
+    'Back.easeInOut': 14,
+    'Elastic.easeIn': 15,
+    'Elastic.easeOut': 16,
+    'Elastic.easeInOut': 17,
+    'Bounce.easeIn': 18,
+    'Bounce.easeOut': 19,
+    'Bounce.easeInOut': 20,
+    'Circ.easeIn': 21,
+    'Circ.easeOut': 22,
+    'Circ.easeInOut': 23,
+    'Expo.easeIn': 24,
+    'Expo.easeOut': 25,
+    'Expo.easeInOut': 26,
+    'Sine.easeIn': 27,
+    'Sine.easeOut': 28,
+    'Sine.easeInOut': 29
+};
 
 data.fields = {
     duration: {
@@ -168,16 +272,63 @@ data.fields = {
     }
 };
 
-data.shakeDirections = [{
-        text: 'Both',
-        value: 'Both'
-    }, { 
-        text: 'Horizontal',
-        value: 'Horizontal'
-    },{
-        text: 'Vertical',
-        value: 'Vertical'
-    }
+// Shake
+data.shakeDirection = {
+    'Both': 0,
+    'Horizontal': 1,
+    'Vertical': 2
+};
+
+data.shakeDirectionList = [
+    {text: 'Both', value: 'Both' }, 
+    { text: 'Horizontal', value: 'Horizontal' },
+    { text: 'Vertical', value: 'Vertical' }
 ];
+
+data.lookups.shakeDirectionList = {
+    'Both': 0,
+    'Horizontal': 1,
+    'Vertical': 2
+};
+
+data.shakeIntensity = {
+    '0.01': 0.01,
+    '0.03': 0.03,
+    '0.05': 0.05,
+    '0.1': 0.1,
+    '0.2': 0.2
+};
+
+data.shakeIntensityList = [
+    { text: '0.01', value: '0.01' }, 
+    { text: '0.03', value: '0.03'}, 
+    { text: '0.05', value: '0.05'}, 
+    { text: '0.1', value: '0.1' }, 
+    { text: '0.2', value: '0.2' }
+];
+
+data.lookups.shakeIntensityList = {
+    '0.01': 0,
+    '0.03': 1,
+    '0.05': 2,
+    '0.1': 3,
+    '0.2': 4
+};
+
+// Target
+data.target = {
+    '#box100': '#box100',
+    '200,200': { x:200, y:200 }
+};
+
+data.targetList = [
+    { text: '#box100', value: '#box100' }, 
+    { text: '200, 200', value: '200,200' }
+];
+
+data.lookups.targetList = {
+    '#box100': 0,
+    '200,200': 1
+};
 
 export default data;

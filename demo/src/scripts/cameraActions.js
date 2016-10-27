@@ -5,60 +5,55 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
+import data  from './data/data';
 import store from './store';
-
-function parseTextValue (value) {
-    let parsedValue;
-    
-    try {
-        parsedValue = JSON.parse(value);
-    }
-    catch (error) {
-        console.log('caught: ', error);
-    }
-    
-    return parsedValue;
-}
 
 const actions = {
     moveTo: function () {
         let state = store.getState();
-        let target = parseTextValue(state.moveToTarget);
+        let target = data.target[state.moveToTarget];
+        let duration = data.duration[state.moveToDuration];
 
-        if (target !== undefined) {
-            camera.moveTo(target, parseFloat(state.moveToDuration));
-        }
+        camera.moveTo(target, duration, { ease: state.moveToEase });
     },
     rotateAt: function () {
         let state = store.getState();
         let originTarget = parseTextValue(state.rotateAtOrigin);
         
         if (target !== undefined) {
-            camera.rotateAt(parseFloat(state.rotateAtAmount), originTarget, parseFloat(state.rotateAtDuration));
+            camera.rotateAt(state.rotateAtAmount, originTarget, state.rotateAtDuration);
         }
     },
     rotateTo: function () {
         let state = store.getState();
 
-        camera.rotateTo(parseFloat(state.rotateToAmount), parseFloat(state.rotateToDuration));
+        camera.rotateTo(state.rotateToAmount, state.rotateToDuration);
+    },
+    setSize: function () {
+        let state = store.getState();
+        
+        camera.setSize(state.setSizeWidth, state.setSizeHeight);
     },
     shake: function () {
         let state = store.getState();
+        let intensity = data.shakeIntensity[state.shakeIntensity];
+        let duration = data.duration[state.shakeDuration];
+        let direction = data.shakeDirection[state.shakeDirection];
 
-        camera.shake(parseFloat(state.shakeIntensity), parseFloat(state.shakeDuration));
+        camera.shake(intensity, duration, direction, { easeIn: state.shakeEaseIn, easeOut: state.shakeEaseOut });
     },
     zoomAt: function () {
         let state = store.getState();
-        let taret = parseTextValue(state.zoomAtTarget);
-        let originTarget = parseTextValue(state.zoomAtOrigin);
+        let target = state.zoomAtTarget;
+        let originTarget = state.zoomAtOrigin;
 
-        camera.zoomAt(target, originTarget, parseFloat(state.zoomAtDuration));
+        camera.zoomAt(target, originTarget, state.zoomAtDuration);
     },
     zoomTo: function () {
         let state = store.getState();
-        let target = parseTextValue(state.zoomToTarget);
+        let target = state.zoomToTarget;
 
-        camera.zoomTo(target, parseFloat(state.zoomToDuration));
+        camera.zoomTo(target, state.zoomToDuration);
     }
 };
 

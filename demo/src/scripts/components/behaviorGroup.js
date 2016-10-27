@@ -7,6 +7,7 @@
 
 import React          from 'react';
 import MoveToControls from '../components/moveToControls';
+import SetSizeControls from '../components/setSizeControls';
 import ShakeControls  from '../components/shakeControls';
 
 const BehaviorGroup = ({ behaviorGroup }) => (
@@ -16,6 +17,9 @@ const BehaviorGroup = ({ behaviorGroup }) => (
         }
         {behaviorGroup === 'effect' &&
             <ShakeControls />
+        }
+        {behaviorGroup === 'setSize' &&
+            <SetSizeControls />
         }
     </div>
 );

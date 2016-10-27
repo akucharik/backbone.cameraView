@@ -9,17 +9,21 @@ import React         from 'react';
 import data          from '../data/data';
 import actions       from '../actions';
 import cameraActions from '../cameraActions';
-import Textbox       from '../containers/textbox';
+import DropdownList  from '../containers/dropdownList';
 
 const MoveToControls = () => (
     <div>
         <div>
             <label>Target</label>
-            <Textbox valueKey='moveToTarget' onChange={actions.updateMoveToTarget} />
+            <DropdownList items={data.targetList} valueKey='moveToTarget' onChange={actions.updateMoveToTarget} />
         </div>
         <div>
             <label>Duration</label>
-            <Textbox valueKey='moveToDuration' onChange={actions.updateMoveToDuration} />
+            <DropdownList items={data.durationList} valueKey='moveToDuration' onChange={actions.updateMoveToDuration} />
+        </div>
+        <div>
+            <label>Ease</label>
+            <DropdownList items={data.easeList} valueKey='moveToEase' onChange={actions.updateMoveToEase} />
         </div>
         <div>
             <button onClick={cameraActions.moveTo}>Move</button>

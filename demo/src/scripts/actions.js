@@ -9,86 +9,101 @@ const actions = {
     type: {
         UPDATE_BEHAVIOR_GROUP: 'UPDATE_BEHAVIOR_GROUP',
         
-        // MoveTo
+        // moveTo
         UPDATE_MOVETO_DURATION: 'UPDATE_MOVETO_DURATION',
         UPDATE_MOVETO_TARGET: 'UPDATE_MOVETO_TARGET',
+        UPDATE_MOVETO_EASE: 'UPDATE_MOVETO_EASE',
         
-        // Shake
+        // setSize
+        UPDATE_SETSIZE_HEIGHT: 'UPDATE_SETSIZE_HEIGHT',
+        UPDATE_SETSIZE_WIDTH: 'UPDATE_SETSIZE_WIDTH',
+        
+        // shake
         UPDATE_SHAKE_DIRECTION: 'UPDATE_SHAKE_DIRECTION',
         UPDATE_SHAKE_DURATION: 'UPDATE_SHAKE_DURATION',
         UPDATE_SHAKE_EASEIN: 'UPDATE_SHAKE_EASEIN',
         UPDATE_SHAKE_EASEOUT: 'UPDATE_SHAKE_EASEOUT',
-        UPDATE_SHAKE_INTENSITY: 'UPDATE_SHAKE_INTENSITY',
+        UPDATE_SHAKE_INTENSITY: 'UPDATE_SHAKE_INTENSITY'
     }
 };
 
 actions.updateBehaviorGroup = function (group) {
     return {
         type: actions.type.UPDATE_BEHAVIOR_GROUP,
-        behaviorGroup: group
+        group: group
     };
 };
 
 // MoveTo
-actions.moveTo = function () {
-    var state = Demo.store.getState();
-    
-    camera.moveTo(JSON.parse(state.moveToTarget), parseFloat(state.moveToDuration));
-};
-
 actions.updateMoveToDuration = function (duration) {
     return {
         type: actions.type.UPDATE_MOVETO_DURATION,
-        moveToDuration: duration
+        duration: duration
+    };
+};
+
+actions.updateMoveToEase = function (ease) {
+    return {
+        type: actions.type.UPDATE_MOVETO_EASE,
+        ease: ease
     };
 };
 
 actions.updateMoveToTarget = function (target) {
     return {
         type: actions.type.UPDATE_MOVETO_TARGET,
-        moveToTarget: target
+        target: target
+    };
+};
+
+// setSize
+actions.updateSetSizeHeight = function (height) {
+    return {
+        type: actions.type.UPDATE_SETSIZE_HEIGHT,
+        height: height
+    };
+};
+
+actions.updateSetSizeWidth = function (width) {
+    return {
+        type: actions.type.UPDATE_SETSIZE_WIDTH,
+        width: width
     };
 };
 
 // Shake
-actions.shake = function () {
-    var state = Demo.store.getState();
-    
-    camera.shake(parseFloat(state.shakeIntensity), parseFloat(state.shakeDuration));
-};
-
 actions.updateShakeDirection = function (direction) {
     return {
         type: actions.type.UPDATE_SHAKE_DIRECTION,
-        shakeDirection: direction
+        direction: direction
     };
 };
 
 actions.updateShakeDuration = function (duration) {
     return {
         type: actions.type.UPDATE_SHAKE_DURATION,
-        shakeDuration: duration
+        duration: duration
     };
 };
 
-actions.updateShakeEaseIn = function (easing) {
+actions.updateShakeEaseIn = function (ease) {
     return {
         type: actions.type.UPDATE_SHAKE_EASEIN,
-        easeIn: easing
+        easeIn: ease
     };
 };
 
-actions.updateShakeEaseOut = function (easing) {
+actions.updateShakeEaseOut = function (ease) {
     return {
         type: actions.type.UPDATE_SHAKE_EASEOUT,
-        easeOut: easing
+        easeOut: ease
     };
 };
 
 actions.updateShakeIntensity = function (intensity) {
     return {
         type: actions.type.UPDATE_SHAKE_INTENSITY,
-        shakeIntensity: intensity
+        intensity: intensity
     };
 };
 
