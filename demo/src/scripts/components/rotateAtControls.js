@@ -12,11 +12,15 @@ import cameraActions from '../cameraActions';
 import DropdownList  from '../containers/dropdownList';
 import Textbox       from '../containers/textbox';
 
-const RotateToControls = () => (
+const RotateAtControls = () => (
     <div>
         <div>
             <label>Rotation</label>
             <Textbox valueKey='rotation' onChange={actions.updateRotation} />
+        </div>
+        <div>
+            <label>Origin</label>
+            <DropdownList items={data.targetList} valueKey='origin' onChange={actions.updateOrigin} />
         </div>
         <div>
             <label>Duration</label>
@@ -27,9 +31,9 @@ const RotateToControls = () => (
             <DropdownList items={data.easeList} valueKey='ease' onChange={actions.updateEase} />
         </div>
         <div>
-            <button onClick={cameraActions.rotateTo}>Rotate</button>
+            <button onClick={cameraActions.rotateAt}>Rotate</button>
         </div>
     </div>
 );
 
-export default RotateToControls;
+export default RotateAtControls;

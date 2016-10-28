@@ -12,11 +12,11 @@ import cameraActions from '../cameraActions';
 import DropdownList  from '../containers/dropdownList';
 import Textbox       from '../containers/textbox';
 
-const RotateToControls = () => (
+const ZoomToControls = () => (
     <div>
         <div>
-            <label>Rotation</label>
-            <Textbox valueKey='rotation' onChange={actions.updateRotation} />
+            <label>Zoom</label>
+            <Textbox valueKey='zoom' onChange={actions.updateZoom} />
         </div>
         <div>
             <label>Duration</label>
@@ -27,9 +27,9 @@ const RotateToControls = () => (
             <DropdownList items={data.easeList} valueKey='ease' onChange={actions.updateEase} />
         </div>
         <div>
-            <button onClick={cameraActions.rotateTo}>Rotate</button>
+            <button onClick={cameraActions.zoomTo}>Zoom</button>
         </div>
     </div>
 );
 
-export default RotateToControls;
+export default ZoomToControls;

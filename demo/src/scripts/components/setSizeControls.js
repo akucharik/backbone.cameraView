@@ -15,11 +15,11 @@ const SetSizeControls = () => (
     <div>
         <div>
             <label>Width</label>
-            <Textbox valueKey='setSizeWidth' onChange={actions.updateSetSizeWidth} />
+            <Textbox valueKey='width' onChange={actions.updateWidth} />
         </div>
         <div>
             <label>Height</label>
-            <Textbox valueKey='setSizeHeight' onChange={actions.updateSetSizeHeight} />
+            <Textbox valueKey='height' onChange={actions.updateHeight} />
         </div>
         <div>
             <button onClick={cameraActions.setSize}>Resize</button>

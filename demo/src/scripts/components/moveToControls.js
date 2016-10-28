@@ -14,16 +14,16 @@ import DropdownList  from '../containers/dropdownList';
 const MoveToControls = () => (
     <div>
         <div>
-            <label>Target</label>
-            <DropdownList items={data.targetList} valueKey='moveToTarget' onChange={actions.updateMoveToTarget} />
+            <label>Position</label>
+            <DropdownList items={data.targetList} valueKey='position' onChange={actions.updatePosition} />
         </div>
         <div>
             <label>Duration</label>
-            <DropdownList items={data.durationList} valueKey='moveToDuration' onChange={actions.updateMoveToDuration} />
+            <DropdownList items={data.durationList} valueKey='duration' onChange={actions.updateDuration} />
         </div>
         <div>
             <label>Ease</label>
-            <DropdownList items={data.easeList} valueKey='moveToEase' onChange={actions.updateMoveToEase} />
+            <DropdownList items={data.easeList} valueKey='ease' onChange={actions.updateEase} />
         </div>
         <div>
             <button onClick={cameraActions.moveTo}>Move</button>

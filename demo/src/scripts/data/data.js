@@ -48,11 +48,20 @@ data.behaviorGroups = [{
         text: 'Rotate To',
         value: 'rotateTo'
     }, {
+        text: 'Rotate At',
+        value: 'rotateAt'
+    }, {
         text: 'Zoom To',
         value: 'zoomTo'
     }, {
+        text: 'Zoom At',
+        value: 'zoomAt'
+    }, {
         text: 'Shake',
         value: 'shake'
+    }, {
+        text: 'Animate',
+        value: 'animate'
     }, {
         text: 'Resize',
         value: 'setSize'
@@ -65,8 +74,6 @@ data.lookups.behaviorType = {
     zoom: data.behaviorGroups[2],
     effect: data.behaviorGroups[4]
 };
-
-
 
 data.behaviors = {
     moveTo: {

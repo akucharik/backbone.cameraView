@@ -44,7 +44,8 @@
         
         <div class="demo-sidebar">
             <h2>Commands</h2>
-            <ul class="demo-commands">
+            <div id="app" style="padding: 1.0em; background-color: gray;"></div>
+            <!--<ul class="demo-commands">
                 <li><label>zoom:</label>
                     <input id="focusOnScale" type="text" value="" disabled />
                     <label>x:</label> 
@@ -101,16 +102,14 @@
                 <li>
                     <button id="play">Play</button>
                 </li>
-                <!--<li>
+                <li>
                     velocity x: <input id="velocityX" type="text" placeholder="1000" />
                     velocity y: <input id="velocityY" type="text" placeholder="-500" />
                     <button id="flick">flick</button>
-                </li>-->
-            </ul>
+                </li>
+            </ul>-->
         </div>
     </div>
-    
-    <div id="app" style="padding: 1.0em; background-color: gray;"></div>
     
     <script type="text/javascript" src="../src/scripts/lib/zepto.min.js"></script>
     <script type="text/javascript" src="../src/scripts/lib/lodash.min.js"></script>
@@ -145,7 +144,7 @@
                             maxY: this.sceneHeight
                         };
                     },
-                    debug: true,
+                    //debug: true,
                     //defaultEase: Power2.easeOut,
                     draggable: true,
                     //maxZoom: 6,

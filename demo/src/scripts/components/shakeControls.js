@@ -19,11 +19,15 @@ const ShakeControls = () => (
         </div>
         <div>
             <label>Duration</label>
-            <DropdownList items={data.durationList} valueKey='shakeDuration' onChange={actions.updateShakeDuration} />
+            <DropdownList items={data.durationList} valueKey='duration' onChange={actions.updateDuration} />
         </div>
         <div>
             <label>Direction</label>
             <DropdownList items={data.shakeDirectionList} valueKey='shakeDirection' onChange={actions.updateShakeDirection} />
+        </div>
+        <div>
+            <label>Ease</label>
+            <DropdownList items={data.easeList} valueKey='ease' onChange={actions.updateEase} />
         </div>
         <div>
             <label>Ease in</label>

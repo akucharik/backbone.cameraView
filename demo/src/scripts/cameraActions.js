@@ -9,52 +9,79 @@ import data  from './data/data';
 import store from './store';
 
 const actions = {
+    animate: function () {
+        let state = store.getState();
+        let duration = data.duration[state.duration];
+
+        camera.animate({
+            origin: data.target[state.origin],
+            position: data.target[state.position],
+            rotation: parseFloat(state.rotation),
+            zoom: parseFloat(state.zoom),
+            shake: {
+                intensity: data.shakeIntensity[state.shakeIntensity],
+                direction: data.shakeDirection[state.shakeDirection],
+                easeIn: state.shakeEaseIn,
+                easeOut: state.shakeEaseOut
+            }
+        }, duration, { ease: state.animateEase });
+    },
     moveTo: function () {
         let state = store.getState();
-        let target = data.target[state.moveToTarget];
-        let duration = data.duration[state.moveToDuration];
+        let position = data.target[state.position];
+        let duration = data.duration[state.duration];
 
-        camera.moveTo(target, duration, { ease: state.moveToEase });
+        camera.moveTo(position, duration, { ease: state.ease });
+    },
+    pause: function () {
+        camera.pause();
+    },
+    play: function () {
+        camera.play();
+    },
+    resume: function () {
+        camera.resume();
     },
     rotateAt: function () {
         let state = store.getState();
-        let originTarget = parseTextValue(state.rotateAtOrigin);
+        let origin = data.target[state.origin];
+        let duration = data.duration[state.duration];
         
-        if (target !== undefined) {
-            camera.rotateAt(state.rotateAtAmount, originTarget, state.rotateAtDuration);
-        }
+        camera.rotateAt(origin, parseFloat(state.rotation), duration, { ease: state.ease });
     },
     rotateTo: function () {
         let state = store.getState();
-        let duration = data.duration[state.rotateToDuration];
+        let duration = data.duration[state.duration];
 
-        camera.rotateTo(parseFloat(state.rotateToRotation), duration, { ease: state.rotateToEase });
+        camera.rotateTo(parseFloat(state.rotation), duration, { ease: state.ease });
     },
     setSize: function () {
         let state = store.getState();
         
-        camera.setSize(state.setSizeWidth, state.setSizeHeight);
+        camera.setSize(state.width, state.height);
     },
     shake: function () {
         let state = store.getState();
         let intensity = data.shakeIntensity[state.shakeIntensity];
-        let duration = data.duration[state.shakeDuration];
+        let duration = data.duration[state.duration];
         let direction = data.shakeDirection[state.shakeDirection];
 
-        camera.shake(intensity, duration, direction, { easeIn: state.shakeEaseIn, easeOut: state.shakeEaseOut });
+        camera.shake(intensity, duration, direction, { ease: state.ease, easeIn: state.shakeEaseIn, easeOut: state.shakeEaseOut });
     },
     zoomAt: function () {
         let state = store.getState();
-        let target = state.zoomAtTarget;
-        let originTarget = state.zoomAtOrigin;
+        let zoom = parseFloat(state.zoom);
+        let origin = data.target[state.origin];
+        let duration = data.duration[state.duration];
 
-        camera.zoomAt(target, originTarget, state.zoomAtDuration);
+        camera.zoomAt(origin, zoom, duration, { ease: state.ease });
     },
     zoomTo: function () {
         let state = store.getState();
-        let target = state.zoomToTarget;
+        let zoom = parseFloat(state.zoom);
+        let duration = data.duration[state.duration];
 
-        camera.zoomTo(target, state.zoomToDuration);
+        camera.zoomTo(zoom, duration, { ease: state.ease });
     }
 };
 
