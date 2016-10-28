@@ -801,8 +801,15 @@ class Camera {
                         tween = inProgressTimeline.getChildren(false, true, false)[0];
 
                         if (tween.data.isMoving) {
-                            props = Oculo.Animation._calculateTweenProps(this.camera, tween.data.endOrigin, tween.data.endPosition, tween.data.endRotation, tween.data.endZoom);
-                            tween.updateTo(props.tweenProps);
+                            props = this._calculateEndProps(tween.data.sourceOrigin, tween.data.sourcePosition, tween.data.sourceRotation, tween.data.sourceZoom, this.camera);
+                            Object.assign(tween.data, props);
+                            console.log('tween data after resize: ', tween.data);
+                            tween.updateTo({
+                                offsetX: props.endOffset.x,
+                                offsetY: props.endOffset.y,
+                                rotation: props.endRotation,
+                                zoom: props.endZoom
+                            });
                         }
                     }
 
@@ -1073,7 +1080,7 @@ class Camera {
     * @see {@link Camera.Animation#rotateAt|Animation.rotateAt}
     * @returns {this} self
     */
-    rotateAt (rotation, x, y, duration, options) {
+    rotateAt (origin, rotation, duration, options) {
         this.animation = new Oculo.Animation(this, { paused: false }).rotateAt(origin, rotation, duration, options);
 
         return this;

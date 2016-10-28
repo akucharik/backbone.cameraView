@@ -235,15 +235,15 @@ class Animation extends TimelineMax {
         }
 
         offset = camera._calculateOffset(position, cameraContextPosition, origin, transformation);
-
+        
         return {
             isMoving: isMoving,
             isRotating: isRotating,
             isZooming: isZooming,
-            endOffset: offset,
-            endOrigin: origin,
-            endRotation: rotation,
-            endZoom: zoom
+            endOffset: isMoving ? offset : null,
+            endOrigin: sourceOrigin ? origin : null,
+            endRotation: sourceRotation ? rotation : null,
+            endZoom: sourceZoom ? zoom : null
         };
     }
     
@@ -311,6 +311,8 @@ class Animation extends TimelineMax {
                 if (!props.endOrigin.equals(this.camera.scene.origin)) {
                     this._updateOrigin(props.endOrigin, this.camera);
                 }
+                
+                console.log('tween data: ', tween.data);
                 
                 tween.updateTo({
                     offsetX: props.endOffset.x,
