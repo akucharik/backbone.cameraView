@@ -11,12 +11,14 @@ import actions       from '../actions';
 import BehaviorGroup from '../containers/behaviorGroup';
 import Controls      from '../components/controls';
 import DropdownList  from '../containers/dropdownList';
+import Properties    from '../components/properties';
 
 const App = () => (
     <div>
         <DropdownList items={data.behaviorGroups} itemTextKey='text' itemValueKey='value' valueKey='behaviorGroup' onChange={actions.updateBehaviorGroup} />
         <BehaviorGroup />
         <Controls />
+        <Properties />
     </div>
 );
 

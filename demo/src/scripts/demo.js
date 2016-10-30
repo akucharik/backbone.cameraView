@@ -1,17 +1,19 @@
 'use strict';
 
-import React        from 'react';
-import ReactDOM     from 'react-dom';
-import { Provider } from 'react-redux';
-import actions      from './actions';
-import data         from './data/data';
-import reducers     from './reducers';
-import store        from './store';
-import App          from './components/app';
-import DropdownList from './components/dropdownlist';
+import React         from 'react';
+import ReactDOM      from 'react-dom';
+import { Provider }  from 'react-redux';
+import actions       from './actions';
+import cameraActions from './cameraActions';
+import data          from './data/data';
+import reducers      from './reducers';
+import store         from './store';
+import App           from './components/app';
+import DropdownList  from './components/dropdownlist';
 
 const Demo = {
     actions: actions,
+    cameraActions: cameraActions,
     data: data,
     eventHandlers: {
         onBehaviorChange: function (value) {

@@ -5,14 +5,17 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
+import data  from './data/data';
+
 const actions = {
     type: {
         // UI properties
         UPDATE_BEHAVIOR_GROUP: 'UPDATE_BEHAVIOR_GROUP',
         
         // Camera properties
-        UPDATE_WIDTH: 'UPDATE_WIDTH',
+        UPDATE_BOUNDS: 'UPDATE_BOUNDS',
         UPDATE_HEIGHT: 'UPDATE_HEIGHT',
+        UPDATE_WIDTH: 'UPDATE_WIDTH',
         
         // Animation properties
         UPDATE_POSITION: 'UPDATE_POSITION',
@@ -37,10 +40,13 @@ actions.updateBehaviorGroup = function (group) {
 };
 
 // Camera properties
-actions.updateWidth = function (width) {
+actions.updateBounds = function (bounds) {
+    camera.bounds = data.bounds[bounds];
+    camera.render();
+    
     return {
-        type: actions.type.UPDATE_WIDTH,
-        width: width
+        type: actions.type.UPDATE_BOUNDS,
+        bounds: bounds
     };
 };
 
@@ -48,6 +54,13 @@ actions.updateHeight = function (height) {
     return {
         type: actions.type.UPDATE_HEIGHT,
         height: height
+    };
+};
+
+actions.updateWidth = function (width) {
+    return {
+        type: actions.type.UPDATE_WIDTH,
+        width: width
     };
 };
 

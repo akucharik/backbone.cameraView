@@ -108,6 +108,43 @@ data.behaviors = {
     }
 };
 
+data.bounds = {
+    None: null,
+    CameraCenter: function () {
+        return {
+            minX: 0,
+            minY: 0,
+            maxX: this.sceneWidth,
+            maxY: this.sceneHeight
+        };
+    },
+    World: function () {
+        return {
+            minX: this.viewportCenter.x,
+            minY: this.viewportCenter.y,
+            maxX: this.sceneWidth - this.viewportCenter.x,
+            maxY: this.sceneHeight - this.viewportCenter.y
+        };
+    }
+};
+
+data.boundsList = [{
+        text: 'None',
+        value: 'None'
+    }, {
+        text: 'Camera Center',
+        value: 'CameraCenter'
+    }, {
+        text: 'World',
+        value: 'World'
+}];
+
+data.lookups.boundsList = {
+    None: 0,
+    CameraCenter: 1,
+    World: 2
+};
+
 data.duration = {
     '0': 0,
     '0.5': 0.5,
@@ -139,7 +176,7 @@ data.lookups.durationList = {
     '0.5': 1,
     '1': 2,
     '2': 3,
-    '4': 4,
+    '4': 4
 };
 
 // Easing
@@ -287,7 +324,7 @@ data.shakeDirection = {
 };
 
 data.shakeDirectionList = [
-    {text: 'Both', value: 'Both' }, 
+    { text: 'Both', value: 'Both' }, 
     { text: 'Horizontal', value: 'Horizontal' },
     { text: 'Vertical', value: 'Vertical' }
 ];

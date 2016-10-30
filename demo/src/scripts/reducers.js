@@ -25,6 +25,19 @@ reducers.behaviorGroup = function (value, action) {
 };
 
 // Camera properties
+reducers.bounds = function (value, action) {
+    if (value === undefined) {
+        value = data.boundsList[data.lookups.boundsList['None']].value;
+    }
+    
+    switch (action.type) {
+        case actions.type.UPDATE_BOUNDS:
+            return action.bounds;
+        default: 
+            return value;
+    }
+};
+
 reducers.height = function (value, action) {
     if (value === undefined) {
         value = '500';
@@ -193,8 +206,9 @@ reducers.app = function (state, action) {
         behaviorGroup: reducers.behaviorGroup(state.behaviorGroup, action),
         
         // Camera properties
-        width: reducers.width(state.width, action),
+        bounds: reducers.bounds(state.bounds, action),
         height: reducers.height(state.height, action),
+        width: reducers.width(state.width, action),
         
         // Animation properties
         position: reducers.position(state.position, action),
