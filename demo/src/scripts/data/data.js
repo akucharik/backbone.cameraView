@@ -336,6 +336,7 @@ data.lookups.shakeDirectionList = {
 };
 
 data.shakeIntensity = {
+    '0': 0,
     '0.01': 0.01,
     '0.03': 0.03,
     '0.05': 0.05,
@@ -344,6 +345,7 @@ data.shakeIntensity = {
 };
 
 data.shakeIntensityList = [
+    { text: '0', value: '0' }, 
     { text: '0.01', value: '0.01' }, 
     { text: '0.03', value: '0.03'}, 
     { text: '0.05', value: '0.05'}, 
@@ -353,10 +355,11 @@ data.shakeIntensityList = [
 
 data.lookups.shakeIntensityList = {
     '0.01': 0,
-    '0.03': 1,
-    '0.05': 2,
-    '0.1': 3,
-    '0.2': 4
+    '0.01': 1,
+    '0.03': 2,
+    '0.05': 3,
+    '0.1': 4,
+    '0.2': 5
 };
 
 // Target
