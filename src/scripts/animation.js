@@ -304,19 +304,20 @@ class Animation extends TimelineMax {
             immediateRender: false,
             onStart: function (tween) {
                 var props = this._calculateEndProps(tween.data.sourceOrigin, tween.data.sourcePosition, tween.data.sourceRotation, tween.data.sourceZoom, this.camera);
+                var endOffset = props.endOffset || {};
                 
                 Object.assign(tween.data, props);
                 
                 // Smooth origin change
-                if (!props.endOrigin.equals(this.camera.scene.origin)) {
+                if (props.endOrigin && !props.endOrigin.equals(this.camera.scene.origin)) {
                     this._updateOrigin(props.endOrigin, this.camera);
                 }
                 
                 console.log('tween data: ', tween.data);
                 
                 tween.updateTo({
-                    offsetX: props.endOffset.x,
-                    offsetY: props.endOffset.y,
+                    offsetX: endOffset.x,
+                    offsetY: endOffset.y,
                     rotation: props.endRotation,
                     zoom: props.endZoom
                 });
