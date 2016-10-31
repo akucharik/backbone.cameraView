@@ -79,15 +79,15 @@ import Vector2    from './math/vector2';
 class Camera {
     constructor (options) {
         options = options || {};
-        this.config = options || {};
-
+        
         // Compose object
         Object.assign(this, Backbone.Events);
-
+        
         /**
-        * @property {Element} - The view.
+        * The initial configuration of the camera.
+        * @property {Oculo.Scene}
         */
-        this.view = Utils.DOM.parseView(options.view);
+        this.config = options || {};
 
         /**
         * The scene which the camera is viewing.
@@ -95,6 +95,8 @@ class Camera {
         */
         this.scene = new Scene(options.scene);
 
+        options.position = Utils.parsePosition(options.position, this.scene.view);
+        
         /**
         * The debugging information view.
         * @property {Backbone.View} - The debugging information view.
@@ -103,8 +105,6 @@ class Camera {
             model: this,
             className: 'oculo-debug'
         });
-        
-        options.position = Utils.parsePosition(options.position, this.scene.view);
         
         /**
         * @property {Oculo.Animation} - The active camera animation.
@@ -434,6 +434,44 @@ class Camera {
         */
         this.shakeVertical = true;
 
+        this._view = null;
+        
+        /**
+        * @property {Element} - The view.
+        */
+        Object.defineProperty(this, 'view', {
+            get: function () {
+                return this._view;
+            },
+
+            set: function (value) {
+                this._view = Utils.DOM.parseView(value);
+                
+                if (this._view) {
+                    this._view.appendChild(this.scene.view);
+                    
+                    this._view.addEventListener('dragstart', this.onDragstart);
+                    this._view.addEventListener('mousedown', this.onPress);
+                    this._view.addEventListener('mouseup', this.onRelease);
+                    this._view.addEventListener('mouseleave', this.onLeave);
+                    this._view.addEventListener('touchstart', this.onPress);
+                    this._view.addEventListener('touchend', this.onRelease);
+                    this._view.addEventListener('touchcancel', this.onRelease);
+                    this._view.addEventListener('transitionend', this.onTransitionEnd);
+
+                    if (this.isDraggable) {
+                        this._view.style.cursor = 'move';
+                    }
+
+                    if (this.isManualZoomable) {
+                        this._view.addEventListener('wheel', this.onZoomWheel);
+                    }
+                }
+            }
+        });
+        
+        this.view = options.view;
+        
         /**
         * The center point.
         * @name Camera#center
@@ -474,7 +512,7 @@ class Camera {
         */
         Object.defineProperty(this, 'viewportWidth', {
             get: function () {
-                return this.view.clientWidth;
+                return this.width;
             }
         });
 
@@ -485,37 +523,23 @@ class Camera {
         */
         Object.defineProperty(this, 'viewportHeight', {
             get: function () {
-                return this.view.clientHeight;
+                return this.height;
             }
         });
 
         /**
         * The width.
-        * @readonly
-        * @name Camera#width
-        * @property {number} - Gets the view's width. Includes border and padding.
-        * @default 960
+        * @property {number} - The width.
+        * @default 0
         */
-        Object.defineProperty(this, 'width', {
-            get: function () {
-                return this.view.offsetWidth;
-            }
-        });
+        this.width = options.width || 0;
 
         /**
         * The height.
-        * @readonly
-        * @name Camera#height
-        * @property {number} - Gets the view's height. Includes border and padding.
-        * @default 540
+        * @property {number} - The height.
+        * @default 0
         */
-        Object.defineProperty(this, 'height', {
-            get: function () {
-                return this.view.offsetHeight;
-            }
-        });
-        
-        this.setSize(options.width || 960, options.height || 540);
+        this.height = options.height || 0;
 
         /**
         * The base increment at which the scene will be zoomed.
@@ -667,7 +691,7 @@ class Camera {
         };
 
         this.onPress = (event) => {
-            if (this.isDraggable) {
+            if (this.view && this.isDraggable) {
                 this.view.addEventListener('mouseup', this.onDragRelease);
                 this.view.addEventListener('mouseleave', this.onDragLeave);
                 this.view.addEventListener('mousemove', this.onDragMove);
@@ -696,15 +720,6 @@ class Camera {
             this.isPressed = false;
             this._renderDebug();
         };
-
-        this.view.addEventListener('dragstart', this.onDragstart);
-        this.view.addEventListener('mousedown', this.onPress);
-        this.view.addEventListener('mouseup', this.onRelease);
-        this.view.addEventListener('mouseleave', this.onLeave);
-        this.view.addEventListener('touchstart', this.onPress);
-        this.view.addEventListener('touchend', this.onRelease);
-        this.view.addEventListener('touchcancel', this.onRelease);
-        this.view.addEventListener('transitionend', this.onTransitionEnd);
 
         // Initialize drag events and behaviors
         this.onDragRelease = (event) => {
@@ -735,10 +750,6 @@ class Camera {
                 this._renderDebug();
             }
         };
-
-        if (this.isDraggable) {
-            this.view.style.cursor = 'move';
-        }
 
         // Initialize zoom events and behaviors
         this.onZoomWheel = (event) => {
@@ -771,10 +782,6 @@ class Camera {
                 }
             }
         };
-
-        if (this.isManualZoomable) {
-            this.view.addEventListener('wheel', this.onZoomWheel);
-        }
 
         // Initialize custom events and behaviors
         this.onResize = () => {
@@ -905,6 +912,20 @@ class Camera {
     }
 
     /**
+    * Render the dimensions/size.
+    *
+    * @private
+    */
+    _renderSize () {
+        TweenMax.set(this._view, { 
+            css: { 
+                height: this.height,
+                width: this.width 
+            }
+        });
+    }
+    
+    /**
     * Disables manual zoom.
     *
     * @returns {this} self
@@ -958,8 +979,6 @@ class Camera {
         this.onBeforeRender();
 
         if (!this.isRendered) {
-            this.view.appendChild(this.scene.view);
-
             if (this.debug) {
                 this.debugView.render().attach(document.body);
             }
@@ -972,6 +991,7 @@ class Camera {
             animation.invalidate().restart(false, false);
         }
         else {
+            this._renderSize();
             this.animation = new Oculo.Animation(this, { paused: false }).animate({
                 position: this.position,
                 origin: this.scene.origin,
@@ -995,18 +1015,22 @@ class Camera {
     setSize (width, height) {
         var hasChanged = false;
         
-        if (!isNil(width) && width !== this.width) {
-            TweenMax.set(this.view, { css: { width: width }});
+        if (!isNil(width) && (width !== this.width)) {
+            this.width = width;
             hasChanged = true;
         }
         
-        if (!isNil(height) && height !== this.height) {
-            TweenMax.set(this.view, { css: { height: height }});
+        if (!isNil(height) && (height !== this.height)) {
+            this.height = height;
             hasChanged = true;
         }
 
         if (hasChanged) {
-            this.trigger('change:size');
+            if (this.view) {
+                this._renderSize();
+                this.trigger('change:size');
+            }
+            
             this._renderDebug();
         }
         

@@ -225,9 +225,6 @@ Utils.DOM = {
         if (isString(input)) {
             output = document.querySelector(input);
         }
-        if (!isElement(output)) {
-            output = document.createElement('div');
-        }
         
         return output;
     }
