@@ -205,7 +205,7 @@ class Camera {
         */
         Object.defineProperty(this, 'isRotated', {
             get: function () {
-                return this.rotation !== 0;
+                return (Math.abs(this.rotation / 360) % 1) > 0;
             }
         });
 

@@ -59,36 +59,91 @@ test('Camera', function() {
     
     test('isAnimating', function() {
         assert('should not be animating if camera has no animation', function() {
+            c.animation = null;
             expect(c.isAnimating).to.be.false;
         });
     });
     
     test('isDragEnabled', function() {
         assert('should not be enabled if camera has no drag capability', function() {
+            c.draggable = null;
             expect(c.isDragEnabled).to.be.false;
         });
     });
     
     test('isPaused', function() {
         assert('should not be paused if camera has no animation', function() {
+            c.animation = null;
             expect(c.isPaused).to.be.false;
         });
     });
     
-    test('manual zoom', function() {
-        assert('should disable manual zoom', function() {
-            c.isManualZoomEnabled = true;
-            c.disableManualZoom();
-            expect(c.isManualZoomEnabled).to.be.false;
+    test('isRotated', function() {
+        assert('should be true if rotation is not divisible by 360', function() {
+            c.rotation = 50;
+            expect(c.isRotated).to.be.true;
+            
+            c.rotation = -50;
+            expect(c.isRotated).to.be.true;
+            
+            c.rotation = 410;
+            expect(c.isRotated).to.be.true;
+            
+            c.rotation = -410;
+            expect(c.isRotated).to.be.true;
         });
         
-        assert('should enable manual zoom', function() {
-            c.isManualZoomEnabled = false;
-            c.enableManualZoom();
-            expect(c.isManualZoomEnabled).to.be.true;
+        assert('should be false if rotation is divisible by 360', function() {
+            c.rotation = 360;
+            expect(c.isRotated).to.be.false;
+            
+            c.rotation = -360;
+            expect(c.isRotated).to.be.false;
+            
+            c.rotation = 720;
+            expect(c.isRotated).to.be.false;
+            
+            c.rotation = -720;
+            expect(c.isRotated).to.be.false;
+        });
+        
+        assert('should be false if rotation = 0', function() {
+            c.rotation = 0;
+            expect(c.isRotated).to.be.false;
         });
     });
     
+    test('isZoomed', function() {
+        assert('should be true if zoom !== 1', function() {
+            c.zoom = 0.5;
+            expect(c.isZoomed).to.be.true;
+            
+            c.zoom = 1.5;
+            expect(c.isZoomed).to.be.true;
+        });
+        
+        assert('should be false if zoom = 1', function() {
+            c.zoom = 1;
+            expect(c.isZoomed).to.be.false;
+        });
+    });
+    
+    test('viewportCenter', function() {
+        assert('should be half the width and height of the camera', function() {
+            c.width = 1000;
+            c.height = 500;
+            expect(c.viewportCenter).to.deep.equal(new Vector2(500, 250));
+            
+            c.width = 400;
+            c.height = 200;
+            expect(c.viewportCenter).to.deep.equal(new Vector2(200, 100));
+            
+            c.width = 0;
+            c.height = 0;
+            expect(c.viewportCenter).to.deep.equal(new Vector2(0, 0));
+        });
+    });
+        
     test('_calculatePosition', function() {
         assert('should calculate the position of the camera', function() {
             var position;
@@ -133,6 +188,22 @@ test('Camera', function() {
             
             zoom = c._clampZoom(2);
             expect(zoom).to.equal(2);
+        });
+    });
+    
+    test('disableManualZoom', function() {
+        assert('should disable manual zoom', function() {
+            c.isManualZoomEnabled = true;
+            c.disableManualZoom();
+            expect(c.isManualZoomEnabled).to.be.false;
+        });
+    });
+    
+    test('enableManualZoom', function() {
+        assert('should enable manual zoom', function() {
+            c.isManualZoomEnabled = false;
+            c.enableManualZoom();
+            expect(c.isManualZoomEnabled).to.be.true;
         });
     });
     
