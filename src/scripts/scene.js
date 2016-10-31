@@ -38,7 +38,7 @@ class Scene {
 */
 Object.defineProperty(Scene.prototype, 'width', {
     get: function () {
-        return this.view.offsetWidth;
+        return this.view ? this.view.offsetWidth : 0;
     }
 });
 
@@ -49,7 +49,7 @@ Object.defineProperty(Scene.prototype, 'width', {
 */
 Object.defineProperty(Scene.prototype, 'height', {
     get: function () {
-        return this.view.offsetHeight;
+        return this.view ? this.view.offsetHeight : 0;
     }
 });
 

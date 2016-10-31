@@ -55,6 +55,8 @@ import isFunction from 'lodash/isFunction';
 import isNil      from 'lodash/isNil';
 import isObject   from 'lodash/isObject';
 import isString   from 'lodash/isString';
+import Backbone   from 'backbone';
+import _Math      from './math/math';
 import Matrix2    from './math/matrix2';
 import Scene      from './scene';
 import Utils      from './utils';
@@ -97,19 +99,19 @@ class Camera {
 
         options.position = Utils.parsePosition(options.position, this.scene.view);
         
-        /**
-        * The debugging information view.
-        * @property {Backbone.View} - The debugging information view.
-        */
-        this.debugView = new DebugView({
-            model: this,
-            className: 'oculo-debug'
-        });
+//        /**
+//        * The debugging information view.
+//        * @property {Backbone.View} - The debugging information view.
+//        */
+//        this.debugView = new DebugView({
+//            model: this,
+//            className: 'oculo-debug'
+//        });
         
         /**
         * @property {Oculo.Animation} - The active camera animation.
         */
-        this.animation = new Oculo.Animation(this);
+        this.animation = null;
 
         /**
         * @property {Object} - An object containing of all current and future animations.
@@ -122,22 +124,22 @@ class Camera {
         */
         this.debug = options.debug ? true : false;
 
-        /**
-        * The default ease.
-        * @name Camera#defaultEase
-        * @property {Object} - Gets or sets the default ease.
-        */
-        Object.defineProperty(this, 'defaultEase', {
-            get: function () {
-                return TweenLite.defaultEase;
-            },
-
-            set: function (value) {
-                TweenLite.defaultEase = value;
-            }
-        });
-
-        this.defaultEase = options.defaultEase || Power2.easeOut;
+//        /**
+//        * The default ease.
+//        * @name Camera#defaultEase
+//        * @property {Object} - Gets or sets the default ease.
+//        */
+//        Object.defineProperty(this, 'defaultEase', {
+//            get: function () {
+//                return TweenLite.defaultEase;
+//            },
+//
+//            set: function (value) {
+//                TweenLite.defaultEase = value;
+//            }
+//        });
+//
+//        this.defaultEase = options.defaultEase || Power2.easeOut;
 
         /**
         * Whether the scene is animating or not.
@@ -146,7 +148,7 @@ class Camera {
         */
         Object.defineProperty(this, 'isAnimating', {
             get: function () {
-                var progress = this.animation.progress();
+                var progress = this.animation ? this.animation.progress() : 0;
                 return progress > 0 && progress < 1;
             }
         });
@@ -163,13 +165,7 @@ class Camera {
         */
         Object.defineProperty(this, 'isDragEnabled', {
             get: function () {
-                var isEnabled = false;
-
-                if (this.draggable) {
-                    isEnabled = this.draggable.enabled();
-                }
-
-                return isEnabled;
+                return this.draggable ? this.draggable.enabled() : false;
             }
         });
 
@@ -186,7 +182,7 @@ class Camera {
         */
         Object.defineProperty(this, 'isPaused', {
             get: function () {
-                return this.animation.paused();
+                return this.animation ? this.animation.paused() : false;
             }
         });
 
@@ -413,7 +409,7 @@ class Camera {
         */
         Object.defineProperty(this, 'sceneTransformation', {
             get: function () {
-                return new Matrix2().scale(this.zoom, this.zoom).rotate(Oculo.Math.degToRad(-this.rotation));
+                return new Matrix2().scale(this.zoom, this.zoom).rotate(_Math.degToRad(-this.rotation));
             }
         });
 
@@ -459,7 +455,8 @@ class Camera {
                     this._view.addEventListener('touchcancel', this.onRelease);
                     this._view.addEventListener('transitionend', this.onTransitionEnd);
 
-                    if (this.isDraggable) {
+                    // TODO: Add enableDrag/disableDrag to camera and toggle style
+                    if (this.isDraggable && this.isDragEnabled) {
                         this._view.style.cursor = 'move';
                     }
 
@@ -785,47 +782,49 @@ class Camera {
 
         // Initialize custom events and behaviors
         this.onResize = () => {
-            var wasAnimating = this.isAnimating;
-            var wasPaused = this.isPaused;
+            if (this.view) {
+                var wasAnimating = this.isAnimating;
+                var wasPaused = this.isPaused;
 
-            // Maintain camera position and update any active animations
-            if (this.isAnimating) {
-                this.pause();
-            }
-            
-            new Oculo.Animation(this, { 
-                paused: false, 
-                onComplete: function (wasAnimating, wasPaused) {
-                    // 'this' is bound to the Animation via the Animation class
-                    if (this.camera.isAnimating) {
-                        var inProgressTimeline, tween, props;
-                        
-                        inProgressTimeline = this.camera.animation.getChildren(false, false, true).filter((timeline) => {
-                            var progress = timeline.progress();
-                            return progress > 0 && progress < 1;
-                        })[0];
+                // Maintain camera position and update any active animations
+                if (this.isAnimating) {
+                    this.pause();
+                }
 
-                        tween = inProgressTimeline.getChildren(false, true, false)[0];
+                new Oculo.Animation(this, { 
+                    paused: false, 
+                    onComplete: function (wasAnimating, wasPaused) {
+                        // 'this' is bound to the Animation via the Animation class
+                        if (this.camera.isAnimating) {
+                            var inProgressTimeline, tween, props;
 
-                        if (tween.data.isMoving) {
-                            props = this._calculateEndProps(tween.data.sourceOrigin, tween.data.sourcePosition, tween.data.sourceRotation, tween.data.sourceZoom, this.camera);
-                            Object.assign(tween.data, props);
-                            console.log('tween data after resize: ', tween.data);
-                            tween.updateTo({
-                                offsetX: props.endOffset.x,
-                                offsetY: props.endOffset.y,
-                                rotation: props.endRotation,
-                                zoom: props.endZoom
-                            });
+                            inProgressTimeline = this.camera.animation.getChildren(false, false, true).filter((timeline) => {
+                                var progress = timeline.progress();
+                                return progress > 0 && progress < 1;
+                            })[0];
+
+                            tween = inProgressTimeline.getChildren(false, true, false)[0];
+
+                            if (tween.data.isMoving) {
+                                props = this._calculateEndProps(tween.data.sourceOrigin, tween.data.sourcePosition, tween.data.sourceRotation, tween.data.sourceZoom, this.camera);
+                                Object.assign(tween.data, props);
+                                console.log('tween data after resize: ', tween.data);
+                                tween.updateTo({
+                                    offsetX: props.endOffset.x,
+                                    offsetY: props.endOffset.y,
+                                    rotation: props.endRotation,
+                                    zoom: props.endZoom
+                                });
+                            }
                         }
-                    }
 
-                    if (wasAnimating && !wasPaused) {
-                        this.camera.resume();
-                    }
-                },
-                onCompleteParams: [wasAnimating, wasPaused]
-            }).moveTo(this.position, 0, { overwrite: false });
+                        if (wasAnimating && !wasPaused) {
+                            this.camera.resume();
+                        }
+                    },
+                    onCompleteParams: [wasAnimating, wasPaused]
+                }).moveTo(this.position, 0, { overwrite: false });
+            }
         }
         
         this.listenTo(this, 'change:size', this.onResize);
@@ -835,26 +834,26 @@ class Camera {
     
     _markPoint (x, y) {
         var pointElement = document.getElementById('point');
-        var point = new Vector2(x, y).transform(new Matrix2().scale(this.zoom, this.zoom).rotate(Oculo.Math.degToRad(-this.rotation)));
+        var point = new Vector2(x, y).transform(new Matrix2().scale(this.zoom, this.zoom).rotate(_Math.degToRad(-this.rotation)));
 
         pointElement.style.top = (point.y - 2) + 'px';
         pointElement.style.left = (point.x - 2) + 'px';
     }
 
     /**
-    * Calculate the position in the scene given the state of the camera and the scene.
+    * Calculate the position of the camera in the scene given the state of the camera and the scene.
     *
     * @private
-    * @param {Vector2} cameraOffset - The camera's position on the scene.
-    * @param {Vector2} cameraContextPosition - The position within the camera.
+    * @param {Vector2} cameraOffset - The camera's offset on the scene.
+    * @param {Vector2} cameraCenter - The center of the camera.
     * @param {Vector2} sceneOrigin - The scene's origin.
     * @param {Matrix2} sceneTransformation - The scene's transformation matrix.
     * @returns {Vector2} The camera's position.
     */
-    _calculatePosition (cameraOffset, cameraContextPosition, sceneOrigin, sceneTransformation) {
+    _calculatePosition (cameraOffset, cameraCenter, sceneOrigin, sceneTransformation) {
         var sceneOriginOffset = sceneOrigin.clone().transform(sceneTransformation).subtract(sceneOrigin);
 
-        return cameraOffset.clone().add(sceneOriginOffset, cameraContextPosition).transform(sceneTransformation.getInverse());
+        return cameraOffset.clone().add(sceneOriginOffset, cameraCenter).transform(sceneTransformation.getInverse());
     }
 
     /**
@@ -906,7 +905,7 @@ class Camera {
     * @private
     */
     _renderDebug () {
-        if (this.debug) {
+        if (this.debug && this.debugView) {
             this.debugView.update();
         }
     }
@@ -917,12 +916,34 @@ class Camera {
     * @private
     */
     _renderSize () {
-        TweenMax.set(this._view, { 
-            css: { 
-                height: this.height,
-                width: this.width 
-            }
-        });
+        if (this._view) {
+            TweenMax.set(this._view, { 
+                css: { 
+                    height: this.height,
+                    width: this.width 
+                }
+            });
+        }
+    }
+    
+    /**
+    * Destroys the camera and prepares it for garbage collection.
+    *
+    * @returns {this} self
+    */
+    destroy () {
+        this.stopListening();
+        
+        // TODO: Remove event handlers attached by trackControls
+        if (this.isDraggable) {
+            this.draggable.kill();
+        }
+        
+        if (this.view) {
+            this.view.parentNode.removeChild(this.view);
+        }
+        
+        return this;
     }
     
     /**
@@ -979,7 +1000,7 @@ class Camera {
         this.onBeforeRender();
 
         if (!this.isRendered) {
-            if (this.debug) {
+            if (this.debug && this.debugView) {
                 this.debugView.render().attach(document.body);
             }
 
@@ -1026,11 +1047,8 @@ class Camera {
         }
 
         if (hasChanged) {
-            if (this.view) {
-                this._renderSize();
-                this.trigger('change:size');
-            }
-            
+            this._renderSize();
+            this.trigger('change:size');
             this._renderDebug();
         }
         

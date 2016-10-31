@@ -6,14 +6,14 @@
 * @class Oculo.Math
 * @static
 */
-const Math = {
+const _Math = {
     /**
     * Convert degrees to radians.
     * @param {number} degrees - The degrees value.
     * @return {number} - The value in radians.
     */
     degToRad: (degrees) => {
-        return degrees * Math.degToRadFactor;
+        return degrees * _Math.degToRadFactor;
     },
 
     /**
@@ -22,7 +22,7 @@ const Math = {
     * @return {number} - The value in degrees.
     */
     radToDeg: (radians) => {
-        return radians * Math.radToDegFactor;
+        return radians * _Math.radToDegFactor;
     }
 };
 
@@ -30,16 +30,16 @@ const Math = {
 * The factor used to convert degrees to radians.
 * @name Math#degToRadFactor
 */
-Object.defineProperty(Math, 'degToRadFactor', {
-    value: window.Math.PI / 180
+Object.defineProperty(_Math, 'degToRadFactor', {
+    value: Math.PI / 180
 });
 
 /**
 * The factor used to convert radians to degrees.
 * @name Math2#radToDegFactor
 */
-Object.defineProperty(Math, 'radToDegFactor', {
-    value: 180 / window.Math.PI
+Object.defineProperty(_Math, 'radToDegFactor', {
+    value: 180 / Math.PI
 });
 
-export default Math;
+export default _Math;
