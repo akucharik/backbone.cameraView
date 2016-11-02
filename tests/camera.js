@@ -6,10 +6,11 @@ import {
     it as assert } from 'mocha';
 import { expect }  from 'chai';
 import Backbone    from 'backbone';
+import Animation   from '../src/scripts/animation';
 import Camera      from '../src/scripts/camera';
 import Matrix2     from '../src/scripts/math/matrix2';
 import Vector2     from '../src/scripts/math/vector2';
-    
+
 test('Camera', function() {
     var c;
 
@@ -19,8 +20,6 @@ test('Camera', function() {
             width: 1000,
             height: 500
         });
-        
-        c.animation = null;
     });
     
     afterEach('Clean up camera', function() {
@@ -190,6 +189,41 @@ test('Camera', function() {
             expect(zoom).to.equal(2);
         });
     });
+    
+    test('addAnimation', function() {
+        assert('should add an animation and set its camera', function() {
+            var a1 = new Animation();
+            c.addAnimation('a1', a1);
+            expect(c.animations).to.contain.all.keys('a1');
+            expect(a1.camera).to.be.an('object');
+        });
+    });
+
+    test('removeAnimation', function() {
+        assert('should remove the animation reference from the camera', function() {
+            var a1 = new Animation();
+            c.addAnimation('a1', a1);
+            c.removeAnimation('a1');
+            expect(c.animations).to.not.contain.all.keys('a1');
+        });
+        
+        assert('should remove the camera reference from the animation', function() {
+            var a1 = new Animation();
+            c.addAnimation('a1', a1);
+            c.removeAnimation('a1');
+            expect(a1.camera).to.be.a('null');
+        });
+    });
+
+//    TODO: Test "destroy" once "Animation" can be created server-side
+//    test('destroy', function() {
+//        assert('should destroy all of the camera\'s animations', function() {
+//            var a1 = new Animation();
+//            c.addAnimation('a1', a1);
+//            c.destroy();
+//            expect(a1.camera).to.be.a('null');
+//        });
+//    });
     
     test('disableManualZoom', function() {
         assert('should disable manual zoom', function() {

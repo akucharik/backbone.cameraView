@@ -13,14 +13,22 @@ import isNil      from 'lodash/isNil';
 import isObject   from 'lodash/isObject';
 import isString   from 'lodash/isString';
 import uniqueId   from 'lodash/uniqueId';
+import _Math      from './math/math';
 import Matrix2    from './math/matrix2';
 import Utils      from './utils';
 import Vector2    from './math/vector2';
 
+//if (typeof(global) !== 'undefined') {
+//    var TimelineMax = function () {};
+//    TimelineMax.prototype.eventCallback = function () {};
+//    TimelineMax.prototype.kill = function () {};
+//    TimelineMax.prototype.pause = function () {};
+//}
+
 /**
 * @class Oculo.Animation
 * @constructor
-* @memberof Camera
+* @memberof Oculo
 * @extends external:TimelineMax
 * @param {Camera} camera - The camera to be animated.
 * @param {Object} [options] - An object of {@link external:TweenMax|TweenMax} options.
@@ -42,11 +50,11 @@ class Animation extends TimelineMax {
         /**
         * @property {Camera} - The camera on which the animation will be applied.
         */
-        this.camera = camera;
+        this.camera = camera || null;
         
-        this.eventCallback('onStart', Oculo.Animation._onStart, [camera, options], this);
-        this.eventCallback('onUpdate', Oculo.Animation._onUpdate, [camera, options], this);
-        this.eventCallback('onComplete', Oculo.Animation._onComplete, [camera, options], this);
+        this.eventCallback('onStart', Animation._onStart, [camera, options], this);
+        this.eventCallback('onUpdate', Animation._onUpdate, [camera, options], this);
+        this.eventCallback('onComplete', Animation._onComplete, [camera, options], this);
     }
     
     /**
@@ -172,33 +180,45 @@ class Animation extends TimelineMax {
     }
     
     /**
-    * Parses the provided animation properties.
+    * Parses the core animation properties.
     *
     * @private
-    * @param {Object} props - The properties.
+    * @param {Object} sourceOrigin - The origin.
+    * @param {Object} sourcePosition - The origin.
+    * @param {number} sourceRotation - The rotation.
+    * @param {number} sourceZoom - The zoom.
     * @param {Oculo.Camera} camera - The camera.
     * @returns {Object} - The parsed properties.
     */
-    _parseProps (props, camera) {
-        var parsedProps = {
-            position: {},
-            origin: {},
-            rotation: props.rotation,
-            shake: {},
-            zoom: props.zoom
+    _parseCoreProps (sourceOrigin, sourcePosition, sourceRotation, sourceZoom, camera) {
+        return { 
+            parsedOrigin: Utils.parsePosition(sourceOrigin, camera.scene.view),
+            parsedPosition: Utils.parsePosition(sourcePosition, camera.scene.view),
+            parsedRotation: !isNil(sourceRotation) ? sourceRotation : null,
+            parsedZoom: sourceZoom || null
         };
+    }
+    
+    /**
+    * Parses the shake properties.
+    *
+    * @private
+    * @param {Object} shake - The shake properties.
+    * @returns {Object} - The parsed properties.
+    */
+    _parseShake (shake) {
+        var parsedShake = null;
         
-        parsedProps.position = Utils.parsePosition(props.position, camera.scene.view);
-        parsedProps.origin = Utils.parsePosition(props.origin, camera.scene.view);
-        
-        if (props.shake) {
-            parsedProps.shake.intensity = isNil(props.shake.intensity) ? 0 : props.shake.intensity;
-            parsedProps.shake.direction = isNil(props.shake.direction) ? Oculo.Animation.shakeDirection.BOTH : props.shake.direction;
-            parsedProps.shake.easeIn = props.shake.easeIn;
-            parsedProps.shake.easeOut = props.shake.easeOut;    
+        if (shake) {
+            parsedShake = {
+                intensity: isNil(shake.intensity) ? 0 : shake.intensity,
+                direction: isNil(shake.direction) ? Animation.shakeDirection.BOTH : shake.direction,
+                easeIn: shake.easeIn,
+                easeOut: shake.easeOut
+            };
         }
         
-        return parsedProps;
+        return parsedShake;
     }
     
     /**
@@ -213,11 +233,14 @@ class Animation extends TimelineMax {
     * @returns {Object} - The end properties.
     */
     _calculateEndProps (sourceOrigin, sourcePosition, sourceRotation, sourceZoom, camera) {
+        sourceOrigin = sourceOrigin || {};
+        sourcePosition = sourcePosition || {};
+        
         var position = new Vector2(isFinite(sourcePosition.x) ? sourcePosition.x : camera.position.x, isFinite(sourcePosition.y) ? sourcePosition.y : camera.position.y);
         var origin = new Vector2(isFinite(sourceOrigin.x) ? sourceOrigin.x : camera.scene.origin.x, isFinite(sourceOrigin.y) ? sourceOrigin.y : camera.scene.origin.y);
         var rotation = isFinite(sourceRotation) ? sourceRotation : camera.rotation;
         var zoom = camera._clampZoom(isFinite(sourceZoom) ? sourceZoom : camera.zoom);
-        var transformation = new Matrix2().scale(zoom, zoom).rotate(Oculo.Math.degToRad(-rotation));
+        var transformation = new Matrix2().scale(zoom, zoom).rotate(_Math.degToRad(-rotation));
         var cameraContextPosition = camera.viewportCenter;
         var offset = new Vector2();
 
@@ -241,8 +264,8 @@ class Animation extends TimelineMax {
             isRotating: isRotating,
             isZooming: isZooming,
             endOffset: isMoving ? offset : null,
-            endOrigin: sourceOrigin ? origin : null,
-            endRotation: sourceRotation ? rotation : null,
+            endOrigin: (sourceOrigin.x || sourceOrigin.y) ? origin : null,
+            endRotation: !isNil(sourceRotation) ? rotation : null,
             endZoom: sourceZoom ? zoom : null
         };
     }
@@ -285,32 +308,29 @@ class Animation extends TimelineMax {
         
         var mainTimeline = new TimelineMax();
         var shakeTimeline = null;
-        var parsedProps = this._parseProps(props, this.camera);
-        var origin = parsedProps.origin;
-        var position = parsedProps.position;
-        var rotation = parsedProps.rotation;
-        var shake = parsedProps.shake;
-        var zoom = parsedProps.zoom;
+        var shake = this._parseShake(props.shake);
         
         // Tween core camera properties
         mainTimeline.add(TweenMax.to(this.camera, duration, Object.assign({}, options, {
             data: {
-                sourcePosition: position,
-                sourceOrigin: origin,
-                sourceRotation: rotation,
-                sourceZoom: zoom
+                sourceOrigin: props.origin,
+                sourcePosition: props.position,
+                sourceRotation: props.rotation,
+                sourceZoom: props.zoom
             }, 
             callbackScope: this,
             immediateRender: false,
             onStart: function (tween) {
-                var props = this._calculateEndProps(tween.data.sourceOrigin, tween.data.sourcePosition, tween.data.sourceRotation, tween.data.sourceZoom, this.camera);
-                var endOffset = props.endOffset || {};
+                var parsedProps = this._parseCoreProps(tween.data.sourceOrigin, tween.data.sourcePosition, tween.data.sourceRotation, tween.data.sourceZoom, this.camera);
+                var endProps = this._calculateEndProps(parsedProps.parsedOrigin, parsedProps.parsedPosition, parsedProps.parsedRotation, parsedProps.parsedZoom, this.camera);
+                var endOffset = endProps.endOffset || {};
                 
-                Object.assign(tween.data, props);
+                Object.assign(tween.data, parsedProps);
+                Object.assign(tween.data, endProps);
                 
                 // Smooth origin change
-                if (props.endOrigin && !props.endOrigin.equals(this.camera.scene.origin)) {
-                    this._updateOrigin(props.endOrigin, this.camera);
+                if (endProps.endOrigin && !endProps.endOrigin.equals(this.camera.scene.origin)) {
+                    this._updateOrigin(endProps.endOrigin, this.camera);
                 }
                 
                 console.log('tween data: ', tween.data);
@@ -318,15 +338,15 @@ class Animation extends TimelineMax {
                 tween.updateTo({
                     offsetX: endOffset.x,
                     offsetY: endOffset.y,
-                    rotation: props.endRotation,
-                    zoom: props.endZoom
+                    rotation: endProps.endRotation,
+                    zoom: endProps.endZoom
                 });
             },
             onStartParams: ['{self}']
         })), 0);
         
         // Tween shake effect
-        if (duration > 0 && shake.intensity > 0) {
+        if (duration > 0 && shake && shake.intensity > 0) {
             this.camera.shakeHorizontal = shake.direction === Oculo.Animation.shakeDirection.VERTICAL ? false : true;
             this.camera.shakeVertical = shake.direction === Oculo.Animation.shakeDirection.HORIZONTAL ? false : true;
             
@@ -403,6 +423,20 @@ class Animation extends TimelineMax {
         this.add(mainTimeline);
         
         return this;
+    }
+    
+    /**
+    * Stops the animation and releases it for garbage collection.
+    *
+    * @returns {this} self
+    *
+    * @example
+    * myAnimation.destroy();
+    */
+    destroy () {
+        this.pause();
+        this.camera = null;
+        this.kill();
     }
     
     /**

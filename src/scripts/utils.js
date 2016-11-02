@@ -181,10 +181,7 @@ const Utils = {
     */
     parsePosition: function (input, world) {
         var objectPosition;
-        var position = {
-            x: null,
-            y: null
-        };
+        var position = null;
         
         if (isString(input)) {
             input = document.querySelector(input);
@@ -192,12 +189,10 @@ const Utils = {
         
         if (isElement(input)) {
             objectPosition = Utils.DOM.getObjectWorldPosition(input, world);
-            position.x = objectPosition.x;
-            position.y = objectPosition.y;
+            position = new Vector2(objectPosition.x, objectPosition.y);
         }
         else if (isObject(input)) {
-            position.x = input.x;
-            position.y = input.y;
+            position = new Vector2(input.x, input.y);
         }
         
         return position;
@@ -219,11 +214,20 @@ Utils.DOM = {
         return new Vector2(x, y);
     },
     
+    /**
+    * Parse a view parameter.
+    *
+    * @param {string|Element} input - The view parameter.
+    * @returns {Element} The view.
+    */
     parseView: function (input) {
         var output = null;
         
         if (isString(input)) {
             output = document.querySelector(input);
+        }
+        if (isElement) {
+            output = input;
         }
         
         return output;

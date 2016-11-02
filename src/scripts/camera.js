@@ -97,7 +97,7 @@ class Camera {
         */
         this.scene = new Scene(options.scene);
 
-        options.position = Utils.parsePosition(options.position, this.scene.view);
+        options.position = Utils.parsePosition(options.position, this.scene.view) || {};
         
 //        /**
 //        * The debugging information view.
@@ -298,7 +298,7 @@ class Camera {
         * @property {Vector2} - The position within the world.
         * @default
         */
-        this.position = new Vector2(options.position.x, options.position.y);
+        this.position = new Vector2(options.position.x || 0, options.position.y || 0);
 
         /**
         * The camera's X position within the world.
@@ -796,7 +796,7 @@ class Camera {
                     onComplete: function (wasAnimating, wasPaused) {
                         // 'this' is bound to the Animation via the Animation class
                         if (this.camera.isAnimating) {
-                            var inProgressTimeline, tween, props;
+                            var inProgressTimeline, tween, endProps, endOffset;
 
                             inProgressTimeline = this.camera.animation.getChildren(false, false, true).filter((timeline) => {
                                 var progress = timeline.progress();
@@ -806,14 +806,15 @@ class Camera {
                             tween = inProgressTimeline.getChildren(false, true, false)[0];
 
                             if (tween.data.isMoving) {
-                                props = this._calculateEndProps(tween.data.sourceOrigin, tween.data.sourcePosition, tween.data.sourceRotation, tween.data.sourceZoom, this.camera);
-                                Object.assign(tween.data, props);
+                                endProps = this._calculateEndProps(tween.data.parsedOrigin, tween.data.parsedPosition, tween.data.parsedRotation, tween.data.parsedZoom, this.camera);
+                                endOffset = endProps.endOffset || {};
+                                Object.assign(tween.data, endProps);
                                 console.log('tween data after resize: ', tween.data);
                                 tween.updateTo({
-                                    offsetX: props.endOffset.x,
-                                    offsetY: props.endOffset.y,
-                                    rotation: props.endRotation,
-                                    zoom: props.endZoom
+                                    offsetX: endOffset.x,
+                                    offsetY: endOffset.y,
+                                    rotation: endProps.endRotation,
+                                    zoom: endProps.endZoom
                                 });
                             }
                         }
@@ -927,12 +928,43 @@ class Camera {
     }
     
     /**
+    * Adds an animation to the camera.
+    *
+    * @param {Oculo.Animation} animation - The animation.
+    * @param {string} name - The name.
+    * @returns {this} self
+    */
+    addAnimation (name, animation) {
+        animation.camera = this;
+        this.animations[name] = animation;
+        
+        return this;
+    }
+    
+    /**
+    * Removes an animation from the camera.
+    *
+    * @param {string} name - The name.
+    * @returns {this} self
+    */
+    removeAnimation (name) {
+        this.animations[name].camera = null;
+        delete this.animations[name];
+        
+        return this;
+    }
+    
+    /**
     * Destroys the camera and prepares it for garbage collection.
     *
     * @returns {this} self
     */
     destroy () {
         this.stopListening();
+        
+        for (let key in this.animations) {
+            this.animations[key].destroy();
+        }
         
         // TODO: Remove event handlers attached by trackControls
         if (this.isDraggable) {
@@ -1007,7 +1039,11 @@ class Camera {
             this.isRendered = true;
         }
 
-        if (animation) {
+        if (isString(animation)) {
+            this.animation = this.animations[animation];
+            this.animation.invalidate().restart(false, false);
+        }
+        else if (animation) {
             this.animation = animation;
             animation.invalidate().restart(false, false);
         }

@@ -161,18 +161,16 @@
                 });
                 
                 // Animations
-                app.animations = {
-                    moveTobox100: new Oculo.Animation(app.camera).animate({position: '#box100', rotation:-20, zoom: 1.5}, 2),
-                    moveTo2000: new Oculo.Animation(app.camera).animate({position: {x:2000, y:500}, zoom: 1}, 2),
-                    moveTo800Slow: new Oculo.Animation(app.camera).animate({position: {x:800}, zoom: 1.5}, 8),
-                    rotateAt200: new Oculo.Animation(app.camera).rotateAt({x:200, y:200}, -50, 5),
-                    rotateTo20: new Oculo.Animation(app.camera).rotateTo(-20, 2),
-                    shake: new Oculo.Animation(app.camera).shake(0.1, 2, Oculo.Animation.shakeDirection.BOTH),
-                    shakeSmooth: new Oculo.Animation(app.camera).shake(0.1, 4, Oculo.Animation.shakeDirection.BOTH, { easeIn: Power2.easeIn, easeOut: Power2.easeOut }),
-                    zoomAt100: new Oculo.Animation(app.camera).zoomAt({x:100, y:100}, 2, 2),
-                    zoomTo50: new Oculo.Animation(app.camera).zoomTo(0.5, 2),
-                    zoomTo200: new Oculo.Animation(app.camera).zoomTo(2, 2),
-                };
+                app.camera.addAnimation('moveTobox100', new Oculo.Animation(app.camera).animate({position: '#box100', rotation:-20, zoom: 1.5}, 2));
+                app.camera.addAnimation('moveTo2000', new Oculo.Animation(app.camera).animate({position: {x:2000, y:500}, zoom: 1}, 2));
+                app.camera.addAnimation('moveTo800Slow', new Oculo.Animation(app.camera).animate({position: {x:800}, zoom: 1.5}, 8));
+                app.camera.addAnimation('rotateAt200', new Oculo.Animation(app.camera).rotateAt({x:200, y:200}, -50, 5));
+                app.camera.addAnimation('rotateTo20', new Oculo.Animation(app.camera).rotateTo(-20, 2));
+                app.camera.addAnimation('shake', new Oculo.Animation(app.camera).shake(0.1, 2, Oculo.Animation.shakeDirection.BOTH));
+                app.camera.addAnimation('shakeSmooth', new Oculo.Animation(app.camera).shake(0.1, 4, Oculo.Animation.shakeDirection.BOTH, { easeIn: Power2.easeIn, easeOut: Power2.easeOut }));
+                app.camera.addAnimation('zoomAt100', new Oculo.Animation(app.camera).zoomAt({x:100, y:100}, 2, 2));
+                app.camera.addAnimation('zoomTo50', new Oculo.Animation(app.camera).zoomTo(0.5, 2));
+                app.camera.addAnimation('zoomTo200', new Oculo.Animation(app.camera).zoomTo(2, 2));
             
                 app.camera.render();
 
