@@ -432,6 +432,38 @@ class Camera {
 
         this._view = null;
         
+        // Initialize zoom events and behaviors
+        this.onZoomWheel = (event) => {
+            if (this.isManualZoomEnabled === false) {
+                return;
+            }
+            
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (event.deltaY) {
+                var direction = event.deltaY > 0 ? Camera.zoomDirection.OUT : Camera.zoomDirection.IN;
+                var cameraRect;
+                var cameraContextPosition = new Vector2();
+                var sceneContextPosition = new Vector2();
+                var origin = this.scene.origin;
+                var zoom = this._clampZoom(this.zoom + this.zoomIncrement * Math.abs(event.deltaY) * this.zoom * (direction === Camera.zoomDirection.IN ? 1 : -1));
+
+                // Performance Optimization: If zoom has not changed because it's at the min/max, don't zoom.
+                if (zoom !== this.zoom) {
+                    cameraRect = this.view.getBoundingClientRect();
+                    cameraContextPosition.set(event.clientX - cameraRect.left, event.clientY - cameraRect.top);
+                    sceneContextPosition = this._calculatePosition(this.offset, cameraContextPosition, this.scene.origin, this.sceneTransformation);
+
+                    if (Math.round(origin.x) !== Math.round(sceneContextPosition.x) || Math.round(origin.y) !== Math.round(sceneContextPosition.y)) {
+                        origin = this._calculatePosition(this.offset, cameraContextPosition, this.scene.origin, this.sceneTransformation);
+                    }
+
+                    this.animation = new Oculo.Animation(this, { paused: false }).zoomAt(origin, zoom, 0);
+                }
+            }
+        };
+        
         /**
         * @property {Element} - The view.
         */
@@ -460,7 +492,7 @@ class Camera {
                         this._view.style.cursor = 'move';
                     }
 
-                    if (this.isManualZoomable) {
+                    if (this.isManualZoomable) { 
                         this._view.addEventListener('wheel', this.onZoomWheel);
                     }
                 }
@@ -745,38 +777,6 @@ class Camera {
                 this.view.removeEventListener('touchmove', this.onDragMove);
                 this.isDragging = false;
                 this._renderDebug();
-            }
-        };
-
-        // Initialize zoom events and behaviors
-        this.onZoomWheel = (event) => {
-            if (this.isManualZoomEnabled === false) {
-                return;
-            }
-            
-            event.preventDefault();
-            event.stopPropagation();
-
-            if (event.deltaY) {
-                var direction = event.deltaY > 0 ? Camera.zoomDirection.OUT : Camera.zoomDirection.IN;
-                var cameraRect;
-                var cameraContextPosition = new Vector2();
-                var sceneContextPosition = new Vector2();
-                var origin = this.scene.origin;
-                var zoom = this._clampZoom(this.zoom + this.zoomIncrement * Math.abs(event.deltaY) * this.zoom * (direction === Camera.zoomDirection.IN ? 1 : -1));
-
-                // Performance Optimization: If zoom has not changed because it's at the min/max, don't zoom.
-                if (zoom !== this.zoom) {
-                    cameraRect = this.view.getBoundingClientRect();
-                    cameraContextPosition.set(event.clientX - cameraRect.left, event.clientY - cameraRect.top);
-                    sceneContextPosition = this._calculatePosition(this.offset, cameraContextPosition, this.scene.origin, this.sceneTransformation);
-
-                    if (Math.round(origin.x) !== Math.round(sceneContextPosition.x) || Math.round(origin.y) !== Math.round(sceneContextPosition.y)) {
-                        origin = this._calculatePosition(this.offset, cameraContextPosition, this.scene.origin, this.sceneTransformation);
-                    }
-
-                    this.animation = new Oculo.Animation(this, { paused: false }).zoomAt(origin, zoom, 0);
-                }
             }
         };
 
