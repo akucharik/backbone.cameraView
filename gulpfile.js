@@ -128,9 +128,7 @@ gulp.task('generate:docs', ['clean:docs'], function () {
 });
 
 gulp.task('test:scripts', function () {
-	return gulp.src(build.tests.source, {
-            read: false
-        })
+	return gulp.src(build.tests.source)
 		.pipe(mocha({
             compilers: {
                 js: babelRegister
