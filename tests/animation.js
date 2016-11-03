@@ -116,7 +116,7 @@ test('Animation', function() {
                 isRotating: true,
                 isZooming: false,
                 endOffset: null,
-                endOrigin: null,
+                endOrigin: c.viewportCenter.clone(),
                 endRotation: -20,
                 endZoom: null
             };

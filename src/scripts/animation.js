@@ -264,7 +264,7 @@ class Animation extends TimelineMax {
             isRotating: isRotating,
             isZooming: isZooming,
             endOffset: isMoving ? offset : null,
-            endOrigin: (sourceOrigin.x || sourceOrigin.y) ? origin : null,
+            endOrigin: (sourceOrigin.x || sourceOrigin.y || !isMoving) ? origin : null,
             endRotation: !isNil(sourceRotation) ? rotation : null,
             endZoom: sourceZoom ? zoom : null
         };
