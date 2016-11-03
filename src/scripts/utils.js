@@ -226,7 +226,7 @@ Utils.DOM = {
         if (isString(input)) {
             output = document.querySelector(input);
         }
-        if (isElement) {
+        else if (isElement(input)) {
             output = input;
         }
         
