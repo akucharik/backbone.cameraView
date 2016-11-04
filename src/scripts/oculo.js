@@ -18,4 +18,4 @@ const Oculo = {
     Vector2: Vector2
 };
 
-window.Oculo = Oculo;
+module.exports = Oculo;

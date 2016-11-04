@@ -91,7 +91,10 @@ gulp.task('compile:libraries', ['clean:libraries'], function () {
 });
 
 gulp.task('compile:scripts', ['clean:scripts', 'compile:libraries'], function () {
-    return browserify(build.scripts.source, { debug: true })
+    return browserify(build.scripts.source, { 
+            debug: true,
+            standalone: 'Oculo'
+        })
         .transform(babelify)
         .bundle()
         .on('error', function (error) { 

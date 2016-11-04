@@ -6,8 +6,14 @@ import {
     it as assert } from 'mocha';
 import { expect }  from 'chai';
 import isElement   from 'lodash/isElement';
-import Utils       from '../src/scripts/utils';
-import Vector2     from '../src/scripts/math/vector2';
+
+global.window = {};
+
+global.document = {
+    querySelector: function () { 
+        return new HTMLElement();
+    }
+};
 
 global.HTMLElement = function () {
     this.nodeType = 1;
@@ -17,11 +23,14 @@ global.HTMLElement = function () {
     this.offsetWidth = 100;
 };
 
-global.document = {
-    querySelector: function () { 
-        return new HTMLElement();
-    }
-};
+global.TimelineMax = function () {};
+global.TimelineMax.prototype.eventCallback = function () {};
+global.TimelineMax.prototype.kill = function () {};
+global.TimelineMax.prototype.pause = function () {};
+
+var Oculo = require('../build/scripts/oculo');
+var Utils = Oculo.Utils;
+var Vector2 = Oculo.Vector2;
 
 test('Utils', function() {
     test('parsePosition', function() {

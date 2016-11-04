@@ -18,13 +18,6 @@ import Matrix2    from './math/matrix2';
 import Utils      from './utils';
 import Vector2    from './math/vector2';
 
-//if (typeof(global) !== 'undefined') {
-//    var TimelineMax = function () {};
-//    TimelineMax.prototype.eventCallback = function () {};
-//    TimelineMax.prototype.kill = function () {};
-//    TimelineMax.prototype.pause = function () {};
-//}
-
 /**
 * @class Oculo.Animation
 * @constructor

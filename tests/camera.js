@@ -6,10 +6,17 @@ import {
     it as assert } from 'mocha';
 import { expect }  from 'chai';
 import Backbone    from 'backbone';
-import Animation   from '../src/scripts/animation';
-import Camera      from '../src/scripts/camera';
-import Matrix2     from '../src/scripts/math/matrix2';
-import Vector2     from '../src/scripts/math/vector2';
+
+global.TimelineMax = function () {};
+global.TimelineMax.prototype.eventCallback = function () {};
+global.TimelineMax.prototype.kill = function () {};
+global.TimelineMax.prototype.pause = function () {};
+
+var Oculo = require('../build/scripts/oculo');
+var Animation = Oculo.Animation;
+var Camera = Oculo.Camera;
+var Matrix2 = Oculo.Matrix2;
+var Vector2 = Oculo.Vector2;
 
 test('Camera', function() {
     var c;

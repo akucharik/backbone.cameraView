@@ -5,23 +5,16 @@ import {
     describe as test, 
     it as assert } from 'mocha';
 import { expect }  from 'chai';
-import Animation   from '../src/scripts/animation';
-import Camera      from '../src/scripts/camera';
-import Vector2     from '../src/scripts/math/vector2';
 
-global.HTMLElement = function () {
-    this.nodeType = 1;
-    this.offsetHeight = 100;
-    this.offsetLeft = 0;
-    this.offsetTop = 0;
-    this.offsetWidth = 100;
-};
+global.TimelineMax = function () {};
+global.TimelineMax.prototype.eventCallback = function () {};
+global.TimelineMax.prototype.kill = function () {};
+global.TimelineMax.prototype.pause = function () {};
 
-global.document = {
-    querySelector: function () { 
-        return new HTMLElement();
-    }
-};
+var Oculo = require('../build/scripts/oculo');
+var Animation = Oculo.Animation;
+var Camera = Oculo.Camera;
+var Vector2 = Oculo.Vector2;
 
 test('Animation', function() {
     var a;
