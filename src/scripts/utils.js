@@ -234,4 +234,27 @@ Utils.DOM = {
     }
 };
 
+Utils.Time = {
+    /**
+    * Gets a time duration given FPS and the desired unit.
+    * @param {number} fps - The frames per second.
+    * @param {string} unit - The unit of time.
+    * @return {number} - The duration.
+    */
+    getFPSDuration: (fps, unit) => {
+        var duration = 0;
+        
+        switch (unit) {
+            case 's':
+                duration = (1000 / fps) / 1000;
+                break;
+            case 'ms':
+                duration = 1000 / fps;
+                break;
+        }
+        
+        return duration;
+    }
+};
+
 export default Utils;
