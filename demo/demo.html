@@ -22,11 +22,15 @@
 
                 <div class="bcv-ignore-pointer-events" style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 50px; height: 2px; background-color: red; transform: translateX(-25px) translateY(-1px); z-index: 1;"></div>
                 <div class="bcv-ignore-pointer-events" style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 2px; height: 50px; background-color: red; transform: translateX(-1px) translateY(-25px); z-index: 1;"></div>
+                
+                <div class="bcv-ignore-pointer-events" style="box-sizing: border-box; position: absolute; top: 0; left: 0; bottom: 0; right: 0; border: 1px solid rgba(0,0,0,0.3); z-index: 1;"></div>
                 <div id="point" style="position: absolute; width: 4px; height: 4px; background-color: #ff9900; top: -1000px; left: -1000px; z-index: 1000;"></div>
             </div>
 
             <div id="scene" class="bcv-scene">
-                <img src="images/FFL-Spritesheet-White-1827x1215.png" alt="Final Fantasy Legend Sprites" width="1827" height="1215" />
+                <!--<img src="images/FFL-Spritesheet-White-1827x1215.png" alt="Final Fantasy Legend Sprites" width="1827" height="1215" />-->
+                <div style="box-sizing: border-box; width: 1000px; height: 500px; background-color: #def;"></div>
+                <div style="box-sizing: border-box; position: absolute; top: 100px; left: 300px; width: 200px; height: 200px; background-color: #cdf;"></div>
                 <div id="box100" style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid green;"></div>
                 <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 150px; height: 150px; border: 1px solid green;"></div>
                 <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 200px; height: 200px; border: 1px solid green;"></div>
@@ -111,19 +115,19 @@
         </div>
     </div>
     
-    <script type="text/javascript" src="../src/scripts/lib/zepto.min.js"></script>
+    <!--<script type="text/javascript" src="../src/scripts/lib/zepto.min.js"></script>-->
     <script type="text/javascript" src="../src/scripts/lib/lodash.min.js"></script>
     <script type="text/javascript" src="../src/scripts/lib/backbone-min.js"></script>
     <script type="text/javascript" src="../src/scripts/lib/Draggable.min.js"></script>
     <script type="text/javascript" src="../src/scripts/lib/TweenMax.min.js"></script>
     <script type="text/javascript" src="../build/scripts/oculo.js"></script>
-    <script type="text/javascript" src="../src/scripts/sizableView.js"></script>
+    <!--<script type="text/javascript" src="../src/scripts/sizableView.js"></script>
     <script type="text/javascript" src="scripts/behaviorView.js"></script>
     <script type="text/javascript" src="scripts/scrollView.js"></script>
     <script type="text/javascript" src="scripts/debugPropertyView.js"></script>
     <script type="text/javascript" src="scripts/debugPropertiesView.js"></script>
     <script type="text/javascript" src="scripts/debugScrollView.js"></script>
-    <script type="text/javascript" src="scripts/debugView.js"></script>
+    <script type="text/javascript" src="scripts/debugView.js"></script>-->
     
     <script type="text/javascript" src="scripts/demo.js"></script>
     
@@ -144,7 +148,7 @@
                             maxY: this.sceneHeight
                         };
                     },
-                    debug: true,
+                    debug: false,
                     draggable: true,
                     //maxZoom: 6,
                     //minZoom: 0.2,
@@ -174,57 +178,57 @@
             
                 app.camera.render();
 
-                $('#flick').on('click', app.flick);
-                $('#focusOn').on('click', app.focusOn);
-                $('#pause').on('click', app.pause);
-                $('#play').on('click', app.play);
-                $('#rotateTo').on('click', app.rotateTo);
-                $('#rotateAt').on('click', app.rotateAt);
-                $('#zoomTo').on('click', app.zoomTo);
-                $('#zoomAt').on('click', app.zoomAt);
-                $('#zoomOn').on('click', app.zoomOn);
+//                $('#flick').on('click', app.flick);
+//                $('#focusOn').on('click', app.focusOn);
+//                $('#pause').on('click', app.pause);
+//                $('#play').on('click', app.play);
+//                $('#rotateTo').on('click', app.rotateTo);
+//                $('#rotateAt').on('click', app.rotateAt);
+//                $('#zoomTo').on('click', app.zoomTo);
+//                $('#zoomAt').on('click', app.zoomAt);
+//                $('#zoomOn').on('click', app.zoomOn);
                 
                 window.camera = app.camera;
             },
 
-            flick: function () {
-                app.camera.dragDeccelerate({ 
-                    x: parseFloat($('#velocityX').val()), 
-                    y: parseFloat($('#velocityY').val())
-                }, 16.6, window.performance.now());
-            },
-            
-            focusOn: function () {
-                app.camera.focusOn(parseFloat($('#focusOnX').val()), parseFloat($('#focusOnY').val()), parseFloat($('#duration').val()));
-            },
-            
-            pause: function () {
-                app.camera.pause();
-            },
-            
-            play: function () {
-                app.camera.play();
-            },
-            
-            rotateAt: function () {
-                app.camera.rotateAt(parseFloat($('#rotateAtRotation').val()), parseFloat($('#rotateAtX').val()), parseFloat($('#rotateAtY').val()), parseFloat($('#duration').val()));
-            },
-            
-            rotateTo: function () {
-                app.camera.rotateTo(parseFloat($('#rotateToRotation').val()), parseFloat($('#duration').val()));
-            },
-            
-            zoomAt: function () {
-                app.camera.zoomAt(parseFloat($('#zoomAtScale').val()), parseFloat($('#zoomAtX').val()), parseFloat($('#zoomAtY').val()), parseFloat($('#duration').val()));
-            },
-            
-            zoomOn: function () {
-                app.camera.zoomOn(parseFloat($('#zoomOnScale').val()), parseFloat($('#zoomOnX').val()), parseFloat($('#zoomOnY').val()), parseFloat($('#duration').val()));
-            },
-            
-            zoomTo: function () {
-                app.camera.zoomTo(parseFloat($('#zoomToScale').val()), parseFloat($('#duration').val()));
-            }
+//            flick: function () {
+//                app.camera.dragDeccelerate({ 
+//                    x: parseFloat($('#velocityX').val()), 
+//                    y: parseFloat($('#velocityY').val())
+//                }, 16.6, window.performance.now());
+//            },
+//            
+//            focusOn: function () {
+//                app.camera.focusOn(parseFloat($('#focusOnX').val()), parseFloat($('#focusOnY').val()), parseFloat($('#duration').val()));
+//            },
+//            
+//            pause: function () {
+//                app.camera.pause();
+//            },
+//            
+//            play: function () {
+//                app.camera.play();
+//            },
+//            
+//            rotateAt: function () {
+//                app.camera.rotateAt(parseFloat($('#rotateAtRotation').val()), parseFloat($('#rotateAtX').val()), parseFloat($('#rotateAtY').val()), parseFloat($('#duration').val()));
+//            },
+//            
+//            rotateTo: function () {
+//                app.camera.rotateTo(parseFloat($('#rotateToRotation').val()), parseFloat($('#duration').val()));
+//            },
+//            
+//            zoomAt: function () {
+//                app.camera.zoomAt(parseFloat($('#zoomAtScale').val()), parseFloat($('#zoomAtX').val()), parseFloat($('#zoomAtY').val()), parseFloat($('#duration').val()));
+//            },
+//            
+//            zoomOn: function () {
+//                app.camera.zoomOn(parseFloat($('#zoomOnScale').val()), parseFloat($('#zoomOnX').val()), parseFloat($('#zoomOnY').val()), parseFloat($('#duration').val()));
+//            },
+//            
+//            zoomTo: function () {
+//                app.camera.zoomTo(parseFloat($('#zoomToScale').val()), parseFloat($('#duration').val()));
+//            }
         });
 
         app.initialize();
