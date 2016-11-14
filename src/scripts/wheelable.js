@@ -9,7 +9,7 @@ import throttle from 'lodash/throttle';
 import Utils    from './utils';
 
 /**
-* @class Oculo.Wheelable
+* @class Oculo.WheelControl
 * @constructor
 * @memberof Oculo
 * @param {string|Element} target - The target.
@@ -19,23 +19,22 @@ import Utils    from './utils';
 * @param {object} [options.onWheelScope] - What 'this' refers to inside the callback.
 *
 * @example
-* var myWheelable = new Oculo.Wheelable('#camera', {  
+* var myWheelControl = new Oculo.WheelControl('#camera', {  
 *   onWheel: function () { 
 *     console.log('wheeling'); 
-*   },
-*   onWheelParams: [camera]
+*   }
 * });
 */
-class Wheelable {
+class WheelControl {
     constructor (target, options) {
         /**
-        * @property {object} - The configuration configuration.
+        * @property {object} - The configuration.
         * @readonly
         */
         this.config = Object.assign({
             onWheel: function () {},
             onWheelParams: [],
-            onWheelScope: this
+            onWheelScope: null
         }, options);
         
         /**
@@ -43,6 +42,12 @@ class Wheelable {
         * @readonly
         */
         this.target = Utils.DOM.parseView(target);
+        
+        /**
+        * @property {WheelEvent} - The last wheel event that affected the instance.
+        * @readonly
+        */
+        this.wheelEvent = null;
         
         /**
         * @property {boolean} - Whether it is enabled or not.
@@ -55,11 +60,8 @@ class Wheelable {
         * The throttled wheel event handler.
         * @private
         */
-        this._throttledOnWheel = throttle((event) => {
-            var params = this.config.onWheelParams.slice(0);
-
-            params.push(event);
-            this.config.onWheel.apply(this.config.onWheelScope, params);
+        this._throttledOnWheel = throttle(function () {
+            this.config.onWheel.apply(this.config.onWheelScope || this, this.config.onWheelParams);
         }, Utils.Time.getFPSDuration(30, 'ms'));
 
         /**
@@ -73,7 +75,8 @@ class Wheelable {
 
             event.preventDefault();
             event.stopPropagation();
-            this._throttledOnWheel(event);   
+            this.wheelEvent = event;
+            this._throttledOnWheel();   
         };
         
         this.enable();
@@ -124,4 +127,11 @@ class Wheelable {
     }
 }
 
-export default Wheelable;
+/**
+* The configuration property names.
+* @static
+* @property {Array}
+*/
+WheelControl.CONFIG_PROP_NAMES = ['onWheel', 'onWheelParams', 'onWheelScope'];
+
+export default WheelControl;

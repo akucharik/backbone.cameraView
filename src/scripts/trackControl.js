@@ -11,8 +11,9 @@
 * @see http://greensock.com/docs/#/HTML5/GSAP/Utils/Draggable/
 */
 
-import pick      from 'lodash/pick';
-import Wheelable from './wheelable';
+import pick        from 'lodash/pick';
+import DragControl from './dragControl';
+import WheelControl   from './wheelable';
 
 /**
 * @class Oculo.TrackControl
@@ -45,17 +46,10 @@ class TrackControl {
         */
         this.config = options || {};
         
-        this._wheelControlConfig = pick(this.config, ['onWheel']);
-        
         /**
         * @property {Oculo.Camera} - The camera.
         */
         this.camera = camera;
-        
-        /**
-        * @property {Element} - The view.
-        */
-        this.view = camera.view;
         
         /**
         * @property {boolean} - Whether dragging is handled or not.
@@ -67,87 +61,11 @@ class TrackControl {
         * @property {Draggable} - The drag control.
         * @default null
         */
-        this.dragControl = !this.isDraggable ? null : new Draggable(this.camera.scene.view, {
-            onDrag: function (trackControl) {
-                trackControl.config.onDrag.call(this, trackControl.camera);
-            },
-            onDragParams: [this],
+        this.dragControl = !this.isDraggable ? null : new DragControl(this.camera.scene.view, Object.assign({
+            dragProxy: this.camera.view,
+            onDragParams: [this.camera],
             zIndexBoost: false
-        });
-        
-        /**
-        * @property {boolean} - Whether it is dragging or not.
-        * @default false
-        */
-        this.isDragging = false;
-
-        /**
-        * @property {boolean} - Whether it is pressed or not.
-        * @default
-        */
-        this.isPressed = false;
-
-        // Drag events and behaviors
-        this.onDragstart = (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            
-            return false;
-        };
-        
-        this.onDragRelease = (event) => {
-            this.endDrag(event);
-        };
-
-        this.onDragLeave = (event) => {
-            this.endDrag(event);
-        };
-
-        this.onDragMove = (event) => {
-            if (this.isPressed && !this.isDragging) {
-                this.dragControl.startDrag(event);
-                this.isDragging = true;
-            }
-        };
-
-        this.endDrag = (event) => {
-            if (this.isDragging) {
-                this.dragControl.endDrag(event);
-                this.view.removeEventListener('mouseup', this.onDragRelease);
-                this.view.removeEventListener('mouseleave', this.onDragLeave);
-                this.view.removeEventListener('mousemove', this.onDragMove);
-                this.view.removeEventListener('touchend', this.onDragRelease);
-                this.view.removeEventListener('touchcancel', this.onDragRelease);
-                this.view.removeEventListener('touchmove', this.onDragMove);
-                this.isDragging = false;
-            }
-        };
-        
-        this.onPress = (event) => {
-            this.view.addEventListener('mouseup', this.onDragRelease);
-            this.view.addEventListener('mouseleave', this.onDragLeave);
-            this.view.addEventListener('mousemove', this.onDragMove);
-            this.view.addEventListener('touchend', this.onDragRelease);
-            this.view.addEventListener('touchcancel', this.onDragRelease);
-            this.view.addEventListener('touchmove', this.onDragMove);
-            this.isPressed = true;
-        };
-
-        this.onRelease = (event) => {
-            this.release();
-        };
-
-        this.onLeave = (event) => {
-            this.release();
-        };
-
-        this.release = () => {
-            this.isPressed = false;
-        };
-        
-        if (this.isDraggable) {
-            this.enableDrag();
-        }
+        }, pick(this.config, DragControl.CONFIG_PROP_NAMES)));
 
         /**
         * @property {boolean} - Whether wheeling is handled or not.
@@ -156,12 +74,12 @@ class TrackControl {
         this.isWheelable = this.config.wheelable ? true : false;
         
         /**
-        * @property {Wheelable} - The wheel control.
+        * @property {WheelControl} - The wheel control.
         * @default null
         */
-        this.wheelControl = !this.isWheelable ? null : new Wheelable(this.view, Object.assign({
-            onWheelScope: this.camera
-        }, this._wheelControlConfig));
+        this.wheelControl = !this.isWheelable ? null : new WheelControl(this.camera.view, Object.assign({
+            onWheelParams: [this.camera]
+        }, pick(this.config, WheelControl.CONFIG_PROP_NAMES)));
     }
 
     /**
@@ -171,8 +89,7 @@ class TrackControl {
     */
     destroy () {
         if (this.isDraggable) {
-            this.disableDrag();
-            this.dragControl.kill();
+            this.dragControl.destroy();
         }
         
         if (this.isWheelable) {
@@ -190,14 +107,6 @@ class TrackControl {
     disableDrag () {
         if (this.isDraggable) {
             this.dragControl.disable();
-            this.view.removeEventListener('dragstart', this.onDragstart);
-            this.view.removeEventListener('mousedown', this.onPress);
-            this.view.removeEventListener('mouseup', this.onRelease);
-            this.view.removeEventListener('mouseleave', this.onLeave);
-            this.view.removeEventListener('touchstart', this.onPress);
-            this.view.removeEventListener('touchend', this.onRelease);
-            this.view.removeEventListener('touchcancel', this.onRelease);
-            this.view.style.cursor = null;
         }
 
         return this;
@@ -211,14 +120,6 @@ class TrackControl {
     enableDrag () {
         if (this.isDraggable) {
             this.dragControl.enable();
-            this.view.addEventListener('dragstart', this.onDragstart);
-            this.view.addEventListener('mousedown', this.onPress);
-            this.view.addEventListener('mouseup', this.onRelease);
-            this.view.addEventListener('mouseleave', this.onLeave);
-            this.view.addEventListener('touchstart', this.onPress);
-            this.view.addEventListener('touchend', this.onRelease);
-            this.view.addEventListener('touchcancel', this.onRelease);
-            this.view.style.cursor = 'move';
         }
 
         return this;
@@ -230,7 +131,7 @@ class TrackControl {
     * @default false
     */
     get dragEnabled () {
-        return this.isDraggable ? this.dragControl.enabled() : false;
+        return this.isDraggable ? this.dragControl.enabled : false;
     }
     
     /**
