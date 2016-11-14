@@ -31,23 +31,26 @@ import Vector2    from './math/vector2';
 */
 class Animation extends TimelineMax {
     constructor (camera, options) {
-        options = options || {};
-        
-        super(Object.assign({}, {
-            data: {
-                id: uniqueId()
-            },
+        options = Object.assign({
             paused: true
-        }, options));
+        }, options);
+        
+        super(Object.assign({}, options));
+
+        /**
+        * @property {object} - The initial configuration.
+        * @default {};
+        */
+        this.config = options;
         
         /**
         * @property {Camera} - The camera on which the animation will be applied.
         */
         this.camera = camera || null;
         
-        this.eventCallback('onStart', Animation._onStart, [camera, options], this);
-        this.eventCallback('onUpdate', Animation._onUpdate, [camera, options], this);
-        this.eventCallback('onComplete', Animation._onComplete, [camera, options], this);
+        this.eventCallback('onStart', Animation._onStart, [this.camera, this.config], this);
+        this.eventCallback('onUpdate', Animation._onUpdate, [this.camera, this.config], this);
+        this.eventCallback('onComplete', Animation._onComplete, [this.camera, this.config], this);
     }
     
     /**
@@ -55,23 +58,25 @@ class Animation extends TimelineMax {
     *
     * @private
     * @param {Oculo.Camera} camera - The camera.
-    * @param {Object} config - An object of {@link external:TweenMax|TweenMax} options.
+    * @param {Object} config - The configuration options originally given to the animation.
     */
     static _onStart (camera, config) {
-        if (camera.isDraggable) {
-            camera.draggable.disable();
-        }
+        if (this.duration() > 0) {
+            if (camera.isDraggable) {
+                camera.trackControl.disableDrag();
+            }
 
-        if (camera.isManualZoomable) {
-            camera.disableManualZoom();
+            if (camera.isManualZoomable) {
+                camera.trackControl.disableWheel();
+            }
         }
-
+            
         if (config.onStart !== undefined) {
             config.onStart.apply(this, config.onStartParams);
         }
         
         // TODO: Remove once dev is complete
-        //console.log('animation started');
+        console.log('animation started');
     }
     
     /**
@@ -79,7 +84,7 @@ class Animation extends TimelineMax {
     *
     * @private
     * @param {Oculo.Camera} camera - The camera.
-    * @param {Object} config - An object of {@link external:TweenMax|TweenMax} options.
+    * @param {Object} config - The configuration options originally given to the animation.
     */
     static _onUpdate (camera, config) {
         var offset, position;
@@ -106,8 +111,7 @@ class Animation extends TimelineMax {
                 scaleY: camera.zoom,
                 x: -offset.x,
                 y: -offset.y
-            },
-            force3D: false
+            }
         });
 
         if (config.onUpdate !== undefined) {
@@ -115,8 +119,6 @@ class Animation extends TimelineMax {
         }
 
         camera._renderDebug();
-        // TODO: Remove once dev is complete
-        //console.log('animation updated');
     }
     
     /**
@@ -124,15 +126,17 @@ class Animation extends TimelineMax {
     *
     * @private
     * @param {Oculo.Camera} camera - The camera.
-    * @param {Object} config - An object of {@link external:TweenMax|TweenMax} options.
+    * @param {Object} config - The configuration options originally given to the animation.
     */
     static _onComplete (camera, config) {
-        if (camera.isDraggable) {
-            camera.draggable.enable();
-        }
+        if (this.duration() > 0) {
+            if (camera.isDraggable) {
+                camera.trackControl.enableDrag();
+            }
 
-        if (camera.isManualZoomable) {
-            camera.enableManualZoom();
+            if (camera.isManualZoomable) {
+                camera.trackControl.enableWheel();
+            }
         }
 
         if (config.onComplete !== undefined) {
@@ -142,34 +146,6 @@ class Animation extends TimelineMax {
         camera._renderDebug();
         // TODO: Remove once dev is complete
         console.log('animation completed');
-    }
-    
-    static set (camera, props, config) {
-        props = props || {};
-        config = config || {};
-        
-        var animation = new Oculo.Animation(camera);
-        var parsedProps = animation._parseProps(props, camera);
-        var props = animation._calculateEndProps(parsedProps.origin, parsedProps.position, parsedProps.rotation, parsedProps.zoom, camera);
-                
-        // Smooth origin change
-        if (!props.endOrigin.equals(camera.scene.origin)) {
-            animation._updateOrigin(props.endOrigin, camera);
-        }
-        
-        animation.add(TweenMax.set(camera, Object.assign({}, config, {
-            data: props,
-            offsetX: props.endOffset.x,
-            offsetY: props.endOffset.y,
-            rotation: props.endRotation,
-            zoom: props.endZoom,
-            onUpdate: Animation._onUpdate,
-            onUpdateParams: [camera, config],
-            onComplete: Animation._onComplete,
-            onCompleteParams: [camera, config]
-        })));
-        
-        return animation;
     }
     
     /**
@@ -232,7 +208,7 @@ class Animation extends TimelineMax {
         var position = new Vector2(isFinite(sourcePosition.x) ? sourcePosition.x : camera.position.x, isFinite(sourcePosition.y) ? sourcePosition.y : camera.position.y);
         var origin = new Vector2(isFinite(sourceOrigin.x) ? sourceOrigin.x : camera.scene.origin.x, isFinite(sourceOrigin.y) ? sourceOrigin.y : camera.scene.origin.y);
         var rotation = isFinite(sourceRotation) ? sourceRotation : camera.rotation;
-        var zoom = camera._clampZoom(isFinite(sourceZoom) ? sourceZoom : camera.zoom);
+        var zoom = isFinite(sourceZoom) ? sourceZoom : camera.zoom;
         var transformation = new Matrix2().scale(zoom, zoom).rotate(_Math.degToRad(-rotation));
         var cameraContextPosition = camera.viewportCenter;
         var offset = new Vector2();
@@ -271,20 +247,22 @@ class Animation extends TimelineMax {
     * @param {Oculo.Camera} camera - The camera.
     */
     _updateOrigin (origin, camera) {
-        var originOffset = origin.clone().transform(camera.sceneTransformation).subtract(camera.scene.origin.clone().transform(camera.sceneTransformation), origin.clone().subtract(camera.scene.origin));
+        if (origin && !origin.equals(camera.scene.origin)) {
+            var originOffset = origin.clone().transform(camera.sceneTransformation).subtract(camera.scene.origin.clone().transform(camera.sceneTransformation), origin.clone().subtract(camera.scene.origin));
 
-        if (camera.isRotated || camera.isZoomed) {
-            camera.offset.set(camera.offset.x - originOffset.x, camera.offset.y - originOffset.y);
+            if (camera.isRotated || camera.isZoomed) {
+                camera.offset.set(camera.offset.x - originOffset.x, camera.offset.y - originOffset.y);
+            }
+
+            camera.scene.origin.copy(origin);
+            TweenMax.set(camera.scene.view, { 
+                css: {
+                    transformOrigin: origin.x + 'px ' + origin.y + 'px',
+                    x: -camera.offset.x,
+                    y: -camera.offset.y
+                },
+            });
         }
-
-        camera.scene.origin.copy(origin);
-        TweenMax.set(camera.scene.view, { 
-            css: {
-                transformOrigin: origin.x + 'px ' + origin.y + 'px',
-                x: -camera.offset.x,
-                y: -camera.offset.y
-            },
-        });
     }
     
     /**
@@ -318,14 +296,12 @@ class Animation extends TimelineMax {
                 var endProps = this._calculateEndProps(parsedProps.parsedOrigin, parsedProps.parsedPosition, parsedProps.parsedRotation, parsedProps.parsedZoom, this.camera);
                 var endOffset = endProps.endOffset || {};
                 
-                Object.assign(tween.data, parsedProps);
-                Object.assign(tween.data, endProps);
+                Object.assign(tween.data, parsedProps, endProps);
                 
                 // Smooth origin change
-                if (endProps.endOrigin && !endProps.endOrigin.equals(this.camera.scene.origin)) {
-                    this._updateOrigin(endProps.endOrigin, this.camera);
-                }
+                this._updateOrigin(endProps.endOrigin, this.camera);
                 
+                // TODO: For dev only
                 console.log('tween data: ', tween.data);
                 
                 tween.updateTo({
