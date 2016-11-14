@@ -5,7 +5,7 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
-import Utils    from './utils';
+import Utils from './utils';
 
 /**
 * @class Oculo.DragControl
@@ -30,27 +30,15 @@ class DragControl {
         /**
         * @property {object} - The configuration.
         */
-        this.config = Object.assign({
-            dragProxy: null,
-            onDrag: function () {},
-            onDragParams: [],
-            onDragScope: null
-        }, options);
-        
-        /**
-        * @property {Element} - The target.
-        */
-        this.target = Utils.DOM.parseView(target);
+        this.config = options = options || {};
         
         /**
         * @property {Draggable} - The object that handles the drag behavior.
         */
-        this.control = new Draggable(this.target, {
-            onDrag: this.config.onDrag,
-            onDragParams: this.config.onDragParams,
-            callbackScope: this.config.onDragScope,
+        this.control = new Draggable(target, Object.assign({
+            callbackScope: this,
             zIndexBoost: false
-        });
+        }, this.config));
         
         /**
         * @property {Element} - The element that controls/initiates the drag events.
@@ -68,13 +56,6 @@ class DragControl {
         * @default
         */
         this.isPressed = false;
-        
-        /**
-        * @property {boolean} - Whether it is enabled or not.
-        * @readonly
-        * @default false
-        */
-        this._enabled = true;
         
         // Drag events and behaviors
         this.onDragstart = (event) => {
@@ -185,6 +166,42 @@ class DragControl {
         this.dragProxy.style.cursor = 'move';
 
         return this;
+    }
+    
+    /**
+    * Whether it is enabled or not.
+    *
+    * @returns {boolean}
+    */
+    get enabled () {
+        return this.control.enabled();
+    }
+    
+    /**
+    * The target.
+    *
+    * @returns {Element}
+    */
+    get target () {
+        return this.control.target;
+    }
+    
+    /**
+    * The current x position.
+    *
+    * @returns {number}
+    */
+    get x () {
+        return this.control.x;
+    }
+    
+    /**
+    * The current y position.
+    *
+    * @returns {number}
+    */
+    get y () {
+        return this.control.y;
     }
 }
 
