@@ -29,13 +29,8 @@ class WheelControl {
     constructor (target, options) {
         /**
         * @property {object} - The configuration.
-        * @readonly
         */
-        this.config = Object.assign({
-            onWheel: function () {},
-            onWheelParams: [],
-            onWheelScope: null
-        }, options);
+        this.config = options || {};
         
         /**
         * @property {Element} - The target.
@@ -51,8 +46,7 @@ class WheelControl {
         
         /**
         * @property {boolean} - Whether it is enabled or not.
-        * @readonly
-        * @default false
+        * @private
         */
         this._enabled = true;
         
@@ -69,10 +63,6 @@ class WheelControl {
         * @private
         */
         this._onWheel = (event) => {
-            if (!this._enabled) {
-                return;
-            }
-
             event.preventDefault();
             event.stopPropagation();
             this.wheelEvent = event;
@@ -82,6 +72,14 @@ class WheelControl {
         this.enable();
     }
 
+    /**
+    * @property {boolean} - Whether it is enabled or not.
+    * @readonly
+    */
+    get enabled () {
+        return this._enabled;
+    }
+    
     /**
     * Destroys the control and prepares it for garbage collection.
     *
@@ -115,15 +113,6 @@ class WheelControl {
         this._enabled = true;
 
         return this;
-    }
-    
-    /**
-    * Whether it is enabled or not.
-    *
-    * @returns {boolean}
-    */
-    get enabled () {
-        return this._enabled;
     }
 }
 

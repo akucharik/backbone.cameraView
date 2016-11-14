@@ -36,10 +36,11 @@ class DragControl {
         /**
         * @property {object} - The configuration.
         */
-        this.config = options = options || {};
+        this.config = options || {};
         
         /**
         * @property {Draggable} - The object that handles the drag behavior.
+        * @readonly
         */
         this.control = new Draggable(target, Object.assign({
             callbackScope: this,
@@ -48,76 +49,103 @@ class DragControl {
         
         /**
         * @property {Element} - The element that controls/initiates the drag events.
+        * @readonly
         */
         this.dragProxy = this.config.dragProxy ? Utils.DOM.parseView(this.config.dragProxy) : this.target;
         
         /**
         * @property {boolean} - Whether it is dragging or not.
-        * @default false
+        * @readonly
         */
         this.isDragging = false;
 
         /**
         * @property {boolean} - Whether it is pressed or not.
-        * @default
+        * @readonly
         */
         this.isPressed = false;
         
-        // Drag events and behaviors
-        this.onDragstart = (event) => {
+        /*
+        * @private
+        */
+        this._onDragstart = (event) => {
             event.preventDefault();
             event.stopPropagation();
             
             return false;
         };
         
-        this.onDragRelease = (event) => {
-            this.endDrag(event);
+        /*
+        * @private
+        */
+        this._onDragRelease = (event) => {
+            this._endDrag(event);
         };
 
-        this.onDragLeave = (event) => {
-            this.endDrag(event);
+        /*
+        * @private
+        */
+        this._onDragLeave = (event) => {
+            this._endDrag(event);
         };
 
-        this.onDragMove = (event) => { 
+        /*
+        * @private
+        */
+        this._onDragMove = (event) => { 
             if (this.isPressed && !this.isDragging) {
                 this.control.startDrag(event);
                 this.isDragging = true;
             }
         };
 
-        this.endDrag = (event) => {
+        /*
+        * @private
+        */
+        this._endDrag = (event) => {
             if (this.isDragging) {
                 this.control.endDrag(event);
-                this.dragProxy.removeEventListener('mouseup', this.onDragRelease);
-                this.dragProxy.removeEventListener('mouseleave', this.onDragLeave);
-                this.dragProxy.removeEventListener('mousemove', this.onDragMove);
-                this.dragProxy.removeEventListener('touchend', this.onDragRelease);
-                this.dragProxy.removeEventListener('touchcancel', this.onDragRelease);
-                this.dragProxy.removeEventListener('touchmove', this.onDragMove);
+                this.dragProxy.removeEventListener('mouseup', this._onDragRelease);
+                this.dragProxy.removeEventListener('mouseleave', this._onDragLeave);
+                this.dragProxy.removeEventListener('mousemove', this._onDragMove);
+                this.dragProxy.removeEventListener('touchend', this._onDragRelease);
+                this.dragProxy.removeEventListener('touchcancel', this._onDragRelease);
+                this.dragProxy.removeEventListener('touchmove', this._onDragMove);
                 this.isDragging = false;
             }
         };
         
-        this.onPress = (event) => { 
-            this.dragProxy.addEventListener('mouseup', this.onDragRelease);
-            this.dragProxy.addEventListener('mouseleave', this.onDragLeave);
-            this.dragProxy.addEventListener('mousemove', this.onDragMove);
-            this.dragProxy.addEventListener('touchend', this.onDragRelease);
-            this.dragProxy.addEventListener('touchcancel', this.onDragRelease);
-            this.dragProxy.addEventListener('touchmove', this.onDragMove);
+        /*
+        * @private
+        */
+        this._onPress = (event) => { 
+            this.dragProxy.addEventListener('mouseup', this._onDragRelease);
+            this.dragProxy.addEventListener('mouseleave', this._onDragLeave);
+            this.dragProxy.addEventListener('mousemove', this._onDragMove);
+            this.dragProxy.addEventListener('touchend', this._onDragRelease);
+            this.dragProxy.addEventListener('touchcancel', this._onDragRelease);
+            this.dragProxy.addEventListener('touchmove', this._onDragMove);
             this.isPressed = true;
         };
 
-        this.onRelease = (event) => {
-            this.release();
+        /*
+        * @private
+        */
+        this._onRelease = (event) => {
+            this._release();
         };
 
-        this.onLeave = (event) => {
-            this.release();
+        /*
+        * @private
+        */
+        this._onLeave = (event) => {
+            this._release();
         };
 
-        this.release = () => {
+        /*
+        * @private
+        */
+        this._release = () => {
             this.isPressed = false;
         };
         
@@ -158,6 +186,7 @@ class DragControl {
     
     /**
     * @property {Element} - The target.
+    * @readonly
     */
     get target () {
         return this.control.target;
@@ -198,13 +227,13 @@ class DragControl {
     */
     disable () {
         this.control.disable();
-        this.dragProxy.removeEventListener('dragstart', this.onDragstart);
-        this.dragProxy.removeEventListener('mousedown', this.onPress);
-        this.dragProxy.removeEventListener('mouseup', this.onRelease);
-        this.dragProxy.removeEventListener('mouseleave', this.onLeave);
-        this.dragProxy.removeEventListener('touchstart', this.onPress);
-        this.dragProxy.removeEventListener('touchend', this.onRelease);
-        this.dragProxy.removeEventListener('touchcancel', this.onRelease);
+        this.dragProxy.removeEventListener('dragstart', this._onDragstart);
+        this.dragProxy.removeEventListener('mousedown', this._onPress);
+        this.dragProxy.removeEventListener('mouseup', this._onRelease);
+        this.dragProxy.removeEventListener('mouseleave', this._onLeave);
+        this.dragProxy.removeEventListener('touchstart', this._onPress);
+        this.dragProxy.removeEventListener('touchend', this._onRelease);
+        this.dragProxy.removeEventListener('touchcancel', this._onRelease);
         this.dragProxy.style.cursor = null;
 
         return this;
@@ -217,15 +246,14 @@ class DragControl {
     */
     enable () {
         this.control.enable();
-        this.dragProxy.addEventListener('dragstart', this.onDragstart);
-        this.dragProxy.addEventListener('mousedown', this.onPress);
-        this.dragProxy.addEventListener('mouseup', this.onRelease);
-        this.dragProxy.addEventListener('mouseleave', this.onLeave);
-        this.dragProxy.addEventListener('touchstart', this.onPress);
-        this.dragProxy.addEventListener('touchend', this.onRelease);
-        this.dragProxy.addEventListener('touchcancel', this.onRelease);
+        this.dragProxy.addEventListener('dragstart', this._onDragstart);
+        this.dragProxy.addEventListener('mousedown', this._onPress);
+        this.dragProxy.addEventListener('mouseup', this._onRelease);
+        this.dragProxy.addEventListener('mouseleave', this._onLeave);
+        this.dragProxy.addEventListener('touchstart', this._onPress);
+        this.dragProxy.addEventListener('touchend', this._onRelease);
+        this.dragProxy.addEventListener('touchcancel', this._onRelease);
         this.dragProxy.style.cursor = 'move';
-
         return this;
     }
 }
