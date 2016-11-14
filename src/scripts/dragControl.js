@@ -5,11 +5,17 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
+/**
+* GSAP's Draggable.
+* @external Draggable
+* @see http://greensock.com/docs/#/HTML5/GSAP/Utils/Draggable/
+*/
+
 import Utils from './utils';
 
 /**
 * @class Oculo.DragControl
-* @constructor
+* @requires {@link external:Draggable}
 * @memberof Oculo
 * @param {string|Element} target - The target.
 * @param {Object} [options] - An object of configuration options.
@@ -119,6 +125,61 @@ class DragControl {
     }
 
     /**
+    * @property {boolean} - Whether it is enabled or not.
+    * @readonly
+    */
+    get enabled () {
+        return this.control.enabled();
+    }
+    
+    /**
+    * @property {Object} - The last pointer event that affected the instance.
+    * @readonly
+    */
+    get pointerEvent () {
+        return this.control.pointerEvent;
+    }
+    
+    /**
+    * @property {number} - The x position of the last pointer event that affected the instance.
+    * @readonly
+    */
+    get pointerX () {
+        return this.control.pointerX;
+    }
+    
+    /**
+    * @property {number} - The y position of the last pointer event that affected the instance.
+    * @readonly
+    */
+    get pointerY () {
+        return this.control.pointerY;
+    }
+    
+    /**
+    * @property {Element} - The target.
+    */
+    get target () {
+        return this.control.target;
+    }
+    
+    /**
+    * @property {number} - The current x position.
+    * @readonly
+    */
+    get x () {
+        return this.control.x;
+    }
+    
+    /**
+    * @property {number} - The current y position.
+    * @readonly
+    */
+    get y () {
+        return this.control.y;
+    }
+    
+    /**
     * Destroys the control and prepares it for garbage collection.
     *
     * @returns {this} self
@@ -167,48 +228,11 @@ class DragControl {
 
         return this;
     }
-    
-    /**
-    * Whether it is enabled or not.
-    *
-    * @returns {boolean}
-    */
-    get enabled () {
-        return this.control.enabled();
-    }
-    
-    /**
-    * The target.
-    *
-    * @returns {Element}
-    */
-    get target () {
-        return this.control.target;
-    }
-    
-    /**
-    * The current x position.
-    *
-    * @returns {number}
-    */
-    get x () {
-        return this.control.x;
-    }
-    
-    /**
-    * The current y position.
-    *
-    * @returns {number}
-    */
-    get y () {
-        return this.control.y;
-    }
 }
 
 /**
-* The configuration property names.
+* @property {Array} - The configuration property names.
 * @static
-* @property {Array}
 */
 DragControl.CONFIG_PROP_NAMES = ['dragProxy', 'onDrag', 'onDragParams', 'onDragScope'];
 

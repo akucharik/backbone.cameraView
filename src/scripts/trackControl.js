@@ -5,12 +5,6 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
-/**
-* GSAP's Draggable.
-* @external Draggable
-* @see http://greensock.com/docs/#/HTML5/GSAP/Utils/Draggable/
-*/
-
 import pick         from 'lodash/pick';
 import DragControl  from './dragControl';
 import WheelControl from './wheelControl';
