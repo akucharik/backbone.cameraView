@@ -175,6 +175,8 @@
                 app.camera.addAnimation('zoomAt100', new Oculo.Animation(app.camera).zoomAt({x:100, y:100}, 2, 2));
                 app.camera.addAnimation('zoomTo50', new Oculo.Animation(app.camera).zoomTo(0.5, 2));
                 app.camera.addAnimation('zoomTo200', new Oculo.Animation(app.camera).zoomTo(2, 2));
+                app.camera.addAnimation('instantZoom', new Oculo.Animation(app.camera).zoomTo(2, 0));
+                app.camera.addAnimation('instantShake', new Oculo.Animation(app.camera).shake(0.1, 0));
             
                 app.camera.render();
 

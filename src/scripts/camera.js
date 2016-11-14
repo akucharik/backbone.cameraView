@@ -48,19 +48,20 @@
 * @see http://greensock.com/docs/#/HTML5/GSAP/Easing/
 */
     
-import clamp      from 'lodash/clamp';
-import isElement  from 'lodash/isElement';
-import isFinite   from 'lodash/isFinite';
-import isFunction from 'lodash/isFunction';
-import isNil      from 'lodash/isNil';
-import isObject   from 'lodash/isObject';
-import isString   from 'lodash/isString';
-import Backbone   from 'backbone';
-import _Math      from './math/math';
-import Matrix2    from './math/matrix2';
-import Scene      from './scene';
-import Utils      from './utils';
-import Vector2    from './math/vector2';
+import clamp        from 'lodash/clamp';
+import isElement    from 'lodash/isElement';
+import isFinite     from 'lodash/isFinite';
+import isFunction   from 'lodash/isFunction';
+import isNil        from 'lodash/isNil';
+import isObject     from 'lodash/isObject';
+import isString     from 'lodash/isString';
+import Backbone     from 'backbone';
+import _Math        from './math/math';
+import Matrix2      from './math/matrix2';
+import Scene        from './scene';
+import TrackControl from './trackControl';
+import Utils        from './utils';
+import Vector2      from './math/vector2';
 
 /**
 * Factory: Creates a camera to view a scene.
@@ -107,6 +108,12 @@ class Camera {
 //            model: this,
 //            className: 'oculo-debug'
 //        });
+        
+        /**
+        * @property {TrackControl} - The track control.
+        * @default null
+        */
+        this.trackControl = null;
         
         /**
         * @property {Oculo.Animation} - The active camera animation.
@@ -160,22 +167,6 @@ class Camera {
         this.isDraggable = options.draggable ? true : false;
 
         /**
-        * @property {boolean} - Whether the camera's drag capability is enabled or not.
-        * @default false
-        */
-        Object.defineProperty(this, 'isDragEnabled', {
-            get: function () {
-                return this.draggable ? this.draggable.enabled() : false;
-            }
-        });
-
-        /**
-        * @property {boolean} - Whether the camera is being dragged or not.
-        * @default false
-        */
-        this.isDragging = false;
-
-        /**
         * Whether the camera is paused or not.
         * @name Camera#isPaused
         * @property {boolean} - Gets whether the camera is paused or not.
@@ -225,7 +216,7 @@ class Camera {
         * @property {boolean} - Whether the camera is manually zoomable or not.
         * @default false
         */
-        this.isManualZoomable = options.manualZoomable ? true : false;    
+        this.trackpadZoomable = options.manualZoomable ? true : false;    
 
         /**
         * @property {boolean} - Whether the manual zoom is enabled or not.
@@ -432,38 +423,6 @@ class Camera {
 
         this._view = null;
         
-        // Initialize zoom events and behaviors
-        this.onZoomWheel = (event) => {
-            if (this.isManualZoomEnabled === false) {
-                return;
-            }
-            
-            event.preventDefault();
-            event.stopPropagation();
-
-            if (event.deltaY) {
-                var direction = event.deltaY > 0 ? Camera.zoomDirection.OUT : Camera.zoomDirection.IN;
-                var cameraRect;
-                var cameraContextPosition = new Vector2();
-                var sceneContextPosition = new Vector2();
-                var origin = this.scene.origin;
-                var zoom = this._clampZoom(this.zoom + this.zoomIncrement * Math.abs(event.deltaY) * this.zoom * (direction === Camera.zoomDirection.IN ? 1 : -1));
-
-                // Performance Optimization: If zoom has not changed because it's at the min/max, don't zoom.
-                if (zoom !== this.zoom) {
-                    cameraRect = this.view.getBoundingClientRect();
-                    cameraContextPosition.set(event.clientX - cameraRect.left, event.clientY - cameraRect.top);
-                    sceneContextPosition = this._calculatePosition(this.offset, cameraContextPosition, this.scene.origin, this.sceneTransformation);
-
-                    if (Math.round(origin.x) !== Math.round(sceneContextPosition.x) || Math.round(origin.y) !== Math.round(sceneContextPosition.y)) {
-                        origin = this._calculatePosition(this.offset, cameraContextPosition, this.scene.origin, this.sceneTransformation);
-                    }
-
-                    this.animation = new Oculo.Animation(this, { paused: false }).zoomAt(origin, zoom, 0);
-                }
-            }
-        };
-        
         /**
         * @property {Element} - The view.
         */
@@ -478,22 +437,53 @@ class Camera {
                 if (this._view) {
                     this._view.appendChild(this.scene.view);
                     
-                    this._view.addEventListener('dragstart', this.onDragstart);
-                    this._view.addEventListener('mousedown', this.onPress);
-                    this._view.addEventListener('mouseup', this.onRelease);
-                    this._view.addEventListener('mouseleave', this.onLeave);
-                    this._view.addEventListener('touchstart', this.onPress);
-                    this._view.addEventListener('touchend', this.onRelease);
-                    this._view.addEventListener('touchcancel', this.onRelease);
-                    this._view.addEventListener('transitionend', this.onTransitionEnd);
+                    if (this.isDraggable) {
+                        this.trackControl = new TrackControl(this, {
+                            draggable: true,
+                            onDrag: function (camera) {
+                                var position = camera._calculatePosition(new Vector2(-this.x, -this.y), camera.viewportCenter, camera.scene.origin, camera.sceneTransformation);
 
-                    // TODO: Add enableDrag/disableDrag to camera and toggle style
-                    if (this.isDraggable && this.isDragEnabled) {
-                        this._view.style.cursor = 'move';
-                    }
+                                if (camera.hasBounds) {
+                                    // Manually tween draggable to consistently enforce bounds based on camera position
+                                    camera.applyBounds(position);
+                                    TweenMax.set(this.target, { 
+                                        css: { 
+                                            x: -camera.offset.x, 
+                                            y: -camera.offset.y
+                                        }
+                                    });
+                                }
+                                else {
+                                    camera.position.copy(position);
+                                    camera.offset.set(-this.x, -this.y);
+                                }
 
-                    if (this.isManualZoomable) { 
-                        this._view.addEventListener('wheel', this.onZoomWheel);
+                                camera._renderDebug();
+                            },
+                            wheelable: true,
+                            onWheel: function (camera) {
+                                var direction = this.wheelEvent.deltaY > 0 ? Camera.zoomDirection.OUT : Camera.zoomDirection.IN;
+                                var velocity = Math.abs(this.wheelEvent.deltaY);
+                                var cameraRect;
+                                var cameraContextPosition = new Vector2();
+                                var sceneContextPosition = new Vector2();
+                                var origin = camera.scene.origin;
+                                var zoom = camera.zoom + camera.zoom * camera.zoomIncrement * (velocity > 1 ? velocity * 0.5 : 1) * (direction === Camera.zoomDirection.IN ? 1 : -1);
+
+                                // Performance Optimization: If zoom has not changed because it's at the min/max, don't zoom.
+                                if (camera._clampZoom(zoom) !== camera.zoom) { 
+                                    cameraRect = camera.view.getBoundingClientRect();
+                                    cameraContextPosition.set(this.wheelEvent.clientX - cameraRect.left, this.wheelEvent.clientY - cameraRect.top);
+                                    sceneContextPosition = camera._calculatePosition(camera.offset, cameraContextPosition, camera.scene.origin, camera.sceneTransformation);
+
+                                    if (Math.round(origin.x) !== Math.round(sceneContextPosition.x) || Math.round(origin.y) !== Math.round(sceneContextPosition.y)) {
+                                        origin = camera._calculatePosition(camera.offset, cameraContextPosition, camera.scene.origin, camera.sceneTransformation);
+                                    }
+
+                                    camera.animation = new Oculo.Animation(camera, { paused: false }).zoomAt(origin, zoom, 0);
+                                }
+                            }
+                        });
                     }
                 }
             }
@@ -577,10 +567,22 @@ class Camera {
         */
         this.zoomIncrement = isFinite(options.zoomIncrement) ? options.zoomIncrement : 0.01;
 
+        this._zoom = 1;
+        
         /**
         * @property {number} - The amount of zoom. A ratio where 1 = 100%.
         * @default
         */
+        //this.zoom = options.zoom || 1;
+        Object.defineProperty(this, 'zoom', {
+            get: function () {
+                return this._zoom;
+            },
+            set: function (value) {
+                this._zoom = this._clampZoom(value);
+            }
+        });
+        
         this.zoom = options.zoom || 1;
 
         /**
@@ -682,104 +684,6 @@ class Camera {
             }
         };
 
-        /**
-        * @property {external:Draggable} - The drag control.
-        * @default null
-        */
-        this.draggable = !this.isDraggable ? null : new Draggable(this.scene.view, {
-            onDrag: function (camera) {
-                var position = camera._calculatePosition(new Vector2(-this.x, -this.y), camera.viewportCenter, camera.scene.origin, camera.sceneTransformation);
-
-                if (camera.hasBounds) {
-                    // Manually tween draggable to consistently enforce bounds based on camera position
-                    camera.applyBounds(position);
-                    TweenMax.set(this.target, { 
-                        css: { 
-                            x: -camera.offset.x, 
-                            y: -camera.offset.y
-                        }
-                    });
-                }
-                else {
-                    camera.position.copy(position);
-                    camera.offset.set(-this.x, -this.y);
-                }
-                
-                camera._renderDebug();
-            },
-            onDragParams: [this],
-            zIndexBoost: false
-        });
-
-        // Initialize standard events and behaviors
-        this.onDragstart = (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            
-            return false;
-        };
-
-        this.onPress = (event) => {
-            if (this.view && this.isDraggable) {
-                this.view.addEventListener('mouseup', this.onDragRelease);
-                this.view.addEventListener('mouseleave', this.onDragLeave);
-                this.view.addEventListener('mousemove', this.onDragMove);
-                this.view.addEventListener('touchend', this.onDragRelease);
-                this.view.addEventListener('touchcancel', this.onDragRelease);
-                this.view.addEventListener('touchmove', this.onDragMove);
-            }
-
-            this.isPressed = true;
-            this._renderDebug();
-        };
-
-        this.onRelease = (event) => {
-            this.release();
-        };
-
-        this.onLeave = (event) => {
-            this.release();
-        };
-
-        this.onTransitionEnd = (event) => {
-            this.isTransitioning = false;
-        };
-
-        this.release = () => {
-            this.isPressed = false;
-            this._renderDebug();
-        };
-
-        // Initialize drag events and behaviors
-        this.onDragRelease = (event) => {
-            this.endDrag(event);
-        };
-
-        this.onDragLeave = (event) => {
-            this.endDrag(event);
-        };
-
-        this.onDragMove = (event) => {
-            if (this.isPressed && !this.isDragging) {
-                this.draggable.startDrag(event);
-                this.isDragging = true;
-            }
-        };
-
-        this.endDrag = (event) => {
-            if (this.isDragging) {
-                this.draggable.endDrag(event);
-                this.view.removeEventListener('mouseup', this.onDragRelease);
-                this.view.removeEventListener('mouseleave', this.onDragLeave);
-                this.view.removeEventListener('mousemove', this.onDragMove);
-                this.view.removeEventListener('touchend', this.onDragRelease);
-                this.view.removeEventListener('touchcancel', this.onDragRelease);
-                this.view.removeEventListener('touchmove', this.onDragMove);
-                this.isDragging = false;
-                this._renderDebug();
-            }
-        };
-
         // Initialize custom events and behaviors
         this.onResize = () => {
             if (this.view) {
@@ -809,6 +713,8 @@ class Camera {
                                 endProps = this._calculateEndProps(tween.data.parsedOrigin, tween.data.parsedPosition, tween.data.parsedRotation, tween.data.parsedZoom, this.camera);
                                 endOffset = endProps.endOffset || {};
                                 Object.assign(tween.data, endProps);
+                                
+                                // TODO: for dev only
                                 console.log('tween data after resize: ', tween.data);
                                 tween.updateTo({
                                     offsetX: endOffset.x,
@@ -967,8 +873,8 @@ class Camera {
         }
         
         // TODO: Remove event handlers attached by trackControls
-        if (this.isDraggable) {
-            this.draggable.kill();
+        if (this.trackControl) {
+            this.trackControl.destroy();
         }
         
         if (this.view) {
