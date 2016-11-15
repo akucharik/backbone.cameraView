@@ -77,6 +77,22 @@ class TrackControl {
     }
 
     /**
+    * @property {boolean} - Whether dragging is enabled or not.
+    * @readonly
+    */
+    get dragEnabled () {
+        return this.isDraggable ? this.dragControl.enabled : false;
+    }
+    
+    /**
+    * @property {boolean} - Whether wheeling is enabled or not.
+    * @readonly
+    */
+    get wheelEnabled () {
+        return this.isWheelable ? this.wheelControl.enabled : false;
+    }
+    
+    /**
     * Destroys the control and prepares it for garbage collection.
     *
     * @returns {this} self
@@ -120,15 +136,6 @@ class TrackControl {
     }
     
     /**
-    * Whether dragging is enabled or not.
-    * @property {boolean}
-    * @default false
-    */
-    get dragEnabled () {
-        return this.isDraggable ? this.dragControl.enabled : false;
-    }
-    
-    /**
     * Disables wheeling.
     *
     * @returns {this} self
@@ -152,14 +159,6 @@ class TrackControl {
         }
 
         return this;
-    }
-    
-    /**
-    * Whether wheeling is enabled or not.
-    * @default false
-    */
-    get wheelEnabled () {
-        return this.isWheelable ? this.wheelControl.enabled : false;
     }
 }
 

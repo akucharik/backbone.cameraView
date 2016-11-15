@@ -1,5 +1,42 @@
 'use strict';
 
+/**
+* The Backbone library.
+* @external Backbone
+* @see http://backbonejs.org
+*/
+
+/**
+* Backbone.Events
+* @name Events
+* @memberof external:Backbone
+* @see http://backbonejs.org/#Events
+*/
+
+/**
+* The Lodash library.
+* @external Lodash
+* @see http://lodash.com
+*/
+
+/**
+* GSAP's TimelineMax.
+* @external TimelineMax
+* @see http://greensock.com/docs/#/HTML5/GSAP/TimelineMax/
+*/
+
+/**
+* GSAP's TweenMax.
+* @external TweenMax
+* @see http://greensock.com/docs/#/HTML5/GSAP/TweenMax/
+*/
+
+/**
+* GSAP's Easing.
+* @external Easing
+* @see http://greensock.com/docs/#/HTML5/GSAP/Easing/
+*/
+
 import Animation from './animation';
 import Camera from './camera';
 import Math from './math/math';

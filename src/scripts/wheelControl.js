@@ -66,7 +66,7 @@ class WheelControl {
             event.preventDefault();
             event.stopPropagation();
             this.wheelEvent = event;
-            this._throttledOnWheel();   
+            this._throttledOnWheel();
         };
         
         this.enable();
@@ -75,6 +75,7 @@ class WheelControl {
     /**
     * @property {boolean} - Whether it is enabled or not.
     * @readonly
+    * default true
     */
     get enabled () {
         return this._enabled;
