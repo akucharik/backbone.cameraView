@@ -109,40 +109,26 @@ data.behaviors = {
 };
 
 data.bounds = {
-    None: null,
-    CameraCenter: function () {
-        return {
-            minX: 0,
-            minY: 0,
-            maxX: this.sceneWidth,
-            maxY: this.sceneHeight
-        };
-    },
-    World: function () {
-        return {
-            minX: this.viewportCenter.x,
-            minY: this.viewportCenter.y,
-            maxX: this.sceneWidth - this.viewportCenter.x,
-            maxY: this.sceneHeight - this.viewportCenter.y
-        };
-    }
+    None: Oculo.Camera.bounds.NONE,
+    World: Oculo.Camera.bounds.WORLD,
+    WorldEdge: Oculo.Camera.bounds.WORLD_EDGE
 };
 
 data.boundsList = [{
         text: 'None',
         value: 'None'
     }, {
-        text: 'Camera Center',
-        value: 'CameraCenter'
-    }, {
         text: 'World',
         value: 'World'
+    }, {
+        text: 'World Edge',
+        value: 'WorldEdge'
 }];
 
 data.lookups.boundsList = {
     None: 0,
-    CameraCenter: 1,
-    World: 2
+    World: 1,
+    WorldEdge: 2
 };
 
 data.duration = {

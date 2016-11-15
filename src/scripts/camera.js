@@ -4,49 +4,6 @@
 * @copyright    Adam Kucharik
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
-
-/**
-* The Backbone library.
-* @external Backbone
-* @see http://backbonejs.org
-*/
-
-/**
-* Backbone.Events
-* @name Events
-* @memberof external:Backbone
-* @see http://backbonejs.org/#Events
-*/
-
-/**
-* The Lodash library.
-* @external Lodash
-* @see http://lodash.com
-*/
-
-/**
-* The Zepto library.
-* @external Zepto
-* @see http://zeptojs.com
-*/
-
-/**
-* GSAP's TweenMax.
-* @external TweenMax
-* @see http://greensock.com/docs/#/HTML5/GSAP/TweenMax/
-*/
-
-/**
-* GSAP's TimelineMax.
-* @external TimelineMax
-* @see http://greensock.com/docs/#/HTML5/GSAP/TimelineMax/
-*/
-
-/**
-* GSAP's Easing.
-* @external Easing
-* @see http://greensock.com/docs/#/HTML5/GSAP/Easing/
-*/
     
 import clamp        from 'lodash/clamp';
 import isElement    from 'lodash/isElement';
@@ -111,7 +68,7 @@ class Camera {
         
         /**
         * @property {TrackControl} - The track control.
-        * @default null
+        * @default
         */
         this.trackControl = null;
         
@@ -125,6 +82,37 @@ class Camera {
         */
         this.animations = {};
 
+        /**
+        * @private
+        * @property {null|function|Object} - The internally managed bounds.
+        */
+        this._bounds;
+        this.bounds = options.bounds || Camera.bounds.NONE;
+        
+        /**
+        * @property {number} - The camera's minimum "legal" X value after bounds are applied. 
+        * @readonly
+        */
+        this.minX = null;
+        
+        /**
+        * @property {number} - The camera's minimum "legal" Y value after bounds are applied. 
+        * @readonly
+        */
+        this.minY = null;
+        
+        /**
+        * @property {number} - The camera's maximum "legal" X value after bounds are applied. 
+        * @readonly
+        */
+        this.maxX = null;
+        
+        /**
+        * @property {number} - The camera's maximum "legal" Y value after bounds are applied. 
+        * @readonly
+        */
+        this.maxY = null;
+        
         /**
         * @property {Object} - Whether the camera is in debug mode or not.
         * @default false
@@ -149,33 +137,10 @@ class Camera {
 //        this.defaultEase = options.defaultEase || Power2.easeOut;
 
         /**
-        * Whether the scene is animating or not.
-        * @name Camera#isAnimating
-        * @property {boolean} - Gets whether the scene is animating or not.
-        */
-        Object.defineProperty(this, 'isAnimating', {
-            get: function () {
-                var progress = this.animation ? this.animation.progress() : 0;
-                return progress > 0 && progress < 1;
-            }
-        });
-
-        /**
         * @property {boolean} - Whether the camera's position is draggable or not.
         * @default false
         */
-        this.isDraggable = options.draggable ? true : false;
-
-        /**
-        * Whether the camera is paused or not.
-        * @name Camera#isPaused
-        * @property {boolean} - Gets whether the camera is paused or not.
-        */
-        Object.defineProperty(this, 'isPaused', {
-            get: function () {
-                return this.animation ? this.animation.paused() : false;
-            }
-        });
+        this.dragToMove = options.dragToMove ? true : false;
 
         /**
         * @property {boolean} - Whether the camera is pressed or not.
@@ -190,64 +155,30 @@ class Camera {
         this.isRendered = false;
 
         /**
-        * Whether the camera is rotated or not.
-        * @name Camera#isRotated
-        * @property {number} - Gets whether the camera is rotated or not.
-        */
-        Object.defineProperty(this, 'isRotated', {
-            get: function () {
-                return (Math.abs(this.rotation / 360) % 1) > 0;
-            }
-        });
-
-        /**
         * @property {boolean} - Whether the scene is shaking or not.
         * @default
         */
         this.isShaking = false;
 
         /**
-        * @property {boolean} - Whether the scene has an active CSS transition or not.
-        * @default
-        */
-        this.isTransitioning = false;
-
-        /**
-        * @property {boolean} - Whether the camera is manually zoomable or not.
+        * @property {boolean} - Whether wheeling can be used to zoom or not.
         * @default false
         */
-        this.trackpadZoomable = options.manualZoomable ? true : false;    
-
-        /**
-        * @property {boolean} - Whether the manual zoom is enabled or not.
-        * @default false
-        */
-        this.isManualZoomEnabled = options.manualZoomable ? true : false; 
-
-        /**
-        * Whether the camera is zoomed or not.
-        * @name Camera#isZoomed
-        * @property {number} - Gets whether the camera is zoomed or not.
-        */
-        Object.defineProperty(this, 'isZoomed', {
-            get: function () {
-                return this.zoom !== 1;
-            }
-        });
+        this.wheelToZoom = options.wheelToZoom ? true : false;
 
         /**
         * The maximum value the scene can be zoomed.
         * @property {number} - See {@link Camera.zoom|zoom}.
         * @default 3
         */
-        this.maxZoom = isFinite(options.maxZoom) ? options.maxZoom : 3;
+        this.maxZoom = options.maxZoom || 3;
 
         /**
         * The minimum value the scene can be zoomed.
         * @property {number} - See {@link Camera.zoom|zoom}.
         * @default 0.5
         */
-        this.minZoom = isFinite(options.minZoom) ? options.minZoom : 0.5;
+        this.minZoom = options.minZoom || 0.5;
 
         /**
         * @property {Vector2} - The offset on the scene.
@@ -256,153 +187,16 @@ class Camera {
         this.offset = new Vector2();
 
         /**
-        * The camera's X offset on the scene.
-        * @name Camera#x
-        * @property {number} - Gets or sets the camera's X offset on the scene.
-        */
-        Object.defineProperty(this, 'offsetX', {
-            get: function () {
-                return this.offset.x;
-            },
-
-            set: function (value) {
-                this.offset.x = value;
-            }
-        });
-
-        /**
-        * The camera's Y offset on the scene.
-        * @name Camera#y
-        * @property {number} - Gets or sets the camera's Y offset on the scene.
-        */
-        Object.defineProperty(this, 'offsetY', {
-            get: function () {
-                return this.offset.y;
-            },
-
-            set: function (value) {
-                this.offset.y = value;
-            }
-        });
-
-        /**
         * @property {Vector2} - The position within the world.
-        * @default
+        * @default new Vector2()
         */
         this.position = new Vector2(options.position.x || 0, options.position.y || 0);
-
-        /**
-        * The camera's X position within the world.
-        * @name Camera#x
-        * @property {number} - Gets or sets the camera's X position within the world.
-        */
-        Object.defineProperty(this, 'x', {
-            get: function () {
-                return this.position.x;
-            },
-
-            set: function (value) {
-                this.position.x = value;
-            }
-        });
-
-        /**
-        * The camera's Y position within the world.
-        * @name Camera#y
-        * @property {number} - Gets or sets the camera's Y position within the world.
-        */
-        Object.defineProperty(this, 'y', {
-            get: function () {
-                return this.position.y;
-            },
-
-            set: function (value) {
-                this.position.y = value;
-            }
-        });
 
         /**
         * @property {number} - The amount of rotation in degrees.
         * @default
         */
         this.rotation = options.rotation || 0;
-
-        /**
-        * The X value of the transformation origin.
-        * @name Camera#sceneOriginX
-        * @property {number} - Gets the X value of the transformation origin.
-        */
-        Object.defineProperty(this, 'sceneOriginX', {
-            get: function () {
-                return this.scene.origin.x;
-            }
-        });
-
-        /**
-        * The Y value of the transformation origin.
-        * @name Camera#sceneOriginY
-        * @property {number} - Gets the Y value of the transformation origin.
-        */
-        Object.defineProperty(this, 'sceneOriginY', {
-            get: function () {
-                return this.scene.origin.y;
-            }
-        });
-
-        /**
-        * The width of the scene.
-        * @name Camera#sceneWidth
-        * @property {number} - Gets the width of the scene.
-        */
-        Object.defineProperty(this, 'sceneWidth', {
-            get: function () {
-                return this.scene.width;
-            }
-        });
-
-        /**
-        * The height of the scene.
-        * @name Camera#sceneHeight
-        * @property {number} - Gets the height of the scene.
-        */
-        Object.defineProperty(this, 'sceneHeight', {
-            get: function () {
-                return this.scene.height;
-            }
-        });
-
-        /**
-        * The scaled width of the scene.
-        * @name Camera#sceneScaledHeight
-        * @property {number} - Gets the scaled width of the scene.
-        */
-        Object.defineProperty(this, 'sceneScaledWidth', {
-            get: function () {
-                return this.scene.width * this.zoom;
-            }
-        });
-
-        /**
-        * The scaled height of the scene.
-        * @name Camera#sceneScaledHeight
-        * @property {number} - Gets the scaled height of the scene.
-        */
-        Object.defineProperty(this, 'sceneScaledHeight', {
-            get: function () {
-                return this.scene.height * this.zoom;
-            }
-        });
-
-        /**
-        * The transformation of the scene.
-        * @name Camera#sceneTransformation
-        * @property {Matrix2} - Gets the transformation of the scene.
-        */
-        Object.defineProperty(this, 'sceneTransformation', {
-            get: function () {
-                return new Matrix2().scale(this.zoom, this.zoom).rotate(_Math.degToRad(-this.rotation));
-            }
-        });
 
         /**
         * @property {number} - The shake intensity. A value between 0 and 1.
@@ -437,9 +231,9 @@ class Camera {
                 if (this._view) {
                     this._view.appendChild(this.scene.view);
                     
-                    if (this.isDraggable) {
+                    if (this.dragToMove || this.wheelToZoom) {
                         this.trackControl = new TrackControl(this, {
-                            draggable: true,
+                            draggable: this.dragToMove,
                             onDrag: function (camera) {
                                 var position = camera._calculatePosition(new Vector2(-this.x, -this.y), camera.viewportCenter, camera.scene.origin, camera.sceneTransformation);
 
@@ -460,7 +254,7 @@ class Camera {
 
                                 camera._renderDebug();
                             },
-                            wheelable: true,
+                            wheelable: this.wheelToZoom,
                             onWheel: function (camera) {
                                 var direction = this.wheelEvent.deltaY > 0 ? Camera.zoomDirection.OUT : Camera.zoomDirection.IN;
                                 var velocity = Math.abs(this.wheelEvent.deltaY);
@@ -490,61 +284,6 @@ class Camera {
         });
         
         this.view = options.view;
-        
-        /**
-        * The center point.
-        * @name Camera#center
-        * @property {Vector2} - Gets the camera's center point.
-        */
-        Object.defineProperty(this, 'viewportCenter', {
-            get: function () {
-                return new Vector2(this.viewportWidth, this.viewportHeight).multiplyScalar(0.5);
-            }
-        });
-
-        /**
-        * The x coordinate of the center point.
-        * @name Camera#centerX
-        * @property {number} - Gets the x coordinate of the camera's center point.
-        */
-        Object.defineProperty(this, 'viewportCenterX', {
-            get: function () {
-                return this.viewportCenter.x;
-            }
-        });
-
-        /**
-        * The y coordinate of the center point.
-        * @name Camera#centerY
-        * @property {number} - Gets the y coordinate of the camera's center point.
-        */
-        Object.defineProperty(this, 'viewportCenterY', {
-            get: function () {
-                return this.viewportCenter.y;
-            }
-        });
-
-        /**
-        * The width of the viewport.
-        * @name Camera#viewportWidth
-        * @property {number} - Gets the viewport's width. Excludes the element's border.
-        */
-        Object.defineProperty(this, 'viewportWidth', {
-            get: function () {
-                return this.width;
-            }
-        });
-
-        /**
-        * The height of the viewport.
-        * @name Camera#viewportHeight
-        * @property {number} - Gets the viewport's height. Excludes the element's border.
-        */
-        Object.defineProperty(this, 'viewportHeight', {
-            get: function () {
-                return this.height;
-            }
-        });
 
         /**
         * The width.
@@ -565,124 +304,15 @@ class Camera {
         * @property {number} - See {@link Camera.zoom|zoom}.
         * @default 0.01
         */
-        this.zoomIncrement = isFinite(options.zoomIncrement) ? options.zoomIncrement : 0.01;
-
-        this._zoom = 1;
+        this.zoomIncrement = options.zoomIncrement || 0.01;
         
         /**
-        * @property {number} - The amount of zoom. A ratio where 1 = 100%.
-        * @default
-        */
-        //this.zoom = options.zoom || 1;
-        Object.defineProperty(this, 'zoom', {
-            get: function () {
-                return this._zoom;
-            },
-            set: function (value) {
-                this._zoom = this._clampZoom(value);
-            }
-        });
-        
-        this.zoom = options.zoom || 1;
-
-        /**
-        * The internally managed bounds.
+        * The internally managed zoom.
         *
         * @private
-        * @property {null|function|Object} - The camera's bounds.
         */
-        this._bounds = null;
-
-        /**
-        * The camera's bounds. The minimum and maximum position values for the camera. Set to null if no bounds are desired.
-        *
-        * @name Camera#bounds
-        * @property {null|function|Object} - Gets or sets the bounds.
-        * @default The size of the scene/world.
-        *
-        * @example <caption>As a bounds object</caption>
-        * { 
-        *   minX: 0, 
-        *   minY: 0, 
-        *   maxX: this.sceneWidth, 
-        *   maxY: this.sceneHeight
-        * }
-        * @example <caption>As a function that returns a bounds object</caption>
-        * function () { 
-        *   return { 
-        *     minX: this.viewportCenter.x, 
-        *     minY: this.viewportCenter.y, 
-        *     maxX: this.sceneWidth - this.viewportCenter.x, 
-        *     maxY: this.sceneHeight - this.viewportCenter.y 
-        *   } 
-        * }
-        */
-        Object.defineProperty(this, 'bounds', {
-            get: function () {
-                return this._bounds;
-            },
-
-            set: function (value) {
-                var bounds;
-
-                this._bounds = value;
-
-                if (value === null) {
-                    bounds = {
-                        minX: null,
-                        minY: null,
-                        maxX: null,
-                        maxY: null
-                    };
-                }
-                else if (isFunction(value)) {
-                    bounds = value.call(this);
-                }
-                else {
-                    bounds = value;
-                }
-
-                this.minX = bounds.minX;
-                this.minY = bounds.minY;
-                this.maxX = bounds.maxX;
-                this.maxY = bounds.maxY;
-            }
-        });
-
-        Object.defineProperty(this, 'hasBounds', {
-            get: function () {
-                return this._bounds !== null;
-            }
-        });
-
-        this.minX = null;
-        this.minY = null;
-        this.maxX = null;
-        this.maxY = null;
-
-        this.applyBounds = function (position, newBounds) {
-            position = position || this.position;
-            
-            if (newBounds !== undefined) {
-                this.bounds = newBounds;
-            }
-
-            if (this.hasBounds) {
-                this.position.set(clamp(position.x, this.minX, this.maxX), clamp(position.y, this.minY, this.maxY));
-                this.offset.copy(this._calculateOffset(this.position, this.viewportCenter, this.scene.origin, this.sceneTransformation));
-            }
-
-            return this;
-        };
-
-        this.bounds = options.bounds !== undefined ? options.bounds : function () {
-            return {
-                minX: this.viewportCenter.x,
-                minY: this.viewportCenter.y,
-                maxX: this.sceneWidth - this.viewportCenter.x,
-                maxY: this.sceneHeight - this.viewportCenter.y
-            }
-        };
+        this._zoom;
+        this.zoom = options.zoom || 1;
 
         // Initialize custom events and behaviors
         this.onResize = () => {
@@ -738,6 +368,260 @@ class Camera {
         
         this.initialize(options);
     }
+    
+    /**
+    * @name Camera#bounds
+    * @property {null|function|Object} - The camera's bounds. The minimum and maximum position values for the camera. Set to null if no bounds are desired.
+    *
+    * @example <caption>As a stock bounds</caption>
+    * Oculo.Camera.bounds.WORLD
+    *
+    * @example <caption>As a bounds object</caption>
+    * { 
+    *   minX: 0, 
+    *   minY: 0, 
+    *   maxX: this.sceneWidth, 
+    *   maxY: this.sceneHeight
+    * }
+    *
+    * @example <caption>As a function that returns a bounds object</caption>
+    * function () { 
+    *   var transformation = new Matrix2().scale(this.zoom, this.zoom).getInverse();
+    *   var min = new Vector2().add(this.viewportCenter).transform(transformation);
+    *   var max = new Vector2(this.sceneScaledWidth, this.sceneScaledHeight).subtract(this.viewportCenter).transform(transformation);
+    * 
+    *   return {
+    *     minX: min.x,
+    *     minY: min.y,
+    *     maxX: max.x,
+    *     maxY: max.y
+    *   }
+    * }
+    */
+    get bounds () {
+        return this._bounds;
+    }
+
+    set bounds (value) {
+        this._bounds = !value ? null : value;
+        this._updateBounds(this._bounds);
+    }
+    
+    /**
+    * @name Camera#hasBounds
+    * @property {boolean} - Whether the camera has bounds or not.
+    * @readonly
+    */
+    get hasBounds () {
+        return this._bounds !== null;
+    }
+    
+    /**
+    * @name Camera#isAnimating
+    * @property {boolean} - Whether the scene is animating or not.
+    * @readonly
+    */
+    get isAnimating () {
+        var progress = this.animation ? this.animation.progress() : 0;
+        return progress > 0 && progress < 1;
+    }
+    
+    /**
+    * @name Camera#isPaused
+    * @property {boolean} - Whether the camera is paused or not.
+    * @readonly
+    */
+    get isPaused () {
+        return this.animation ? this.animation.paused() : false;
+    }
+    
+    /**
+    * @name Camera#isRotated
+    * @property {boolean} - Whether the camera is rotated or not.
+    * @readonly
+    */
+    get isRotated () {
+        return (Math.abs(this.rotation / 360) % 1) > 0;
+    }
+    
+    /**
+    * @name Camera#isZoomed
+    * @property {boolean} - Whether the camera is zoomed or not.
+    * @readonly
+    */
+    get isZoomed () {
+        return this.zoom !== 1;
+    }
+    
+    /**
+    * @name Camera#offsetX
+    * @property {number} - The camera's X offset on the scene.
+    */
+    get offsetX () {
+        return this.offset.x;
+    }
+
+    set offsetX (value) {
+        this.offset.x = value;
+    }
+
+    /**
+    * @name Camera#offsetY
+    * @property {number} - The camera's Y offset on the scene.
+    */
+    get offsetY () {
+        return this.offset.y;
+    }
+
+    set offsetY (value) {
+        this.offset.y = value;
+    }
+    
+    /**
+    * @name Camera#sceneOriginX
+    * @property {number} - The X value of the transformation origin.
+    * @readonly
+    */
+    get sceneOriginX () {
+        return this.scene.origin.x;
+    }
+    
+    /**
+    * @name Camera#sceneOriginY
+    * @property {number} - The Y value of the transformation origin.
+    * @readonly
+    */
+    get sceneOriginY () {
+        return this.scene.origin.y;
+    }
+    
+    /**
+    * @name Camera#sceneWidth
+    * @property {number} - The width of the scene.
+    * @readonly
+    */
+    get sceneWidth () {
+        return this.scene.width;
+    }
+
+    /**
+    * @name Camera#sceneHeight
+    * @property {number} - The height of the scene.
+    * @readonly
+    */
+    get sceneHeight () {
+        return this.scene.height;
+    }
+    
+    /**
+    * @name Camera#sceneScaledHeight
+    * @property {number} - The scaled width of the scene.
+    * @readonly
+    */
+    get sceneScaledWidth () {
+        return this.scene.width * this.zoom;
+    }
+
+    /**
+    * @name Camera#sceneScaledHeight
+    * @property {number} - The scaled height of the scene.
+    * @readonly
+    */
+    get sceneScaledHeight () {
+        return this.scene.height * this.zoom;
+    }
+    
+    /**
+    * @name Camera#sceneTransformation
+    * @property {Matrix2} - The transformation of the scene.
+    * @readonly
+    */
+    get sceneTransformation () {
+        return new Matrix2().scale(this.zoom, this.zoom).rotate(_Math.degToRad(-this.rotation));
+    }
+    
+    /**
+    * @name Camera#viewportCenter
+    * @property {Vector2} - The camera's center point.
+    * @readonly
+    */
+    get viewportCenter () {
+        return new Vector2(this.viewportWidth, this.viewportHeight).multiplyScalar(0.5);
+    }
+
+    /**
+    * @name Camera#viewportCenterX
+    * @property {number} - The x coordinate of the camera's center point.
+    * @readonly
+    */
+    get viewportCenterX () {
+        return this.viewportCenter.x;
+    }
+
+    /**
+    * @name Camera#viewportCenterY
+    * @property {number} - The y coordinate of the camera's center point.
+    * @readonly
+    */
+    get viewportCenterY () {
+        return this.viewportCenter.y;
+    }
+    
+    /**
+    * @name Camera#viewportWidth
+    * @property {number} - The width of the viewport.
+    * @readonly
+    */
+    get viewportWidth () {
+        return this.width;
+    }
+
+    /**
+    * @name Camera#viewportHeight
+    * @property {number} - The height of the viewport.
+    * @readonly
+    */
+    get viewportHeight () {
+        return this.height;
+    }
+    
+    /**
+    * @name Camera#x
+    * @property {number} - The camera's X position within the world.
+    */
+    get x () {
+        return this.position.x;
+    }
+
+    set x (value) {
+        this.position.x = value;
+    }
+
+    /**
+    * @name Camera#y
+    * @property {number} - The camera's Y position within the world.
+    */
+    get y () {
+        return this.position.y;
+    }
+
+    set y (value) {
+        this.position.y = value;
+    }
+    
+    /**
+    * @name Camera#zoom
+    * @property {number} - The amount of zoom. A ratio where 1 = 100%.
+    * @default 1
+    */
+    get zoom () {
+        return this._zoom;
+    }
+        
+    set zoom (value) {
+        this._zoom = this._clampZoom(value);
+        this._updateBounds(this._bounds);
+    };
     
     _markPoint (x, y) {
         var pointElement = document.getElementById('point');
@@ -833,6 +717,30 @@ class Camera {
         }
     }
     
+    _updateBounds (value) {
+        var bounds;
+
+        if (!value) {
+            bounds = {
+                minX: null,
+                minY: null,
+                maxX: null,
+                maxY: null
+            };
+        }
+        else if (isFunction(value)) {
+            bounds = value.call(this);
+        }
+        else {
+            bounds = value;
+        }
+
+        this.minX = bounds.minX;
+        this.minY = bounds.minY;
+        this.maxX = bounds.maxX;
+        this.maxY = bounds.maxY;
+    }
+    
     /**
     * Adds an animation to the camera.
     *
@@ -861,6 +769,28 @@ class Camera {
     }
     
     /**
+    * Applies bounds to the camera.
+    *
+    * @param {Vector2} position - The postion of the camera.
+    * @param {null|function|Object} [newBounds] - The new bounds to be applied.
+    * @returns {this} self
+    */
+    applyBounds (position, newBounds) {
+        position = position || this.position;
+
+        if (newBounds !== undefined) {
+            this.bounds = newBounds;
+        }
+
+        if (this.hasBounds) {
+            this.position.set(clamp(position.x, this.minX, this.maxX), clamp(position.y, this.minY, this.maxY));
+            this.offset.copy(this._calculateOffset(this.position, this.viewportCenter, this.scene.origin, this.sceneTransformation));
+        }
+
+        return this;
+    }
+    
+    /**
     * Destroys the camera and prepares it for garbage collection.
     *
     * @returns {this} self
@@ -884,24 +814,55 @@ class Camera {
         return this;
     }
     
+    
     /**
-    * Disables manual zoom.
+    * Disables drag-to-move.
     *
     * @returns {this} self
     */
-    disableManualZoom () {
-        this.isManualZoomEnabled = false;
-
+    disableDragToMove () {
+        if (this.trackControl) {
+            this.trackControl.disableDrag();
+        }
+        
         return this;
     }
 
     /**
-    * Enables manual zoom.
+    * Enables drag-to-move.
     *
     * @returns {this} self
     */
-    enableManualZoom () {
-        this.isManualZoomEnabled = true;
+    enableDragToMove () {
+        if (this.trackControl) {
+            this.trackControl.enableDrag();
+        }
+
+        return this;
+    }
+    
+    /**
+    * Disables wheel-to-zoom.
+    *
+    * @returns {this} self
+    */
+    disableWheelToZoom () {
+        if (this.trackControl) {
+            this.trackControl.disableWheel();
+        }
+        
+        return this;
+    }
+
+    /**
+    * Enables wheel-to-zoom.
+    *
+    * @returns {this} self
+    */
+    enableWheelToZoom () {
+        if (this.trackControl) {
+            this.trackControl.enableWheel();
+        }
 
         return this;
     }
@@ -1118,6 +1079,30 @@ class Camera {
         return this;
     }
 }
+
+Camera.bounds = {
+    NONE: null,
+    WORLD: function () {
+        var transformation = new Matrix2().scale(this.zoom, this.zoom).getInverse();
+        var min = new Vector2().add(this.viewportCenter).transform(transformation);
+        var max = new Vector2(this.sceneScaledWidth, this.sceneScaledHeight).subtract(this.viewportCenter).transform(transformation);
+
+        return {
+            minX: min.x,
+            minY: min.y,
+            maxX: max.x,
+            maxY: max.y
+        };
+    },
+    WORLD_EDGE: function () {
+        return {
+            minX: 0,
+            minY: 0,
+            maxX: this.sceneWidth,
+            maxY: this.sceneHeight
+        };
+    },
+};
 
 /**
 * Enum for zoom direction.
