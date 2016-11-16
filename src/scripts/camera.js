@@ -40,13 +40,10 @@ class Camera {
     constructor (options) {
         options = options || {};
         
+        var position;
+        
         // Compose object
         Object.assign(this, Backbone.Events);
-        
-        /**
-        * @property {object} - The initial configuration of the camera.
-        */
-        this.config = options || {};
         
 //        /**
 //        * The debugging information view.
@@ -66,12 +63,6 @@ class Camera {
         * @property {Object} - An object for storing camera animations.
         */
         this.animations = {};
-        
-        /**
-        * @private
-        * @property {null|function|Object} - The internally managed bounds.
-        */
-        this._bounds;
         
         /**
         * @property {Object} - Whether the camera is in debug mode or not.
@@ -96,12 +87,6 @@ class Camera {
         * @default
         */
         this.isShaking = false;
-
-        /**
-        * @property {number} - The maximum offset after bounds are applied. 
-        * @readonly
-        */
-        this.maxOffset = new Vector2(null, null);
         
         /**
         * The maximum value the scene can be zoomed.
@@ -109,12 +94,6 @@ class Camera {
         * @default 3
         */
         this.maxZoom = options.maxZoom || 3;
-        
-        /**
-        * @property {number} - The minimum offset after bounds are applied. 
-        * @readonly
-        */
-        this.minOffset = new Vector2(null, null);
 
         /**
         * The minimum value the scene can be zoomed.
@@ -163,12 +142,6 @@ class Camera {
         * @default
         */
         this.trackControl = null;
-        
-        /**
-        * @private
-        * @property {Element} - The internally managed view.
-        */
-        this._view = null;
 
         /**
         * @property {boolean} - Whether wheeling can be used to zoom or not.
@@ -199,10 +172,41 @@ class Camera {
         
         /**
         * @private
+        * @property {null|function|Object} - The internally managed bounds.
+        */
+        this._bounds = null;
+        
+        /**
+        * @property {number} - The maximum position after bounds are applied.
+        * @readonly
+        */
+        this._maxPosition = new Vector2(null, null);
+        
+        /**
+        * @property {number} - The minimum position after bounds are applied. 
+        * @readonly
+        */
+        this._minPosition = new Vector2(null, null);
+        
+        /**
+        * @private
+        * @property {Element} - The internally managed view.
+        */
+        this._view = null;
+        
+        /**
+        * @private
         * @property {number} - The internally managed zoom.
         */
-        this._zoom;
+        this._zoom = 1;
 
+        // Initialize properties with prior property dependencies
+        this.bounds = options.bounds || Camera.bounds.NONE;
+        this.zoom = this._clampZoom(options.zoom || 1);
+        position = Utils.parsePosition(options.position, this.scene.view) || {};
+        this.offset.copy(this._calculateOffset(new Vector2(position.x || 0, position.y || 0), this.viewportCenter, this.scene.origin, this.sceneTransformation));
+        this.view = options.view;  
+        
         // Initialize custom events and behaviors
         this.onResize = () => {
             if (this.view) {
@@ -252,15 +256,6 @@ class Camera {
                 }).moveTo(this.position, 0, { overwrite: false });
             }
         }
-        
-        // Initialize properties with setters (in the correct order)
-        this.zoom = options.zoom || 1;
-        this.bounds = options.bounds || Camera.bounds.NONE;
-        this.view = options.view;
-        options.position = Utils.parsePosition(options.position, this.scene.view) || {};
-        var offset = this._calculateOffset(new Vector2(options.position.x || 0, options.position.y || 0), this.viewportCenter, this.scene.origin, this.sceneTransformation);
-        this.offsetX = offset.x;
-        this.offsetY = offset.y;
         
         // Initialize event listeners
         this.listenTo(this, 'change:size', this.onResize);
@@ -353,6 +348,42 @@ class Camera {
     }
     
     /**
+    * @name Camera#maxX
+    * @property {null|number} - The maximum X value after bounds are applied.
+    * @readonly
+    */
+    get maxX () {
+        return this._maxPosition.x;
+    }
+    
+    /**
+    * @name Camera#maxY
+    * @property {null|number} - The maximum Y value after bounds are applied.
+    * @readonly
+    */
+    get maxY () {
+        return this._maxPosition.y;
+    }
+    
+    /**
+    * @name Camera#minX
+    * @property {null|number} - The minimum X value after bounds are applied.
+    * @readonly
+    */
+    get minX () {
+        return this._minPosition.x;
+    }
+    
+    /**
+    * @name Camera#minY
+    * @property {null|number} - The minimum Y value after bounds are applied.
+    * @readonly
+    */
+    get minY () {
+        return this._minPosition.y;
+    }
+    
+    /**
     * @name Camera#offsetX
     * @property {number} - The camera's X offset on the scene.
     */
@@ -361,7 +392,7 @@ class Camera {
     }
 
     set offsetX (value) {
-        this.offset.x = clamp(value, this.minOffset.x, this.maxOffset.x);
+        this.offset.x = value;
     }
 
     /**
@@ -373,7 +404,7 @@ class Camera {
     }
 
     set offsetY (value) {
-        this.offset.y = clamp(value, this.minOffset.y, this.maxOffset.y);
+        this.offset.y = value;
     }
     
     /**
@@ -474,13 +505,8 @@ class Camera {
                         camera.offsetY = -this.y;
 
                         if (camera.hasBounds) {
-                            // Manually tween draggable to consistently enforce bounds based on camera position
-                            TweenMax.set(this.target, { 
-                                css: { 
-                                    x: -camera.offset.x, 
-                                    y: -camera.offset.y
-                                }
-                            });
+                            var position = camera._calculatePosition(new Vector2(-this.x, -this.y), camera.viewportCenter, camera.scene.origin, camera.sceneTransformation);
+                            new Oculo.Animation(camera, { paused: false }).moveTo(position, 0);
                         }
 
                         camera._renderDebug();
@@ -562,25 +588,19 @@ class Camera {
     /**
     * @name Camera#x
     * @property {number} - The camera's X position within the world.
+    * @readonly
     */
     get x () {
         return this.position.x;
     }
 
-    set x (value) {
-        this.position.x = value;
-    }
-
     /**
     * @name Camera#y
     * @property {number} - The camera's Y position within the world.
+    * @readonly
     */
     get y () {
         return this.position.y;
-    }
-
-    set y (value) {
-        this.position.y = value;
     }
     
     /**
@@ -654,14 +674,27 @@ class Camera {
     }
 
     /**
+    * Clamp the offset.
+    *
+    * @private
+    * @param {Vector2} offset - The offset.
+    * @returns {Vector2} The clamped offset.
+    */
+    _clampOffset (offset) {
+        var position = this.position;
+        position.set(clamp(position.x, this._minPosition.x, this._maxPosition.x), clamp(position.y, this._minPosition.y, this._maxPosition.y));
+        return this._calculateOffset(position, this.viewportCenter, this.scene.origin, this.sceneTransformation);
+    }
+    
+    /**
     * Clamp the zoom.
     *
     * @private
-    * @param {number} value - A zoom value.
-    * @returns {number} The clamped zoom value.
+    * @param {number} zoom - The zoom.
+    * @returns {number} The clamped zoom.
     */
-    _clampZoom (value) {
-        return clamp(value, this.minZoom, this.maxZoom);
+    _clampZoom (zoom) {
+        return clamp(zoom, this.minZoom, this.maxZoom);
     }
 
     /**
@@ -691,7 +724,7 @@ class Camera {
         }
     }
     
-    _updateBounds (value) {
+    _updateBounds (value) { 
         value = (value === undefined) ? this._bounds : value;
         
         var bounds;
@@ -712,12 +745,9 @@ class Camera {
             bounds = value;
         }
         
-        this.minOffset.copy(this._calculateOffset(new Vector2(bounds.minX, bounds.minY), this.viewportCenter, this.scene.origin, this.sceneTransformation));
-        this.maxOffset.copy(this._calculateOffset(new Vector2(bounds.maxX, bounds.maxY), this.viewportCenter, this.scene.origin, this.sceneTransformation));
-        
-        // Set the offset to apply bounds
-        this.offsetX = this.offset.x;
-        this.offsetY = this.offset.y;
+        this._minPosition.set(bounds.minX, bounds.minY);
+        this._maxPosition.set(bounds.maxX, bounds.maxY);
+        console.log('update bounds');
     }
     
     /**

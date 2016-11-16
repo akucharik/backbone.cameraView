@@ -5,14 +5,12 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
-import clamp      from 'lodash/clamp';
 import isElement  from 'lodash/isElement';
 import isFinite   from 'lodash/isFinite';
 import isFunction from 'lodash/isFunction';
 import isNil      from 'lodash/isNil';
 import isObject   from 'lodash/isObject';
 import isString   from 'lodash/isString';
-import uniqueId   from 'lodash/uniqueId';
 import _Math      from './math/math';
 import Matrix2    from './math/matrix2';
 import Utils      from './utils';
@@ -87,7 +85,12 @@ class Animation extends TimelineMax {
     * @param {Object} config - The configuration options originally given to the animation.
     */
     static _onUpdate (camera, config) {
-        var offset = camera.offset.clone();
+        var offset;
+        
+        console.log('clamp offset');
+        // Clamping here ensures bounds have been updated (if zoom has changed)
+        camera.offset.copy(camera._clampOffset(camera.offset));
+        offset = camera.offset.clone();
 
         if (camera.isShaking) {
             if (camera.shakeHorizontal) {
@@ -301,10 +304,10 @@ class Animation extends TimelineMax {
                 console.log('tween data: ', tween.data);
                 
                 tween.updateTo({
-                    zoom: endProps.endZoom,
-                    rotation: endProps.endRotation,
                     offsetX: endOffset.x,
-                    offsetY: endOffset.y
+                    offsetY: endOffset.y,
+                    rotation: endProps.endRotation,
+                    zoom: endProps.endZoom
                 });
             },
             onStartParams: ['{self}']
