@@ -49,184 +49,62 @@
         <div class="demo-sidebar">
             <h2>Commands</h2>
             <div id="app" style="padding: 1.0em; background-color: gray;"></div>
-            <!--<ul class="demo-commands">
-                <li><label>zoom:</label>
-                    <input id="focusOnScale" type="text" value="" disabled />
-                    <label>x:</label> 
-                    <input id="focusOnX" type="text" value="300" />
-                    <label>y:</label> 
-                    <input id="focusOnY" type="text" value="300" />
-                    <button id="focusOn">focusOn</button>
-                </li>
-                <li><label>rotation:</label> 
-                    <input id="rotateToRotation" type="text" value="30" />
-                    <label>x:</label> 
-                    <input id="rotateToX" type="text" value="" disabled />
-                    <label>y:</label> 
-                    <input id="rotateToY" type="text" value="" disabled />
-                    <button id="rotateTo">rotateTo</button>
-                </li>
-                <li><label>rotation:</label> 
-                    <input id="rotateAtRotation" type="text" value="30" />
-                    <label>x:</label> 
-                    <input id="rotateAtX" type="text" value="300" />
-                    <label>y:</label> 
-                    <input id="rotateAtY" type="text" value="300" />
-                    <button id="rotateAt">rotateAt</button>
-                </li>
-                <li><label>zoom:</label> 
-                    <input id="zoomToScale" type="text" value="2" />
-                    <label>x:</label> 
-                    <input id="zoomToX" type="text" value="" disabled />
-                    <label>y:</label> 
-                    <input id="zoomToY" type="text" value="" disabled />
-                    <button id="zoomTo">zoomTo</button>
-                </li>
-                <li><label>zoom:</label> 
-                    <input id="zoomAtScale" type="text" value="2" />
-                    <label>x:</label> 
-                    <input id="zoomAtX" type="text" value="300" />
-                    <label>y:</label> 
-                    <input id="zoomAtY" type="text" value="300" />
-                    <button id="zoomAt">zoomAt</button>
-                </li>
-                <li><label>zoom:</label> 
-                    <input id="zoomOnScale" type="text" value="2" />
-                    <label>x:</label> 
-                    <input id="zoomOnX" type="text" value="300" />
-                    <label>y:</label> 
-                    <input id="zoomOnY" type="text" value="300" />
-                    <button id="zoomOn">zoomOn</button>
-                </li>
-                <li><label>duration:</label> 
-                    <input id="duration" type="text" value="2" /></li>
-                <li>
-                    <button id="pause">Pause</button>
-                </li>
-                <li>
-                    <button id="play">Play</button>
-                </li>
-                <li>
-                    velocity x: <input id="velocityX" type="text" placeholder="1000" />
-                    velocity y: <input id="velocityY" type="text" placeholder="-500" />
-                    <button id="flick">flick</button>
-                </li>
-            </ul>-->
         </div>
     </div>
     
-    <!--<script type="text/javascript" src="../src/scripts/lib/zepto.min.js"></script>-->
     <script type="text/javascript" src="../src/scripts/lib/lodash.min.js"></script>
     <script type="text/javascript" src="../src/scripts/lib/backbone-min.js"></script>
     <script type="text/javascript" src="../src/scripts/lib/TweenMax.min.js"></script>
     <script type="text/javascript" src="../src/scripts/lib/Draggable.min.js"></script>
+    <script type="text/javascript" src="../build/scripts/ModifiersPlugin.min.js"></script>
     <script type="text/javascript" src="../build/scripts/oculo.js"></script>
-    <!--<script type="text/javascript" src="../src/scripts/sizableView.js"></script>
+    <!--
     <script type="text/javascript" src="scripts/behaviorView.js"></script>
     <script type="text/javascript" src="scripts/scrollView.js"></script>
     <script type="text/javascript" src="scripts/debugPropertyView.js"></script>
     <script type="text/javascript" src="scripts/debugPropertiesView.js"></script>
     <script type="text/javascript" src="scripts/debugScrollView.js"></script>
-    <script type="text/javascript" src="scripts/debugView.js"></script>-->
+    <script type="text/javascript" src="scripts/debugView.js"></script>
+    -->
     
     <script type="text/javascript" src="scripts/demo.js"></script>
     
     <script type="text/javascript">
-        // App
-        var app = Object.assign({}, Backbone.Events, {
-
-            initialize: function () {
-                // Views
-                app.camera = new Oculo.Camera({
-                    view: '#camera',
-                    scene: '#scene',
-                    bounds: Oculo.Camera.bounds.WORLD_EDGE,
-                    debug: false,
-                    dragToMove: true,
-                    wheelToZoom: true,
-                    //maxZoom: 6,
-                    //minZoom: 0.2,
-                    position: {
-                        x: 500,
-                        y: 250
-                    },
-                    rotation: 0,
-                    zoom: 1,
-                    //zoomIncrement: 0.5,
-                    width: 1000,
-                    height: 500
-                });
-                
-                // Animations
-                app.camera.addAnimation('moveTobox100', new Oculo.Animation(app.camera).animate({position: '#box100', rotation:-20, zoom: 1.5}, 2));
-                app.camera.addAnimation('moveTo2000', new Oculo.Animation(app.camera).animate({position: {x:2000, y:500}, zoom: 1}, 2));
-                app.camera.addAnimation('moveTo800Slow', new Oculo.Animation(app.camera).animate({position: {x:800}, zoom: 1.5}, 8));
-                app.camera.addAnimation('rotateAt200', new Oculo.Animation(app.camera).rotateAt({x:200, y:200}, -50, 5));
-                app.camera.addAnimation('rotateTo20', new Oculo.Animation(app.camera).rotateTo(-20, 2));
-                app.camera.addAnimation('shake', new Oculo.Animation(app.camera).shake(0.1, 2, Oculo.Animation.shakeDirection.BOTH));
-                app.camera.addAnimation('shakeSmooth', new Oculo.Animation(app.camera).shake(0.1, 4, Oculo.Animation.shakeDirection.BOTH, { easeIn: Power2.easeIn, easeOut: Power2.easeOut }));
-                app.camera.addAnimation('zoomAt100', new Oculo.Animation(app.camera).zoomAt({x:100, y:100}, 2, 2));
-                app.camera.addAnimation('zoomTo50', new Oculo.Animation(app.camera).zoomTo(0.5, 2));
-                app.camera.addAnimation('zoomTo200', new Oculo.Animation(app.camera).zoomTo(2, 2));
-                app.camera.addAnimation('instantZoom', new Oculo.Animation(app.camera).zoomTo(2, 0));
-                app.camera.addAnimation('instantShake', new Oculo.Animation(app.camera).shake(0.1, 0));
-            
-                app.camera.render();
-
-//                $('#flick').on('click', app.flick);
-//                $('#focusOn').on('click', app.focusOn);
-//                $('#pause').on('click', app.pause);
-//                $('#play').on('click', app.play);
-//                $('#rotateTo').on('click', app.rotateTo);
-//                $('#rotateAt').on('click', app.rotateAt);
-//                $('#zoomTo').on('click', app.zoomTo);
-//                $('#zoomAt').on('click', app.zoomAt);
-//                $('#zoomOn').on('click', app.zoomOn);
-                
-                window.camera = app.camera;
+        camera = new Oculo.Camera({
+            view: '#camera',
+            scene: '#scene',
+            bounds: Oculo.Camera.bounds.WORLD_EDGE,
+            debug: false,
+            dragToMove: true,
+            //maxZoom: 6,
+            //minZoom: 0.2,
+            position: {
+                x: 500,
+                y: 250
             },
-
-//            flick: function () {
-//                app.camera.dragDeccelerate({ 
-//                    x: parseFloat($('#velocityX').val()), 
-//                    y: parseFloat($('#velocityY').val())
-//                }, 16.6, window.performance.now());
-//            },
-//            
-//            focusOn: function () {
-//                app.camera.focusOn(parseFloat($('#focusOnX').val()), parseFloat($('#focusOnY').val()), parseFloat($('#duration').val()));
-//            },
-//            
-//            pause: function () {
-//                app.camera.pause();
-//            },
-//            
-//            play: function () {
-//                app.camera.play();
-//            },
-//            
-//            rotateAt: function () {
-//                app.camera.rotateAt(parseFloat($('#rotateAtRotation').val()), parseFloat($('#rotateAtX').val()), parseFloat($('#rotateAtY').val()), parseFloat($('#duration').val()));
-//            },
-//            
-//            rotateTo: function () {
-//                app.camera.rotateTo(parseFloat($('#rotateToRotation').val()), parseFloat($('#duration').val()));
-//            },
-//            
-//            zoomAt: function () {
-//                app.camera.zoomAt(parseFloat($('#zoomAtScale').val()), parseFloat($('#zoomAtX').val()), parseFloat($('#zoomAtY').val()), parseFloat($('#duration').val()));
-//            },
-//            
-//            zoomOn: function () {
-//                app.camera.zoomOn(parseFloat($('#zoomOnScale').val()), parseFloat($('#zoomOnX').val()), parseFloat($('#zoomOnY').val()), parseFloat($('#duration').val()));
-//            },
-//            
-//            zoomTo: function () {
-//                app.camera.zoomTo(parseFloat($('#zoomToScale').val()), parseFloat($('#duration').val()));
-//            }
+            rotation: 0,
+            wheelToZoom: true,
+            //wheelToZoomIncrement: 0.5,
+            width: 1000,
+            height: 500,
+            zoom: 1,
         });
-
-        app.initialize();
+        
+        // Animations
+        camera.addAnimation('moveTobox100', new Oculo.Animation(camera).animate({position: '#box100', rotation:-20, zoom: 1.5}, 2));
+        camera.addAnimation('moveTo2000', new Oculo.Animation(camera).animate({position: {x:2000, y:500}, zoom: 1}, 2));
+        camera.addAnimation('moveTo800Slow', new Oculo.Animation(camera).animate({position: {x:800}, zoom: 1.5}, 8));
+        camera.addAnimation('rotateAt200', new Oculo.Animation(camera).rotateAt({x:200, y:200}, -50, 5));
+        camera.addAnimation('rotateTo20', new Oculo.Animation(camera).rotateTo(-20, 2));
+        camera.addAnimation('shake', new Oculo.Animation(camera).shake(0.1, 2, Oculo.Animation.shakeDirection.BOTH));
+        camera.addAnimation('shakeSmooth', new Oculo.Animation(camera).shake(0.1, 4, Oculo.Animation.shakeDirection.BOTH, { easeIn: Power2.easeIn, easeOut: Power2.easeOut }));
+        camera.addAnimation('zoomAt100', new Oculo.Animation(camera).zoomAt({x:100, y:100}, 2, 2));
+        camera.addAnimation('zoomTo50', new Oculo.Animation(camera).zoomTo(0.5, 2));
+        camera.addAnimation('zoomTo200', new Oculo.Animation(camera).zoomTo(2, 2));
+        camera.addAnimation('instantZoom', new Oculo.Animation(camera).zoomTo(2, 0));
+        camera.addAnimation('instantShake', new Oculo.Animation(camera).shake(0.1, 0));
+        
+        camera.render();
     </script>
     
 </body>
