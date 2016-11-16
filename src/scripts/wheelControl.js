@@ -45,6 +45,12 @@ class WheelControl {
         this.wheelEvent = null;
         
         /**
+        * @property {WheelEvent} - The previous wheel event that affected the instance.
+        * @readonly
+        */
+        this.previousWheelEvent = null;
+        
+        /**
         * @property {boolean} - Whether it is enabled or not.
         * @private
         */
@@ -54,7 +60,9 @@ class WheelControl {
         * The throttled wheel event handler.
         * @private
         */
-        this._throttledOnWheel = throttle(function () {
+        this._throttledOnWheel = throttle(function (event) {
+            this.previousWheelEvent = this.wheelEvent ? this.wheelEvent : {};
+            this.wheelEvent = event;
             this.config.onWheel.apply(this.config.onWheelScope || this, this.config.onWheelParams);
         }, Utils.Time.getFPSDuration(30, 'ms'));
 
@@ -65,8 +73,7 @@ class WheelControl {
         this._onWheel = (event) => {
             event.preventDefault();
             event.stopPropagation();
-            this.wheelEvent = event;
-            this._throttledOnWheel();
+            this._throttledOnWheel(event);
         };
         
         this.enable();

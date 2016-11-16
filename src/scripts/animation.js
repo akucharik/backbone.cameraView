@@ -87,11 +87,7 @@ class Animation extends TimelineMax {
     * @param {Object} config - The configuration options originally given to the animation.
     */
     static _onUpdate (camera, config) {
-        var offset, position;
-            
-        position = camera._calculatePosition(camera.offset, camera.viewportCenter, camera.scene.origin, camera.sceneTransformation);
-        camera.applyBounds(position);
-        offset = camera.offset.clone();
+        var offset = camera.offset.clone();
 
         if (camera.isShaking) {
             if (camera.shakeHorizontal) {
@@ -106,9 +102,9 @@ class Animation extends TimelineMax {
         // render
         TweenMax.set(camera.scene.view, { 
             css: {
-                rotation: -camera.rotation,
                 scaleX: camera.zoom,
                 scaleY: camera.zoom,
+                rotation: -camera.rotation,
                 x: -offset.x,
                 y: -offset.y
             }
@@ -305,10 +301,10 @@ class Animation extends TimelineMax {
                 console.log('tween data: ', tween.data);
                 
                 tween.updateTo({
-                    offsetX: endOffset.x,
-                    offsetY: endOffset.y,
+                    zoom: endProps.endZoom,
                     rotation: endProps.endRotation,
-                    zoom: endProps.endZoom
+                    offsetX: endOffset.x,
+                    offsetY: endOffset.y
                 });
             },
             onStartParams: ['{self}']
