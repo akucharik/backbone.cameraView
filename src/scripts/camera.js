@@ -93,26 +93,66 @@ class Camera {
         this.isShaking = false;
         
         /**
-        * The maximum value the scene can be zoomed.
-        * @property {number} - See {@link Camera.zoom|zoom}.
-        * @default 3
+        * @property {null|number} - The minimum X position after bounds are applied.
+        * @readonly
         */
-        this.maxZoom = options.maxZoom || 3;
-
+        this.minPositionX = null;
+        
+        /**
+        * @property {null|number} - The minimum Y position after bounds are applied.
+        * @readonly
+        */
+        this.minPositionY = null;
+        
+        /**
+        * @property {null|number} - The maximum X position after bounds are applied.
+        * @readonly
+        */
+        this.maxPositionX = null;
+        
+        /**
+        * @property {null|number} - The maximum Y position after bounds are applied.
+        * @readonly
+        */
+        this.maxPositionY = null;
+        
         /**
         * The minimum value the scene can be zoomed.
         * @property {number} - See {@link Camera.zoom|zoom}.
         * @default 0.5
         */
         this.minZoom = options.minZoom || 0.5;
-
-        // TODO: Make offset a getter. Make offsetX and offsetY regular variables.
+        
         /**
-        * @property {Vector2} - The offset on the scene.
-        * @readonly
-        * @default
+        * The maximum value the scene can be zoomed.
+        * @property {number} - See {@link Camera.zoom|zoom}.
+        * @default 3
         */
-        this.offset = new Vector2();
+        this.maxZoom = options.maxZoom || 3;
+        
+        /**
+        * @property {number} - The X offset of the camera's top left corner relative to the world.
+        * @readonly
+        */
+        this.offsetX = 0;
+        
+        /**
+        * @property {number} - The Y offset of the camera's top left corner relative to the world.
+        * @readonly
+        */
+        this.offsetY = 0;
+        
+        /**
+        * @property {number} - The X position of the camera's center point within the world.
+        * @readonly
+        */
+        this.positionX = 0;
+        
+        /**
+        * @property {number} - The Y position of the camera's center point within the world.
+        * @readonly
+        */
+        this.positionY = 0;
 
         /**
         * @property {number} - The amount of rotation in degrees.
@@ -188,18 +228,6 @@ class Camera {
         this._bounds = null;
         
         /**
-        * @property {number} - The maximum position after bounds are applied.
-        * @readonly
-        */
-        this.maxPosition = new Vector2(null, null);
-        
-        /**
-        * @property {number} - The minimum position after bounds are applied. 
-        * @readonly
-        */
-        this.minPosition = new Vector2(null, null);
-        
-        /**
         * @private
         * @property {Element} - The internally managed view.
         */
@@ -214,8 +242,13 @@ class Camera {
         // Initialize properties with prior property dependencies
         this.bounds = options.bounds || Camera.bounds.NONE;
         this.zoom = this._clampZoom(options.zoom || 1);
+        
         position = Utils.parsePosition(options.position, this.scene.view) || {};
-        this.offset.copy(this._calculateOffset(new Vector2(position.x || 0, position.y || 0), this.viewportCenter, this.scene.origin, this.sceneTransformation));
+        if (position) {
+            this.positionX = position.x;
+            this.positionY = position.y;
+        }
+        
         this.view = options.view;  
         
         // Initialize custom events and behaviors
@@ -234,7 +267,7 @@ class Camera {
                     onComplete: function (wasAnimating, wasPaused) {
                         // 'this' is bound to the Animation via the Animation class
                         if (this.camera.isAnimating) {
-                            var inProgressTimeline, tween, endProps, endOffset;
+                            var inProgressTimeline, tween, endProps;
 
                             inProgressTimeline = this.camera.animation.getChildren(false, false, true).filter((timeline) => {
                                 var progress = timeline.progress();
@@ -245,7 +278,6 @@ class Camera {
 
                             if (tween.data.isMoving) {
                                 endProps = this._calculateEndProps(tween.data.parsedOrigin, tween.data.parsedPosition, tween.data.parsedRotation, tween.data.parsedZoom, this.camera);
-                                endOffset = endProps.endOffset || {};
                                 Object.assign(tween.data, endProps);
                                 
                                 // TODO: for dev only
@@ -253,8 +285,8 @@ class Camera {
                                 tween.updateTo({
                                     zoom: endProps.endZoom,
                                     rotation: endProps.endRotation,
-                                    offsetX: endOffset.x,
-                                    offsetY: endOffset.y
+                                    offsetX: endProps.endOffsetX,
+                                    offsetY: endProps.endOffsetY
                                 });
                             }
                         }
@@ -359,74 +391,21 @@ class Camera {
     }
     
     /**
-    * @name Camera#maxX
-    * @property {null|number} - The maximum X value after bounds are applied.
+    * @name Camera#offset
+    * @property {Vector2} - The offset of the camera's top left corner relative to the world.
     * @readonly
     */
-    get maxX () {
-        return this.maxPosition.x;
-    }
-    
-    /**
-    * @name Camera#maxY
-    * @property {null|number} - The maximum Y value after bounds are applied.
-    * @readonly
-    */
-    get maxY () {
-        return this.maxPosition.y;
-    }
-    
-    /**
-    * @name Camera#minX
-    * @property {null|number} - The minimum X value after bounds are applied.
-    * @readonly
-    */
-    get minX () {
-        return this.minPosition.x;
-    }
-    
-    /**
-    * @name Camera#minY
-    * @property {null|number} - The minimum Y value after bounds are applied.
-    * @readonly
-    */
-    get minY () {
-        return this.minPosition.y;
-    }
-    
-    /**
-    * @name Camera#offsetX
-    * @property {number} - The camera's X offset on the scene.
-    * @readonly
-    */
-    get offsetX () {
-        return this.offset.x;
-    }
-
-    set offsetX (value) {
-        this.offset.x = value;
-    }
-
-    /**
-    * @name Camera#offsetY
-    * @property {number} - The camera's Y offset on the scene.
-    * @readonly
-    */
-    get offsetY () {
-        return this.offset.y;
-    }
-
-    set offsetY (value) {
-        this.offset.y = value;
+    get offset () {
+        return new Vector2(this.offsetX, this.offsetY);
     }
     
     /**
     * @name Camera#position
-    * @property {Vector2} - The camera's position within the world.
+    * @property {Vector2} - The position of the camera's center point within the world.
     * @readonly
     */
     get position () {
-        return this._calculatePosition(this.offset, this.viewportCenter, this.scene.origin, this.sceneTransformation);
+        return new Vector2(this.positionX, this.positionY);
     }
     
     /**
@@ -599,24 +578,6 @@ class Camera {
     }
     
     /**
-    * @name Camera#x
-    * @property {number} - The camera's X position within the world.
-    * @readonly
-    */
-    get x () {
-        return this.position.x;
-    }
-
-    /**
-    * @name Camera#y
-    * @property {number} - The camera's Y position within the world.
-    * @readonly
-    */
-    get y () {
-        return this.position.y;
-    }
-    
-    /**
     * @name Camera#zoom
     * @property {number} - The amount of zoom. A ratio where 1 = 100%.
     * @readonly
@@ -695,9 +656,10 @@ class Camera {
     * @returns {Vector2} The clamped offset.
     */
     _clampOffset (offset) {
-        var position = this.position;
-        position.set(clamp(position.x, this.minPosition.x, this.maxPosition.x), clamp(position.y, this.minPosition.y, this.maxPosition.y));
-        return this._calculateOffset(position, this.viewportCenter, this.scene.origin, this.sceneTransformation);
+        var position = this._calculatePosition(this.offset, this.viewportCenter, this.scene.origin, this.sceneTransformation);
+        var clampedPosition = new Vector2(clamp(position.x, this.minPositionX, this.maxPositionX), clamp(position.y, this.minPositionY, this.maxPositionY));
+        
+        return this._calculateOffset(clampedPosition, this.viewportCenter, this.scene.origin, this.sceneTransformation);
     }
     
     /**
@@ -759,8 +721,10 @@ class Camera {
             bounds = value;
         }
         
-        this.minPosition.set(bounds.minX, bounds.minY);
-        this.maxPosition.set(bounds.maxX, bounds.maxY);
+        this.minPositionX = bounds.minX;
+        this.minPositionY = bounds.minY;
+        this.maxPositionX = bounds.maxX;
+        this.maxPositionY = bounds.maxY;
         console.log('update bounds');
     }
     

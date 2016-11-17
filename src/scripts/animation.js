@@ -85,20 +85,26 @@ class Animation extends TimelineMax {
     * @param {Object} config - The configuration options originally given to the animation.
     */
     static _onUpdate (camera, config) {
-        var offset;
-        
+        var clampedOffset, offsetX, offsetY, position;
+
         console.log('clamp offset');
         // Clamping here ensures bounds have been updated (if zoom has changed)
-        camera.offset.copy(camera._clampOffset(camera.offset));
-        offset = camera.offset.clone();
+        clampedOffset = camera._clampOffset(camera.offset);
+        offsetX = camera.offsetX = clampedOffset.x;
+        offsetY = camera.offsetY = clampedOffset.y;
+        
+        // Position is manually updated so animations can smoothly continue when camera is resized
+        position = camera._calculatePosition(clampedOffset, camera.viewportCenter, camera.scene.origin, camera.sceneTransformation);
+        camera.positionX = position.x;
+        camera.positionY = position.y;
 
         if (camera.isShaking) {
             if (camera.shakeHorizontal) {
-                offset.x += Math.random() * camera.shakeIntensity * camera.viewportWidth * 2 - camera.shakeIntensity * camera.viewportWidth;
+                offsetX += Math.random() * camera.shakeIntensity * camera.viewportWidth * 2 - camera.shakeIntensity * camera.viewportWidth;
             }
 
             if (camera.shakeVertical) {
-                offset.y += Math.random() * camera.shakeIntensity * camera.viewportHeight * 2 - camera.shakeIntensity * camera.viewportHeight;
+                offsetY += Math.random() * camera.shakeIntensity * camera.viewportHeight * 2 - camera.shakeIntensity * camera.viewportHeight;
             }
         }
         
@@ -108,8 +114,8 @@ class Animation extends TimelineMax {
                 scaleX: camera.zoom,
                 scaleY: camera.zoom,
                 rotation: -camera.rotation,
-                x: -offset.x,
-                y: -offset.y
+                x: -offsetX,
+                y: -offsetY
             }
         });
 
@@ -204,7 +210,7 @@ class Animation extends TimelineMax {
         sourceOrigin = sourceOrigin || {};
         sourcePosition = sourcePosition || {};
         
-        var position = new Vector2(isFinite(sourcePosition.x) ? sourcePosition.x : camera.position.x, isFinite(sourcePosition.y) ? sourcePosition.y : camera.position.y);
+        var position = new Vector2(isFinite(sourcePosition.x) ? sourcePosition.x : camera.positionX, isFinite(sourcePosition.y) ? sourcePosition.y : camera.positionY);
         var origin = new Vector2(isFinite(sourceOrigin.x) ? sourceOrigin.x : camera.scene.origin.x, isFinite(sourceOrigin.y) ? sourceOrigin.y : camera.scene.origin.y);
         var rotation = isFinite(sourceRotation) ? sourceRotation : camera.rotation;
         var zoom = isFinite(sourceZoom) ? sourceZoom : camera.zoom;
@@ -217,7 +223,7 @@ class Animation extends TimelineMax {
         var isZooming = isFinite(sourceZoom) && sourceZoom !== camera.zoom;
 
         if (!isMoving && !isFinite(sourceOrigin.x) && !isFinite(sourceOrigin.y)) {
-            origin.copy(camera.position);
+            origin.set(camera.positionX, camera.positionY);
         }
         
         if (!isMoving) {
@@ -231,7 +237,8 @@ class Animation extends TimelineMax {
             isMoving: isMoving,
             isRotating: isRotating,
             isZooming: isZooming,
-            endOffset: isMoving ? offset : null,
+            endOffsetX: isMoving ? offset.x : null,
+            endOffsetY: isMoving ? offset.y : null,
             endOrigin: (sourceOrigin.x || sourceOrigin.y || !isMoving) ? origin : null,
             endRotation: !isNil(sourceRotation) ? rotation : null,
             endZoom: sourceZoom ? zoom : null
@@ -250,15 +257,16 @@ class Animation extends TimelineMax {
             var originOffset = origin.clone().transform(camera.sceneTransformation).subtract(camera.scene.origin.clone().transform(camera.sceneTransformation), origin.clone().subtract(camera.scene.origin));
 
             if (camera.isRotated || camera.isZoomed) {
-                camera.offset.set(camera.offset.x - originOffset.x, camera.offset.y - originOffset.y);
+                camera.offsetX = camera.offsetX - originOffset.x;
+                camera.offsetY = camera.offsetY - originOffset.y;
             }
 
             camera.scene.origin.copy(origin);
             TweenMax.set(camera.scene.view, { 
                 css: {
                     transformOrigin: origin.x + 'px ' + origin.y + 'px',
-                    x: -camera.offset.x,
-                    y: -camera.offset.y
+                    x: -camera.offsetX,
+                    y: -camera.offsetY
                 },
             });
         }
@@ -293,7 +301,6 @@ class Animation extends TimelineMax {
             onStart: function (tween) {
                 var parsedProps = this._parseCoreProps(tween.data.sourceOrigin, tween.data.sourcePosition, tween.data.sourceRotation, tween.data.sourceZoom, this.camera);
                 var endProps = this._calculateEndProps(parsedProps.parsedOrigin, parsedProps.parsedPosition, parsedProps.parsedRotation, parsedProps.parsedZoom, this.camera);
-                var endOffset = endProps.endOffset || {};
                 
                 Object.assign(tween.data, parsedProps, endProps);
                 
@@ -304,8 +311,8 @@ class Animation extends TimelineMax {
                 console.log('tween data: ', tween.data);
                 
                 tween.updateTo({
-                    offsetX: endOffset.x,
-                    offsetY: endOffset.y,
+                    offsetX: endProps.endOffsetX,
+                    offsetY: endProps.endOffsetY,
                     rotation: endProps.endRotation,
                     zoom: endProps.endZoom
                 });
