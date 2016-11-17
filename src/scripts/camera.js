@@ -56,11 +56,13 @@ class Camera {
         
         /**
         * @property {Oculo.Animation} - The active camera animation.
+        * @readonly
         */
         this.animation = null;
 
         /**
         * @property {Object} - An object for storing camera animations.
+        * @readonly
         */
         this.animations = {};
         
@@ -78,12 +80,14 @@ class Camera {
 
         /**
         * @property {boolean} - Whether the camera has been rendered or not.
+        * @readonly
         * @default
         */
         this.isRendered = false;
 
         /**
         * @property {boolean} - Whether the scene is shaking or not.
+        * @readonly
         * @default
         */
         this.isShaking = false;
@@ -102,18 +106,22 @@ class Camera {
         */
         this.minZoom = options.minZoom || 0.5;
 
+        // TODO: Make offset a getter. Make offsetX and offsetY regular variables.
         /**
         * @property {Vector2} - The offset on the scene.
+        * @readonly
         * @default
         */
         this.offset = new Vector2();
 
         /**
         * @property {number} - The amount of rotation in degrees.
-        * @default
+        * @readonly
+        * @default 0
         */
         this.rotation = options.rotation || 0;
 
+        // TODO: Make scene into a getter/setter where the scene can be swapped out.
         /**
         * The scene which the camera is viewing.
         * @property {Oculo.Scene}
@@ -122,23 +130,27 @@ class Camera {
         
         /**
         * @property {number} - The shake intensity. A value between 0 and 1.
+        * @readonly
         */
         this.shakeIntensity = 0;
 
         /**
         * @property {boolean} - Whether the camera should shake on the x axis.
+        * @readonly
         * @default
         */
         this.shakeHorizontal = true;
 
         /**
         * @property {boolean} - Whether the camera should shake on the y axis.
+        * @readonly
         * @default
         */
         this.shakeVertical = true;
 
         /**
         * @property {TrackControl} - The track control.
+        * @readonly
         * @default
         */
         this.trackControl = null;
@@ -150,22 +162,21 @@ class Camera {
         this.wheelToZoom = options.wheelToZoom ? true : false;
         
         /**
-        * The base increment at which the scene will be zoomed.
-        * @property {number} - See {@link Camera.zoom|zoom}.
+        * @property {number} - The base increment at which the scene will be zoomed. See {@link Camera.zoom|zoom}.
         * @default 0.01
         */
         this.wheelToZoomIncrement = options.wheelToZoomIncrement || 0.01;
         
         /**
-        * The width.
         * @property {number} - The width.
+        * @readonly
         * @default 0
         */
         this.width = options.width || 0;
 
         /**
-        * The height.
         * @property {number} - The height.
+        * @readonly
         * @default 0
         */
         this.height = options.height || 0;
@@ -180,13 +191,13 @@ class Camera {
         * @property {number} - The maximum position after bounds are applied.
         * @readonly
         */
-        this._maxPosition = new Vector2(null, null);
+        this.maxPosition = new Vector2(null, null);
         
         /**
         * @property {number} - The minimum position after bounds are applied. 
         * @readonly
         */
-        this._minPosition = new Vector2(null, null);
+        this.minPosition = new Vector2(null, null);
         
         /**
         * @private
@@ -353,7 +364,7 @@ class Camera {
     * @readonly
     */
     get maxX () {
-        return this._maxPosition.x;
+        return this.maxPosition.x;
     }
     
     /**
@@ -362,7 +373,7 @@ class Camera {
     * @readonly
     */
     get maxY () {
-        return this._maxPosition.y;
+        return this.maxPosition.y;
     }
     
     /**
@@ -371,7 +382,7 @@ class Camera {
     * @readonly
     */
     get minX () {
-        return this._minPosition.x;
+        return this.minPosition.x;
     }
     
     /**
@@ -380,12 +391,13 @@ class Camera {
     * @readonly
     */
     get minY () {
-        return this._minPosition.y;
+        return this.minPosition.y;
     }
     
     /**
     * @name Camera#offsetX
     * @property {number} - The camera's X offset on the scene.
+    * @readonly
     */
     get offsetX () {
         return this.offset.x;
@@ -398,6 +410,7 @@ class Camera {
     /**
     * @name Camera#offsetY
     * @property {number} - The camera's Y offset on the scene.
+    * @readonly
     */
     get offsetY () {
         return this.offset.y;
@@ -606,6 +619,7 @@ class Camera {
     /**
     * @name Camera#zoom
     * @property {number} - The amount of zoom. A ratio where 1 = 100%.
+    * @readonly
     * @default 1
     */
     get zoom () {
@@ -682,7 +696,7 @@ class Camera {
     */
     _clampOffset (offset) {
         var position = this.position;
-        position.set(clamp(position.x, this._minPosition.x, this._maxPosition.x), clamp(position.y, this._minPosition.y, this._maxPosition.y));
+        position.set(clamp(position.x, this.minPosition.x, this.maxPosition.x), clamp(position.y, this.minPosition.y, this.maxPosition.y));
         return this._calculateOffset(position, this.viewportCenter, this.scene.origin, this.sceneTransformation);
     }
     
@@ -745,8 +759,8 @@ class Camera {
             bounds = value;
         }
         
-        this._minPosition.set(bounds.minX, bounds.minY);
-        this._maxPosition.set(bounds.maxX, bounds.maxY);
+        this.minPosition.set(bounds.minX, bounds.minY);
+        this.maxPosition.set(bounds.maxX, bounds.maxY);
         console.log('update bounds');
     }
     
@@ -777,28 +791,6 @@ class Camera {
         return this;
     }
     
-//    /**
-//    * Applies bounds to the camera.
-//    *
-//    * @param {Vector2} position - The postion of the camera.
-//    * @param {null|function|Object} [newBounds] - The new bounds to be applied.
-//    * @returns {this} self
-//    */
-//    applyBounds (position, newBounds) {
-//        position = position || this.position;
-//
-//        if (newBounds !== undefined) {
-//            this.bounds = newBounds;
-//        }
-//
-//        if (this.hasBounds) {
-//            this.position.set(clamp(position.x, this.minX, this.maxX), clamp(position.y, this.minY, this.maxY));
-//            this.offset.copy(this._calculateOffset(this.position, this.viewportCenter, this.scene.origin, this.sceneTransformation));
-//        }
-//
-//        return this;
-//    }
-    
     /**
     * Destroys the camera and prepares it for garbage collection.
     *
@@ -811,7 +803,6 @@ class Camera {
             this.animations[key].destroy();
         }
         
-        // TODO: Remove event handlers attached by trackControls
         if (this.trackControl) {
             this.trackControl.destroy();
         }
