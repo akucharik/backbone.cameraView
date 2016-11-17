@@ -94,7 +94,7 @@ class Animation extends TimelineMax {
         offsetY = camera.offsetY = clampedOffset.y;
         
         // Position is manually updated so animations can smoothly continue when camera is resized
-        position = camera._calculatePosition(clampedOffset, camera.viewportCenter, camera.scene.origin, camera.sceneTransformation);
+        position = camera._calculatePosition(clampedOffset, camera.viewportCenter, camera.scene.origin, camera.transformation);
         camera.positionX = position.x;
         camera.positionY = position.y;
 
@@ -211,7 +211,7 @@ class Animation extends TimelineMax {
         sourcePosition = sourcePosition || {};
         
         var position = new Vector2(isFinite(sourcePosition.x) ? sourcePosition.x : camera.positionX, isFinite(sourcePosition.y) ? sourcePosition.y : camera.positionY);
-        var origin = new Vector2(isFinite(sourceOrigin.x) ? sourceOrigin.x : camera.scene.origin.x, isFinite(sourceOrigin.y) ? sourceOrigin.y : camera.scene.origin.y);
+        var origin = new Vector2(isFinite(sourceOrigin.x) ? sourceOrigin.x : camera.scene.originX, isFinite(sourceOrigin.y) ? sourceOrigin.y : camera.scene.originY);
         var rotation = isFinite(sourceRotation) ? sourceRotation : camera.rotation;
         var zoom = isFinite(sourceZoom) ? sourceZoom : camera.zoom;
         var transformation = new Matrix2().scale(zoom, zoom).rotate(_Math.degToRad(-rotation));
@@ -228,7 +228,7 @@ class Animation extends TimelineMax {
         
         if (!isMoving) {
             position.copy(origin);
-            cameraContextPosition = camera._calculateContextPosition(origin, camera.position, camera.viewportCenter, camera.sceneTransformation);
+            cameraContextPosition = camera._calculateContextPosition(origin, camera.position, camera.viewportCenter, camera.transformation);
         }
 
         offset = camera._calculateOffset(position, cameraContextPosition, origin, transformation);
@@ -253,22 +253,29 @@ class Animation extends TimelineMax {
     * @param {Oculo.Camera} camera - The camera.
     */
     _updateOrigin (origin, camera) {
-        if (origin && !origin.equals(camera.scene.origin)) {
-            var originOffset = origin.clone().transform(camera.sceneTransformation).subtract(camera.scene.origin.clone().transform(camera.sceneTransformation), origin.clone().subtract(camera.scene.origin));
+        var sceneOrigin = camera.scene.origin;
+        
+        if (origin && !origin.equals(sceneOrigin)) {
+            var transformation = camera.transformation;
+            var originOffset = origin.clone().transform(transformation).subtract(sceneOrigin.clone().transform(transformation), origin.clone().subtract(sceneOrigin));
 
             if (camera.isRotated || camera.isZoomed) {
-                camera.offsetX = camera.offsetX - originOffset.x;
-                camera.offsetY = camera.offsetY - originOffset.y;
+                camera.offsetX -= originOffset.x;
+                camera.offsetY -= originOffset.y;
             }
 
-            camera.scene.origin.copy(origin);
-            TweenMax.set(camera.scene.view, { 
-                css: {
-                    transformOrigin: origin.x + 'px ' + origin.y + 'px',
-                    x: -camera.offsetX,
-                    y: -camera.offsetY
-                },
-            });
+            camera.scene.originX = origin.x;
+            camera.scene.originY = origin.y;
+
+            if (camera.scene.view) {    
+                TweenMax.set(camera.scene.view, { 
+                    css: {
+                        transformOrigin: camera.scene.originX + 'px ' + camera.scene.originY + 'px',
+                        x: -camera.offsetX,
+                        y: -camera.offsetY
+                    },
+                });
+            }
         }
     }
     

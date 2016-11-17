@@ -166,7 +166,7 @@ class Camera {
         * The scene which the camera is viewing.
         * @property {Oculo.Scene}
         */
-        this.scene = new Scene(options.scene);
+        this.scene = new Scene(options.scene, this);
         
         /**
         * @property {number} - The shake intensity. A value between 0 and 1.
@@ -317,15 +317,15 @@ class Camera {
     * { 
     *   minX: 0, 
     *   minY: 0, 
-    *   maxX: this.sceneWidth, 
-    *   maxY: this.sceneHeight
+    *   maxX: this.scene.width, 
+    *   maxY: this.scene.height
     * }
     *
     * @example <caption>As a function that returns a bounds object</caption>
     * function () { 
     *   var transformation = new Matrix2().scale(this.zoom, this.zoom).getInverse();
     *   var min = new Vector2().add(this.viewportCenter).transform(transformation);
-    *   var max = new Vector2(this.sceneScaledWidth, this.sceneScaledHeight).subtract(this.viewportCenter).transform(transformation);
+    *   var max = new Vector2(this.scene.scaledWidth, this.scene.scaledHeight).subtract(this.viewportCenter).transform(transformation);
     * 
     *   return {
     *     minX: min.x,
@@ -409,65 +409,11 @@ class Camera {
     }
     
     /**
-    * @name Camera#sceneOriginX
-    * @property {number} - The X value of the transformation origin.
-    * @readonly
-    */
-    get sceneOriginX () {
-        return this.scene.origin.x;
-    }
-    
-    /**
-    * @name Camera#sceneOriginY
-    * @property {number} - The Y value of the transformation origin.
-    * @readonly
-    */
-    get sceneOriginY () {
-        return this.scene.origin.y;
-    }
-    
-    /**
-    * @name Camera#sceneWidth
-    * @property {number} - The width of the scene.
-    * @readonly
-    */
-    get sceneWidth () {
-        return this.scene.width;
-    }
-
-    /**
-    * @name Camera#sceneHeight
-    * @property {number} - The height of the scene.
-    * @readonly
-    */
-    get sceneHeight () {
-        return this.scene.height;
-    }
-    
-    /**
-    * @name Camera#sceneScaledHeight
-    * @property {number} - The scaled width of the scene.
-    * @readonly
-    */
-    get sceneScaledWidth () {
-        return this.scene.width * this.zoom;
-    }
-
-    /**
-    * @name Camera#sceneScaledHeight
-    * @property {number} - The scaled height of the scene.
-    * @readonly
-    */
-    get sceneScaledHeight () {
-        return this.scene.height * this.zoom;
-    }
-    
-    /**
-    * @name Camera#sceneTransformation
+    * @name Camera#transformation
     * @property {Matrix2} - The transformation of the scene.
     * @readonly
     */
-    get sceneTransformation () {
+    get transformation () {
         return new Matrix2().scale(this.zoom, this.zoom).rotate(_Math.degToRad(-this.rotation));
     }
     
@@ -493,13 +439,8 @@ class Camera {
                 this.trackControl = new TrackControl(this, {
                     draggable: this.dragToMove,
                     onDrag: function (camera) {
-                        camera.offsetX = -this.x;
-                        camera.offsetY = -this.y;
-
-                        if (camera.hasBounds) {
-                            var position = camera._calculatePosition(new Vector2(-this.x, -this.y), camera.viewportCenter, camera.scene.origin, camera.sceneTransformation);
-                            new Oculo.Animation(camera, { paused: false }).moveTo(position, 0);
-                        }
+                        var position = camera._calculatePosition(new Vector2(-this.x, -this.y), camera.viewportCenter, camera.scene.origin, camera.transformation);
+                        new Oculo.Animation(camera, { paused: false }).moveTo(position, 0);
 
                         camera._renderDebug();
                     },
@@ -518,10 +459,10 @@ class Camera {
                         if (direction === previousDirection && camera._clampZoom(zoom) !== camera.zoom) { 
                             cameraRect = camera.view.getBoundingClientRect();
                             cameraContextPosition.set(this.wheelEvent.clientX - cameraRect.left, this.wheelEvent.clientY - cameraRect.top);
-                            sceneContextPosition = camera._calculatePosition(camera.offset, cameraContextPosition, camera.scene.origin, camera.sceneTransformation);
+                            sceneContextPosition = camera._calculatePosition(camera.offset, cameraContextPosition, camera.scene.origin, camera.transformation);
 
                             if (Math.round(origin.x) !== Math.round(sceneContextPosition.x) || Math.round(origin.y) !== Math.round(sceneContextPosition.y)) {
-                                origin = camera._calculatePosition(camera.offset, cameraContextPosition, camera.scene.origin, camera.sceneTransformation);
+                                origin = camera._calculatePosition(camera.offset, cameraContextPosition, camera.scene.origin, camera.transformation);
                             }
 
                             camera.animation = new Oculo.Animation(camera, { paused: false }).zoomAt(origin, zoom, 0);
@@ -656,10 +597,14 @@ class Camera {
     * @returns {Vector2} The clamped offset.
     */
     _clampOffset (offset) {
-        var position = this._calculatePosition(this.offset, this.viewportCenter, this.scene.origin, this.sceneTransformation);
+        if (this._bounds === null) {
+            return offset;
+        }
+        
+        var position = this._calculatePosition(this.offset, this.viewportCenter, this.scene.origin, this.transformation);
         var clampedPosition = new Vector2(clamp(position.x, this.minPositionX, this.maxPositionX), clamp(position.y, this.minPositionY, this.maxPositionY));
         
-        return this._calculateOffset(clampedPosition, this.viewportCenter, this.scene.origin, this.sceneTransformation);
+        return this._calculateOffset(clampedPosition, this.viewportCenter, this.scene.origin, this.transformation);
     }
     
     /**
@@ -725,6 +670,8 @@ class Camera {
         this.minPositionY = bounds.minY;
         this.maxPositionX = bounds.maxX;
         this.maxPositionY = bounds.maxY;
+        
+        // TODO: For dev only
         console.log('update bounds');
     }
     
@@ -765,6 +712,10 @@ class Camera {
         
         for (let key in this.animations) {
             this.animations[key].destroy();
+        }
+        
+        if (this.trackControl) {
+            this.scene.destroy();
         }
         
         if (this.trackControl) {
@@ -1032,7 +983,7 @@ class Camera {
     }
 
     /**
-    * Zooms in/out at the current position.
+    * Immediately zooms in/out at the current position.
     *
     * @see {@link Camera.Animation#zoomTo|Animation.zoomTo}
     * @returns {this} self
@@ -1049,7 +1000,7 @@ Camera.bounds = {
     WORLD: function () {
         var transformation = new Matrix2().scale(this.zoom, this.zoom).getInverse();
         var min = new Vector2().add(this.viewportCenter).transform(transformation);
-        var max = new Vector2(this.sceneScaledWidth, this.sceneScaledHeight).subtract(this.viewportCenter).transform(transformation);
+        var max = new Vector2(this.scene.scaledWidth, this.scene.scaledHeight).subtract(this.viewportCenter).transform(transformation);
 
         return {
             minX: min.x,
@@ -1062,8 +1013,8 @@ Camera.bounds = {
         return {
             minX: 0,
             minY: 0,
-            maxX: this.sceneWidth,
-            maxY: this.sceneHeight
+            maxX: this.scene.width,
+            maxY: this.scene.height
         };
     },
 };

@@ -5,8 +5,6 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
-import isElement from 'lodash/isElement';
-import isString  from 'lodash/isString';
 import Utils     from './utils';
 import Vector2   from './math/vector2';
 
@@ -17,40 +15,86 @@ import Vector2   from './math/vector2';
 * @param {string|Element} [view] - The view for the scene. It can be a selector or an element.
 */
 class Scene {
-    constructor (view) {
+    constructor (view, camera) {
+        /**
+        * @property {Oculo.Camera} - The camera.
+        */
+        this.camera = camera;
+        
+        /**
+        * @property {number} - The X transformation origin.
+        * @default
+        */
+        this.originX = 0;
+        
+        /**
+        * @property {number} - The Y transformation origin.
+        * @default
+        */
+        this.originY = 0;
+        
         /**
         * @property {Element} - The view. An HTML element.
         */
         this.view = Utils.DOM.parseView(view);
-
-        /**
-        * @property {Vector2} - The transformation origin.
-        * @default
-        */
-        this.origin = new Vector2();
     }
-}
-
-/**
-* The width.
-* @name Scene#width
-* @property {number} - Gets the width.
-*/
-Object.defineProperty(Scene.prototype, 'width', {
-    get: function () {
+    
+    /**
+    * @name Scene#origin
+    * @property {Vector2} - The transformation origin.
+    * @readonly
+    */
+    get origin () {
+        return new Vector2(this.originX, this.originY);
+    }
+    
+    /**
+    * @name Scene#width
+    * @property {number} - The width.
+    * @readonly
+    */
+    get width () {
         return this.view ? this.view.offsetWidth : 0;
     }
-});
 
-/**
-* The height.
-* @name Scene#height
-* @property {number} - Gets the height.
-*/
-Object.defineProperty(Scene.prototype, 'height', {
-    get: function () {
+    /**
+    * @name Scene#height
+    * @property {number} - The height.
+    * @readonly
+    */
+    get height () {
         return this.view ? this.view.offsetHeight : 0;
     }
-});
+    
+    /**
+    * @name Scene#scaledWidth
+    * @property {number} - The scaled width.
+    * @readonly
+    */
+    get scaledWidth () {
+        return this.view ? this.width * this.camera.zoom : this.width;
+    }
+    
+    /**
+    * @name Scene#scaledHeight
+    * @property {number} - The scaled height.
+    * @readonly
+    */
+    get scaledHeight () {
+        return this.view ? this.height * this.camera.zoom : this.height;
+    }
+    
+    /**
+    * Destroys the scene and prepares it for garbage collection.
+    *
+    * @returns {this} self
+    */
+    destroy () {
+        this.camera = null;
+        this.view.parentNode.removeChild(this.view);
+        
+        return this;
+    }
+}
 
 export default Scene;
