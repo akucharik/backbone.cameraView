@@ -324,8 +324,8 @@ class Camera {
     * @example <caption>As a function that returns a bounds object</caption>
     * function () { 
     *   var transformation = new Matrix2().scale(this.zoom, this.zoom).getInverse();
-    *   var min = new Vector2().add(this.viewportCenter).transform(transformation);
-    *   var max = new Vector2(this.scene.scaledWidth, this.scene.scaledHeight).subtract(this.viewportCenter).transform(transformation);
+    *   var min = new Vector2().add(this.center).transform(transformation);
+    *   var max = new Vector2(this.scene.scaledWidth, this.scene.scaledHeight).subtract(this.center).transform(transformation);
     * 
     *   return {
     *     minX: min.x,
@@ -342,6 +342,15 @@ class Camera {
     set bounds (value) {
         this._bounds = !value ? null : value;
         this._updateBounds();
+    }
+    
+    /**
+    * @name Camera#center
+    * @property {Vector2} - The camera's center point.
+    * @readonly
+    */
+    get center () {
+        return new Vector2(this.width, this.height).multiplyScalar(0.5);
     }
     
     /**
@@ -439,7 +448,7 @@ class Camera {
                 this.trackControl = new TrackControl(this, {
                     draggable: this.dragToMove,
                     onDrag: function (camera) {
-                        var position = camera._calculatePosition(new Vector2(-this.x, -this.y), camera.viewportCenter, camera.scene.origin, camera.transformation);
+                        var position = camera._calculatePosition(new Vector2(-this.x, -this.y), camera.center, camera.scene.origin, camera.transformation);
                         new Oculo.Animation(camera, { paused: false }).moveTo(position, 0);
 
                         camera._renderDebug();
@@ -474,51 +483,6 @@ class Camera {
     }
     
     /**
-    * @name Camera#viewportCenter
-    * @property {Vector2} - The camera's center point.
-    * @readonly
-    */
-    get viewportCenter () {
-        return new Vector2(this.viewportWidth, this.viewportHeight).multiplyScalar(0.5);
-    }
-
-    /**
-    * @name Camera#viewportCenterX
-    * @property {number} - The x coordinate of the camera's center point.
-    * @readonly
-    */
-    get viewportCenterX () {
-        return this.viewportCenter.x;
-    }
-
-    /**
-    * @name Camera#viewportCenterY
-    * @property {number} - The y coordinate of the camera's center point.
-    * @readonly
-    */
-    get viewportCenterY () {
-        return this.viewportCenter.y;
-    }
-    
-    /**
-    * @name Camera#viewportWidth
-    * @property {number} - The width of the viewport.
-    * @readonly
-    */
-    get viewportWidth () {
-        return this.width;
-    }
-
-    /**
-    * @name Camera#viewportHeight
-    * @property {number} - The height of the viewport.
-    * @readonly
-    */
-    get viewportHeight () {
-        return this.height;
-    }
-    
-    /**
     * @name Camera#zoom
     * @property {number} - The amount of zoom. A ratio where 1 = 100%.
     * @readonly
@@ -532,14 +496,6 @@ class Camera {
         this._zoom = this._clampZoom(value);
         this._updateBounds();
     };
-    
-    _markPoint (x, y) {
-        var pointElement = document.getElementById('point');
-        var point = new Vector2(x, y).transform(new Matrix2().scale(this.zoom, this.zoom).rotate(_Math.degToRad(-this.rotation)));
-
-        pointElement.style.top = (point.y - 2) + 'px';
-        pointElement.style.left = (point.x - 2) + 'px';
-    }
 
     /**
     * Calculate the position of the camera in the scene given the state of the camera and the scene.
@@ -601,10 +557,10 @@ class Camera {
             return offset;
         }
         
-        var position = this._calculatePosition(this.offset, this.viewportCenter, this.scene.origin, this.transformation);
+        var position = this._calculatePosition(this.offset, this.center, this.scene.origin, this.transformation);
         var clampedPosition = new Vector2(clamp(position.x, this.minPositionX, this.maxPositionX), clamp(position.y, this.minPositionY, this.maxPositionY));
         
-        return this._calculateOffset(clampedPosition, this.viewportCenter, this.scene.origin, this.transformation);
+        return this._calculateOffset(clampedPosition, this.center, this.scene.origin, this.transformation);
     }
     
     /**
@@ -911,7 +867,7 @@ class Camera {
     }
 
     /**
-    * 
+    * Immediately animate the camera.
     *
     * @see {@link Camera.Animation#animate|Animation.animate}
     * @returns {this} self
@@ -923,7 +879,7 @@ class Camera {
     }
 
     /**
-    * 
+    * Immediately move to a specific position.
     *
     * @see {@link Camera.Animation#moveTo|Animation.moveTo}
     * @returns {this} self
@@ -935,7 +891,7 @@ class Camera {
     }
 
     /**
-    * 
+    * Immediately rotate at the specified location.
     *
     * @see {@link Camera.Animation#rotateAt|Animation.rotateAt}
     * @returns {this} self
@@ -947,7 +903,7 @@ class Camera {
     }
 
     /**
-    * 
+    * Immediately rotate at the current position.
     *
     * @see {@link Camera.Animation#rotateTo|Animation.rotateTo}
     * @returns {this} self
@@ -959,7 +915,7 @@ class Camera {
     }
 
     /**
-    * 
+    * Immediately shake the camera.
     *
     * @see {@link Camera.Animation#shake|Animation.shake}
     * @returns {this} self
@@ -971,7 +927,7 @@ class Camera {
     }
 
     /**
-    * 
+    * Immediately zoom in/out at a specific location.
     *
     * @see {@link Camera.Animation#zoomAt|Animation.zoomAt}
     * @returns {this} self
@@ -983,7 +939,7 @@ class Camera {
     }
 
     /**
-    * Immediately zooms in/out at the current position.
+    * Immediately zoom in/out at the current position.
     *
     * @see {@link Camera.Animation#zoomTo|Animation.zoomTo}
     * @returns {this} self
@@ -999,8 +955,8 @@ Camera.bounds = {
     NONE: null,
     WORLD: function () {
         var transformation = new Matrix2().scale(this.zoom, this.zoom).getInverse();
-        var min = new Vector2().add(this.viewportCenter).transform(transformation);
-        var max = new Vector2(this.scene.scaledWidth, this.scene.scaledHeight).subtract(this.viewportCenter).transform(transformation);
+        var min = new Vector2().add(this.center).transform(transformation);
+        var max = new Vector2(this.scene.scaledWidth, this.scene.scaledHeight).subtract(this.center).transform(transformation);
 
         return {
             minX: min.x,

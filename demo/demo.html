@@ -107,5 +107,14 @@
         camera.render();
     </script>
     
+    <script>
+        function markPoint (x, y, camera) {
+            var pointElement = document.getElementById('point');
+            var point = new Oculo.Vector2(x, y).transform(new Oculo.Matrix2().scale(camera.zoom, camera.zoom).rotate(Oculo.Math.degToRad(-camera.rotation)));
+
+            pointElement.style.top = (point.y - 2) + 'px';
+            pointElement.style.left = (point.x - 2) + 'px';
+        }
+    </script>
 </body>
 </html>

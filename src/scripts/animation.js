@@ -94,17 +94,17 @@ class Animation extends TimelineMax {
         offsetY = camera.offsetY = clampedOffset.y;
         
         // Position is manually updated so animations can smoothly continue when camera is resized
-        position = camera._calculatePosition(clampedOffset, camera.viewportCenter, camera.scene.origin, camera.transformation);
+        position = camera._calculatePosition(clampedOffset, camera.center, camera.scene.origin, camera.transformation);
         camera.positionX = position.x;
         camera.positionY = position.y;
 
         if (camera.isShaking) {
             if (camera.shakeHorizontal) {
-                offsetX += Math.random() * camera.shakeIntensity * camera.viewportWidth * 2 - camera.shakeIntensity * camera.viewportWidth;
+                offsetX += Math.random() * camera.shakeIntensity * camera.width * 2 - camera.shakeIntensity * camera.width;
             }
 
             if (camera.shakeVertical) {
-                offsetY += Math.random() * camera.shakeIntensity * camera.viewportHeight * 2 - camera.shakeIntensity * camera.viewportHeight;
+                offsetY += Math.random() * camera.shakeIntensity * camera.height * 2 - camera.shakeIntensity * camera.height;
             }
         }
         
@@ -215,7 +215,7 @@ class Animation extends TimelineMax {
         var rotation = isFinite(sourceRotation) ? sourceRotation : camera.rotation;
         var zoom = isFinite(sourceZoom) ? sourceZoom : camera.zoom;
         var transformation = new Matrix2().scale(zoom, zoom).rotate(_Math.degToRad(-rotation));
-        var cameraContextPosition = camera.viewportCenter;
+        var cameraContextPosition = camera.center;
         var offset = new Vector2();
 
         var isMoving = isFinite(sourcePosition.x) || isFinite(sourcePosition.y);
@@ -228,7 +228,7 @@ class Animation extends TimelineMax {
         
         if (!isMoving) {
             position.copy(origin);
-            cameraContextPosition = camera._calculateContextPosition(origin, camera.position, camera.viewportCenter, camera.transformation);
+            cameraContextPosition = camera._calculateContextPosition(origin, camera.position, camera.center, camera.transformation);
         }
 
         offset = camera._calculateOffset(position, cameraContextPosition, origin, transformation);
