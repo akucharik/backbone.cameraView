@@ -46,6 +46,11 @@ class Animation extends TimelineMax {
         */
         this.camera = camera || null;
         
+        /**
+        * @property {boolean} - Whether the animation is managed by an AnimationManager.
+        */
+        this.managed = false;
+        
         this.eventCallback('onStart', Animation._onStart, [this.camera, this.config], this);
         this.eventCallback('onUpdate', Animation._onUpdate, [this.camera, this.config], this);
         this.eventCallback('onComplete', Animation._onComplete, [this.camera, this.config], this);

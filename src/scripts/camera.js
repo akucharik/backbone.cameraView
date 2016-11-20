@@ -5,20 +5,21 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
     
-import clamp        from 'lodash/clamp';
-import isElement    from 'lodash/isElement';
-import isFinite     from 'lodash/isFinite';
-import isFunction   from 'lodash/isFunction';
-import isNil        from 'lodash/isNil';
-import isObject     from 'lodash/isObject';
-import isString     from 'lodash/isString';
-import Backbone     from 'backbone';
-import _Math        from './math/math';
-import Matrix2      from './math/matrix2';
-import Scene        from './scene';
-import TrackControl from './trackControl';
-import Utils        from './utils';
-import Vector2      from './math/vector2';
+import clamp            from 'lodash/clamp';
+import isElement        from 'lodash/isElement';
+import isFinite         from 'lodash/isFinite';
+import isFunction       from 'lodash/isFunction';
+import isNil            from 'lodash/isNil';
+import isObject         from 'lodash/isObject';
+import isString         from 'lodash/isString';
+import Backbone         from 'backbone';
+import AnimationManager from './animationManager';
+import _Math            from './math/math';
+import Matrix2          from './math/matrix2';
+import Scene            from './scene';
+import TrackControl     from './trackControl';
+import Utils            from './utils';
+import Vector2          from './math/vector2';
 
 /**
 * Factory: Creates a camera to view a scene.
@@ -55,16 +56,10 @@ class Camera {
 //        });
         
         /**
-        * @property {Oculo.Animation} - The active camera animation.
+        * @property {Object} - An object for managing animations.
         * @readonly
         */
-        this.animation = null;
-
-        /**
-        * @property {Object} - An object for storing camera animations.
-        * @readonly
-        */
-        this.animations = {};
+        this.animations = new AnimationManager(this);
         
         /**
         * @property {Object} - Whether the camera is in debug mode or not.
@@ -169,6 +164,12 @@ class Camera {
         this.scene = new Scene(options.scene, this);
         
         /**
+        * @property {Object} - An object for storing camera scenes.
+        * @readonly
+        */
+        this.scenes = {};
+        
+        /**
         * @property {number} - The shake intensity. A value between 0 and 1.
         * @readonly
         */
@@ -254,11 +255,11 @@ class Camera {
         // Initialize custom events and behaviors
         this.onResize = () => {
             if (this.view) {
-                var wasAnimating = this.isAnimating;
-                var wasPaused = this.isPaused;
+                var wasAnimating = this.animations.isAnimating;
+                var wasPaused = this.animations.isPaused;
 
-                // Maintain camera position and update any active animations
-                if (this.isAnimating) {
+                // Maintain camera position and update the current animation
+                if (wsAnimating) {
                     this.pause();
                 }
 
@@ -266,10 +267,10 @@ class Camera {
                     paused: false, 
                     onComplete: function (wasAnimating, wasPaused) {
                         // 'this' is bound to the Animation via the Animation class
-                        if (this.camera.isAnimating) {
+                        if (wasAnimating) {
                             var inProgressTimeline, tween, endProps;
 
-                            inProgressTimeline = this.camera.animation.getChildren(false, false, true).filter((timeline) => {
+                            inProgressTimeline = this.camera.animations.currentAnimation.getChildren(false, false, true).filter((timeline) => {
                                 var progress = timeline.progress();
                                 return progress > 0 && progress < 1;
                             })[0];
@@ -292,8 +293,10 @@ class Camera {
                         }
 
                         if (wasAnimating && !wasPaused) {
-                            this.camera.resume();
+                            this.camera.animations.currentAnimation.resume();
                         }
+                        
+                        this.destroy();
                     },
                     onCompleteParams: [wasAnimating, wasPaused]
                 }).moveTo(this.position, 0, { overwrite: false });
@@ -363,25 +366,6 @@ class Camera {
     }
     
     /**
-    * @name Camera#isAnimating
-    * @property {boolean} - Whether the scene is animating or not.
-    * @readonly
-    */
-    get isAnimating () {
-        var progress = this.animation ? this.animation.progress() : 0;
-        return progress > 0 && progress < 1;
-    }
-    
-    /**
-    * @name Camera#isPaused
-    * @property {boolean} - Whether the camera is paused or not.
-    * @readonly
-    */
-    get isPaused () {
-        return this.animation ? this.animation.paused() : false;
-    }
-    
-    /**
     * @name Camera#isRotated
     * @property {boolean} - Whether the camera is rotated or not.
     * @readonly
@@ -417,6 +401,28 @@ class Camera {
         return new Vector2(this.positionX, this.positionY);
     }
     
+//    get scene () {
+//        return this.scene;
+//    }
+//    
+//    set scene (scene) {        
+//        if (this.trackControl) {
+//            this.trackControl.destroy();
+//        }
+//        
+//        if (isString(scene)) {
+//            this.scene = this.scenes[scene];
+//        }
+//        else if (scene) {
+//            this.scene = new Scene(scene, this);
+//            
+//            if (this._view) {
+//                this._view.appendChild(this.scene.view)
+//                // TODO: Create track control
+//            }
+//        }
+//    }
+    
     /**
     * @name Camera#transformation
     * @property {Matrix2} - The transformation of the scene.
@@ -449,7 +455,7 @@ class Camera {
                     draggable: this.dragToMove,
                     onDrag: function (camera) {
                         var position = camera._calculatePosition(new Vector2(-this.x, -this.y), camera.center, camera.scene.origin, camera.transformation);
-                        new Oculo.Animation(camera, { paused: false }).moveTo(position, 0);
+                        camera.animations.play(new Oculo.Animation(camera, { paused: false }).moveTo(position, 0));
 
                         camera._renderDebug();
                     },
@@ -474,7 +480,7 @@ class Camera {
                                 origin = camera._calculatePosition(camera.offset, cameraContextPosition, camera.scene.origin, camera.transformation);
                             }
 
-                            camera.animation = new Oculo.Animation(camera, { paused: false }).zoomAt(origin, zoom, 0);
+                            camera.animations.play(new Oculo.Animation(camera, { paused: false }).zoomAt(origin, zoom, 0));
                         }
                     }
                 });
@@ -634,29 +640,29 @@ class Camera {
     /**
     * Adds an animation to the camera.
     *
-    * @param {Oculo.Animation} animation - The animation.
     * @param {string} name - The name.
+    * @param {Oculo.Animation} animation - The animation.
     * @returns {this} self
     */
     addAnimation (name, animation) {
-        animation.camera = this;
-        this.animations[name] = animation;
+        this.animations.add(name, animation);
         
         return this;
     }
     
-    /**
-    * Removes an animation from the camera.
-    *
-    * @param {string} name - The name.
-    * @returns {this} self
-    */
-    removeAnimation (name) {
-        this.animations[name].camera = null;
-        delete this.animations[name];
-        
-        return this;
-    }
+//    /**
+//    * Adds a scene to the camera.
+//    *
+//    * @param {string} name - The name.
+//    * @param {Oculo.Scene} scene - The scene.
+//    * @returns {this} self
+//    */
+//    addScene (name, scene) {
+//        scene.camera = this;
+//        this.scenes[name] = scene;
+//        
+//        return this;
+//    }
     
     /**
     * Destroys the camera and prepares it for garbage collection.
@@ -666,12 +672,10 @@ class Camera {
     destroy () {
         this.stopListening();
         
-        for (let key in this.animations) {
-            this.animations[key].destroy();
-        }
+        this.animations.destroy();
         
-        if (this.trackControl) {
-            this.scene.destroy();
+        for (let key in this.scenes) {
+            this.scenes[key].destroy();
         }
         
         if (this.trackControl) {
@@ -684,7 +688,6 @@ class Camera {
         
         return this;
     }
-    
     
     /**
     * Disables drag-to-move.
@@ -762,11 +765,11 @@ class Camera {
     }
 
     /**
-    * Render the camera view. This method is not meant to be overridden. If you need to manipulate how the camera renders, use {@link Camera#onBeforeRender|onBeforeRender} and {@link Camera#onRender|onRender}.
+    * Render the camera view. If you need to manipulate how the camera renders, use {@link Camera#onBeforeRender|onBeforeRender} and {@link Camera#onRender|onRender}.
     *
     * @returns {Camera} The view.
     */
-    render (animation) {
+    render () {
         this.onBeforeRender();
 
         if (!this.isRendered) {
@@ -777,23 +780,13 @@ class Camera {
             this.isRendered = true;
         }
 
-        if (isString(animation)) {
-            this.animation = this.animations[animation];
-            this.animation.invalidate().restart(false, false);
-        }
-        else if (animation) {
-            this.animation = animation;
-            animation.invalidate().restart(false, false);
-        }
-        else {
-            this._renderSize();
-            this.animation = new Oculo.Animation(this, { paused: false }).animate({
-                position: this.position,
-                origin: this.scene.origin,
-                rotation: this.rotation,
-                zoom: this.zoom
-            }, 0);
-        }
+        this._renderSize();
+        this.animations.play(new Oculo.Animation(this, { paused: false }).animate({
+            position: this.position,
+            origin: this.scene.origin,
+            rotation: this.rotation,
+            zoom: this.zoom
+        }, 0));
 
         this.onRender();
 
@@ -836,7 +829,7 @@ class Camera {
     * @returns {this} self
     */
     pause () {
-        this.animation.pause();
+        this.animations.pause();
         this._renderDebug();
 
         return this;
@@ -848,8 +841,8 @@ class Camera {
     * @see {@link external:TimelineMax|TimelineMax}
     * @returns {this} self
     */
-    play () {
-        this.animation.play();
+    play (animation) {
+        this.animations.play(animation);
 
         return this;
     }
@@ -861,7 +854,7 @@ class Camera {
     * @returns {this} self
     */
     resume () {
-        this.animation.resume();
+        this.animations.resume();
 
         return this;
     }
@@ -873,7 +866,7 @@ class Camera {
     * @returns {this} self
     */
     animate (props, duration, options) {
-        this.animation = new Oculo.Animation(this, { paused: false }).animate(props, duration, options);
+        this.animations.play(new Oculo.Animation(this, { paused: false }).animate(props, duration, options));
 
         return this;
     }
@@ -885,7 +878,7 @@ class Camera {
     * @returns {this} self
     */
     moveTo (position, duration, options) {
-        this.animation = new Oculo.Animation(this, { paused: false }).moveTo(position, duration, options);
+        this.animations.play(new Oculo.Animation(this, { paused: false }).moveTo(position, duration, options));
 
         return this;
     }
@@ -897,7 +890,7 @@ class Camera {
     * @returns {this} self
     */
     rotateAt (origin, rotation, duration, options) {
-        this.animation = new Oculo.Animation(this, { paused: false }).rotateAt(origin, rotation, duration, options);
+        this.animations.play(new Oculo.Animation(this, { paused: false }).rotateAt(origin, rotation, duration, options));
 
         return this;
     }
@@ -909,7 +902,7 @@ class Camera {
     * @returns {this} self
     */
     rotateTo (rotation, duration, options) {
-        this.animation = new Oculo.Animation(this, { paused: false }).rotateTo(rotation, duration, options);
+        this.animations.play(new Oculo.Animation(this, { paused: false }).rotateTo(rotation, duration, options));
 
         return this;
     }
@@ -921,7 +914,7 @@ class Camera {
     * @returns {this} self
     */
     shake (intensity, duration, direction, options) {
-        this.animation = new Oculo.Animation(this, { paused: false }).shake(intensity, duration, direction, options);
+        this.animations.play(new Oculo.Animation(this, { paused: false }).shake(intensity, duration, direction, options));
 
         return this;
     }
@@ -933,7 +926,7 @@ class Camera {
     * @returns {this} self
     */
     zoomAt (origin, zoom, duration, options) {
-        this.animation = new Oculo.Animation(this, { paused: false }).zoomAt(origin, zoom, duration, options);
+        this.animations.play(new Oculo.Animation(this, { paused: false }).zoomAt(origin, zoom, duration, options));
 
         return this;
     }
@@ -945,7 +938,7 @@ class Camera {
     * @returns {this} self
     */
     zoomTo (zoom, duration, options) {
-        this.animation = new Oculo.Animation(this, { paused: false }).zoomTo(zoom, duration, options);
+        this.animations.play(new Oculo.Animation(this, { paused: false }).zoomTo(zoom, duration, options));
 
         return this;
     }
