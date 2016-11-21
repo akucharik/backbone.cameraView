@@ -19,7 +19,7 @@ class Scene {
         /**
         * @property {Oculo.Camera} - The camera.
         */
-        this.camera = camera;
+        this.camera = camera || null;
         
         /**
         * @property {number} - The X transformation origin.
@@ -91,7 +91,7 @@ class Scene {
     */
     destroy () {
         this.camera = null;
-        this.view.parentNode.removeChild(this.view);
+        this.view = null;
         
         return this;
     }

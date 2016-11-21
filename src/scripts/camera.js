@@ -17,6 +17,7 @@ import AnimationManager from './animationManager';
 import _Math            from './math/math';
 import Matrix2          from './math/matrix2';
 import Scene            from './scene';
+import SceneManager     from './sceneManager';
 import TrackControl     from './trackControl';
 import Utils            from './utils';
 import Vector2          from './math/vector2';
@@ -56,7 +57,7 @@ class Camera {
 //        });
         
         /**
-        * @property {Object} - An object for managing animations.
+        * @property {Oculo.AnimationManager} - An object for managing animations.
         * @readonly
         */
         this.animations = new AnimationManager(this);
@@ -81,7 +82,7 @@ class Camera {
         this.isRendered = false;
 
         /**
-        * @property {boolean} - Whether the scene is shaking or not.
+        * @property {boolean} - Whether the camera is shaking or not.
         * @readonly
         * @default
         */
@@ -112,14 +113,14 @@ class Camera {
         this.maxPositionY = null;
         
         /**
-        * The minimum value the scene can be zoomed.
+        * The minimum value the camera can be zoomed.
         * @property {number} - See {@link Camera.zoom|zoom}.
         * @default 0.5
         */
         this.minZoom = options.minZoom || 0.5;
         
         /**
-        * The maximum value the scene can be zoomed.
+        * The maximum value the camera can be zoomed.
         * @property {number} - See {@link Camera.zoom|zoom}.
         * @default 3
         */
@@ -141,13 +142,13 @@ class Camera {
         * @property {number} - The X position of the camera's center point within the world.
         * @readonly
         */
-        this.positionX = 0;
+        this.positionX = options.width * 0.5 || 0;
         
         /**
         * @property {number} - The Y position of the camera's center point within the world.
         * @readonly
         */
-        this.positionY = 0;
+        this.positionY = options.height * 0.5 || 0;
 
         /**
         * @property {number} - The amount of rotation in degrees.
@@ -155,19 +156,12 @@ class Camera {
         * @default 0
         */
         this.rotation = options.rotation || 0;
-
-        // TODO: Make scene into a getter/setter where the scene can be swapped out.
-        /**
-        * The scene which the camera is viewing.
-        * @property {Oculo.Scene}
-        */
-        this.scene = new Scene(options.scene, this);
         
         /**
-        * @property {Object} - An object for storing camera scenes.
+        * @property {Oculo.SceneManager} - An object for managing scenes.
         * @readonly
         */
-        this.scenes = {};
+        this.scenes = new SceneManager(this);
         
         /**
         * @property {number} - The shake intensity. A value between 0 and 1.
@@ -188,7 +182,7 @@ class Camera {
         * @default
         */
         this.shakeVertical = true;
-
+        
         /**
         * @property {TrackControl} - The track control.
         * @readonly
@@ -197,13 +191,19 @@ class Camera {
         this.trackControl = null;
 
         /**
+        * @private
+        * @property {Element} - The internally managed view.
+        */
+        this.view = (options.view === null) ? null : Utils.DOM.parseView(options.view) || document.createElement('div');
+        
+        /**
         * @property {boolean} - Whether wheeling can be used to zoom or not.
         * @default false
         */
         this.wheelToZoom = options.wheelToZoom ? true : false;
         
         /**
-        * @property {number} - The base increment at which the scene will be zoomed. See {@link Camera.zoom|zoom}.
+        * @property {number} - The base increment at which the camera will be zoomed. See {@link Camera.zoom|zoom}.
         * @default 0.01
         */
         this.wheelToZoomIncrement = options.wheelToZoomIncrement || 0.01;
@@ -226,81 +226,61 @@ class Camera {
         * @private
         * @property {null|function|Object} - The internally managed bounds.
         */
-        this._bounds = null;
-        
-        /**
-        * @private
-        * @property {Element} - The internally managed view.
-        */
-        this._view = null;
+        this._bounds = options.bounds || Camera.bounds.NONE;;
         
         /**
         * @private
         * @property {number} - The internally managed zoom.
         */
-        this._zoom = 1;
-
-        // Initialize properties with prior property dependencies
-        this.bounds = options.bounds || Camera.bounds.NONE;
-        this.zoom = this._clampZoom(options.zoom || 1);
+        this._zoom = this._clampZoom(options.zoom || 1);
         
-        position = Utils.parsePosition(options.position, this.scene.view) || {};
-        if (position) {
-            this.positionX = position.x;
-            this.positionY = position.y;
-        }
-        
-        this.view = options.view;  
-        
-        // Initialize custom events and behaviors
+        // Initialize custom events
         this.onResize = () => {
-            if (this.view) {
-                var wasAnimating = this.animations.isAnimating;
-                var wasPaused = this.animations.isPaused;
+            var wasAnimating = this.animations.isAnimating;
+            var wasPaused = this.animations.isPaused;
 
-                // Maintain camera position and update the current animation
-                if (wsAnimating) {
-                    this.pause();
-                }
-
-                new Oculo.Animation(this, { 
-                    paused: false, 
-                    onComplete: function (wasAnimating, wasPaused) {
-                        // 'this' is bound to the Animation via the Animation class
-                        if (wasAnimating) {
-                            var inProgressTimeline, tween, endProps;
-
-                            inProgressTimeline = this.camera.animations.currentAnimation.getChildren(false, false, true).filter((timeline) => {
-                                var progress = timeline.progress();
-                                return progress > 0 && progress < 1;
-                            })[0];
-
-                            tween = inProgressTimeline.getChildren(false, true, false)[0];
-
-                            if (tween.data.isMoving) {
-                                endProps = this._calculateEndProps(tween.data.parsedOrigin, tween.data.parsedPosition, tween.data.parsedRotation, tween.data.parsedZoom, this.camera);
-                                Object.assign(tween.data, endProps);
-                                
-                                // TODO: for dev only
-                                console.log('tween data after resize: ', tween.data);
-                                tween.updateTo({
-                                    zoom: endProps.endZoom,
-                                    rotation: endProps.endRotation,
-                                    offsetX: endProps.endOffsetX,
-                                    offsetY: endProps.endOffsetY
-                                });
-                            }
-                        }
-
-                        if (wasAnimating && !wasPaused) {
-                            this.camera.animations.currentAnimation.resume();
-                        }
-                        
-                        this.destroy();
-                    },
-                    onCompleteParams: [wasAnimating, wasPaused]
-                }).moveTo(this.position, 0, { overwrite: false });
+            // Maintain camera position and update the current animation
+            if (wsAnimating) {
+                this.pause();
             }
+
+            new Oculo.Animation(this, { 
+                paused: false, 
+                onComplete: function (wasAnimating, wasPaused) {
+                    // 'this' is bound to the Animation via the Animation class
+                    if (wasAnimating) {
+                        var inProgressTimeline, tween, endProps;
+
+                        inProgressTimeline = this.camera.animations.currentAnimation.getChildren(false, false, true).filter((timeline) => {
+                            var progress = timeline.progress();
+                            return progress > 0 && progress < 1;
+                        })[0];
+
+                        tween = inProgressTimeline.getChildren(false, true, false)[0];
+
+                        if (tween.data.isMoving) {
+                            endProps = this._calculateEndProps(tween.data.parsedOrigin, tween.data.parsedPosition, tween.data.parsedRotation, tween.data.parsedZoom, this.camera);
+                            Object.assign(tween.data, endProps);
+
+                            // TODO: for dev only
+                            console.log('tween data after resize: ', tween.data);
+                            tween.updateTo({
+                                zoom: endProps.endZoom,
+                                rotation: endProps.endRotation,
+                                offsetX: endProps.endOffsetX,
+                                offsetY: endProps.endOffsetY
+                            });
+                        }
+                    }
+
+                    if (wasAnimating && !wasPaused) {
+                        this.camera.animations.currentAnimation.resume();
+                    }
+
+                    this.destroy();
+                },
+                onCompleteParams: [wasAnimating, wasPaused]
+            }).moveTo(this.position, 0, { overwrite: false });
         }
         
         // Initialize event listeners
@@ -401,27 +381,14 @@ class Camera {
         return new Vector2(this.positionX, this.positionY);
     }
     
-//    get scene () {
-//        return this.scene;
-//    }
-//    
-//    set scene (scene) {        
-//        if (this.trackControl) {
-//            this.trackControl.destroy();
-//        }
-//        
-//        if (isString(scene)) {
-//            this.scene = this.scenes[scene];
-//        }
-//        else if (scene) {
-//            this.scene = new Scene(scene, this);
-//            
-//            if (this._view) {
-//                this._view.appendChild(this.scene.view)
-//                // TODO: Create track control
-//            }
-//        }
-//    }
+    /**
+    * @name Camera#scene
+    * @property {Oculo.Scene} - The active scene.
+    * @readonly
+    */
+    get scene () {
+        return this.scenes.activeScene;
+    }
     
     /**
     * @name Camera#transformation
@@ -430,62 +397,6 @@ class Camera {
     */
     get transformation () {
         return new Matrix2().scale(this.zoom, this.zoom).rotate(_Math.degToRad(-this.rotation));
-    }
-    
-    /**
-    * @name Camera#view
-    * @property {Element} - The view.
-    */
-    get view () {
-        return this._view;
-    }
-
-    set view (value) {
-        if (this.trackControl) {
-            this.trackControl.destroy();
-        }
-
-        this._view = Utils.DOM.parseView(value);
-
-        if (this._view) {
-            this._view.appendChild(this.scene.view);
-
-            if (this.dragToMove || this.wheelToZoom) {
-                this.trackControl = new TrackControl(this, {
-                    draggable: this.dragToMove,
-                    onDrag: function (camera) {
-                        var position = camera._calculatePosition(new Vector2(-this.x, -this.y), camera.center, camera.scene.origin, camera.transformation);
-                        camera.animations.play(new Oculo.Animation(camera, { paused: false }).moveTo(position, 0));
-
-                        camera._renderDebug();
-                    },
-                    wheelable: this.wheelToZoom,
-                    onWheel: function (camera) {
-                        var velocity = Math.abs(this.wheelEvent.deltaY);
-                        var direction = this.wheelEvent.deltaY > 0 ? Camera.zoomDirection.OUT : Camera.zoomDirection.IN;
-                        var previousDirection = this.previousWheelEvent.deltaY > 0 ? Camera.zoomDirection.OUT : Camera.zoomDirection.IN;
-                        var cameraRect;
-                        var cameraContextPosition = new Vector2();
-                        var sceneContextPosition = new Vector2();
-                        var origin = camera.scene.origin;
-                        var zoom = camera.zoom + camera.zoom * camera.wheelToZoomIncrement * (velocity > 1 ? velocity * 0.5 : 1) * (direction === Camera.zoomDirection.IN ? 1 : -1);
-
-                        // Performance Optimization: If zoom has not changed because it's at the min/max, don't zoom.
-                        if (direction === previousDirection && camera._clampZoom(zoom) !== camera.zoom) { 
-                            cameraRect = camera.view.getBoundingClientRect();
-                            cameraContextPosition.set(this.wheelEvent.clientX - cameraRect.left, this.wheelEvent.clientY - cameraRect.top);
-                            sceneContextPosition = camera._calculatePosition(camera.offset, cameraContextPosition, camera.scene.origin, camera.transformation);
-
-                            if (Math.round(origin.x) !== Math.round(sceneContextPosition.x) || Math.round(origin.y) !== Math.round(sceneContextPosition.y)) {
-                                origin = camera._calculatePosition(camera.offset, cameraContextPosition, camera.scene.origin, camera.transformation);
-                            }
-
-                            camera.animations.play(new Oculo.Animation(camera, { paused: false }).zoomAt(origin, zoom, 0));
-                        }
-                    }
-                });
-            }
-        }
     }
     
     /**
@@ -597,8 +508,8 @@ class Camera {
     * @private
     */
     _renderSize () {
-        if (this._view) {
-            TweenMax.set(this._view, { 
+        if (this.view) {
+            TweenMax.set(this.view, { 
                 css: { 
                     height: this.height,
                     width: this.width 
@@ -612,29 +523,31 @@ class Camera {
         
         var bounds;
         var offsetBounds;
+        
+        if (this.scene) {
+            if (!value) {
+                bounds = {
+                    minX: null,
+                    minY: null,
+                    maxX: null,
+                    maxY: null
+                };
+            }
+            else if (isFunction(value)) {
+                bounds = value.call(this);
+            }
+            else {
+                bounds = value;
+            }
 
-        if (!value) {
-            bounds = {
-                minX: null,
-                minY: null,
-                maxX: null,
-                maxY: null
-            };
+            this.minPositionX = bounds.minX;
+            this.minPositionY = bounds.minY;
+            this.maxPositionX = bounds.maxX;
+            this.maxPositionY = bounds.maxY;
+
+            // TODO: For dev only
+            console.log('update bounds');
         }
-        else if (isFunction(value)) {
-            bounds = value.call(this);
-        }
-        else {
-            bounds = value;
-        }
-        
-        this.minPositionX = bounds.minX;
-        this.minPositionY = bounds.minY;
-        this.maxPositionX = bounds.maxX;
-        this.maxPositionY = bounds.maxY;
-        
-        // TODO: For dev only
-        console.log('update bounds');
     }
     
     /**
@@ -650,19 +563,18 @@ class Camera {
         return this;
     }
     
-//    /**
-//    * Adds a scene to the camera.
-//    *
-//    * @param {string} name - The name.
-//    * @param {Oculo.Scene} scene - The scene.
-//    * @returns {this} self
-//    */
-//    addScene (name, scene) {
-//        scene.camera = this;
-//        this.scenes[name] = scene;
-//        
-//        return this;
-//    }
+    /**
+    * Adds a scene to the camera.
+    *
+    * @param {string} name - The name.
+    * @param {string|Oculo.Scene} scene - The scene.
+    * @returns {this} self
+    */
+    addScene (name, scene) {
+        this.scenes.add(name, scene);
+        
+        return this;
+    }
     
     /**
     * Destroys the camera and prepares it for garbage collection.
@@ -670,21 +582,19 @@ class Camera {
     * @returns {this} self
     */
     destroy () {
-        this.stopListening();
-        
-        this.animations.destroy();
-        
-        for (let key in this.scenes) {
-            this.scenes[key].destroy();
+        if (this.view && this.view.parentNode) {
+            this.view.parentNode.removeChild(this.view);
         }
+        
+        this.view = null;
+        this.animations.destroy();
+        this.scenes.destroy();
         
         if (this.trackControl) {
             this.trackControl.destroy();
         }
         
-        if (this.view) {
-            this.view.parentNode.removeChild(this.view);
-        }
+        this.stopListening();
         
         return this;
     }
@@ -776,23 +686,90 @@ class Camera {
             if (this.debug && this.debugView) {
                 this.debugView.render().attach(document.body);
             }
-
+            
             this.isRendered = true;
         }
 
         this._renderSize();
-        this.animations.play(new Oculo.Animation(this, { paused: false }).animate({
-            position: this.position,
-            origin: this.scene.origin,
-            rotation: this.rotation,
-            zoom: this.zoom
-        }, 0));
+        
+        if (this.scene) {
+            if (this.scene.view) {
+                this.scene.view.style.display = 'block';
+            }
+            
+            this._updateBounds();
+            this.animations.play(new Oculo.Animation(this, { paused: false }).animate({
+                position: this.position,
+                origin: this.scene.origin,
+                rotation: this.rotation,
+                zoom: this.zoom
+            }, 0));
+        }
 
         this.onRender();
 
         return this;
     }
 
+    /**
+    * Sets the active scene.
+    *
+    * @returns {this} self
+    */
+    setScene (name) {
+        if (this.scene && this.scene.view && this.scene.view.parentNode) {
+            this.scene.view.parentNode.removeChild(this.scene.view);
+            this.scene.view.style.display = 'none';
+        }
+        
+        if (this.trackControl) {
+            this.trackControl.destroy();
+        }
+        
+        this.scenes.setActiveScene(name);
+        this._updateBounds();
+        
+        if (this.scene.view) {
+            this.view.appendChild(this.scene.view);
+            
+            if (this.dragToMove || this.wheelToZoom) {
+                this.trackControl = new TrackControl(this, {
+                    draggable: this.dragToMove,
+                    onDrag: function (camera) {
+                        var position = camera._calculatePosition(new Vector2(-this.x, -this.y), camera.center, camera.scene.origin, camera.transformation);
+                        camera.animations.play(new Oculo.Animation(camera, { paused: false }).moveTo(position, 0));
+                    },
+                    wheelable: this.wheelToZoom,
+                    onWheel: function (camera) {
+                        var velocity = Math.abs(this.wheelEvent.deltaY);
+                        var direction = this.wheelEvent.deltaY > 0 ? Camera.zoomDirection.OUT : Camera.zoomDirection.IN;
+                        var previousDirection = this.previousWheelEvent.deltaY > 0 ? Camera.zoomDirection.OUT : Camera.zoomDirection.IN;
+                        var cameraRect;
+                        var cameraContextPosition = new Vector2();
+                        var sceneContextPosition = new Vector2();
+                        var origin = camera.scene.origin;
+                        var zoom = camera.zoom + camera.zoom * camera.wheelToZoomIncrement * (velocity > 1 ? velocity * 0.5 : 1) * (direction === Camera.zoomDirection.IN ? 1 : -1);
+
+                        // Performance Optimization: If zoom has not changed because it's at the min/max, don't zoom.
+                        if (direction === previousDirection && camera._clampZoom(zoom) !== camera.zoom) { 
+                            cameraRect = camera.view.getBoundingClientRect();
+                            cameraContextPosition.set(this.wheelEvent.clientX - cameraRect.left, this.wheelEvent.clientY - cameraRect.top);
+                            sceneContextPosition = camera._calculatePosition(camera.offset, cameraContextPosition, camera.scene.origin, camera.transformation);
+
+                            if (Math.round(origin.x) !== Math.round(sceneContextPosition.x) || Math.round(origin.y) !== Math.round(sceneContextPosition.y)) {
+                                origin = camera._calculatePosition(camera.offset, cameraContextPosition, camera.scene.origin, camera.transformation);
+                            }
+
+                            camera.animations.play(new Oculo.Animation(camera, { paused: false }).zoomAt(origin, zoom, 0));
+                        }
+                    }
+                });
+            }
+        }
+
+        return this;
+    }
+    
     /**
     * Sets the size of the camera.
     *

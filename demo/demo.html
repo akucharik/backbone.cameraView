@@ -27,10 +27,19 @@
                 <div id="point" style="position: absolute; width: 4px; height: 4px; background-color: #ff9900; top: -1000px; left: -1000px; z-index: 1000;"></div>
             </div>
 
-            <div id="scene" class="bcv-scene">
+            <div id="scene1" class="bcv-scene" style="display: none;">
                 <!--<img src="images/FFL-Spritesheet-White-1827x1215.png" alt="Final Fantasy Legend Sprites" width="1827" height="1215" />-->
                 <div style="box-sizing: border-box; width: 1200px; height: 700px; background-color: #def; border: 10px solid black;"></div>
                 <div style="box-sizing: border-box; position: absolute; top: 100px; left: 300px; width: 200px; height: 200px; background-color: #cdf;"></div>
+                <div id="box100" style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid green;"></div>
+                <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 150px; height: 150px; border: 1px solid green;"></div>
+                <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 200px; height: 200px; border: 1px solid green;"></div>
+                <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 250px; height: 250px; border: 1px solid green;"></div>
+                <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 300px; height: 300px; border: 1px solid green;"></div>
+            </div>
+            
+            <div id="scene2" class="bcv-scene" style="display: none;">
+                <img src="images/FFL-Spritesheet-White-1827x1215.png" alt="Final Fantasy Legend Sprites" width="1827" height="1215" />
                 <div id="box100" style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid green;"></div>
                 <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 150px; height: 150px; border: 1px solid green;"></div>
                 <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 200px; height: 200px; border: 1px solid green;"></div>
@@ -72,16 +81,16 @@
     <script type="text/javascript">
         camera = new Oculo.Camera({
             view: '#camera',
-            scene: '#scene',
+            //scene: '#scene1',
             bounds: Oculo.Camera.bounds.WORLD_EDGE,
             debug: false,
             dragToMove: true,
             //maxZoom: 6,
             //minZoom: 0.2,
-            position: {
-                x: 500,
-                y: 250
-            },
+            //position: {
+            //    x: 500,
+            //    y: 250
+            //},
             rotation: 0,
             wheelToZoom: true,
             //wheelToZoomIncrement: 0.5,
@@ -89,6 +98,11 @@
             height: 500,
             zoom: 1,
         });
+        
+        // Scenes
+        camera.addScene('scene1', '#scene1');
+        camera.addScene('scene2', new Oculo.Scene('#scene2'));
+        camera.setScene('scene1');
         
         // Animations
         camera.addAnimation('moveTobox100', new Oculo.Animation(camera).animate({position: '#box100', rotation:-20, zoom: 1.5}, 2));
@@ -105,6 +119,7 @@
         camera.addAnimation('instantShake', new Oculo.Animation(camera).shake(0.1, 0));
         
         camera.render();
+        //camera.play('moveTobox100');
     </script>
     
     <script>
