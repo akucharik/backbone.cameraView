@@ -245,6 +245,7 @@ class Camera {
             }
 
             new Oculo.Animation(this, { 
+                destroyOnComplete: true, 
                 paused: false, 
                 onComplete: function (wasAnimating, wasPaused) {
                     // 'this' is bound to the Animation via the Animation class
@@ -698,12 +699,15 @@ class Camera {
             }
             
             this._updateBounds();
-            this.animations.play(new Oculo.Animation(this, { paused: false }).animate({
+            new Oculo.Animation(this, { 
+                destroyOnComplete: true, 
+                paused: false 
+            }).animate({
                 position: this.position,
                 origin: this.scene.origin,
                 rotation: this.rotation,
                 zoom: this.zoom
-            }, 0));
+            }, 0);
         }
 
         this.onRender();
@@ -737,7 +741,10 @@ class Camera {
                     draggable: this.dragToMove,
                     onDrag: function (camera) {
                         var position = camera._calculatePosition(new Vector2(-this.x, -this.y), camera.center, camera.scene.origin, camera.transformation);
-                        camera.animations.play(new Oculo.Animation(camera, { paused: false }).moveTo(position, 0));
+                        new Oculo.Animation(camera, { 
+                            destroyOnComplete: true, 
+                            paused: false 
+                        }).moveTo(position, 0);
                     },
                     wheelable: this.wheelToZoom,
                     onWheel: function (camera) {
@@ -760,7 +767,10 @@ class Camera {
                                 origin = camera._calculatePosition(camera.offset, cameraContextPosition, camera.scene.origin, camera.transformation);
                             }
 
-                            camera.animations.play(new Oculo.Animation(camera, { paused: false }).zoomAt(origin, zoom, 0));
+                            new Oculo.Animation(camera, { 
+                                destroyOnComplete: true, 
+                                paused: false 
+                            }).zoomAt(origin, zoom, 0);
                         }
                     }
                 });
@@ -843,7 +853,10 @@ class Camera {
     * @returns {this} self
     */
     animate (props, duration, options) {
-        this.animations.play(new Oculo.Animation(this, { paused: false }).animate(props, duration, options));
+        new Oculo.Animation(this, { 
+            destroyOnComplete: true, 
+            paused: false 
+        }).animate(props, duration, options);
 
         return this;
     }
@@ -855,7 +868,10 @@ class Camera {
     * @returns {this} self
     */
     moveTo (position, duration, options) {
-        this.animations.play(new Oculo.Animation(this, { paused: false }).moveTo(position, duration, options));
+        new Oculo.Animation(this, { 
+            destroyOnComplete: true, 
+            paused: false 
+        }).moveTo(position, duration, options);
 
         return this;
     }
@@ -867,7 +883,10 @@ class Camera {
     * @returns {this} self
     */
     rotateAt (origin, rotation, duration, options) {
-        this.animations.play(new Oculo.Animation(this, { paused: false }).rotateAt(origin, rotation, duration, options));
+        new Oculo.Animation(this, { 
+            destroyOnComplete: true, 
+            paused: false 
+        }).rotateAt(origin, rotation, duration, options);
 
         return this;
     }
@@ -879,7 +898,10 @@ class Camera {
     * @returns {this} self
     */
     rotateTo (rotation, duration, options) {
-        this.animations.play(new Oculo.Animation(this, { paused: false }).rotateTo(rotation, duration, options));
+        new Oculo.Animation(this, { 
+            destroyOnComplete: true, 
+            paused: false 
+        }).rotateTo(rotation, duration, options);
 
         return this;
     }
@@ -891,7 +913,10 @@ class Camera {
     * @returns {this} self
     */
     shake (intensity, duration, direction, options) {
-        this.animations.play(new Oculo.Animation(this, { paused: false }).shake(intensity, duration, direction, options));
+        new Oculo.Animation(this, { 
+            destroyOnComplete: true, 
+            paused: false 
+        }).shake(intensity, duration, direction, options);
 
         return this;
     }
@@ -903,7 +928,10 @@ class Camera {
     * @returns {this} self
     */
     zoomAt (origin, zoom, duration, options) {
-        this.animations.play(new Oculo.Animation(this, { paused: false }).zoomAt(origin, zoom, duration, options));
+        new Oculo.Animation(this, { 
+            destroyOnComplete: true, 
+            paused: false 
+        }).zoomAt(origin, zoom, duration, options);
 
         return this;
     }
@@ -915,7 +943,10 @@ class Camera {
     * @returns {this} self
     */
     zoomTo (zoom, duration, options) {
-        this.animations.play(new Oculo.Animation(this, { paused: false }).zoomTo(zoom, duration, options));
+        new Oculo.Animation(this, { 
+            destroyOnComplete: true, 
+            paused: false 
+        }).zoomTo(zoom, duration, options);
 
         return this;
     }

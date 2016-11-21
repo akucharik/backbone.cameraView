@@ -23,9 +23,12 @@ import Vector2    from './math/vector2';
 * @extends external:TimelineMax
 * @param {Camera} camera - The camera to be animated.
 * @param {Object} [options] - An object of {@link external:TweenMax|TweenMax} options.
+* @param {Object} [options.destroyOnComplete] - Whether the animation should be destroyed once it has completed.
 *
 * @example
-* var myAnimation = new Oculo.Animation(myCamera).zoomTo(2,1).shake(0.1,2).resume();
+* var myAnimation = new Oculo.Animation(myCamera, { 
+*   destroyOnComplete: true
+* }).zoomTo(2, 1).shake(0.1, 2).play();
 */
 class Animation extends TimelineMax {
     constructor (camera, options) {
@@ -47,9 +50,9 @@ class Animation extends TimelineMax {
         this.camera = camera || null;
         
         /**
-        * @property {boolean} - Whether the animation is managed by an AnimationManager.
+        * @property {boolean} - Whether the animation should be destroyed once it has completed.
         */
-        this.managed = false;
+        this.destroyOnComplete = options.destroyOnComplete ? true : false;
         
         this.eventCallback('onStart', Animation._onStart, [this.camera, this.config], this);
         this.eventCallback('onUpdate', Animation._onUpdate, [this.camera, this.config], this);
@@ -154,6 +157,10 @@ class Animation extends TimelineMax {
         }
 
         camera._renderDebug();
+        
+        if (this.destroyOnComplete) {
+            this.destroy();
+        }
         // TODO: Remove once dev is complete
         console.log('animation completed');
     }

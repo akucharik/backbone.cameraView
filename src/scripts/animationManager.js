@@ -11,24 +11,24 @@ import isString from 'lodash/isString';
 * Description.
 * 
 * @class AnimationManager
-* @param {Object} target - The object that owns this AnimationManager.
+* @param {Object} camera - The camera that owns this AnimationManager.
 */
 class AnimationManager {
-    constructor (target) {
+    constructor (camera) {
         /**
-        * @property {Object} - The object that owns this AnimationManager.
+        * @property {Object} - The camera that owns this AnimationManager.
         * @readonly
         */
-        this.target = target;
+        this.camera = camera;
         
         /**
-        * @property {Oculo.Animation} - The active camera animation.
+        * @property {Oculo.Animation} - The active animation.
         * @readonly
         */
         this.currentAnimation = null;
         
         /**
-        * @property {Object} - An object for storing the managed Animation instances.
+        * @property {Object} - An object for storing the Animation instances.
         * @private
         */
         this._animations = {};
@@ -61,15 +61,13 @@ class AnimationManager {
     * @returns {this} self
     */
     add (name, animation) {
-        animation.camera = this.target;
-        animation.managed = true;
         this._animations[name] = animation;
         
         return this;
     }
     
     /**
-    * Destroys the camera and prepares it for garbage collection.
+    * Destroys the AnimationManager and prepares it for garbage collection.
     *
     * @returns {this} self
     */
@@ -78,8 +76,7 @@ class AnimationManager {
             this._animations[key].destroy();
         }
         
-        this.target = null;
-        this.currentAnimation.destroy();
+        this.camera = null;
         this.currentAnimation = null;
         this._animations = {};
         
@@ -103,7 +100,7 @@ class AnimationManager {
     * @returns {this} self
     */
     pause () {
-        this.currentAnimation.pause();
+        this.currentAnimation.pause(null, false);
 
         return this;
     }
@@ -119,14 +116,10 @@ class AnimationManager {
         }
         
         if (animation) {
-            if (this.currentAnimation && !this.currentAnimation.managed) {
-                this.currentAnimation.destroy();
-            }
-            
             this.currentAnimation = animation;
             this.currentAnimation.invalidate().restart(false, false);
         } else {
-            this.currentAnimation.play();
+            this.currentAnimation.play(null, false);
         }
         
         return this;
@@ -139,7 +132,7 @@ class AnimationManager {
     * @returns {this} self
     */
     resume () {
-        this.currentAnimation.resume();
+        this.currentAnimation.resume(null, false);
 
         return this;
     }
