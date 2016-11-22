@@ -118,6 +118,8 @@
         camera.addAnimation('zoomTo200', new Oculo.Animation(camera).zoomTo(2, 2));
         camera.addAnimation('instantZoom', new Oculo.Animation(camera).zoomTo(2, 0));
         camera.addAnimation('instantShake', new Oculo.Animation(camera).shake(0.1, 0));
+        camera.addAnimation('backAndForth', new Oculo.Animation(camera).animate({position: '#box100', rotation:-20, zoom: 1.5}, 2).animate({position: 'previous', rotation: 'previous', zoom: 'previous', delay: 0.3}, 2));
+        
         
         camera.render();
         //camera.play('moveTobox100');

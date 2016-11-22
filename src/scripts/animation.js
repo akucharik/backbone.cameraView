@@ -54,6 +54,11 @@ class Animation extends TimelineMax {
         */
         this.destroyOnComplete = options.destroyOnComplete ? true : false;
         
+        /**
+        * @property {object} - The camera values of the previous sub-animation.
+        */
+        this.previousProps = {};
+        
         this.eventCallback('onStart', Animation._onStart, [this.camera, this.config], this);
         this.eventCallback('onUpdate', Animation._onUpdate, [this.camera, this.config], this);
         this.eventCallback('onComplete', Animation._onComplete, [this.camera, this.config], this);
@@ -177,6 +182,18 @@ class Animation extends TimelineMax {
     * @returns {Object} - The parsed properties.
     */
     _parseCoreProps (sourceOrigin, sourcePosition, sourceRotation, sourceZoom, camera) {
+        if (sourcePosition === 'previous') {
+            sourcePosition = this.previousProps.position;
+        }
+        
+        if (sourceRotation === 'previous') {
+            sourceRotation = this.previousProps.rotation;
+        }
+        
+        if (sourceZoom === 'previous') {
+            sourceZoom = this.previousProps.zoom;
+        }
+        
         return { 
             parsedOrigin: Utils.parsePosition(sourceOrigin, camera.scene.view),
             parsedPosition: Utils.parsePosition(sourcePosition, camera.scene.view),
@@ -320,8 +337,11 @@ class Animation extends TimelineMax {
             onStart: function (tween) {
                 var parsedProps = this._parseCoreProps(tween.data.sourceOrigin, tween.data.sourcePosition, tween.data.sourceRotation, tween.data.sourceZoom, this.camera);
                 var endProps = this._calculateEndProps(parsedProps.parsedOrigin, parsedProps.parsedPosition, parsedProps.parsedRotation, parsedProps.parsedZoom, this.camera);
-                
                 Object.assign(tween.data, parsedProps, endProps);
+                
+                this.previousProps.position = this.camera.position;
+                this.previousProps.rotation = this.camera.rotation;
+                this.previousProps.zoom = this.camera.zoom;
                 
                 // Smooth origin change
                 this._updateOrigin(endProps.endOrigin, this.camera);
