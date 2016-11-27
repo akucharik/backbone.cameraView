@@ -14,6 +14,7 @@ import isObject         from 'lodash/isObject';
 import isString         from 'lodash/isString';
 import Backbone         from 'backbone';
 import AnimationManager from './animationManager';
+import CSSRenderer      from './cssRenderer';
 import _Math            from './math/math';
 import Matrix2          from './math/matrix2';
 import Scene            from './scene';
@@ -150,6 +151,12 @@ class Camera {
         */
         this.positionY = options.height * 0.5 || 0;
 
+        /**
+        * @property {number} - The renderer.
+        * @readonly
+        */
+        this.renderer = new CSSRenderer(this);
+        
         /**
         * @property {number} - The amount of rotation in degrees.
         * @readonly
@@ -478,6 +485,9 @@ class Camera {
         var position = this._calculatePosition(this.offset, this.center, this.scene.origin, this.transformation);
         var clampedPosition = new Vector2(clamp(position.x, this.minPositionX, this.maxPositionX), clamp(position.y, this.minPositionY, this.maxPositionY));
         
+        // TODO: For dev only
+        console.log('clamp offset');
+        
         return this._calculateOffset(clampedPosition, this.center, this.scene.origin, this.transformation);
     }
     
@@ -500,22 +510,6 @@ class Camera {
     _renderDebug () {
         if (this.debug && this.debugView) {
             this.debugView.update();
-        }
-    }
-
-    /**
-    * Render the dimensions/size.
-    *
-    * @private
-    */
-    _renderSize () {
-        if (this.view) {
-            TweenMax.set(this.view, { 
-                css: { 
-                    height: this.height,
-                    width: this.width 
-                }
-            });
         }
     }
     
@@ -590,6 +584,7 @@ class Camera {
         this.view = null;
         this.animations.destroy();
         this.scenes.destroy();
+        this.renderer.destroy();
         
         if (this.trackControl) {
             this.trackControl.destroy();
@@ -691,24 +686,8 @@ class Camera {
             this.isRendered = true;
         }
 
-        this._renderSize();
-        
-        if (this.scene) {
-            if (this.scene.view) {
-                this.scene.view.style.display = 'block';
-            }
-            
-            this._updateBounds();
-            new Oculo.Animation(this, { 
-                destroyOnComplete: true, 
-                paused: false 
-            }).animate({
-                position: this.position,
-                origin: this.scene.origin,
-                rotation: this.rotation,
-                zoom: this.zoom
-            }, 0);
-        }
+        this.renderer.renderSize();
+        this.renderer.render();
 
         this.onRender();
 
@@ -724,6 +703,7 @@ class Camera {
         if (this.scene && this.scene.view && this.scene.view.parentNode) {
             this.scene.view.parentNode.removeChild(this.scene.view);
             this.scene.view.style.display = 'none';
+            this.scene.view.style.visibility = 'hidden';
         }
         
         if (this.trackControl) {
@@ -731,10 +711,10 @@ class Camera {
         }
         
         this.scenes.setActiveScene(name);
-        this._updateBounds();
         
         if (this.scene.view) {
             this.view.appendChild(this.scene.view);
+            this.scene.view.style.display = 'block';
             
             if (this.dragToMove || this.wheelToZoom) {
                 this.trackControl = new TrackControl(this, {
@@ -767,6 +747,11 @@ class Camera {
                                 origin = camera._calculatePosition(camera.offset, cameraContextPosition, camera.scene.origin, camera.transformation);
                             }
 
+//                            new Oculo.AnimationLite(camera, 0, {
+//                                killOnComplete: true,
+//                                origin: origin,
+//                                zoom: zoom
+//                            });
                             new Oculo.Animation(camera, { 
                                 destroyOnComplete: true, 
                                 paused: false 
@@ -776,6 +761,8 @@ class Camera {
                 });
             }
         }
+        
+        this._updateBounds();
 
         return this;
     }
@@ -801,7 +788,7 @@ class Camera {
         }
 
         if (hasChanged) {
-            this._renderSize();
+            this.renderer.renderSize();
             this.trigger('change:size');
             this._renderDebug();
         }

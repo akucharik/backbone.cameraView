@@ -37,6 +37,11 @@ class Scene {
         * @property {Element} - The view. An HTML element.
         */
         this.view = Utils.DOM.parseView(view);
+        
+        if (this.view) {
+            this.view.style.display = 'none';
+            this.view.style.visibility = 'hidden';
+        }
     }
     
     /**

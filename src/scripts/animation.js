@@ -100,7 +100,6 @@ class Animation extends TimelineMax {
     static _onUpdate (camera, config) {
         var clampedOffset, offsetX, offsetY, position;
 
-        console.log('clamp offset');
         // Clamping here ensures bounds have been updated (if zoom has changed)
         clampedOffset = camera._clampOffset(camera.offset);
         offsetX = camera.offsetX = clampedOffset.x;
@@ -121,16 +120,7 @@ class Animation extends TimelineMax {
             }
         }
         
-        // render
-        TweenMax.set(camera.scene.view, { 
-            css: {
-                scaleX: camera.zoom,
-                scaleY: camera.zoom,
-                rotation: -camera.rotation,
-                x: -offsetX,
-                y: -offsetY
-            }
-        });
+        camera.renderer.render();
 
         if (config.onUpdate !== undefined) {
             config.onUpdate.apply(this, config.onUpdateParams);
