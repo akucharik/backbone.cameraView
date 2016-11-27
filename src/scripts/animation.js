@@ -98,27 +98,17 @@ class Animation extends TimelineMax {
     * @param {Object} config - The configuration options originally given to the animation.
     */
     static _onUpdate (camera, config) {
-        var clampedOffset, offsetX, offsetY, position;
+        var clampedOffset, position;
 
         // Clamping here ensures bounds have been updated (if zoom has changed)
         clampedOffset = camera._clampOffset(camera.offset);
-        offsetX = camera.offsetX = clampedOffset.x;
-        offsetY = camera.offsetY = clampedOffset.y;
+        camera.offsetX = clampedOffset.x;
+        camera.offsetY = clampedOffset.y;
         
         // Position is manually updated so animations can smoothly continue when camera is resized
         position = camera._calculatePosition(clampedOffset, camera.center, camera.scene.origin, camera.transformation);
         camera.positionX = position.x;
         camera.positionY = position.y;
-
-        if (camera.isShaking) {
-            if (camera.shakeHorizontal) {
-                offsetX += Math.random() * camera.shakeIntensity * camera.width * 2 - camera.shakeIntensity * camera.width;
-            }
-
-            if (camera.shakeVertical) {
-                offsetY += Math.random() * camera.shakeIntensity * camera.height * 2 - camera.shakeIntensity * camera.height;
-            }
-        }
         
         camera.renderer.render();
 
@@ -205,7 +195,7 @@ class Animation extends TimelineMax {
         if (shake) {
             parsedShake = {
                 intensity: isNil(shake.intensity) ? 0 : shake.intensity,
-                direction: isNil(shake.direction) ? Animation.shakeDirection.BOTH : shake.direction,
+                direction: isNil(shake.direction) ? Animation.shake.direction.BOTH : shake.direction,
                 easeIn: shake.easeIn,
                 easeOut: shake.easeOut
             };
@@ -351,74 +341,80 @@ class Animation extends TimelineMax {
         
         // Tween shake effect
         if (duration > 0 && shake && shake.intensity > 0) {
-            this.camera.shakeHorizontal = shake.direction === Oculo.Animation.shakeDirection.VERTICAL ? false : true;
-            this.camera.shakeVertical = shake.direction === Oculo.Animation.shakeDirection.HORIZONTAL ? false : true;
-            
-            shakeTimeline = new TimelineMax(Object.assign({}, options, {
+            shakeTimeline = new TimelineLite(Object.assign({}, options, {
                 data: {
-                    type: 'fx'
+                    intensity: 0,
+                    direction: shake.direction
                 },
-                callbackScope: this,
-                onStart: function (timeline) {
-                    this.camera.isShaking = true;
-                    
-                    // TODO: For dev only
-                    console.log('shake props: ', shake);
+                onStart: function (camera) {
+                    camera.isShaking = true;
                 },
-                onStartParams: ['{self}'],
-                onComplete: function (timeline) {
-                    TweenMax.set(this.camera, { 
-                        shakeIntensity: 0
+                onStartParams: [this.camera],
+                onUpdate: function (camera) {
+                    if (this.data.direction === Animation.shake.direction.HORIZONTAL || this.data.direction === Animation.shake.direction.BOTH) {
+                        camera.shakeOffsetX = Math.random() * this.data.intensity * camera.width * 2 - this.data.intensity * camera.width;
+                    }
+
+                    if (this.data.direction === Animation.shake.direction.VERTICAL || this.data.direction === Animation.shake.direction.BOTH) {
+                        camera.shakeOffsetY = Math.random() * this.data.intensity * camera.height * 2 - this.data.intensity * camera.height;
+                    }
+                },
+                onUpdateParams: [this.camera],
+                onComplete: function () {
+                    TweenLite.set(camera, {
+                        shakeOffsetX: 0,
+                        shakeOffsetY: 0
                     });
-                    this.camera.isShaking = false;
+                    camera.isShaking = false;
                 },
-                onCompleteParams: ['{self}']
+                onCompleteParams: [this.camera]
             }));
             
+            // Ease in/out
             if (shake.easeIn && shake.easeOut) {
-                shakeTimeline.fromTo(this.camera, duration * 0.5, {
-                    shakeIntensity: 0
+                shakeTimeline.fromTo(shakeTimeline.data, duration * 0.5, {
+                    intensity: 0
                 }, {
-                    ease: shake.easeIn || Power0.easeNone,
-                    shakeIntensity: shake.intensity
+                    intensity: shake.intensity,
+                    ease: shake.easeIn || Power0.easeNone
                 }, 0);
 
-                shakeTimeline.to(this.camera, duration * 0.5, {
-                    ease: shake.easeOut || Power0.easeNone,
-                    shakeIntensity: 0
+                shakeTimeline.to(shakeTimeline.data, duration * 0.5, { 
+                    intensity: 0,
+                    ease: shake.easeOut || Power0.easeNone
                 }, duration * 0.5);
             }
+            // Ease in or ease
             else if (shake.easeIn && !shake.easeOut) {
-                shakeTimeline.fromTo(this.camera, duration, {
-                    shakeIntensity: 0
+                shakeTimeline.fromTo(shakeTimeline.data, duration, {
+                    intensity: 0
                 }, {
-                    ease: shake.easeIn || Power0.easeNone,
-                    shakeIntensity: shake.intensity
+                    intensity: shake.intensity,
+                    ease: shake.easeIn || Power0.easeNone
                 }, 0);
             }
+            // Ease out
             else if (!shake.easeIn && shake.easeOut) {
-                shakeTimeline.fromTo(this.camera, duration, {
-                    shakeIntensity: shake.intensity
+                shakeTimeline.fromTo(shakeTimeline.data, duration, {
+                    intensity: shake.intensity
                 }, {
-                    ease: shake.easeOut || Power0.easeNone,
-                    shakeIntensity: 0
+                    intensity: 0,
+                    ease: shake.easeOut || Power0.easeNone
                 }, 0);
             }
+            // Ease
             else if (options.ease) {
-                shakeTimeline.fromTo(this.camera, duration, {
-                    shakeIntensity: 0
+                shakeTimeline.fromTo(shakeTimeline.data, duration, {
+                    intensity: 0
                 }, {
-                    ease: options.ease,
-                    shakeIntensity: shake.intensity
+                    intensity: shake.intensity,
+                    ease: options.ease || Power0.easeNone
                 }, 0);
             }
+            // No ease
             else {
-                this.camera.shakeIntensity = shake.intensity;
-                shakeTimeline.fromTo(this.camera, duration, {
-                    shakeIntensity: shake.intensity
-                }, {
-                    shakeIntensity: shake.intensity
-                }, 0);
+                shakeTimeline.data.intensity = shake.intensity;
+                shakeTimeline.to(shakeTimeline.data, duration, {}, 0);
             }
             
             mainTimeline.add(shakeTimeline, 0);
@@ -456,7 +452,7 @@ class Animation extends TimelineMax {
     * @param {number|string} [props.rotation] - The rotation.
     * @param {Object} [props.shake] - An object of shake effect properties.
     * @param {number} [props.shake.intensity] - A {@link Camera#shakeIntensity|shake intensity}.
-    * @param {Oculo.Animation.shakeDirection} [props.shake.direction=Oculo.Animation.shakeDirection.BOTH] - A shake direction. 
+    * @param {Oculo.Animation.shake.direction} [props.shake.direction=Oculo.Animation.shake.direction.BOTH] - A shake direction. 
     * @param {Object} [props.shake.easeIn] - An {@link external:Easing|Easing}.
     * @param {Object} [props.shake.easeOut] - An {@link external:Easing|Easing}.
     * @param {number} [props.zoom] - A zoom value.
@@ -556,7 +552,7 @@ class Animation extends TimelineMax {
     *
     * @param {number} intensity - A {@link Camera#shakeIntensity|shake intensity}.
     * @param {number} duration - A duration.
-    * @param {Oculo.Animation.shakeDirection} [direction=Oculo.Animation.shakeDirection.BOTH] - A shake direction. 
+    * @param {Oculo.Animation.shake.direction} [direction=Oculo.Animation.shake.direction.BOTH] - A shake direction. 
     * @param {Object} [options] - An object of {@link external:TimelineMax|TimelineMax} options plus:
     * @param {Object} [options.easeIn] - An {@link external:Easing|Easing}.
     * @param {Object} [options.easeOut] - An {@link external:Easing|Easing}.
@@ -564,7 +560,7 @@ class Animation extends TimelineMax {
     *
     * @example
     * myAnimation.shake(0.1, 4);
-    * myAnimation.shake(0.1, 4, Oculo.Animation.shakeDirection.HORIZONTAL, { easeIn: Power2.easeIn, easeOut: Power2.easeOut })
+    * myAnimation.shake(0.1, 4, Oculo.Animation.shake.direction.HORIZONTAL, { easeIn: Power2.easeIn, easeOut: Power2.easeOut })
     */
     shake (intensity, duration, direction, options) {
         options = options || {};
@@ -630,19 +626,21 @@ class Animation extends TimelineMax {
 * Shake directions.
 * @enum {number}
 */
-Animation.shakeDirection = {
-    /**
-    * Both the x and y axes.
-    */
-    BOTH: 0,
-    /**
-    * The x axis.
-    */
-    HORIZONTAL: 1,
-    /**
-    * The y axis.
-    */
-    VERTICAL: 2
+Animation.shake = {
+    direction: {
+        /**
+        * Both the x and y axes.
+        */
+        BOTH: 0,
+        /**
+        * The x axis.
+        */
+        HORIZONTAL: 1,
+        /**
+        * The y axis.
+        */
+        VERTICAL: 2
+    }
 }
 
 export default Animation;

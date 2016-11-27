@@ -45,8 +45,8 @@ class CSSRenderer {
                     scaleX: this.camera.zoom,
                     scaleY: this.camera.zoom,
                     rotation: -this.camera.rotation,
-                    x: -this.camera.offsetX,
-                    y: -this.camera.offsetY,
+                    x: -this.camera.offsetX + this.camera.shakeOffsetX,
+                    y: -this.camera.offsetY + this.camera.shakeOffsetY,
                     visibility: 'visible'
                 }
             });    

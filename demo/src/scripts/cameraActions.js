@@ -65,8 +65,11 @@ const actions = {
         let intensity = data.shakeIntensity[state.shakeIntensity];
         let duration = data.duration[state.duration];
         let direction = data.shakeDirection[state.shakeDirection];
+        let ease = data.ease[state.ease];
+        let easeIn = data.ease[state.shakeEaseIn];
+        let easeOut = data.ease[state.shakeEaseOut];
 
-        camera.shake(intensity, duration, direction, { ease: state.ease, easeIn: state.shakeEaseIn, easeOut: state.shakeEaseOut });
+        camera.shake(intensity, duration, direction, { ease: ease, easeIn: easeIn, easeOut: easeOut });
     },
     zoomAt: function () {
         let state = store.getState();

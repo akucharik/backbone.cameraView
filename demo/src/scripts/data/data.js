@@ -6,35 +6,35 @@
 */
 
 const store = {
-    moveTo: {
-        position: { x: 0, y: 0 },
-        duration: 2
-    },
-    rotateAt: {
-        rotation: 0,
-        origin: { x: 0, y: 0 },
-        duration: 2
-    },
-    rotateTo: {
-        rotation: 0,
-        duration: 2
-    },
-    shake: {
-        intensity: 0.1,
-        duration: 2,
-        direction: Oculo.Animation.shakeDirection.BOTH,
-        easeIn: 'Power4',
-        easeOut: 'Power4'
-    },
-    zoomAt: {
-        zoom: 1,
-        origin: { x: 0, y: 0 },
-        duration: 2
-    },
-    zoomTo: {
-        zoom: 1,
-        duration: 2
-    }
+//    moveTo: {
+//        position: { x: 0, y: 0 },
+//        duration: 2
+//    },
+//    rotateAt: {
+//        rotation: 0,
+//        origin: { x: 0, y: 0 },
+//        duration: 2
+//    },
+//    rotateTo: {
+//        rotation: 0,
+//        duration: 2
+//    },
+//    shake: {
+//        intensity: 0.1,
+//        duration: 2,
+//        direction: Oculo.Animation.shakeDirection.BOTH,
+//        easeIn: 'Power4',
+//        easeOut: 'Power4'
+//    },
+//    zoomAt: {
+//        zoom: 1,
+//        origin: { x: 0, y: 0 },
+//        duration: 2
+//    },
+//    zoomTo: {
+//        zoom: 1,
+//        duration: 2
+//    }
 };
 
 const data = {

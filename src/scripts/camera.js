@@ -171,24 +171,18 @@ class Camera {
         this.scenes = new SceneManager(this);
         
         /**
-        * @property {number} - The shake intensity. A value between 0 and 1.
-        * @readonly
-        */
-        this.shakeIntensity = 0;
-
-        /**
-        * @property {boolean} - Whether the camera should shake on the x axis.
+        * @property {number} - The amount of shake offset on the X axis.
         * @readonly
         * @default
         */
-        this.shakeHorizontal = true;
-
+        this.shakeOffsetX = 0;
+        
         /**
-        * @property {boolean} - Whether the camera should shake on the y axis.
+        * @property {boolean} - The amount of shake offset on the Y axis.
         * @readonly
         * @default
         */
-        this.shakeVertical = true;
+        this.shakeOffsetY = 0;
         
         /**
         * @property {TrackControl} - The track control.
@@ -482,7 +476,7 @@ class Camera {
             return offset;
         }
         
-        var position = this._calculatePosition(this.offset, this.center, this.scene.origin, this.transformation);
+        var position = this._calculatePosition(offset, this.center, this.scene.origin, this.transformation);
         var clampedPosition = new Vector2(clamp(position.x, this.minPositionX, this.maxPositionX), clamp(position.y, this.minPositionY, this.maxPositionY));
         
         // TODO: For dev only

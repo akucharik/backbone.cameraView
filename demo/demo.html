@@ -107,12 +107,15 @@
         // Animations
         //camera.addAnimation('moveTobox100', { duration: 2, position: '#box100', rotation:-20, zoom: 1.5 });
         camera.addAnimation('moveTobox100', new Oculo.Animation(camera).animate({position: '#box100', rotation:-20, zoom: 1.5}, 2));
-        camera.addAnimation('moveTo2000', new Oculo.Animation(camera).animate({position: {x:2000, y:500}, zoom: 1}, 2));
+        camera.addAnimation('moveTo2000', new Oculo.Animation(camera).animate({position: {x:2000, y:500}, zoom: 1.5}, 2));
         camera.addAnimation('moveTo800Slow', new Oculo.Animation(camera).animate({position: {x:800}, zoom: 1.5}, 8));
         camera.addAnimation('rotateAt200', new Oculo.Animation(camera).rotateAt({x:200, y:200}, -50, 5));
         camera.addAnimation('rotateTo20', new Oculo.Animation(camera).rotateTo(-20, 2));
-        camera.addAnimation('shake', new Oculo.Animation(camera).shake(0.1, 2, Oculo.Animation.shakeDirection.BOTH));
-        camera.addAnimation('shakeSmooth', new Oculo.Animation(camera).shake(0.1, 4, Oculo.Animation.shakeDirection.BOTH, { easeIn: Power2.easeIn, easeOut: Power2.easeOut }));
+        camera.addAnimation('shakeEaseNone', new Oculo.Animation(camera).shake(0.1, 2, Oculo.Animation.shake.direction.BOTH));
+        camera.addAnimation('shakeEase', new Oculo.Animation(camera).shake(0.1, 2, Oculo.Animation.shake.direction.BOTH, { ease: Power2.easeIn }));
+        camera.addAnimation('shakeEaseIn', new Oculo.Animation(camera).shake(0.1, 2, Oculo.Animation.shake.direction.BOTH, { easeIn: Power2.easeIn }));
+        camera.addAnimation('shakeEaseOut', new Oculo.Animation(camera).shake(0.1, 2, Oculo.Animation.shake.direction.BOTH, { easeOut: Power2.easeOut }));
+        camera.addAnimation('shakeEaseInOut', new Oculo.Animation(camera).shake(0.1, 4, Oculo.Animation.shake.direction.BOTH, { easeIn: Power2.easeIn, easeOut: Power2.easeOut }));
         camera.addAnimation('zoomAt100', new Oculo.Animation(camera).zoomAt({x:100, y:100}, 2, 2));
         camera.addAnimation('zoomTo50', new Oculo.Animation(camera).zoomTo(0.5, 2));
         camera.addAnimation('zoomTo200', new Oculo.Animation(camera).zoomTo(2, 2));
