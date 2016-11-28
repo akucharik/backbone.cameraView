@@ -38,7 +38,6 @@
 */
 
 import Animation     from './animation';
-import AnimationLite from './animationLite';
 import Camera        from './camera';
 import CSSRenderer   from './cssRenderer';
 import Math          from './math/math';
@@ -49,7 +48,6 @@ import Vector2       from './math/vector2';
 
 const Oculo = {
     Animation: Animation,
-    //AnimationLite: AnimationLite,
     Camera: Camera,
     CSSRenderer: CSSRenderer,
     Math: Math,

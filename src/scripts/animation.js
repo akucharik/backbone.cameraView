@@ -59,233 +59,84 @@ class Animation extends TimelineMax {
         */
         this.previousProps = {};
         
-        this.eventCallback('onStart', Animation._onStart, [this.camera, this.config], this);
-        this.eventCallback('onUpdate', Animation._onUpdate, [this.camera, this.config], this);
-        this.eventCallback('onComplete', Animation._onComplete, [this.camera, this.config], this);
-    }
-    
-    /**
-    * Called when the animation has started.
-    *
-    * @private
-    * @param {Oculo.Camera} camera - The camera.
-    * @param {Object} config - The configuration options originally given to the animation.
-    */
-    static _onStart (camera, config) {
-        if (this.duration() > 0) {
-            if (camera.isDraggable) {
-                camera.trackControl.disableDrag();
+        /**
+        * Called when the animation has started.
+        *
+        * @private
+        */
+        this._onStart = function () {
+            if (this.duration() > 0) {
+                if (this.camera.isDraggable) {
+                    this.camera.trackControl.disableDrag();
+                }
+
+                if (this.camera.isManualZoomable) {
+                    this.camera.trackControl.disableWheel();
+                }
             }
 
-            if (camera.isManualZoomable) {
-                camera.trackControl.disableWheel();
+            if (this.config.onStart !== undefined) {
+                this.config.onStart.apply(this, this.config.onStartParams);
             }
+            // TODO: Remove once dev is complete
+            console.log('animation started');
         }
+        
+        /**
+        * Called when the animation has updated.
+        *
+        * @private
+        */
+        this._onUpdate = function () {
+            var clampedOffset, position;
+
+            // Clamping here ensures bounds have been updated (if zoom has changed)
+            clampedOffset = this.camera._clampOffset(this.camera.offset);
+            camera.offsetX = clampedOffset.x;
+            camera.offsetY = clampedOffset.y;
+
+            // Position is manually updated so animations can smoothly continue when camera is resized
+            position = this.camera._calculatePosition(clampedOffset, this.camera.center, this.camera.scene.origin, this.camera.transformation);
+            this.camera.positionX = position.x;
+            this.camera.positionY = position.y;
+
+            if (this.config.onUpdate !== undefined) {
+                this.config.onUpdate.apply(this, this.config.onUpdateParams);
+            }
             
-        if (config.onStart !== undefined) {
-            config.onStart.apply(this, config.onStartParams);
+            this.camera.renderer.render();
         }
         
-        // TODO: Remove once dev is complete
-        console.log('animation started');
-    }
-    
-    /**
-    * Called when the animation has updated.
-    *
-    * @private
-    * @param {Oculo.Camera} camera - The camera.
-    * @param {Object} config - The configuration options originally given to the animation.
-    */
-    static _onUpdate (camera, config) {
-        var clampedOffset, position;
+        /**
+        * Called when the animation has completed.
+        *
+        * @private
+        */
+        this._onComplete = function () {
+            if (this.duration() > 0) {
+                if (this.camera.isDraggable) {
+                    this.camera.trackControl.enableDrag();
+                }
 
-        // Clamping here ensures bounds have been updated (if zoom has changed)
-        clampedOffset = camera._clampOffset(camera.offset);
-        camera.offsetX = clampedOffset.x;
-        camera.offsetY = clampedOffset.y;
-        
-        // Position is manually updated so animations can smoothly continue when camera is resized
-        position = camera._calculatePosition(clampedOffset, camera.center, camera.scene.origin, camera.transformation);
-        camera.positionX = position.x;
-        camera.positionY = position.y;
-        
-        camera.renderer.render();
-
-        if (config.onUpdate !== undefined) {
-            config.onUpdate.apply(this, config.onUpdateParams);
-        }
-
-        camera._renderDebug();
-    }
-    
-    /**
-    * Called when the animation has completed.
-    *
-    * @private
-    * @param {Oculo.Camera} camera - The camera.
-    * @param {Object} config - The configuration options originally given to the animation.
-    */
-    static _onComplete (camera, config) {
-        if (this.duration() > 0) {
-            if (camera.isDraggable) {
-                camera.trackControl.enableDrag();
+                if (this.camera.isManualZoomable) {
+                    this.camera.trackControl.enableWheel();
+                }
             }
 
-            if (camera.isManualZoomable) {
-                camera.trackControl.enableWheel();
-            }
-        }
-
-        if (config.onComplete !== undefined) {
-            config.onComplete.apply(this, config.onCompleteParams);
-        }
-
-        camera._renderDebug();
-        
-        if (this.destroyOnComplete) {
-            this.destroy();
-        }
-        // TODO: Remove once dev is complete
-        console.log('animation completed');
-    }
-    
-    /**
-    * Parses the core animation properties.
-    *
-    * @private
-    * @param {Object} sourceOrigin - The origin.
-    * @param {Object} sourcePosition - The origin.
-    * @param {number} sourceRotation - The rotation.
-    * @param {number} sourceZoom - The zoom.
-    * @param {Oculo.Camera} camera - The camera.
-    * @returns {Object} - The parsed properties.
-    */
-    _parseCoreProps (sourceOrigin, sourcePosition, sourceRotation, sourceZoom, camera) {
-        if (sourcePosition === 'previous') {
-            sourcePosition = this.previousProps.position;
-        }
-        
-        if (sourceRotation === 'previous') {
-            sourceRotation = this.previousProps.rotation;
-        }
-        
-        if (sourceZoom === 'previous') {
-            sourceZoom = this.previousProps.zoom;
-        }
-        
-        return { 
-            parsedOrigin: Utils.parsePosition(sourceOrigin, camera.scene.view),
-            parsedPosition: Utils.parsePosition(sourcePosition, camera.scene.view),
-            parsedRotation: !isNil(sourceRotation) ? sourceRotation : null,
-            parsedZoom: sourceZoom || null
-        };
-    }
-    
-    /**
-    * Parses the shake properties.
-    *
-    * @private
-    * @param {Object} shake - The shake properties.
-    * @returns {Object} - The parsed properties.
-    */
-    _parseShake (shake) {
-        var parsedShake = null;
-        
-        if (shake) {
-            parsedShake = {
-                intensity: isNil(shake.intensity) ? 0 : shake.intensity,
-                direction: isNil(shake.direction) ? Animation.shake.direction.BOTH : shake.direction,
-                easeIn: shake.easeIn,
-                easeOut: shake.easeOut
-            };
-        }
-        
-        return parsedShake;
-    }
-    
-    /**
-    * Calculates the end property values.
-    *
-    * @private
-    * @param {Object|Vector2} sourceOrigin - The source origin.
-    * @param {Object|Vector2} sourcePosition - The source position.
-    * @param {number} sourceRotation - The source rotation.
-    * @param {number} sourceZoom - The source zoom.
-    * @param {Oculo.Camera} camera - The camera.
-    * @returns {Object} - The end properties.
-    */
-    _calculateEndProps (sourceOrigin, sourcePosition, sourceRotation, sourceZoom, camera) {
-        sourceOrigin = sourceOrigin || {};
-        sourcePosition = sourcePosition || {};
-        
-        var position = new Vector2(isFinite(sourcePosition.x) ? sourcePosition.x : camera.positionX, isFinite(sourcePosition.y) ? sourcePosition.y : camera.positionY);
-        var origin = new Vector2(isFinite(sourceOrigin.x) ? sourceOrigin.x : camera.scene.originX, isFinite(sourceOrigin.y) ? sourceOrigin.y : camera.scene.originY);
-        var rotation = isFinite(sourceRotation) ? sourceRotation : camera.rotation;
-        var zoom = isFinite(sourceZoom) ? sourceZoom : camera.zoom;
-        var transformation = new Matrix2().scale(zoom, zoom).rotate(_Math.degToRad(-rotation));
-        var cameraContextPosition = camera.center;
-        var offset = new Vector2();
-
-        var isMoving = isFinite(sourcePosition.x) || isFinite(sourcePosition.y);
-        var isRotating = isFinite(sourceRotation) && sourceRotation !== camera.rotation;
-        var isZooming = isFinite(sourceZoom) && sourceZoom !== camera.zoom;
-
-        if (!isMoving && !isFinite(sourceOrigin.x) && !isFinite(sourceOrigin.y)) {
-            origin.set(camera.positionX, camera.positionY);
-        }
-        
-        if (!isMoving) {
-            position.copy(origin);
-            cameraContextPosition = camera._calculateContextPosition(origin, camera.position, camera.center, camera.transformation);
-        }
-
-        offset = camera._calculateOffset(position, cameraContextPosition, origin, transformation);
-        
-        return {
-            isMoving: isMoving,
-            isRotating: isRotating,
-            isZooming: isZooming,
-            endOffsetX: isMoving ? offset.x : null,
-            endOffsetY: isMoving ? offset.y : null,
-            endOrigin: (sourceOrigin.x || sourceOrigin.y || !isMoving) ? origin : null,
-            endRotation: !isNil(sourceRotation) ? rotation : null,
-            endZoom: sourceZoom ? zoom : null
-        };
-    }
-    
-    /**
-    * Updates the origin.
-    *
-    * @private
-    * @param {Vector2} origin - The origin.
-    * @param {Oculo.Camera} camera - The camera.
-    */
-    _updateOrigin (origin, camera) {
-        var sceneOrigin = camera.scene.origin;
-        
-        if (origin && !origin.equals(sceneOrigin)) {
-            var transformation = camera.transformation;
-            var originOffset = origin.clone().transform(transformation).subtract(sceneOrigin.clone().transform(transformation), origin.clone().subtract(sceneOrigin));
-
-            if (camera.isRotated || camera.isZoomed) {
-                camera.offsetX -= originOffset.x;
-                camera.offsetY -= originOffset.y;
+            if (this.config.onComplete !== undefined) {
+                this.config.onComplete.apply(this, this.config.onCompleteParams);
             }
 
-            camera.scene.originX = origin.x;
-            camera.scene.originY = origin.y;
-
-            if (camera.scene.view) {    
-                TweenMax.set(camera.scene.view, { 
-                    css: {
-                        transformOrigin: camera.scene.originX + 'px ' + camera.scene.originY + 'px',
-                        x: -camera.offsetX,
-                        y: -camera.offsetY
-                    },
-                });
+            if (this.destroyOnComplete) {
+                this.destroy();
             }
-        }
+            // TODO: Remove once dev is complete
+            console.log('animation completed');
+        },
+        
+        this.eventCallback('onStart', this._onStart);
+        this.eventCallback('onUpdate', this._onUpdate);
+        this.eventCallback('onComplete', this._onComplete);
     }
     
     /**
@@ -300,7 +151,19 @@ class Animation extends TimelineMax {
     _animate (props, duration, options) {
         options = options || {};
         
-        var mainTimeline = new TimelineMax();
+        if (props.position === 'previous' && this.previousProps.position) {
+            props.position = this.previousProps.position;
+        }
+        
+        if (props.rotation === 'previous' && this.previousProps.rotation) {
+            props.rotation = this.previousProps.rotation;
+        }
+        
+        if (props.zoom === 'previous' && this.previousProps.zoom) {
+            props.zoom = this.previousProps.zoom;
+        }
+        
+        var mainTimeline = new TimelineLite();
         var shakeTimeline = null;
         var shake = this._parseShake(props.shake);
         
@@ -315,7 +178,7 @@ class Animation extends TimelineMax {
             callbackScope: this,
             immediateRender: false,
             onStart: function (tween) {
-                var parsedProps = this._parseCoreProps(tween.data.sourceOrigin, tween.data.sourcePosition, tween.data.sourceRotation, tween.data.sourceZoom, this.camera);
+                var parsedProps = this._parseProps(tween.data.sourceOrigin, tween.data.sourcePosition, tween.data.sourceRotation, tween.data.sourceZoom, this.camera);
                 var endProps = this._calculateEndProps(parsedProps.parsedOrigin, parsedProps.parsedPosition, parsedProps.parsedRotation, parsedProps.parsedZoom, this.camera);
                 Object.assign(tween.data, parsedProps, endProps);
                 
@@ -426,6 +289,135 @@ class Animation extends TimelineMax {
     }
     
     /**
+    * Calculates the end property values.
+    *
+    * @private
+    * @param {Object|Vector2} sourceOrigin - The source origin.
+    * @param {Object|Vector2} sourcePosition - The source position.
+    * @param {number} sourceRotation - The source rotation.
+    * @param {number} sourceZoom - The source zoom.
+    * @param {Oculo.Camera} camera - The camera.
+    * @returns {Object} - The end properties.
+    */
+    _calculateEndProps (sourceOrigin, sourcePosition, sourceRotation, sourceZoom, camera) {
+        sourceOrigin = sourceOrigin || {};
+        sourcePosition = sourcePosition || {};
+        
+        var position = new Vector2(isFinite(sourcePosition.x) ? sourcePosition.x : camera.positionX, isFinite(sourcePosition.y) ? sourcePosition.y : camera.positionY);
+        var origin = new Vector2(isFinite(sourceOrigin.x) ? sourceOrigin.x : camera.scene.originX, isFinite(sourceOrigin.y) ? sourceOrigin.y : camera.scene.originY);
+        var rotation = isFinite(sourceRotation) ? sourceRotation : camera.rotation;
+        var zoom = isFinite(sourceZoom) ? sourceZoom : camera.zoom;
+        var transformation = new Matrix2().scale(zoom, zoom).rotate(_Math.degToRad(-rotation));
+        var cameraContextPosition = camera.center;
+        var offset = new Vector2();
+
+        var isMoving = isFinite(sourcePosition.x) || isFinite(sourcePosition.y);
+        var isRotating = isFinite(sourceRotation) && sourceRotation !== camera.rotation;
+        var isZooming = isFinite(sourceZoom) && sourceZoom !== camera.zoom;
+
+        if (!isMoving && !isFinite(sourceOrigin.x) && !isFinite(sourceOrigin.y)) {
+            origin.set(camera.positionX, camera.positionY);
+        }
+        
+        if (!isMoving) {
+            position.copy(origin);
+            cameraContextPosition = camera._calculateContextPosition(origin, camera.position, camera.center, camera.transformation);
+        }
+
+        offset = camera._calculateOffset(position, cameraContextPosition, origin, transformation);
+        
+        return {
+            isMoving: isMoving,
+            isRotating: isRotating,
+            isZooming: isZooming,
+            endOffsetX: isMoving ? offset.x : null,
+            endOffsetY: isMoving ? offset.y : null,
+            endOrigin: (sourceOrigin.x || sourceOrigin.y || !isMoving) ? origin : null,
+            endRotation: !isNil(sourceRotation) ? rotation : null,
+            endZoom: sourceZoom ? zoom : null
+        };
+    }
+    
+    /**
+    * Parses the core animation properties.
+    *
+    * @private
+    * @param {Object} sourceOrigin - The origin.
+    * @param {Object} sourcePosition - The origin.
+    * @param {number} sourceRotation - The rotation.
+    * @param {number} sourceZoom - The zoom.
+    * @param {Oculo.Camera} camera - The camera.
+    * @returns {Object} - The parsed properties.
+    */
+    _parseProps (sourceOrigin, sourcePosition, sourceRotation, sourceZoom, camera) {
+        return { 
+            parsedOrigin: Utils.parsePosition(sourceOrigin, camera.scene.view),
+            parsedPosition: Utils.parsePosition(sourcePosition, camera.scene.view),
+            parsedRotation: !isNil(sourceRotation) ? sourceRotation : null,
+            parsedZoom: sourceZoom || null
+        };
+    }
+    
+    /**
+    * Parses the shake properties.
+    *
+    * @private
+    * @param {Object} shake - The shake properties.
+    * @returns {Object} - The parsed properties.
+    */
+    _parseShake (shake) {
+        var parsedShake = null;
+        
+        if (shake) {
+            parsedShake = {
+                intensity: isNil(shake.intensity) ? 0 : shake.intensity,
+                direction: isNil(shake.direction) ? Animation.shake.direction.BOTH : shake.direction,
+                easeIn: shake.easeIn,
+                easeOut: shake.easeOut
+            };
+        }
+        
+        return parsedShake;
+    }
+    
+    /**
+    * Updates the origin.
+    *
+    * @private
+    * @param {Vector2} origin - The origin.
+    * @param {Oculo.Camera} camera - The camera.
+    * @returns {this} self
+    */
+    _updateOrigin (origin, camera) {
+        var sceneOrigin = camera.scene.origin;
+        
+        if (origin && !origin.equals(sceneOrigin)) {
+            var transformation = camera.transformation;
+            var originOffset = origin.clone().transform(transformation).subtract(sceneOrigin.clone().transform(transformation), origin.clone().subtract(sceneOrigin));
+
+            if (camera.isRotated || camera.isZoomed) {
+                camera.offsetX -= originOffset.x;
+                camera.offsetY -= originOffset.y;
+            }
+
+            camera.scene.originX = origin.x;
+            camera.scene.originY = origin.y;
+
+            if (camera.scene.view) {    
+                TweenMax.set(camera.scene.view, { 
+                    css: {
+                        transformOrigin: camera.scene.originX + 'px ' + camera.scene.originY + 'px',
+                        x: -camera.offsetX,
+                        y: -camera.offsetY
+                    },
+                });
+            }
+        }
+        
+        return this;
+    }
+    
+    /**
     * Stops the animation and releases it for garbage collection.
     *
     * @returns {this} self
@@ -434,9 +426,8 @@ class Animation extends TimelineMax {
     * myAnimation.destroy();
     */
     destroy () {
-        this.pause();
+        super.kill();
         this.camera = null;
-        this.kill();
     }
     
     /**
