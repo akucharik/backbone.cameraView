@@ -61,6 +61,10 @@ class AnimationManager {
     * @returns {this} self
     */
     add (name, animation) {
+        if (this._animations[name]) {
+            this._animations[name].destroy();
+        }
+        
         this._animations[name] = animation;
         
         return this;
