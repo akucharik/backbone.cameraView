@@ -23,6 +23,11 @@ import TrackControl     from './trackControl';
 import Utils            from './utils';
 import Vector2          from './math/vector2';
 
+
+const animationName = {
+    ANONYMOUS: '_anonymous'
+};
+
 /**
 * Factory: Creates a camera to view a scene.
 * Requires {@link external:Lodash} and {@link external:Zepto}.
@@ -128,28 +133,52 @@ class Camera {
         this.maxZoom = options.maxZoom || 3;
         
         /**
+        * @property {number} - The X offset of the camera's top left corner relative to the world without any effects applied.
+        * @readonly
+        */
+        this.rawOffsetX = 0;
+        
+        /**
+        * @property {number} - The Y offset of the camera's top left corner relative to the world without any effects applied.
+        * @readonly
+        */
+        this.rawOffsetY = 0;
+        
+        /**
         * @property {number} - The X offset of the camera's top left corner relative to the world.
         * @readonly
         */
-        this.offsetX = 0;
+        this.offsetX = this.rawOffsetX;
         
         /**
         * @property {number} - The Y offset of the camera's top left corner relative to the world.
         * @readonly
         */
-        this.offsetY = 0;
+        this.offsetY = this.rawOffsetY;
         
         /**
-        * @property {number} - The X position of the camera's center point within the world.
+        * @property {number} - The X position of the camera's center point in the world without any effects applied.
         * @readonly
         */
-        this.positionX = options.width * 0.5 || 0;
+        this.rawPositionX = options.width * 0.5 || 0;
         
         /**
-        * @property {number} - The Y position of the camera's center point within the world.
+        * @property {number} - The Y position of the camera's center point in the world without any effects applied.
         * @readonly
         */
-        this.positionY = options.height * 0.5 || 0;
+        this.rawPositionY = options.height * 0.5 || 0;
+        
+        /**
+        * @property {number} - The X position of the camera's center point in the world.
+        * @readonly
+        */
+        this.positionX = this.rawPositionX;
+        
+        /**
+        * @property {number} - The Y position of the camera's center point in the world.
+        * @readonly
+        */
+        this.positionY = this.rawPositionY;
 
         /**
         * @property {number} - The renderer.
@@ -183,6 +212,13 @@ class Camera {
         * @default
         */
         this.shakeOffsetY = 0;
+        
+        /**
+        * @property {boolean} - Whether the shake effect respects the bounds or not.
+        * @readonly
+        * @default
+        */
+        this.shakeRespectBounds = true;
         
         /**
         * @property {TrackControl} - The track control.
@@ -224,10 +260,10 @@ class Camera {
         this.height = options.height || 0;
         
         /**
-        * @private
-        * @property {null|function|Object} - The internally managed bounds.
+        * @property {Vector2} - The center of the camera's FOV.
+        * @readonly
         */
-        this._bounds = options.bounds || Camera.bounds.NONE;;
+        this.center = new Vector2(this.width, this.height).multiplyScalar(0.5);
         
         /**
         * @private
@@ -235,13 +271,19 @@ class Camera {
         */
         this._zoom = this._clampZoom(options.zoom || 1);
         
+        /**
+        * @private
+        * @property {null|function|Object} - The internally managed bounds.
+        */
+        this._bounds = options.bounds || Camera.bounds.NONE;
+        
         // Initialize custom events
         this.onResize = () => {
             var wasAnimating = this.animations.isAnimating;
             var wasPaused = this.animations.isPaused;
 
             // Maintain camera position and update the current animation
-            if (wsAnimating) {
+            if (wasAnimating) {
                 this.pause();
             }
 
@@ -269,8 +311,8 @@ class Camera {
                             tween.updateTo({
                                 zoom: endProps.endZoom,
                                 rotation: endProps.endRotation,
-                                offsetX: endProps.endOffsetX,
-                                offsetY: endProps.endOffsetY
+                                rawOffsetX: endProps.endOffsetX,
+                                rawOffsetY: endProps.endOffsetY
                             });
                         }
                     }
@@ -282,7 +324,7 @@ class Camera {
                     this.destroy();
                 },
                 onCompleteParams: [wasAnimating, wasPaused]
-            }).moveTo(this.position, 0, { overwrite: false });
+            }).moveTo(this.rawPosition, 0, { overwrite: false });
         }
         
         // Initialize event listeners
@@ -330,15 +372,6 @@ class Camera {
     }
     
     /**
-    * @name Camera#center
-    * @property {Vector2} - The camera's center point.
-    * @readonly
-    */
-    get center () {
-        return new Vector2(this.width, this.height).multiplyScalar(0.5);
-    }
-    
-    /**
     * @name Camera#hasBounds
     * @property {boolean} - Whether the camera has bounds or not.
     * @readonly
@@ -366,6 +399,15 @@ class Camera {
     }
     
     /**
+    * @name Camera#rawOffset
+    * @property {Vector2} - The offset of the camera's top left corner relative to the world without any effects applied.
+    * @readonly
+    */
+    get rawOffset () {
+        return new Vector2(this.rawOffsetX, this.rawOffsetY);
+    }
+    
+    /**
     * @name Camera#offset
     * @property {Vector2} - The offset of the camera's top left corner relative to the world.
     * @readonly
@@ -375,12 +417,30 @@ class Camera {
     }
     
     /**
+    * @name Camera#rawPosition
+    * @property {Vector2} - The position of the camera's center point in the world without any effects applied.
+    * @readonly
+    */
+    get rawPosition () {
+        return new Vector2(this.rawPositionX, this.rawPositionY);
+    }
+    
+    /**
     * @name Camera#position
-    * @property {Vector2} - The position of the camera's center point within the world.
+    * @property {Vector2} - The position of the camera's center point in the world.
     * @readonly
     */
     get position () {
         return new Vector2(this.positionX, this.positionY);
+    }
+    
+    /**
+    * @name Camera#shakeOffset
+    * @property {Vector2} - The amount of shake offset.
+    * @readonly
+    */
+    get shakeOffset () {
+        return new Vector2(this.shakeOffsetX, this.shakeOffsetY);
     }
     
     /**
@@ -417,72 +477,114 @@ class Camera {
     };
 
     /**
-    * Calculate the position of the camera in the scene given the state of the camera and the scene.
+    * Calculate the position of the camera on the scene given a scene position to be located a point in the camera's FOV.
     *
     * @private
-    * @param {Vector2} cameraOffset - The camera's offset on the scene.
-    * @param {Vector2} cameraCenter - The center of the camera.
+    * @param {Vector2} scenePosition - The raw point on the scene.
+    * @param {Vector2} cameraFOVPosition - The point in the camera's FOV.
+    * @param {Vector2} cameraCenter - The center of the camera's FOV.
     * @param {Vector2} sceneOrigin - The scene's origin.
     * @param {Matrix2} sceneTransformation - The scene's transformation matrix.
     * @returns {Vector2} The camera's position.
     */
-    _calculatePosition (cameraOffset, cameraCenter, sceneOrigin, sceneTransformation) {
+    _calculatePositionFromPosition (scenePosition, cameraFOVPosition, cameraCenter, sceneOrigin, sceneTransformation) {
+        if (cameraFOVPosition.equals(cameraCenter)) {
+            return scenePosition.clone();
+        }
+        else {
+            let offset = this._calculateOffsetFromPosition(scenePosition, cameraFOVPosition, sceneOrigin, sceneTransformation);
+            
+            return this._calculatePositionFromOffset(offset, cameraCenter, sceneOrigin, sceneTransformation);
+        }
+    }
+    
+    /**
+    * Calculate the position of the camera on the scene given the camera's offset.
+    *
+    * @private
+    * @param {Vector2} cameraOffset - The camera's offset on the scene.
+    * @param {Vector2} cameraCenter - The center of the camera's FOV.
+    * @param {Vector2} sceneOrigin - The scene's origin.
+    * @param {Matrix2} sceneTransformation - The scene's transformation matrix.
+    * @returns {Vector2} The camera's position.
+    */
+    _calculatePositionFromOffset (cameraOffset, cameraCenter, sceneOrigin, sceneTransformation) {
         var sceneOriginOffset = sceneOrigin.clone().transform(sceneTransformation).subtract(sceneOrigin);
 
         return cameraOffset.clone().add(sceneOriginOffset, cameraCenter).transform(sceneTransformation.getInverse());
     }
 
     /**
-    * Calculate the position within the camera of the provided raw point on the scene.
+    * Calculate the position in the camera's FOV of the provided scene position.
     *
     * @private
     * @param {Vector2} scenePosition - The raw point on the scene.
-    * @param {Vector2} cameraPosition - The raw point on the scene on which the camera is positioned.
-    * @param {Vector2} cameraCenter - The camera's center point.
+    * @param {Vector2} cameraPosition - The camera's position.
+    * @param {Vector2} cameraCenter - The center of the camera's FOV.
     * @param {Matrix2} sceneTransformation - The scene's transformation matrix.
-    * @returns {Vector2} The position within the camera.
+    * @returns {Vector2} The position in the camera's FOV.
     */
     _calculateContextPosition (scenePosition, cameraPosition, cameraCenter, sceneTransformation) {
-        var cameraOffset = this._calculateOffset(cameraPosition, cameraCenter, new Vector2(), sceneTransformation);
+        var cameraOffset = this._calculateOffsetFromPosition(cameraPosition, cameraCenter, new Vector2(), sceneTransformation);
 
         return scenePosition.clone().transform(sceneTransformation).subtract(cameraOffset);
     }
 
     /**
-    * Calculate the camera's offset on the scene given a raw point on the scene to be placed at a point on the camera.
+    * Calculate the offset of the camera on the scene given a scene position to be located a point in the camera's FOV.
     *
     * @private
     * @param {Vector2} scenePosition - The raw point on the scene.
-    * @param {Vector2} cameraContext - The point on the camera.
+    * @param {Vector2} cameraFOVPosition - The point in the camera's FOV.
     * @param {Vector2} sceneOrigin - The scene's origin.
     * @param {Matrix2} sceneTransformation - The scene's transformation matrix.
     * @returns {Vector2} The camera's offset.
     */
-    _calculateOffset (scenePosition, cameraContextPosition, sceneOrigin, sceneTransformation) {
+    _calculateOffsetFromPosition (scenePosition, cameraFOVPosition, sceneOrigin, sceneTransformation) {
         var sceneOriginOffset = sceneOrigin.clone().transform(sceneTransformation).subtract(sceneOrigin);
 
-        return scenePosition.clone().transform(sceneTransformation).subtract(sceneOriginOffset, cameraContextPosition);
+        return scenePosition.clone().transform(sceneTransformation).subtract(sceneOriginOffset, cameraFOVPosition);
     }
-
+    
     /**
-    * Clamp the offset.
+    * Clamp the position.
     *
     * @private
-    * @param {Vector2} offset - The offset.
-    * @returns {Vector2} The clamped offset.
+    * @param {Vector2} position - The position.
+    * @returns {Vector2} The clamped position.
     */
-    _clampOffset (offset) {
+    _clampPosition (position) {
         if (this._bounds === null) {
-            return offset;
+            return;
         }
         
-        var position = this._calculatePosition(offset, this.center, this.scene.origin, this.transformation);
-        var clampedPosition = new Vector2(clamp(position.x, this.minPositionX, this.maxPositionX), clamp(position.y, this.minPositionY, this.maxPositionY));
+        position.x = clamp(position.x, this.minPositionX, this.maxPositionX);
+        position.y = clamp(position.y, this.minPositionY, this.maxPositionY);
         
         // TODO: For dev only
-        console.log('clamp offset');
-        
-        return this._calculateOffset(clampedPosition, this.center, this.scene.origin, this.transformation);
+        console.log('clamp position');
+    }
+    
+    /**
+    * Clamp the X position.
+    *
+    * @private
+    * @param {number} positionX - The X position.
+    * @returns {number} The clamped X position.
+    */
+    _clampPositionX (positionX) {
+        return clamp(positionX, this.minPositionX, this.maxPositionX);
+    }
+    
+    /**
+    * Clamp the Y position.
+    *
+    * @private
+    * @param {number} positionY - The Y position.
+    * @returns {number} The clamped Y position.
+    */
+    _clampPositionY (positionY) {
+        return clamp(positionY, this.minPositionY, this.maxPositionY);
     }
     
     /**
@@ -511,7 +613,6 @@ class Camera {
         value = (value === undefined) ? this._bounds : value;
         
         var bounds;
-        var offsetBounds;
         
         if (this.scene) {
             if (!value) {
@@ -528,14 +629,14 @@ class Camera {
             else {
                 bounds = value;
             }
-
+            
             this.minPositionX = bounds.minX;
             this.minPositionY = bounds.minY;
             this.maxPositionX = bounds.maxX;
             this.maxPositionY = bounds.maxY;
 
             // TODO: For dev only
-            console.log('update bounds');
+            //console.log('update bounds');
         }
     }
     
@@ -714,7 +815,7 @@ class Camera {
                 this.trackControl = new TrackControl(this, {
                     draggable: this.dragToMove,
                     onDrag: function (camera) {
-                        var position = camera._calculatePosition(new Vector2(-this.x, -this.y), camera.center, camera.scene.origin, camera.transformation);
+                        var position = camera._calculatePositionFromOffset(new Vector2(-this.x, -this.y), camera.center, camera.scene.origin, camera.transformation);
                         new Oculo.Animation(camera, { 
                             destroyOnComplete: true, 
                             paused: false 
@@ -726,7 +827,7 @@ class Camera {
                         var direction = this.wheelEvent.deltaY > 0 ? Camera.zoomDirection.OUT : Camera.zoomDirection.IN;
                         var previousDirection = this.previousWheelEvent.deltaY > 0 ? Camera.zoomDirection.OUT : Camera.zoomDirection.IN;
                         var cameraRect;
-                        var cameraContextPosition = new Vector2();
+                        var cameraFOVPosition = new Vector2();
                         var sceneContextPosition = new Vector2();
                         var origin = camera.scene.origin;
                         var zoom = camera.zoom + camera.zoom * camera.wheelToZoomIncrement * (velocity > 1 ? velocity * 0.5 : 1) * (direction === Camera.zoomDirection.IN ? 1 : -1);
@@ -734,18 +835,13 @@ class Camera {
                         // Performance Optimization: If zoom has not changed because it's at the min/max, don't zoom.
                         if (direction === previousDirection && camera._clampZoom(zoom) !== camera.zoom) { 
                             cameraRect = camera.view.getBoundingClientRect();
-                            cameraContextPosition.set(this.wheelEvent.clientX - cameraRect.left, this.wheelEvent.clientY - cameraRect.top);
-                            sceneContextPosition = camera._calculatePosition(camera.offset, cameraContextPosition, camera.scene.origin, camera.transformation);
+                            cameraFOVPosition.set(this.wheelEvent.clientX - cameraRect.left, this.wheelEvent.clientY - cameraRect.top);
+                            sceneContextPosition = camera._calculatePositionFromOffset(camera.offset, cameraFOVPosition, camera.scene.origin, camera.transformation);
 
                             if (Math.round(origin.x) !== Math.round(sceneContextPosition.x) || Math.round(origin.y) !== Math.round(sceneContextPosition.y)) {
-                                origin = camera._calculatePosition(camera.offset, cameraContextPosition, camera.scene.origin, camera.transformation);
+                                origin = camera._calculatePositionFromOffset(camera.offset, cameraFOVPosition, camera.scene.origin, camera.transformation);
                             }
 
-//                            new Oculo.AnimationLite(camera, 0, {
-//                                killOnComplete: true,
-//                                origin: origin,
-//                                zoom: zoom
-//                            });
                             new Oculo.Animation(camera, { 
                                 destroyOnComplete: true, 
                                 paused: false 
@@ -773,14 +869,16 @@ class Camera {
         
         if (!isNil(width) && (width !== this.width)) {
             this.width = width;
+            this.center.x = width * 0.5;
             hasChanged = true;
         }
         
         if (!isNil(height) && (height !== this.height)) {
             this.height = height;
+            this.center.y = height * 0.5;
             hasChanged = true;
         }
-
+console.log('center: ', this.center);
         if (hasChanged) {
             this.renderer.renderSize();
             this.trigger('change:size');
@@ -834,11 +932,9 @@ class Camera {
     * @returns {this} self
     */
     animate (props, duration, options) {
-        new Oculo.Animation(this, { 
-            destroyOnComplete: true, 
-            paused: false 
-        }).animate(props, duration, options);
-
+        this.animations.add(animationName.ANONYMOUS, new Oculo.Animation(this).animate(props, duration, options));
+        this.animations.play(animationName.ANONYMOUS);
+        
         return this;
     }
 
@@ -849,11 +945,9 @@ class Camera {
     * @returns {this} self
     */
     moveTo (position, duration, options) {
-        new Oculo.Animation(this, { 
-            destroyOnComplete: true, 
-            paused: false 
-        }).moveTo(position, duration, options);
-
+        this.animations.add(animationName.ANONYMOUS, new Oculo.Animation(this).moveTo(position, duration, options));
+        this.animations.play(animationName.ANONYMOUS);
+        
         return this;
     }
 
@@ -864,11 +958,9 @@ class Camera {
     * @returns {this} self
     */
     rotateAt (origin, rotation, duration, options) {
-        new Oculo.Animation(this, { 
-            destroyOnComplete: true, 
-            paused: false 
-        }).rotateAt(origin, rotation, duration, options);
-
+        this.animations.add(animationName.ANONYMOUS, new Oculo.Animation(this).rotateAt(origin, rotation, duration, options));
+        this.animations.play(animationName.ANONYMOUS);
+        
         return this;
     }
 
@@ -879,11 +971,9 @@ class Camera {
     * @returns {this} self
     */
     rotateTo (rotation, duration, options) {
-        new Oculo.Animation(this, { 
-            destroyOnComplete: true, 
-            paused: false 
-        }).rotateTo(rotation, duration, options);
-
+        this.animations.add(animationName.ANONYMOUS, new Oculo.Animation(this).rotateTo(rotation, duration, options));
+        this.animations.play(animationName.ANONYMOUS);
+        
         return this;
     }
 
@@ -894,11 +984,9 @@ class Camera {
     * @returns {this} self
     */
     shake (intensity, duration, direction, options) {
-        new Oculo.Animation(this, { 
-            destroyOnComplete: true, 
-            paused: false 
-        }).shake(intensity, duration, direction, options);
-
+        this.animations.add(animationName.ANONYMOUS, new Oculo.Animation(this).shake(intensity, duration, direction, options));
+        this.animations.play(animationName.ANONYMOUS);
+        
         return this;
     }
 
@@ -909,11 +997,9 @@ class Camera {
     * @returns {this} self
     */
     zoomAt (origin, zoom, duration, options) {
-        new Oculo.Animation(this, { 
-            destroyOnComplete: true, 
-            paused: false 
-        }).zoomAt(origin, zoom, duration, options);
-
+        this.animations.add(animationName.ANONYMOUS, new Oculo.Animation(this).zoomAt(origin, zoom, duration, options));
+        this.animations.play(animationName.ANONYMOUS);
+        
         return this;
     }
 
@@ -924,10 +1010,8 @@ class Camera {
     * @returns {this} self
     */
     zoomTo (zoom, duration, options) {
-        new Oculo.Animation(this, { 
-            destroyOnComplete: true, 
-            paused: false 
-        }).zoomTo(zoom, duration, options);
+        this.animations.add(animationName.ANONYMOUS, new Oculo.Animation(this).zoomTo(zoom, duration, options));
+        this.animations.play(animationName.ANONYMOUS);
 
         return this;
     }

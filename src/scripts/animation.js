@@ -88,17 +88,34 @@ class Animation extends TimelineMax {
         * @private
         */
         this._onUpdate = function () {
-            var clampedOffset, position;
+            var rawPosition, position, rawOffset, offset;
 
-            // Clamping here ensures bounds have been updated (if zoom has changed)
-            clampedOffset = this.camera._clampOffset(this.camera.offset);
-            camera.offsetX = clampedOffset.x;
-            camera.offsetY = clampedOffset.y;
-
-            // Position is manually updated so animations can smoothly continue when camera is resized
-            position = this.camera._calculatePosition(clampedOffset, this.camera.center, this.camera.scene.origin, this.camera.transformation);
-            this.camera.positionX = position.x;
-            this.camera.positionY = position.y;
+            // TODO
+            // Stop creating so many Vectors (rawOffset, offset, rawPosition, position, shakeOffset)
+            
+            // Clamping here ensures bounds have been updated (if zoom has changed) and bounds are enforced during rotateAt
+            // Position is manually maintained so animations can smoothly continue when camera is resized
+            rawPosition = this.camera._clampPosition(this.camera._calculatePositionFromOffset(this.camera.rawOffset, this.camera.center, this.camera.scene.origin, this.camera.transformation));
+            this.camera.rawPositionX = rawPosition.x;
+            this.camera.rawPositionY = rawPosition.y;
+            rawOffset = this.camera._calculateOffsetFromPosition(this.camera.rawPosition, this.camera.center, this.camera.scene.origin, this.camera.transformation);
+            this.camera.rawOffsetX = rawOffset.x;
+            this.camera.rawOffsetY = rawOffset.y;
+            
+            if (this.camera.isShaking && this.camera.shakeRespectBounds) {
+                position = this.camera._clampPosition(this.camera.rawPosition.add(this.camera.shakeOffset));
+                this.camera.positionX = position.x;
+                this.camera.positionY = position.y;
+                offset = this.camera._calculateOffsetFromPosition(this.camera.position, this.camera.center, this.camera.scene.origin, this.camera.transformation);
+                this.camera.offsetX = offset.x;
+                this.camera.offsetY = offset.y;
+            }
+            else {
+                this.camera.offsetX = this.camera.rawOffsetX + this.camera.shakeOffsetX;
+                this.camera.offsetY = this.camera.rawOffsetY + this.camera.shakeOffsetY;
+                this.camera.positionX = this.camera.rawPositionX + this.camera.shakeOffsetX;
+                this.camera.positionY = this.camera.rawPositionY + this.camera.shakeOffsetY;
+            }
 
             if (this.config.onUpdate !== undefined) {
                 this.config.onUpdate.apply(this, this.config.onUpdateParams);
@@ -151,18 +168,6 @@ class Animation extends TimelineMax {
     _animate (props, duration, options) {
         options = options || {};
         
-        if (props.position === 'previous' && this.previousProps.position) {
-            props.position = this.previousProps.position;
-        }
-        
-        if (props.rotation === 'previous' && this.previousProps.rotation) {
-            props.rotation = this.previousProps.rotation;
-        }
-        
-        if (props.zoom === 'previous' && this.previousProps.zoom) {
-            props.zoom = this.previousProps.zoom;
-        }
-        
         var mainTimeline = new TimelineLite();
         var shakeTimeline = null;
         var shake = this._parseShake(props.shake);
@@ -193,8 +198,8 @@ class Animation extends TimelineMax {
                 console.log('tween data: ', tween.data);
                 
                 tween.updateTo({
-                    offsetX: endProps.endOffsetX,
-                    offsetY: endProps.endOffsetY,
+                    rawOffsetX: endProps.endOffsetX,
+                    rawOffsetY: endProps.endOffsetY,
                     rotation: endProps.endRotation,
                     zoom: endProps.endZoom
                 });
@@ -207,10 +212,12 @@ class Animation extends TimelineMax {
             shakeTimeline = new TimelineLite(Object.assign({}, options, {
                 data: {
                     intensity: 0,
-                    direction: shake.direction
+                    direction: shake.direction,
+                    respectBounds: shake.respectBounds
                 },
                 onStart: function (camera) {
                     camera.isShaking = true;
+                    camera.shakeRespectBounds = (this.data.respectBounds === false) ? false : true;
                 },
                 onStartParams: [this.camera],
                 onUpdate: function (camera) {
@@ -224,11 +231,10 @@ class Animation extends TimelineMax {
                 },
                 onUpdateParams: [this.camera],
                 onComplete: function () {
-                    TweenLite.set(camera, {
-                        shakeOffsetX: 0,
-                        shakeOffsetY: 0
-                    });
+                    camera.shakeOffsetX = 0;
+                    camera.shakeOffsetY = 0;
                     camera.isShaking = false;
+                    camera.shakeRespectBounds = true;
                 },
                 onCompleteParams: [this.camera]
             }));
@@ -306,25 +312,28 @@ class Animation extends TimelineMax {
         var position = new Vector2(isFinite(sourcePosition.x) ? sourcePosition.x : camera.positionX, isFinite(sourcePosition.y) ? sourcePosition.y : camera.positionY);
         var origin = new Vector2(isFinite(sourceOrigin.x) ? sourceOrigin.x : camera.scene.originX, isFinite(sourceOrigin.y) ? sourceOrigin.y : camera.scene.originY);
         var rotation = isFinite(sourceRotation) ? sourceRotation : camera.rotation;
-        var zoom = isFinite(sourceZoom) ? sourceZoom : camera.zoom;
+        var zoom = camera._clampZoom(isFinite(sourceZoom) ? sourceZoom : camera.zoom);
         var transformation = new Matrix2().scale(zoom, zoom).rotate(_Math.degToRad(-rotation));
-        var cameraContextPosition = camera.center;
+        var cameraFOVPosition = camera.center;
         var offset = new Vector2();
 
         var isMoving = isFinite(sourcePosition.x) || isFinite(sourcePosition.y);
         var isRotating = isFinite(sourceRotation) && sourceRotation !== camera.rotation;
         var isZooming = isFinite(sourceZoom) && sourceZoom !== camera.zoom;
 
+        // rotateTo, zoomTo
         if (!isMoving && !isFinite(sourceOrigin.x) && !isFinite(sourceOrigin.y)) {
             origin.set(camera.positionX, camera.positionY);
         }
         
+        // rotateAt, rotateTo, zoomAt, zoomTo
         if (!isMoving) {
             position.copy(origin);
-            cameraContextPosition = camera._calculateContextPosition(origin, camera.position, camera.center, camera.transformation);
+            cameraFOVPosition = camera._calculateContextPosition(origin, camera.position, camera.center, camera.transformation);
         }
 
-        offset = camera._calculateOffset(position, cameraContextPosition, origin, transformation);
+        position = camera._clampPosition(camera._calculatePositionFromPosition(position, cameraFOVPosition, camera.center, origin, transformation));
+        offset = camera._calculateOffsetFromPosition(position, camera.center, origin, transformation);
         
         return {
             isMoving: isMoving,
@@ -350,6 +359,18 @@ class Animation extends TimelineMax {
     * @returns {Object} - The parsed properties.
     */
     _parseProps (sourceOrigin, sourcePosition, sourceRotation, sourceZoom, camera) {
+        if (sourcePosition === 'previous' && this.previousProps.position) {
+            sourcePosition = this.previousProps.position;
+        }
+        
+        if (sourceRotation === 'previous' && !isNil(this.previousProps.rotation)) {
+            sourceRotation = this.previousProps.rotation;
+        }
+        
+        if (sourceZoom === 'previous' && !isNil(this.previousProps.zoom)) {
+            sourceZoom = this.previousProps.zoom;
+        }
+        
         return { 
             parsedOrigin: Utils.parsePosition(sourceOrigin, camera.scene.view),
             parsedPosition: Utils.parsePosition(sourcePosition, camera.scene.view),
@@ -373,7 +394,8 @@ class Animation extends TimelineMax {
                 intensity: isNil(shake.intensity) ? 0 : shake.intensity,
                 direction: isNil(shake.direction) ? Animation.shake.direction.BOTH : shake.direction,
                 easeIn: shake.easeIn,
-                easeOut: shake.easeOut
+                easeOut: shake.easeOut,
+                respectBounds: shake.respectBounds
             };
         }
         
@@ -396,8 +418,8 @@ class Animation extends TimelineMax {
             var originOffset = origin.clone().transform(transformation).subtract(sceneOrigin.clone().transform(transformation), origin.clone().subtract(sceneOrigin));
 
             if (camera.isRotated || camera.isZoomed) {
-                camera.offsetX -= originOffset.x;
-                camera.offsetY -= originOffset.y;
+                camera.rawOffsetX -= originOffset.x;
+                camera.rawOffsetY -= originOffset.y;
             }
 
             camera.scene.originX = origin.x;
@@ -407,8 +429,8 @@ class Animation extends TimelineMax {
                 TweenMax.set(camera.scene.view, { 
                     css: {
                         transformOrigin: camera.scene.originX + 'px ' + camera.scene.originY + 'px',
-                        x: -camera.offsetX,
-                        y: -camera.offsetY
+                        x: -camera.rawOffsetX,
+                        y: -camera.rawOffsetY
                     },
                 });
             }
@@ -561,7 +583,8 @@ class Animation extends TimelineMax {
                 intensity: intensity,
                 direction: direction,
                 easeIn: options.easeIn,
-                easeOut: options.easeOut
+                easeOut: options.easeOut,
+                respectBounds: options.respectBounds
             }
         }, duration, options);
 
