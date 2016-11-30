@@ -46,6 +46,15 @@
                 <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 250px; height: 250px; border: 1px solid green;"></div>
                 <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 300px; height: 300px; border: 1px solid green;"></div>
             </div>
+            
+            <div id="scene3" class="bcv-scene" style="display: none; width: 1000px; height: 500px;">
+                <div style="box-sizing: border-box; width: 1000px; height: 500px; background-color: #eee; border: 10px solid black; position: absolute;"></div>
+                <img src="images/FFL-Meat-White-64x48.png" alt="Final Fantasy Legend Meat" width="64" height="48" style="position: absolute; left: 100px; top: 100px;" />
+                <img src="images/FFL-Meat-White-64x48.png" alt="Final Fantasy Legend Meat" width="64" height="48" style="position: absolute; left: 200px; top: 100px;"/>
+                <img src="images/FFL-Meat-White-64x48.png" alt="Final Fantasy Legend Meat" width="64" height="48" style="position: absolute; left: 100px; top: 200px;"/>
+                <img src="images/FFL-Meat-White-64x48.png" alt="Final Fantasy Legend Meat" width="64" height="48" style="position: absolute; left: 200px; top: 200px;"/>
+                <div id="box100" style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid green;"></div>
+            </div>
         
             <h2>Console Examples</h2>
             <ul>
@@ -58,6 +67,7 @@
         <div class="demo-sidebar">
             <h2>Commands</h2>
             <div id="app" style="padding: 1.0em; background-color: gray;"></div>
+            <div id="print"></div>
         </div>
     </div>
     
@@ -81,12 +91,11 @@
     <script type="text/javascript">
         camera = new Oculo.Camera({
             view: '#camera',
-            //scene: '#scene1',
             bounds: Oculo.Camera.bounds.WORLD_EDGE,
             debug: false,
             dragToMove: true,
             //maxZoom: 6,
-            //minZoom: 0.2,
+            //minZoom: 0.1,
             //position: {
             //    x: 500,
             //    y: 250
@@ -102,6 +111,7 @@
         // Scenes
         camera.addScene('scene1', '#scene1');
         camera.addScene('scene2', new Oculo.Scene('#scene2'));
+        camera.addScene('scene3', '#scene3');
         camera.setScene('scene1');
         
         // Animations
@@ -116,13 +126,29 @@
         camera.addAnimation('shakeEaseIn', new Oculo.Animation(camera).shake(0.1, 2, Oculo.Animation.shake.direction.BOTH, { easeIn: Power2.easeIn }));
         camera.addAnimation('shakeEaseOut', new Oculo.Animation(camera).shake(0.1, 2, Oculo.Animation.shake.direction.BOTH, { easeOut: Power2.easeOut }));
         camera.addAnimation('shakeEaseInOut', new Oculo.Animation(camera).shake(0.1, 4, Oculo.Animation.shake.direction.BOTH, { easeIn: Power2.easeIn, easeOut: Power2.easeOut }));
+        camera.addAnimation('shakeNoBounds', new Oculo.Animation(camera).shake(0.1, 2, Oculo.Animation.shake.direction.BOTH, { respectBounds: false }));
         camera.addAnimation('zoomAt100', new Oculo.Animation(camera).zoomAt({x:100, y:100}, 2, 2));
         camera.addAnimation('zoomTo50', new Oculo.Animation(camera).zoomTo(0.5, 2));
         camera.addAnimation('zoomTo200', new Oculo.Animation(camera).zoomTo(2, 2));
         camera.addAnimation('instantZoom', new Oculo.Animation(camera).zoomTo(2, 0));
         camera.addAnimation('instantShake', new Oculo.Animation(camera).shake(0.1, 0));
-        camera.addAnimation('backAndForth', new Oculo.Animation(camera).animate({position: '#box100', rotation:-20, zoom: 1.5}, 2).animate({position: 'previous', rotation: 'previous', zoom: 'previous', delay: 0.3}, 2));
+        camera.addAnimation('backAndForth', new Oculo.Animation(camera).animate({position: '#box100', rotation:20, zoom: 1.5}, 2, {ease: Power4.easeOut}).animate({position: 'previous', rotation: 'previous', zoom: 'previous'}, 2, {ease: Power3.easeOut}));
         
+        camera.addAnimation('moveTo0001', new Oculo.Animation(camera, {useFrames: true}).animate({position: {x:0,y:0}, zoom: 0.166}, 61, {ease: Power0.easeNone}));
+        camera.addAnimation('moveTo0005', new Oculo.Animation(camera, {useFrames: true}).animate({position: {x:0,y:0}, zoom: 0.5}, 61, {ease: Power0.easeNone}));
+        camera.addAnimation('moveTo0006', new Oculo.Animation(camera, {useFrames: true}).animate({position: {x:0,y:0}, zoom: 0.666}, 61, {ease: Power0.easeNone}));
+        camera.addAnimation('moveTo001', new Oculo.Animation(camera, {useFrames: true}).animate({position: {x:0,y:0}, zoom: 1}, 61, {ease: Power0.easeNone}));
+        camera.addAnimation('moveTo0015', new Oculo.Animation(camera, {useFrames: true}).animate({position: {x:0,y:0}, zoom: 1.5}, 61, {ease: Power0.easeNone}));
+        camera.addAnimation('moveTo002', new Oculo.Animation(camera, {useFrames: true}).animate({position: {x:0,y:0}, zoom: 2}, 61, {ease: Power0.easeNone}));
+        camera.addAnimation('moveTo006', new Oculo.Animation(camera, {useFrames: true}).animate({position: {x:0,y:0}, zoom: 6}, 61, {ease: Power0.easeNone}));
+        camera.printPath = function () {
+            var el = document.getElementById('print');
+            var html = 'id,x,y';
+            camera.path.forEach(function (item) {
+                html += item.id + ',' + item.x + ',' + item.y + '<br>';
+            });
+            el.innerHTML = html;
+        }
         
         camera.render();
         //camera.play('moveTobox100');
