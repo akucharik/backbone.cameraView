@@ -133,52 +133,28 @@ class Camera {
         this.maxZoom = options.maxZoom || 3;
         
         /**
-        * @property {number} - The X offset of the camera's top left corner relative to the world without any effects applied.
+        * @property {number} - The offset of the camera's top left corner relative to the world without any effects applied.
         * @readonly
         */
-        this.rawOffsetX = 0;
+        this.rawOffset = new Vector2(0, 0);
         
         /**
-        * @property {number} - The Y offset of the camera's top left corner relative to the world without any effects applied.
+        * @property {number} - The offset of the camera's top left corner relative to the world.
         * @readonly
         */
-        this.rawOffsetY = 0;
+        this.offset = new Vector2(0, 0);
         
         /**
-        * @property {number} - The X offset of the camera's top left corner relative to the world.
+        * @property {number} - The position of the camera in the world without any effects applied.
         * @readonly
         */
-        this.offsetX = this.rawOffsetX;
+        this.rawPosition = new Vector2(options.width * 0.5 || 0, options.height * 0.5 || 0);;
         
         /**
-        * @property {number} - The Y offset of the camera's top left corner relative to the world.
+        * @property {number} - The position of the camera in the world.
         * @readonly
         */
-        this.offsetY = this.rawOffsetY;
-        
-        /**
-        * @property {number} - The X position of the camera's center point in the world without any effects applied.
-        * @readonly
-        */
-        this.rawPositionX = options.width * 0.5 || 0;
-        
-        /**
-        * @property {number} - The Y position of the camera's center point in the world without any effects applied.
-        * @readonly
-        */
-        this.rawPositionY = options.height * 0.5 || 0;
-        
-        /**
-        * @property {number} - The X position of the camera's center point in the world.
-        * @readonly
-        */
-        this.positionX = this.rawPositionX;
-        
-        /**
-        * @property {number} - The Y position of the camera's center point in the world.
-        * @readonly
-        */
-        this.positionY = this.rawPositionY;
+        this.position = new Vector2().copy(this.rawPosition);
 
         /**
         * @property {number} - The renderer.
@@ -200,18 +176,11 @@ class Camera {
         this.scenes = new SceneManager(this);
         
         /**
-        * @property {number} - The amount of shake offset on the X axis.
+        * @property {number} - The amount of shake offset.
         * @readonly
         * @default
         */
-        this.shakeOffsetX = 0;
-        
-        /**
-        * @property {boolean} - The amount of shake offset on the Y axis.
-        * @readonly
-        * @default
-        */
-        this.shakeOffsetY = 0;
+        this.shakeOffset = new Vector2(0, 0);
         
         /**
         * @property {boolean} - Whether the shake effect respects the bounds or not.
@@ -399,48 +368,27 @@ class Camera {
     }
     
     /**
-    * @name Camera#rawOffset
-    * @property {Vector2} - The offset of the camera's top left corner relative to the world without any effects applied.
-    * @readonly
+    * @name Camera#rawOffsetX
+    * @property {Vector2} - The X offset of the camera's top left corner relative to the world without any effects applied.
     */
-    get rawOffset () {
-        return new Vector2(this.rawOffsetX, this.rawOffsetY);
+    get rawOffsetX () {
+        return this.rawOffset.x;
+    }
+    
+    set rawOffsetX (value) {
+        this.rawOffset.x = value;
     }
     
     /**
-    * @name Camera#offset
-    * @property {Vector2} - The offset of the camera's top left corner relative to the world.
-    * @readonly
+    * @name Camera#rawOffsetY
+    * @property {Vector2} - The Y offset of the camera's top left corner relative to the world without any effects applied.
     */
-    get offset () {
-        return new Vector2(this.offsetX, this.offsetY);
+    get rawOffsetY () {
+        return this.rawOffset.y;
     }
     
-    /**
-    * @name Camera#rawPosition
-    * @property {Vector2} - The position of the camera's center point in the world without any effects applied.
-    * @readonly
-    */
-    get rawPosition () {
-        return new Vector2(this.rawPositionX, this.rawPositionY);
-    }
-    
-    /**
-    * @name Camera#position
-    * @property {Vector2} - The position of the camera's center point in the world.
-    * @readonly
-    */
-    get position () {
-        return new Vector2(this.positionX, this.positionY);
-    }
-    
-    /**
-    * @name Camera#shakeOffset
-    * @property {Vector2} - The amount of shake offset.
-    * @readonly
-    */
-    get shakeOffset () {
-        return new Vector2(this.shakeOffsetX, this.shakeOffsetY);
+    set rawOffsetY (value) {
+        this.rawOffset.y = value;
     }
     
     /**
@@ -554,37 +502,15 @@ class Camera {
     * @returns {Vector2} The clamped position.
     */
     _clampPosition (position) {
-        if (this._bounds === null) {
-            return;
+        if (this._bounds !== null) {
+            position.x = clamp(position.x, this.minPositionX, this.maxPositionX);
+            position.y = clamp(position.y, this.minPositionY, this.maxPositionY);
         }
-        
-        position.x = clamp(position.x, this.minPositionX, this.maxPositionX);
-        position.y = clamp(position.y, this.minPositionY, this.maxPositionY);
         
         // TODO: For dev only
         console.log('clamp position');
-    }
-    
-    /**
-    * Clamp the X position.
-    *
-    * @private
-    * @param {number} positionX - The X position.
-    * @returns {number} The clamped X position.
-    */
-    _clampPositionX (positionX) {
-        return clamp(positionX, this.minPositionX, this.maxPositionX);
-    }
-    
-    /**
-    * Clamp the Y position.
-    *
-    * @private
-    * @param {number} positionY - The Y position.
-    * @returns {number} The clamped Y position.
-    */
-    _clampPositionY (positionY) {
-        return clamp(positionY, this.minPositionY, this.maxPositionY);
+        
+        return position;
     }
     
     /**
@@ -878,7 +804,7 @@ class Camera {
             this.center.y = height * 0.5;
             hasChanged = true;
         }
-console.log('center: ', this.center);
+        
         if (hasChanged) {
             this.renderer.renderSize();
             this.trigger('change:size');

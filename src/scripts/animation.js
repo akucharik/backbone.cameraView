@@ -88,33 +88,24 @@ class Animation extends TimelineMax {
         * @private
         */
         this._onUpdate = function () {
-            var rawPosition, position, rawOffset, offset;
-
             // TODO
-            // Stop creating so many Vectors (rawOffset, offset, rawPosition, position, shakeOffset)
+            // Change add in vector2 to only take one argument for better performance
+            // Add properties to animation to easily access shake timeline and props tween
             
             // Clamping here ensures bounds have been updated (if zoom has changed) and bounds are enforced during rotateAt
             // Position is manually maintained so animations can smoothly continue when camera is resized
-            rawPosition = this.camera._clampPosition(this.camera._calculatePositionFromOffset(this.camera.rawOffset, this.camera.center, this.camera.scene.origin, this.camera.transformation));
-            this.camera.rawPositionX = rawPosition.x;
-            this.camera.rawPositionY = rawPosition.y;
-            rawOffset = this.camera._calculateOffsetFromPosition(this.camera.rawPosition, this.camera.center, this.camera.scene.origin, this.camera.transformation);
-            this.camera.rawOffsetX = rawOffset.x;
-            this.camera.rawOffsetY = rawOffset.y;
+            this.camera.rawPosition = this.camera._clampPosition(this.camera._calculatePositionFromOffset(this.camera.rawOffset, this.camera.center, this.camera.scene.origin, this.camera.transformation));
+            this.camera.rawOffset = this.camera._calculateOffsetFromPosition(this.camera.rawPosition, this.camera.center, this.camera.scene.origin, this.camera.transformation);
             
             if (this.camera.isShaking && this.camera.shakeRespectBounds) {
-                position = this.camera._clampPosition(this.camera.rawPosition.add(this.camera.shakeOffset));
-                this.camera.positionX = position.x;
-                this.camera.positionY = position.y;
-                offset = this.camera._calculateOffsetFromPosition(this.camera.position, this.camera.center, this.camera.scene.origin, this.camera.transformation);
-                this.camera.offsetX = offset.x;
-                this.camera.offsetY = offset.y;
+                this.camera.position = this.camera._clampPosition(this.camera.rawPosition.clone().add(this.camera.shakeOffset));
+                this.camera.offset = this.camera._calculateOffsetFromPosition(this.camera.position, this.camera.center, this.camera.scene.origin, this.camera.transformation);
             }
             else {
-                this.camera.offsetX = this.camera.rawOffsetX + this.camera.shakeOffsetX;
-                this.camera.offsetY = this.camera.rawOffsetY + this.camera.shakeOffsetY;
-                this.camera.positionX = this.camera.rawPositionX + this.camera.shakeOffsetX;
-                this.camera.positionY = this.camera.rawPositionY + this.camera.shakeOffsetY;
+                this.camera.offset.x = this.camera.rawOffset.x + this.camera.shakeOffset.x;
+                this.camera.offset.y = this.camera.rawOffset.y + this.camera.shakeOffset.y;
+                this.camera.position.x = this.camera.rawPosition.x + this.camera.shakeOffset.x;
+                this.camera.position.y = this.camera.rawPosition.y + this.camera.shakeOffset.y;
             }
 
             if (this.config.onUpdate !== undefined) {
@@ -222,17 +213,17 @@ class Animation extends TimelineMax {
                 onStartParams: [this.camera],
                 onUpdate: function (camera) {
                     if (this.data.direction === Animation.shake.direction.HORIZONTAL || this.data.direction === Animation.shake.direction.BOTH) {
-                        camera.shakeOffsetX = Math.random() * this.data.intensity * camera.width * 2 - this.data.intensity * camera.width;
+                        camera.shakeOffset.x = Math.random() * this.data.intensity * camera.width * 2 - this.data.intensity * camera.width;
                     }
 
                     if (this.data.direction === Animation.shake.direction.VERTICAL || this.data.direction === Animation.shake.direction.BOTH) {
-                        camera.shakeOffsetY = Math.random() * this.data.intensity * camera.height * 2 - this.data.intensity * camera.height;
+                        camera.shakeOffset.y = Math.random() * this.data.intensity * camera.height * 2 - this.data.intensity * camera.height;
                     }
                 },
                 onUpdateParams: [this.camera],
                 onComplete: function () {
-                    camera.shakeOffsetX = 0;
-                    camera.shakeOffsetY = 0;
+                    camera.shakeOffset.x = 0;
+                    camera.shakeOffset.y = 0;
                     camera.isShaking = false;
                     camera.shakeRespectBounds = true;
                 },
@@ -309,13 +300,13 @@ class Animation extends TimelineMax {
         sourceOrigin = sourceOrigin || {};
         sourcePosition = sourcePosition || {};
         
-        var position = new Vector2(isFinite(sourcePosition.x) ? sourcePosition.x : camera.positionX, isFinite(sourcePosition.y) ? sourcePosition.y : camera.positionY);
+        var endPosition, endOffset;
+        var position = new Vector2(isFinite(sourcePosition.x) ? sourcePosition.x : camera.position.x, isFinite(sourcePosition.y) ? sourcePosition.y : camera.position.y);
         var origin = new Vector2(isFinite(sourceOrigin.x) ? sourceOrigin.x : camera.scene.originX, isFinite(sourceOrigin.y) ? sourceOrigin.y : camera.scene.originY);
         var rotation = isFinite(sourceRotation) ? sourceRotation : camera.rotation;
         var zoom = camera._clampZoom(isFinite(sourceZoom) ? sourceZoom : camera.zoom);
         var transformation = new Matrix2().scale(zoom, zoom).rotate(_Math.degToRad(-rotation));
         var cameraFOVPosition = camera.center;
-        var offset = new Vector2();
 
         var isMoving = isFinite(sourcePosition.x) || isFinite(sourcePosition.y);
         var isRotating = isFinite(sourceRotation) && sourceRotation !== camera.rotation;
@@ -323,7 +314,7 @@ class Animation extends TimelineMax {
 
         // rotateTo, zoomTo
         if (!isMoving && !isFinite(sourceOrigin.x) && !isFinite(sourceOrigin.y)) {
-            origin.set(camera.positionX, camera.positionY);
+            origin.copy(camera.position);
         }
         
         // rotateAt, rotateTo, zoomAt, zoomTo
@@ -332,15 +323,15 @@ class Animation extends TimelineMax {
             cameraFOVPosition = camera._calculateContextPosition(origin, camera.position, camera.center, camera.transformation);
         }
 
-        position = camera._clampPosition(camera._calculatePositionFromPosition(position, cameraFOVPosition, camera.center, origin, transformation));
-        offset = camera._calculateOffsetFromPosition(position, camera.center, origin, transformation);
+        endPosition = camera._clampPosition(camera._calculatePositionFromPosition(position, cameraFOVPosition, camera.center, origin, transformation));
+        endOffset = camera._calculateOffsetFromPosition(endPosition, camera.center, origin, transformation);
         
         return {
             isMoving: isMoving,
             isRotating: isRotating,
             isZooming: isZooming,
-            endOffsetX: isMoving ? offset.x : null,
-            endOffsetY: isMoving ? offset.y : null,
+            endOffsetX: isMoving ? endOffset.x : null,
+            endOffsetY: isMoving ? endOffset.y : null,
             endOrigin: (sourceOrigin.x || sourceOrigin.y || !isMoving) ? origin : null,
             endRotation: !isNil(sourceRotation) ? rotation : null,
             endZoom: sourceZoom ? zoom : null
@@ -418,8 +409,8 @@ class Animation extends TimelineMax {
             var originOffset = origin.clone().transform(transformation).subtract(sceneOrigin.clone().transform(transformation), origin.clone().subtract(sceneOrigin));
 
             if (camera.isRotated || camera.isZoomed) {
-                camera.rawOffsetX -= originOffset.x;
-                camera.rawOffsetY -= originOffset.y;
+                camera.rawOffset.x -= originOffset.x;
+                camera.rawOffset.y -= originOffset.y;
             }
 
             camera.scene.originX = origin.x;
@@ -429,8 +420,8 @@ class Animation extends TimelineMax {
                 TweenMax.set(camera.scene.view, { 
                     css: {
                         transformOrigin: camera.scene.originX + 'px ' + camera.scene.originY + 'px',
-                        x: -camera.rawOffsetX,
-                        y: -camera.rawOffsetY
+                        x: -camera.rawOffset.x,
+                        y: -camera.rawOffset.y
                     },
                 });
             }
