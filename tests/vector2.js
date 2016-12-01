@@ -17,13 +17,12 @@ test('Vector2', function() {
     });
 
     test('Vector2.add', function() {
-        assert('should return the sum of multiple (infinite) vectors', function() {
+        assert('should return the sum of two vectors', function() {
             v.set(1,2);
             var v2 = new Vector2(3,4);
-            var v3 = new Vector2(5,6);
-            var v4 = Vector2.add(v, v2, v3);
-            expect(v4.x).to.equal(9);
-            expect(v4.y).to.equal(12);
+            var v3 = Vector2.add(v, v2);
+            expect(v3.x).to.equal(4);
+            expect(v3.y).to.equal(6);
         });
     });
     
@@ -77,13 +76,12 @@ test('Vector2', function() {
     });
 
     test('Vector2.subtract', function() {
-        assert('should return the difference of multiple (infinite) vectors', function() {
+        assert('should return the difference of two vectors', function() {
             v.set(1,2);
             var v2 = new Vector2(3,4);
-            var v3 = new Vector2(5,6);
-            var v4 = Vector2.subtract(v, v2, v3);
-            expect(v4.x).to.equal(-7);
-            expect(v4.y).to.equal(-8);
+            var v3 = Vector2.subtract(v, v2);
+            expect(v3.x).to.equal(-2);
+            expect(v3.y).to.equal(-2);
         });
     });
     
@@ -136,13 +134,12 @@ test('Vector2', function() {
     });
 
     test('add', function() {
-        assert('should add its values by the provided (infinite) vectors', function() {
+        assert('should add its values by the provided vector', function() {
             v.set(1,2);
             var v2 = new Vector2(3,4);
-            var v3 = new Vector2(5,6);
-            v.add(v2, v3);
-            expect(v.x).to.equal(9);
-            expect(v.y).to.equal(12);
+            v.add(v2);
+            expect(v.x).to.equal(4);
+            expect(v.y).to.equal(6);
         });
     });
     
@@ -213,13 +210,12 @@ test('Vector2', function() {
     });
 
     test('subtract', function() {
-        assert('should subtract its values by the provided (infinite) vectors', function() {
+        assert('should subtract its values by the provided vector', function() {
             v.set(1,2);
             var v2 = new Vector2(3,4);
-            var v3 = new Vector2(5,6);
-            v.subtract(v2, v3);
-            expect(v.x).to.equal(-7);
-            expect(v.y).to.equal(-8);
+            v.subtract(v2);
+            expect(v.x).to.equal(-2);
+            expect(v.y).to.equal(-2);
         });
     }); 
     

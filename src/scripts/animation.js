@@ -89,7 +89,6 @@ class Animation extends TimelineMax {
         */
         this._onUpdate = function () {
             // TODO
-            // Change add in vector2 to only take one argument for better performance
             // Add properties to animation to easily access shake timeline and props tween
             
             // Clamping here ensures bounds have been updated (if zoom has changed) and bounds are enforced during rotateAt
@@ -321,7 +320,7 @@ class Animation extends TimelineMax {
             cameraFOVPosition = camera._calculateContextPosition(origin, camera.position, camera.center, camera.transformation);
         }
 
-        endPosition = camera._clampPosition(camera._calculatePositionFromPosition(position, cameraFOVPosition, camera.center, origin, transformation));
+        endPosition = camera._calculatePositionFromPosition(position, cameraFOVPosition, camera.center, origin, transformation);
         endOffset = camera._calculateOffsetFromPosition(endPosition, camera.center, origin, transformation);
         
         return {
@@ -404,7 +403,7 @@ class Animation extends TimelineMax {
         
         if (origin && !origin.equals(sceneOrigin)) {
             var transformation = camera.transformation;
-            var originOffset = origin.clone().transform(transformation).subtract(sceneOrigin.clone().transform(transformation), origin.clone().subtract(sceneOrigin));
+            var originOffset = origin.clone().transform(transformation).subtract(sceneOrigin.clone().transform(transformation)).subtract(origin.clone().subtract(sceneOrigin));
 
             if (camera.isRotated || camera.isZoomed) {
                 camera.rawOffset.x -= originOffset.x;

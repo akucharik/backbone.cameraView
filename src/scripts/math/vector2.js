@@ -25,38 +25,22 @@ class Vector2 {
 
     /**
     * Adds two vectors.
-    * @private
     * @param {Vector2} a - A vector.
     * @param {Vector2} b - Another vector.
     * @return {Vector2} A new vector that is the sum of the provided vectors.
     */
-    static _add (a, b) {
+    static add (a, b) {
         return new Vector2(a.x + b.x, a.y + b.y);
     }
     
     /**
-    * Adds vectors together.
-    * @param {...Vector2} v - A vector.
-    * @return {Vector2} A new vector that is the sum of the provided vectors.
-    */
-    static add (v) {
-        let vectors = Array.prototype.slice.call(arguments);
-
-        return vectors.reduce(Vector2._add);
-    }
-    
-    /**
-    * Adds vectors to the vector.
-    * @param {...Vector2} v - A vector.
+    * Adds a vector to the vector.
+    * @param {Vector2} v - A vector.
     * @return {Vector2} The vector.
     */
     add (v) {
-        var v1 = null;
-        var vectors = Array.prototype.slice.call(arguments);
-        
-        vectors.unshift(this);
-        v1 = this.constructor.add.apply(null, vectors);
-        this.set(v1.x, v1.y);
+        this.x += v.x;
+        this.y += v.y;
 
         return this;
     }
@@ -200,38 +184,22 @@ class Vector2 {
     
     /**
     * Subtracts two vectors.
-    * @private
     * @param {Vector2} a - A vector.
     * @param {Vector2} b - Another vector.
     * @return {Vector2} A new vector that is the difference of the provided vectors.
     */
-    static _subtract (a, b) {
+    static subtract (a, b) {
         return new Vector2(a.x - b.x, a.y - b.y);
     }
     
     /**
-    * Subtracts vectors.
-    * @param {...Vector2} v - A vector.
-    * @return {Vector2} A new vector that is the difference of the provided vectors.
-    */
-    static subtract (v) {
-        let vectors = Array.prototype.slice.call(arguments);
-
-        return vectors.reduce(Vector2._subtract);
-    }
-    
-    /**
-    * Subtracts vectors from the vector.
-    * @param {...Vector2} v - A vector.
+    * Subtracts a vector from the vector.
+    * @param {Vector2} v - A vector.
     * @return {Vector2} The vector.
     */
     subtract (v) {
-        var v1 = null;
-        var vectors = Array.prototype.slice.call(arguments);
-        
-        vectors.unshift(this);
-        v1 = this.constructor.subtract.apply(null, vectors);
-        this.set(v1.x, v1.y);
+        this.x -= v.x;
+        this.y -= v.y;
 
         return this;
     }

@@ -453,7 +453,7 @@ class Camera {
     _calculatePositionFromOffset (cameraOffset, cameraCenter, sceneOrigin, sceneTransformation) {
         var sceneOriginOffset = sceneOrigin.clone().transform(sceneTransformation).subtract(sceneOrigin);
 
-        return cameraOffset.clone().add(sceneOriginOffset, cameraCenter).transform(sceneTransformation.getInverse());
+        return cameraOffset.clone().add(sceneOriginOffset).add(cameraCenter).transform(sceneTransformation.getInverse());
     }
 
     /**
@@ -485,7 +485,7 @@ class Camera {
     _calculateOffsetFromPosition (scenePosition, cameraFOVPosition, sceneOrigin, sceneTransformation) {
         var sceneOriginOffset = sceneOrigin.clone().transform(sceneTransformation).subtract(sceneOrigin);
 
-        return scenePosition.clone().transform(sceneTransformation).subtract(sceneOriginOffset, cameraFOVPosition);
+        return scenePosition.clone().transform(sceneTransformation).subtract(sceneOriginOffset).subtract(cameraFOVPosition);
     }
     
     /**
