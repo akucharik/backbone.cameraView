@@ -133,28 +133,22 @@ class Camera {
         this.maxZoom = options.maxZoom || 3;
         
         /**
-        * @property {number} - The offset of the camera's top left corner relative to the world without any effects applied.
+        * @property {number} - The offset of the camera's top left corner relative to the scene without any effects applied.
         * @readonly
         */
         this.rawOffset = new Vector2(0, 0);
         
         /**
-        * @property {number} - The offset of the camera's top left corner relative to the world.
+        * @property {number} - The offset of the camera's top left corner relative to the scene.
         * @readonly
         */
         this.offset = new Vector2(0, 0);
         
         /**
-        * @property {number} - The position of the camera in the world without any effects applied.
+        * @property {number} - The position of the camera on the scene.
         * @readonly
         */
-        this.rawPosition = new Vector2(options.width * 0.5 || 0, options.height * 0.5 || 0);;
-        
-        /**
-        * @property {number} - The position of the camera in the world.
-        * @readonly
-        */
-        this.position = new Vector2().copy(this.rawPosition);
+        this.position = new Vector2(options.width * 0.5 || 0, options.height * 0.5 || 0);
 
         /**
         * @property {number} - The renderer.
@@ -293,7 +287,7 @@ class Camera {
                     this.destroy();
                 },
                 onCompleteParams: [wasAnimating, wasPaused]
-            }).moveTo(this.rawPosition, 0, { overwrite: false });
+            }).moveTo(this.position, 0, { overwrite: false });
         }
         
         // Initialize event listeners

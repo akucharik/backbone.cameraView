@@ -94,19 +94,17 @@ class Animation extends TimelineMax {
             
             // Clamping here ensures bounds have been updated (if zoom has changed) and bounds are enforced during rotateAt
             // Position is manually maintained so animations can smoothly continue when camera is resized
-            this.camera.rawPosition = this.camera._clampPosition(this.camera._calculatePositionFromOffset(this.camera.rawOffset, this.camera.center, this.camera.scene.origin, this.camera.transformation));
-            this.camera.rawOffset = this.camera._calculateOffsetFromPosition(this.camera.rawPosition, this.camera.center, this.camera.scene.origin, this.camera.transformation);
+            this.camera.position = this.camera._clampPosition(this.camera._calculatePositionFromOffset(this.camera.rawOffset, this.camera.center, this.camera.scene.origin, this.camera.transformation));
             
-            if (this.camera.isShaking && this.camera.shakeRespectBounds) {
-                this.camera.position = this.camera._clampPosition(this.camera.rawPosition.clone().add(this.camera.shakeOffset));
-                this.camera.offset = this.camera._calculateOffsetFromPosition(this.camera.position, this.camera.center, this.camera.scene.origin, this.camera.transformation);
+            if (this.camera.isShaking) {
+                this.camera.position.add(this.camera.shakeOffset);
+                
+                if (this.camera.shakeRespectBounds) {
+                    this.camera._clampPosition(this.camera.position);
+                }
             }
-            else {
-                this.camera.offset.x = this.camera.rawOffset.x + this.camera.shakeOffset.x;
-                this.camera.offset.y = this.camera.rawOffset.y + this.camera.shakeOffset.y;
-                this.camera.position.x = this.camera.rawPosition.x + this.camera.shakeOffset.x;
-                this.camera.position.y = this.camera.rawPosition.y + this.camera.shakeOffset.y;
-            }
+            
+            this.camera.offset = this.camera._calculateOffsetFromPosition(this.camera.position, this.camera.center, this.camera.scene.origin, this.camera.transformation);
 
             if (this.config.onUpdate !== undefined) {
                 this.config.onUpdate.apply(this, this.config.onUpdateParams);
