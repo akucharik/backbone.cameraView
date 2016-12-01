@@ -50,6 +50,11 @@ class Animation extends TimelineMax {
         this.camera = camera || null;
         
         /**
+        * @property {TimelineLite} - The current active sub-animation consisting of the core camera animation and effect animations.
+        */
+        this.currentSubAnimation = null;
+        
+        /**
         * @property {boolean} - Whether the animation should be destroyed once it has completed.
         */
         this.destroyOnComplete = options.destroyOnComplete ? true : false;
@@ -88,9 +93,6 @@ class Animation extends TimelineMax {
         * @private
         */
         this._onUpdate = function () {
-            // TODO
-            // Add properties to animation to easily access shake timeline and props tween
-            
             // Clamping here ensures bounds have been updated (if zoom has changed) and bounds are enforced during rotateAt
             // Position is manually maintained so animations can smoothly continue when camera is resized
             this.camera.position = this.camera._clampPosition(this.camera._calculatePositionFromOffset(this.camera.rawOffset, this.camera.center, this.camera.scene.origin, this.camera.transformation));
@@ -156,44 +158,54 @@ class Animation extends TimelineMax {
     _animate (props, duration, options) {
         options = options || {};
         
-        var mainTimeline = new TimelineLite();
+        var mainTimeline = new TimelineLite({
+            callbackScope: this,
+            onStartParams: ['{self}'],
+            onStart: function (self) {
+                this.currentSubAnimation = self;
+            }
+        });
         var shakeTimeline = null;
         var shake = this._parseShake(props.shake);
         
         // Tween core camera properties
-        mainTimeline.add(TweenMax.to(this.camera, duration, Object.assign({}, options, {
-            data: {
-                sourceOrigin: props.origin,
-                sourcePosition: props.position,
-                sourceRotation: props.rotation,
-                sourceZoom: props.zoom
-            }, 
-            callbackScope: this,
-            immediateRender: false,
-            onStart: function (tween) {
-                var parsedProps = this._parseProps(tween.data.sourceOrigin, tween.data.sourcePosition, tween.data.sourceRotation, tween.data.sourceZoom, this.camera);
-                var endProps = this._calculateEndProps(parsedProps.parsedOrigin, parsedProps.parsedPosition, parsedProps.parsedRotation, parsedProps.parsedZoom, this.camera);
-                Object.assign(tween.data, parsedProps, endProps);
-                
-                this.previousProps.position = this.camera.position;
-                this.previousProps.rotation = this.camera.rotation;
-                this.previousProps.zoom = this.camera.zoom;
-                
-                // Smooth origin change
-                this._updateOrigin(endProps.endOrigin, this.camera);
-                
-                // TODO: For dev only
-                console.log('tween data: ', tween.data);
-                
-                tween.updateTo({
-                    rawOffsetX: endProps.endOffsetX,
-                    rawOffsetY: endProps.endOffsetY,
-                    rotation: endProps.endRotation,
-                    zoom: endProps.endZoom
-                });
-            },
-            onStartParams: ['{self}']
-        })), 0);
+        if (props.origin || props.position || props.rotation || props.zoom) {
+            mainTimeline.add(TweenMax.to(this.camera, duration, Object.assign({}, options, {
+                data: {
+                    sourceOrigin: props.origin,
+                    sourcePosition: props.position,
+                    sourceRotation: props.rotation,
+                    sourceZoom: props.zoom
+                }, 
+                immediateRender: false,
+                callbackScope: this,
+                onStartParams: ['{self}'],
+                onStart: function (self) {
+                    var parsedProps = this._parseProps(self.data.sourceOrigin, self.data.sourcePosition, self.data.sourceRotation, self.data.sourceZoom, this.camera);
+                    var endProps = this._calculateEndProps(parsedProps.parsedOrigin, parsedProps.parsedPosition, parsedProps.parsedRotation, parsedProps.parsedZoom, this.camera);
+                    Object.assign(self.data, parsedProps, endProps);
+
+                    this.previousProps.position = this.camera.position;
+                    this.previousProps.rotation = this.camera.rotation;
+                    this.previousProps.zoom = this.camera.zoom;
+
+                    // Smooth origin change
+                    this._updateOrigin(endProps.endOrigin, this.camera);
+
+                    // TODO: For dev only
+                    console.log('tween data: ', self.data);
+
+                    self.updateTo({
+                        rawOffsetX: endProps.endOffsetX,
+                        rawOffsetY: endProps.endOffsetY,
+                        rotation: endProps.endRotation,
+                        zoom: endProps.endZoom
+                    });
+
+                    self.timeline.core = self;
+                }
+            })), 0);
+        }
         
         // Tween shake effect
         if (duration > 0 && shake && shake.intensity > 0) {
@@ -203,28 +215,30 @@ class Animation extends TimelineMax {
                     direction: shake.direction,
                     respectBounds: shake.respectBounds
                 },
-                onStart: function (camera) {
-                    camera.isShaking = true;
-                    camera.shakeRespectBounds = (this.data.respectBounds === false) ? false : true;
+                callbackScope: this,
+                onStartParams: ['{self}'],
+                onStart: function (self) {
+                    self.timeline.shake = self;
+                    this.camera.isShaking = true;
+                    this.camera.shakeRespectBounds = (this.data.respectBounds === false) ? false : true;
                 },
-                onStartParams: [this.camera],
-                onUpdate: function (camera) {
-                    if (this.data.direction === Animation.shake.direction.HORIZONTAL || this.data.direction === Animation.shake.direction.BOTH) {
-                        camera.shakeOffset.x = Math.random() * this.data.intensity * camera.width * 2 - this.data.intensity * camera.width;
+                onUpdateParams: ['{self}'],
+                onUpdate: function (self) {
+                    if (self.data.direction === Animation.shake.direction.HORIZONTAL || self.data.direction === Animation.shake.direction.BOTH) {
+                        this.camera.shakeOffset.x = Math.random() * self.data.intensity * this.camera.width * 2 - self.data.intensity * this.camera.width;
                     }
 
-                    if (this.data.direction === Animation.shake.direction.VERTICAL || this.data.direction === Animation.shake.direction.BOTH) {
-                        camera.shakeOffset.y = Math.random() * this.data.intensity * camera.height * 2 - this.data.intensity * camera.height;
+                    if (self.data.direction === Animation.shake.direction.VERTICAL || self.data.direction === Animation.shake.direction.BOTH) {
+                        this.camera.shakeOffset.y = Math.random() * self.data.intensity * this.camera.height * 2 - self.data.intensity * this.camera.height;
                     }
                 },
-                onUpdateParams: [this.camera],
-                onComplete: function () {
-                    camera.shakeOffset.x = 0;
-                    camera.shakeOffset.y = 0;
-                    camera.isShaking = false;
-                    camera.shakeRespectBounds = true;
-                },
-                onCompleteParams: [this.camera]
+                onCompleteParams: ['{self}'],
+                onComplete: function (self) {
+                    this.camera.shakeOffset.x = 0;
+                    this.camera.shakeOffset.y = 0;
+                    this.camera.isShaking = false;
+                    this.camera.shakeRespectBounds = true;
+                }
             }));
             
             // Ease in/out
@@ -438,6 +452,8 @@ class Animation extends TimelineMax {
     destroy () {
         super.kill();
         this.camera = null;
+        this.currentSubAnimation = null;
+        this.previousProps = null;
     }
     
     /**

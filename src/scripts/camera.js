@@ -244,47 +244,39 @@ class Camera {
         this.onResize = () => {
             var wasAnimating = this.animations.isAnimating;
             var wasPaused = this.animations.isPaused;
-
-            // Maintain camera position and update the current animation
+            
             if (wasAnimating) {
                 this.pause();
             }
-
+            
+            // Maintain camera position and update the current animation
             new Oculo.Animation(this, { 
                 destroyOnComplete: true, 
                 paused: false, 
                 onComplete: function (wasAnimating, wasPaused) {
                     // 'this' is bound to the Animation via the Animation class
                     if (wasAnimating) {
-                        var inProgressTimeline, tween, endProps;
+                        var endProps;
+                        var coreAnimation = this.camera.animations.currentAnimation.currentSubAnimation.core;
 
-                        inProgressTimeline = this.camera.animations.currentAnimation.getChildren(false, false, true).filter((timeline) => {
-                            var progress = timeline.progress();
-                            return progress > 0 && progress < 1;
-                        })[0];
-
-                        tween = inProgressTimeline.getChildren(false, true, false)[0];
-
-                        if (tween.data.isMoving) {
-                            endProps = this._calculateEndProps(tween.data.parsedOrigin, tween.data.parsedPosition, tween.data.parsedRotation, tween.data.parsedZoom, this.camera);
-                            Object.assign(tween.data, endProps);
+                        if (coreAnimation.data.isMoving) {
+                            endProps = this._calculateEndProps(coreAnimation.data.parsedOrigin, coreAnimation.data.parsedPosition, coreAnimation.data.parsedRotation, coreAnimation.data.parsedZoom, this.camera);
+                            Object.assign(coreAnimation.data, endProps);
 
                             // TODO: for dev only
-                            console.log('tween data after resize: ', tween.data);
-                            tween.updateTo({
+                            console.log('tween data after resize: ', coreAnimation.data);
+                            coreAnimation.updateTo({
                                 zoom: endProps.endZoom,
                                 rotation: endProps.endRotation,
                                 rawOffsetX: endProps.endOffsetX,
                                 rawOffsetY: endProps.endOffsetY
                             });
                         }
+                        
+                        if (!wasPaused) {
+                            this.camera.resume();
+                        }
                     }
-
-                    if (wasAnimating && !wasPaused) {
-                        this.camera.animations.currentAnimation.resume();
-                    }
-
-                    this.destroy();
                 },
                 onCompleteParams: [wasAnimating, wasPaused]
             }).moveTo(this.position, 0, { overwrite: false });
