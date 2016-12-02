@@ -43,6 +43,7 @@ class CSSRenderer {
             this.camera.scene.view.style.visibility = 'visible';
             TweenLite.set(this.camera.scenes.view, { 
                 css: {
+                    transformOrigin: this.camera.transformOrigin.x + 'px ' + this.camera.transformOrigin.y + 'px',
                     scaleX: this.camera.zoom,
                     scaleY: this.camera.zoom,
                     rotation: -this.camera.rotation,

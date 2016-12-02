@@ -22,18 +22,6 @@ class Scene {
         this.camera = camera || null;
         
         /**
-        * @property {number} - The X transformation origin.
-        * @default
-        */
-        this.originX = 0;
-        
-        /**
-        * @property {number} - The Y transformation origin.
-        * @default
-        */
-        this.originY = 0;
-        
-        /**
         * @property {Element} - The view. An HTML element.
         */
         this.view = Utils.DOM.parseView(view);
@@ -42,15 +30,6 @@ class Scene {
         if (this.view && this.view.parentNode) {
             this.view.parentNode.removeChild(this.view);
         }
-    }
-    
-    /**
-    * @name Scene#origin
-    * @property {Vector2} - The transformation origin.
-    * @readonly
-    */
-    get origin () {
-        return new Vector2(this.originX, this.originY);
     }
     
     /**
