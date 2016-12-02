@@ -101,7 +101,7 @@ class SceneManager {
     * @returns {this} self
     */
     setActiveScene (name) {
-        if (this.view && this.activeScene.view) {
+        if (this.view && this.activeScene && this.activeScene.view) {
             this.view.removeChild(this.activeScene.view);
         }
         
