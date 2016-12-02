@@ -38,9 +38,9 @@ class Scene {
         */
         this.view = Utils.DOM.parseView(view);
         
-        if (this.view) {
-            this.view.style.display = 'none';
-            this.view.style.visibility = 'hidden';
+        // View setup
+        if (this.view && this.view.parentNode) {
+            this.view.parentNode.removeChild(this.view);
         }
     }
     

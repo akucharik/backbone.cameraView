@@ -39,15 +39,15 @@ class CSSRenderer {
     * returns {this} self
     */
     render () {
-        if (this.camera.scene && this.camera.scene.view) {
-            TweenLite.set(this.camera.scene.view, { 
+        if (this.camera.scene && this.camera.scenes.view) {
+            this.camera.scene.view.style.visibility = 'visible';
+            TweenLite.set(this.camera.scenes.view, { 
                 css: {
                     scaleX: this.camera.zoom,
                     scaleY: this.camera.zoom,
                     rotation: -this.camera.rotation,
                     x: -this.camera.offset.x,
-                    y: -this.camera.offset.y,
-                    visibility: 'visible'
+                    y: -this.camera.offset.y
                 }
             });    
         }

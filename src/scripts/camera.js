@@ -23,6 +23,8 @@ import TrackControl     from './trackControl';
 import Utils            from './utils';
 import Vector2          from './math/vector2';
 
+// TODO:
+// 1) Move "scene.origin" onto camera as "transformOrigin"
 
 const animationName = {
     ANONYMOUS: '_anonymous'
@@ -284,6 +286,50 @@ class Camera {
         
         // Initialize event listeners
         this.listenTo(this, 'change:size', this.onResize);
+        
+        // Initialize scene manager view and track controls
+        if (this.view && this.scenes.view) {
+            this.view.appendChild(this.scenes.view);
+            if (this.dragToMove || this.wheelToZoom) {
+                this.trackControl = new TrackControl(this, {
+                    draggable: this.dragToMove,
+                    onDrag: function (camera) {
+                        var position = camera._calculatePositionFromOffset(new Vector2(-this.x, -this.y), camera.center, camera.scene.origin, camera.transformation);
+                        new Oculo.Animation(camera, { 
+                            destroyOnComplete: true, 
+                            paused: false 
+                        }).moveTo(position, 0);
+                    },
+                    wheelable: this.wheelToZoom,
+                    onWheel: function (camera) {
+                        var velocity = Math.abs(this.wheelEvent.deltaY);
+                        var direction = this.wheelEvent.deltaY > 0 ? Camera.zoomDirection.OUT : Camera.zoomDirection.IN;
+                        var previousDirection = this.previousWheelEvent.deltaY > 0 ? Camera.zoomDirection.OUT : Camera.zoomDirection.IN;
+                        var cameraRect;
+                        var cameraFOVPosition = new Vector2();
+                        var sceneContextPosition = new Vector2();
+                        var origin = camera.scene.origin;
+                        var zoom = camera.zoom + camera.zoom * camera.wheelToZoomIncrement * (velocity > 1 ? velocity * 0.5 : 1) * (direction === Camera.zoomDirection.IN ? 1 : -1);
+
+                        // Performance Optimization: If zoom has not changed because it's at the min/max, don't zoom.
+                        if (direction === previousDirection && camera._clampZoom(zoom) !== camera.zoom) { 
+                            cameraRect = camera.view.getBoundingClientRect();
+                            cameraFOVPosition.set(this.wheelEvent.clientX - cameraRect.left, this.wheelEvent.clientY - cameraRect.top);
+                            sceneContextPosition = camera._calculatePositionFromOffset(camera.offset, cameraFOVPosition, camera.scene.origin, camera.transformation);
+
+                            if (Math.round(origin.x) !== Math.round(sceneContextPosition.x) || Math.round(origin.y) !== Math.round(sceneContextPosition.y)) {
+                                origin = camera._calculatePositionFromOffset(camera.offset, cameraFOVPosition, camera.scene.origin, camera.transformation);
+                            }
+
+                            new Oculo.Animation(camera, { 
+                                destroyOnComplete: true, 
+                                paused: false 
+                            }).zoomAt(origin, zoom, 0);
+                        }
+                    }
+                });
+            }
+        }
         
         this.initialize(options);
     }
@@ -690,80 +736,55 @@ class Camera {
                 this.debugView.render().attach(document.body);
             }
             
+            this.renderer.renderSize();
+            this.rawOffset = this._calculateOffsetFromPosition(this.position, this.center, this.scene.origin, this.transformation);
+            
             this.isRendered = true;
         }
+        
+        // Clamping here ensures bounds have been updated (if zoom has changed) and bounds are enforced during rotateAt
+        // Position is manually maintained so animations can smoothly continue when camera is resized
+        this.position = this._clampPosition(this._calculatePositionFromOffset(this.rawOffset, this.center, this.scene.origin, this.transformation));
 
-        this.renderer.renderSize();
+        if (this.isShaking) {
+            this.position.add(this.shakeOffset);
+
+            if (this.shakeRespectBounds) {
+                this._clampPosition(this.position);
+            }
+        }
+
+        this.offset = this._calculateOffsetFromPosition(this.position, this.center, this.scene.origin, this.transformation);
         this.renderer.render();
-
         this.onRender();
 
         return this;
     }
 
     /**
+    * Resets the camera.
+    *
+    * @returns {this} self
+    */
+    reset () {
+        this.rawOffset.set(0, 0);
+        this.offset.copy(this.rawOffset);
+        this.scene.origin.set(0, 0);
+        this.rotation = 0;
+        this.zoom = 1;
+        this.position = this._calculatePositionFromOffset(this.rawOffset, this.center, this.scene.origin, this.transformation);
+        
+        return this;
+    }
+    
+    /**
     * Sets the active scene.
     *
     * @returns {this} self
     */
     setScene (name) {
-        if (this.scene && this.scene.view && this.scene.view.parentNode) {
-            this.scene.view.parentNode.removeChild(this.scene.view);
-            this.scene.view.style.display = 'none';
-            this.scene.view.style.visibility = 'hidden';
-        }
-        
-        if (this.trackControl) {
-            this.trackControl.destroy();
-        }
-        
         this.scenes.setActiveScene(name);
-        
-        if (this.scene.view) {
-            this.view.appendChild(this.scene.view);
-            this.scene.view.style.display = 'block';
-            
-            if (this.dragToMove || this.wheelToZoom) {
-                this.trackControl = new TrackControl(this, {
-                    draggable: this.dragToMove,
-                    onDrag: function (camera) {
-                        var position = camera._calculatePositionFromOffset(new Vector2(-this.x, -this.y), camera.center, camera.scene.origin, camera.transformation);
-                        new Oculo.Animation(camera, { 
-                            destroyOnComplete: true, 
-                            paused: false 
-                        }).moveTo(position, 0);
-                    },
-                    wheelable: this.wheelToZoom,
-                    onWheel: function (camera) {
-                        var velocity = Math.abs(this.wheelEvent.deltaY);
-                        var direction = this.wheelEvent.deltaY > 0 ? Camera.zoomDirection.OUT : Camera.zoomDirection.IN;
-                        var previousDirection = this.previousWheelEvent.deltaY > 0 ? Camera.zoomDirection.OUT : Camera.zoomDirection.IN;
-                        var cameraRect;
-                        var cameraFOVPosition = new Vector2();
-                        var sceneContextPosition = new Vector2();
-                        var origin = camera.scene.origin;
-                        var zoom = camera.zoom + camera.zoom * camera.wheelToZoomIncrement * (velocity > 1 ? velocity * 0.5 : 1) * (direction === Camera.zoomDirection.IN ? 1 : -1);
-
-                        // Performance Optimization: If zoom has not changed because it's at the min/max, don't zoom.
-                        if (direction === previousDirection && camera._clampZoom(zoom) !== camera.zoom) { 
-                            cameraRect = camera.view.getBoundingClientRect();
-                            cameraFOVPosition.set(this.wheelEvent.clientX - cameraRect.left, this.wheelEvent.clientY - cameraRect.top);
-                            sceneContextPosition = camera._calculatePositionFromOffset(camera.offset, cameraFOVPosition, camera.scene.origin, camera.transformation);
-
-                            if (Math.round(origin.x) !== Math.round(sceneContextPosition.x) || Math.round(origin.y) !== Math.round(sceneContextPosition.y)) {
-                                origin = camera._calculatePositionFromOffset(camera.offset, cameraFOVPosition, camera.scene.origin, camera.transformation);
-                            }
-
-                            new Oculo.Animation(camera, { 
-                                destroyOnComplete: true, 
-                                paused: false 
-                            }).zoomAt(origin, zoom, 0);
-                        }
-                    }
-                });
-            }
-        }
-        
+        this.reset();
         this._updateBounds();
 
         return this;

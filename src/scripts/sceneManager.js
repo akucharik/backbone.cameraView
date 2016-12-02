@@ -13,9 +13,13 @@ import Scene    from './scene';
 * 
 * @class SceneManager
 * @param {Oculo.Camera} camera - The camera that owns this SceneManager.
+* @param {Object} [options] - An object of options.
+* @param {null} [options.view] - Pass null to create a SceneManager without a view. Otherwise a 'div' is created.
 */
 class SceneManager {
-    constructor (camera) {
+    constructor (camera, options) {
+        options = options || {};
+        
         /**
         * @property {Oculo.Camera} - The camera that owns this SceneManager.
         * @readonly
@@ -29,10 +33,20 @@ class SceneManager {
         this.activeScene = null;
         
         /**
+        * @property {Element} - The view. An HTML element.
+        */
+        this.view = (options.view === null) ? null : document.createElement('div');
+        
+        /**
         * @property {Object} - An object for storing the managed Scene instances.
         * @private
         */
         this._scenes = {};
+        
+        // View setup
+        if (this.view) {
+            this.view.style.willChange = 'transform';
+        }
     }
     
     /**
@@ -65,6 +79,7 @@ class SceneManager {
         
         this.camera = null;
         this.activeScene = null;
+        this.view = null;
         this._scenes = {};
         
         return this;
@@ -86,7 +101,19 @@ class SceneManager {
     * @returns {this} self
     */
     setActiveScene (name) {
+        if (this.view && this.activeScene.view) {
+            this.view.removeChild(this.activeScene.view);
+        }
+        
         this.activeScene = this._scenes[name];
+        
+        if (this.view) {
+            this.activeScene.view.style.visibility = 'hidden';
+            this.activeScene.view.style.display = 'block';
+            this.view.appendChild(this.activeScene.view);
+            this.view.style.width = this.activeScene.width + 'px';
+            this.view.style.height = this.activeScene.height + 'px';
+        }
         
         return this;
     }

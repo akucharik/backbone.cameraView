@@ -55,7 +55,7 @@ class TrackControl {
         * @property {Draggable} - The drag control.
         * @default null
         */
-        this.dragControl = !this.isDraggable ? null : new DragControl(this.camera.scene.view, Object.assign({
+        this.dragControl = !this.isDraggable ? null : new DragControl(this.camera.scenes.view, Object.assign({
             dragProxy: this.camera.view,
             onDragParams: [this.camera],
             zIndexBoost: false

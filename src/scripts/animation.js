@@ -93,25 +93,25 @@ class Animation extends TimelineMax {
         * @private
         */
         this._onUpdate = function () {
-            // Clamping here ensures bounds have been updated (if zoom has changed) and bounds are enforced during rotateAt
-            // Position is manually maintained so animations can smoothly continue when camera is resized
-            this.camera.position = this.camera._clampPosition(this.camera._calculatePositionFromOffset(this.camera.rawOffset, this.camera.center, this.camera.scene.origin, this.camera.transformation));
-            
-            if (this.camera.isShaking) {
-                this.camera.position.add(this.camera.shakeOffset);
-                
-                if (this.camera.shakeRespectBounds) {
-                    this.camera._clampPosition(this.camera.position);
-                }
-            }
-            
-            this.camera.offset = this.camera._calculateOffsetFromPosition(this.camera.position, this.camera.center, this.camera.scene.origin, this.camera.transformation);
+//            // Clamping here ensures bounds have been updated (if zoom has changed) and bounds are enforced during rotateAt
+//            // Position is manually maintained so animations can smoothly continue when camera is resized
+//            this.camera.position = this.camera._clampPosition(this.camera._calculatePositionFromOffset(this.camera.rawOffset, this.camera.center, this.camera.scene.origin, this.camera.transformation));
+//            
+//            if (this.camera.isShaking) {
+//                this.camera.position.add(this.camera.shakeOffset);
+//                
+//                if (this.camera.shakeRespectBounds) {
+//                    this.camera._clampPosition(this.camera.position);
+//                }
+//            }
+//            
+//            this.camera.offset = this.camera._calculateOffsetFromPosition(this.camera.position, this.camera.center, this.camera.scene.origin, this.camera.transformation);
 
             if (this.config.onUpdate !== undefined) {
                 this.config.onUpdate.apply(this, this.config.onUpdateParams);
             }
             
-            this.camera.renderer.render();
+            this.camera.render();
         }
         
         /**
@@ -427,8 +427,8 @@ class Animation extends TimelineMax {
             camera.scene.originX = origin.x;
             camera.scene.originY = origin.y;
 
-            if (camera.scene.view) {    
-                TweenMax.set(camera.scene.view, { 
+            if (camera.scenes.view) {
+                TweenMax.set(camera.scenes.view, { 
                     css: {
                         transformOrigin: camera.scene.originX + 'px ' + camera.scene.originY + 'px',
                         x: -camera.rawOffset.x,
