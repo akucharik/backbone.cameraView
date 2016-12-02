@@ -575,6 +575,29 @@ class Camera {
         }
     }
     
+    /**
+    * Sets the transformOrigin.
+    *
+    * @private
+    * @param {Vector2} origin - The origin.
+    * @returns {this} self
+    */
+    _setTransformOrigin (origin) {
+        if (origin && !origin.equals(this.transformOrigin)) {
+            var transformation = this.transformation;
+            var originOffset = origin.clone().transform(transformation).subtract(this.transformOrigin.clone().transform(transformation)).subtract(origin.clone().subtract(this.transformOrigin));
+
+            if (this.isRotated || this.isZoomed) {
+                this.rawOffset.x -= originOffset.x;
+                this.rawOffset.y -= originOffset.y;
+            }
+
+            this.transformOrigin.copy(origin);
+        }
+        
+        return this;
+    }
+    
     _updateBounds (value) { 
         value = (value === undefined) ? this._bounds : value;
         
@@ -775,12 +798,12 @@ class Camera {
     * @returns {this} self
     */
     reset () {
-        this.rawOffset.set(0, 0);
-        this.offset.copy(this.rawOffset);
+        this.transformOrigin.set(0, 0);
+        this.position.set(this.width * 0.5, this.height * 0.5);
         this.rotation = 0;
         this.zoom = 1;
-        this.transformOrigin.set(0, 0);
-        this.position = this._calculatePositionFromOffset(this.rawOffset, this.center, this.transformOrigin, this.transformation);
+        this.rawOffset = this._calculateOffsetFromPosition(this.position, this.center, this.transformOrigin, this.transformation);
+        this.offset.copy(this.rawOffset);
         
         return this;
     }

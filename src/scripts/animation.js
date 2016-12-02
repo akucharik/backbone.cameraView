@@ -176,7 +176,7 @@ class Animation extends TimelineMax {
                     this.previousProps.zoom = this.camera.zoom;
 
                     // Smooth origin change
-                    this._updateOrigin(endProps.endOrigin, this.camera);
+                    this.camera._setTransformOrigin(endProps.endOrigin);
 
                     // TODO: For dev only
                     console.log('tween data: ', self.data);
@@ -388,30 +388,6 @@ class Animation extends TimelineMax {
         }
         
         return parsedShake;
-    }
-    
-    /**
-    * Updates the origin.
-    *
-    * @private
-    * @param {Vector2} origin - The origin.
-    * @param {Oculo.Camera} camera - The camera.
-    * @returns {this} self
-    */
-    _updateOrigin (origin, camera) {
-        if (origin && !origin.equals(camera.transformOrigin)) {
-            var transformation = camera.transformation;
-            var originOffset = origin.clone().transform(transformation).subtract(camera.transformOrigin.clone().transform(transformation)).subtract(origin.clone().subtract(camera.transformOrigin));
-
-            if (camera.isRotated || camera.isZoomed) {
-                camera.rawOffset.x -= originOffset.x;
-                camera.rawOffset.y -= originOffset.y;
-            }
-
-            camera.transformOrigin.copy(origin);
-        }
-        
-        return this;
     }
     
     /**
