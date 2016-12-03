@@ -12,7 +12,7 @@ import isFunction       from 'lodash/isFunction';
 import isNil            from 'lodash/isNil';
 import isObject         from 'lodash/isObject';
 import isString         from 'lodash/isString';
-import Backbone         from 'backbone';
+import { EventEmitter } from 'fbemitter';
 import AnimationManager from './animationManager';
 import CSSRenderer      from './cssRenderer';
 import _Math            from './math/math';
@@ -26,7 +26,8 @@ import Vector2          from './math/vector2';
 // TODO:
 // 1) Refactor calculations into camera, not animation class?
 // 2) Move scene scaled width/height onto camera?
-// 3) Get rid of Backbone and use small event emitter
+// 3) Remove debug view
+// 4) Decouple demo build from camera build
 
 const animationName = {
     ANONYMOUS: '_anonymous'
@@ -53,9 +54,6 @@ class Camera {
         options = options || {};
         
         var position;
-        
-        // Compose object
-        Object.assign(this, Backbone.Events);
         
 //        /**
 //        * The debugging information view.
@@ -250,6 +248,12 @@ class Camera {
         */
         this._bounds = options.bounds || Camera.bounds.NONE;
         
+        /**
+        * @private
+        * @property {EventEmitter} - The internal event emitter.
+        */
+        this._events = new EventEmitter();
+        
         // Initialize custom events
         this.onResize = () => {
             var wasAnimating = this.animations.isAnimating;
@@ -293,7 +297,7 @@ class Camera {
         }
         
         // Initialize event listeners
-        this.listenTo(this, 'change:size', this.onResize);
+        this._events.addListener('change:size', this.onResize);
         
         // Initialize scene manager view and track controls
         if (this.view && this.scenes.view) {
@@ -674,7 +678,7 @@ class Camera {
             this.trackControl.destroy();
         }
         
-        this.stopListening();
+        this._events.removeAllListeners();
         
         return this;
     }
@@ -793,7 +797,7 @@ class Camera {
     }
 
     /**
-    * Resets the camera.
+    * Resets the camera to the default state.
     *
     * @returns {this} self
     */
@@ -845,7 +849,7 @@ class Camera {
         
         if (hasChanged) {
             this.renderer.renderSize();
-            this.trigger('change:size');
+            this._events.emit('change:size');
             this._renderDebug();
         }
         
