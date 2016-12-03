@@ -23,12 +23,11 @@
                 <div class="bcv-ignore-pointer-events" style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 50px; height: 2px; background-color: red; transform: translateX(-25px) translateY(-1px); z-index: 1;"></div>
                 <div class="bcv-ignore-pointer-events" style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 2px; height: 50px; background-color: red; transform: translateX(-1px) translateY(-25px); z-index: 1;"></div>
                 
-                <div class="bcv-ignore-pointer-events" style="box-sizing: border-box; position: absolute; top: 0; left: 0; bottom: 0; right: 0; border: 1px solid rgba(0,0,0,0.3); z-index: 1;"></div>
+                <div class="bcv-ignore-pointer-events" style="box-sizing: border-box; position: absolute; top: 0; left: 0; bottom: 0; right: 0; border: 1px solid black; z-index: 1;"></div>
                 <div id="point" style="position: absolute; width: 4px; height: 4px; background-color: #ff9900; top: -1000px; left: -1000px; z-index: 1000;"></div>
             </div>
 
             <div id="scene1" class="bcv-scene" style="display: none;">
-                <!--<img src="images/FFL-Spritesheet-White-1827x1215.png" alt="Final Fantasy Legend Sprites" width="1827" height="1215" />-->
                 <div style="box-sizing: border-box; width: 1200px; height: 700px; background-color: #def; border: 10px solid black;"></div>
                 <div style="box-sizing: border-box; position: absolute; top: 100px; left: 300px; width: 200px; height: 200px; background-color: #cdf;"></div>
                 <div id="box100" style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid green;"></div>
@@ -47,7 +46,7 @@
                 <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 300px; height: 300px; border: 1px solid green;"></div>
             </div>
             
-            <div id="scene3" class="bcv-scene" style="display: none; width: 1000px; height: 500px;">
+            <div id="scene3" class="bcv-scene" style="display: none;">
                 <div style="box-sizing: border-box; width: 1000px; height: 500px; background-color: #eee; border: 10px solid black; position: absolute;"></div>
                 <img src="images/FFL-Meat-White-64x48.png" alt="Final Fantasy Legend Meat" width="64" height="48" style="position: absolute; left: 100px; top: 100px;" />
                 <img src="images/FFL-Meat-White-64x48.png" alt="Final Fantasy Legend Meat" width="64" height="48" style="position: absolute; left: 200px; top: 100px;"/>
@@ -96,21 +95,15 @@
             dragToMove: true,
             //maxZoom: 6,
             //minZoom: 0.1,
-            //position: {
-            //    x: 500,
-            //    y: 250
-            //},
-            rotation: 0,
             wheelToZoom: true,
             //wheelToZoomIncrement: 0.5,
             width: 1000,
-            height: 500,
-            zoom: 1,
+            height: 500
         });
         
         // Scenes
         camera.addScene('scene1', '#scene1');
-        camera.addScene('scene2', new Oculo.Scene('#scene2'));
+        camera.addScene('scene2', new Oculo.Scene(camera, '#scene2'));
         camera.addScene('scene3', '#scene3');
         camera.setScene('scene1');
         
@@ -132,7 +125,7 @@
         camera.addAnimation('zoomTo200', new Oculo.Animation(camera).zoomTo(2, 2));
         camera.addAnimation('instantZoom', new Oculo.Animation(camera).zoomTo(2, 0));
         camera.addAnimation('instantShake', new Oculo.Animation(camera).shake(0.1, 0));
-        camera.addAnimation('backAndForth', new Oculo.Animation(camera).animate({position: '#box100', rotation:20, zoom: 1.5}, 2, {ease: Power4.easeOut}).animate({position: 'previous', rotation: 'previous', zoom: 'previous'}, 2, {ease: Power3.easeOut}));
+        camera.addAnimation('backAndForth', new Oculo.Animation(camera).animate({position: '#box100', rotation:20, zoom: 1.5}, 1.5, {ease: Power4.easeOut}).animate({position: 'previous', rotation: 'previous', zoom: 'previous'}, 1.5, {ease: Power3.easeOut}));
         
         camera.addAnimation('moveTo0001', new Oculo.Animation(camera, {useFrames: true}).animate({position: {x:0,y:0}, zoom: 0.166}, 61, {ease: Power0.easeNone}));
         camera.addAnimation('moveTo0005', new Oculo.Animation(camera, {useFrames: true}).animate({position: {x:0,y:0}, zoom: 0.5}, 61, {ease: Power0.easeNone}));
@@ -151,6 +144,7 @@
         }
         
         camera.render();
+        //camera.moveTo({x:200, y:200}, 0);
         //camera.play('moveTobox100');
     </script>
     

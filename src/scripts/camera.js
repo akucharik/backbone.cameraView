@@ -50,11 +50,18 @@ const animationName = {
 * @param {number} [options.wheelToZoomIncrement] - The base {@link Camera.wheelToZoomIncrement|zoom increment}.
 */
 class Camera {
-    constructor (options) {
-        options = options || {};
-        
-        var position;
-        
+    constructor ({ 
+        bounds = null, 
+        debug = false, 
+        dragToMove = false, 
+        height = 0, 
+        maxZoom = 3, 
+        minZoom = 0.5, 
+        view = undefined, 
+        wheelToZoom = false, 
+        wheelToZoomIncrement = 0.01, 
+        width = 0} = {}) {
+
 //        /**
 //        * The debugging information view.
 //        * @property {Backbone.View} - The debugging information view.
@@ -74,13 +81,13 @@ class Camera {
         * @property {Object} - Whether the camera is in debug mode or not.
         * @default false
         */
-        this.debug = options.debug ? true : false;
+        this.debug = debug;
 
         /**
         * @property {boolean} - Whether the camera's position is draggable or not.
         * @default false
         */
-        this.dragToMove = options.dragToMove ? true : false;
+        this.dragToMove = dragToMove;
 
         /**
         * @property {boolean} - Whether the camera has been rendered or not.
@@ -125,14 +132,14 @@ class Camera {
         * @property {number} - See {@link Camera.zoom|zoom}.
         * @default 0.5
         */
-        this.minZoom = options.minZoom || 0.5;
+        this.minZoom = minZoom;
         
         /**
         * The maximum value the camera can be zoomed.
         * @property {number} - See {@link Camera.zoom|zoom}.
         * @default 3
         */
-        this.maxZoom = options.maxZoom || 3;
+        this.maxZoom = maxZoom;
         
         /**
         * @property {number} - The offset of the camera's top left corner relative to the scene without any effects applied.
@@ -150,8 +157,8 @@ class Camera {
         * @property {number} - The position of the camera on the scene.
         * @readonly
         */
-        this.position = new Vector2(options.width * 0.5 || 0, options.height * 0.5 || 0);
-
+        this.position = new Vector2(width * 0.5, height * 0.5);
+        
         /**
         * @property {number} - The renderer.
         * @readonly
@@ -163,7 +170,7 @@ class Camera {
         * @readonly
         * @default 0
         */
-        this.rotation = options.rotation || 0;
+        this.rotation = 0;
         
         /**
         * @property {Oculo.SceneManager} - An object for managing scenes.
@@ -202,33 +209,33 @@ class Camera {
         * @private
         * @property {Element} - The internally managed view.
         */
-        this.view = (options.view === null) ? null : Utils.DOM.parseView(options.view) || document.createElement('div');
+        this.view = (view === null) ? null : Utils.DOM.parseView(view) || document.createElement('div');
         
         /**
         * @property {boolean} - Whether wheeling can be used to zoom or not.
         * @default false
         */
-        this.wheelToZoom = options.wheelToZoom ? true : false;
+        this.wheelToZoom = wheelToZoom;
         
         /**
         * @property {number} - The base increment at which the camera will be zoomed. See {@link Camera.zoom|zoom}.
         * @default 0.01
         */
-        this.wheelToZoomIncrement = options.wheelToZoomIncrement || 0.01;
+        this.wheelToZoomIncrement = wheelToZoomIncrement;
         
         /**
         * @property {number} - The width.
         * @readonly
         * @default 0
         */
-        this.width = options.width || 0;
+        this.width = width;
 
         /**
         * @property {number} - The height.
         * @readonly
         * @default 0
         */
-        this.height = options.height || 0;
+        this.height = height;
         
         /**
         * @property {Vector2} - The center of the camera's FOV.
@@ -240,13 +247,13 @@ class Camera {
         * @private
         * @property {number} - The internally managed zoom.
         */
-        this._zoom = this._clampZoom(options.zoom || 1);
+        this._zoom = 1;
         
         /**
         * @private
         * @property {null|function|Object} - The internally managed bounds.
         */
-        this._bounds = options.bounds || Camera.bounds.NONE;
+        this._bounds = bounds;
         
         /**
         * @private
@@ -343,7 +350,7 @@ class Camera {
             }
         }
         
-        this.initialize(options);
+        this.initialize(arguments[0]);
     }
     
     /**
@@ -660,6 +667,16 @@ class Camera {
     }
     
     /**
+    * Gets a scene.
+    *
+    * @param {string} name - The name.
+    * @returns {Oculo.Scene} The scene.
+    */
+    getScene (name) {
+        return this.scenes.get(name);
+    }
+    
+    /**
     * Destroys the camera and prepares it for garbage collection.
     *
     * @returns {this} self
@@ -773,7 +790,6 @@ class Camera {
             
             this.renderer.renderSize();
             this.rawOffset = this._calculateOffsetFromPosition(this.position, this.center, this.transformOrigin, this.transformation);
-            
             this.isRendered = true;
         }
         

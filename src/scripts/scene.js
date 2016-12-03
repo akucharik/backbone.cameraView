@@ -12,14 +12,15 @@ import Vector2   from './math/vector2';
 * Creates a scene.
 * 
 * @class Scene
-* @param {string|Element} [view] - The view for the scene. It can be a selector or an element.
+* @param {Oculo.Camera} [camera=null] - The camera that owns this Scene.
+* @param {string|Element} [view=null] - The view for the scene. It can be a selector or an element.
 */
 class Scene {
-    constructor (view, camera) {
+    constructor (camera = null, view = null) {
         /**
         * @property {Oculo.Camera} - The camera.
         */
-        this.camera = camera || null;
+        this.camera = camera;
         
         /**
         * @property {Element} - The view. An HTML element.

@@ -13,13 +13,10 @@ import Scene    from './scene';
 * 
 * @class SceneManager
 * @param {Oculo.Camera} camera - The camera that owns this SceneManager.
-* @param {Object} [options] - An object of options.
-* @param {null} [options.view] - Pass null to create a SceneManager without a view. Otherwise a 'div' is created.
+* @param {boolean} [hasView=true] - If true, a 'div' is created and managed internally. Pass false to create a SceneManager without a view.
 */
 class SceneManager {
-    constructor (camera, options) {
-        options = options || {};
-        
+    constructor (camera, hasView = true) {
         /**
         * @property {Oculo.Camera} - The camera that owns this SceneManager.
         * @readonly
@@ -35,7 +32,7 @@ class SceneManager {
         /**
         * @property {Element} - The view. An HTML element.
         */
-        this.view = (options.view === null) ? null : document.createElement('div');
+        this.view = (hasView === true) ? document.createElement('div') : null;
         
         /**
         * @property {Object} - An object for storing the managed Scene instances.
@@ -58,10 +55,12 @@ class SceneManager {
     */
     add (name, scene) {
         if (isString(scene)) {
-            scene = new Scene(scene);
+            scene = new Scene(this.camera, scene);
+        }
+        else {
+            scene.camera = this.camera;
         }
         
-        scene.camera = this.camera;
         this._scenes[name] = scene;
         
         return this;
@@ -91,7 +90,7 @@ class SceneManager {
     * @param {string} name - The name of the scene.
     * @returns {Oculo.Scene} The scene.
     */
-    getScene (name) {
+    get (name) {
         return this._scenes[name];
     }
     
