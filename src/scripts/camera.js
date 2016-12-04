@@ -24,10 +24,7 @@ import Utils            from './utils';
 import Vector2          from './math/vector2';
 
 // TODO:
-// 1) Refactor calculations into camera, not animation class?
-// 2) Move scene scaled width/height onto camera?
-// 3) Remove debug view
-// 4) Decouple demo build from camera build
+// 1) Move scene scaled width/height onto camera?
 
 const animationName = {
     ANONYMOUS: '_anonymous'
@@ -52,7 +49,6 @@ const animationName = {
 class Camera {
     constructor ({ 
         bounds = null, 
-        debug = false, 
         dragToMove = false, 
         height = 0, 
         maxZoom = 3, 
@@ -61,27 +57,12 @@ class Camera {
         wheelToZoom = false, 
         wheelToZoomIncrement = 0.01, 
         width = 0} = {}) {
-
-//        /**
-//        * The debugging information view.
-//        * @property {Backbone.View} - The debugging information view.
-//        */
-//        this.debugView = new DebugView({
-//            model: this,
-//            className: 'oculo-debug'
-//        });
         
         /**
         * @property {Oculo.AnimationManager} - An object for managing animations.
         * @readonly
         */
         this.animations = new AnimationManager(this);
-        
-        /**
-        * @property {Object} - Whether the camera is in debug mode or not.
-        * @default false
-        */
-        this.debug = debug;
 
         /**
         * @property {boolean} - Whether the camera's position is draggable or not.
@@ -574,17 +555,6 @@ class Camera {
     _clampZoom (zoom) {
         return clamp(zoom, this.minZoom, this.maxZoom);
     }
-
-    /**
-    * Render debug info.
-    *
-    * @private
-    */
-    _renderDebug () {
-        if (this.debug && this.debugView) {
-            this.debugView.update();
-        }
-    }
     
     /**
     * Sets the transformOrigin.
@@ -784,10 +754,6 @@ class Camera {
         this.onBeforeRender();
 
         if (!this.isRendered) {
-            if (this.debug && this.debugView) {
-                this.debugView.render().attach(document.body);
-            }
-            
             this.renderer.renderSize();
             this.rawOffset = this._calculateOffsetFromPosition(this.position, this.center, this.transformOrigin, this.transformation);
             this.isRendered = true;
@@ -866,7 +832,6 @@ class Camera {
         if (hasChanged) {
             this.renderer.renderSize();
             this._events.emit('change:size');
-            this._renderDebug();
         }
         
         return this;
@@ -880,7 +845,6 @@ class Camera {
     */
     pause () {
         this.animations.pause();
-        this._renderDebug();
 
         return this;
     }
