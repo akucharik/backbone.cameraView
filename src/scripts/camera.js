@@ -312,14 +312,16 @@ class Camera {
                 },
                 wheelable: this.wheelToZoom,
                 onWheel: function (camera) {
+                    const ZOOM_IN = 1;
+                    const ZOOM_OUT = 0;
                     var velocity = Math.abs(this.wheelEvent.deltaY);
-                    var direction = this.wheelEvent.deltaY > 0 ? Camera.zoomDirection.OUT : Camera.zoomDirection.IN;
-                    var previousDirection = this.previousWheelEvent.deltaY > 0 ? Camera.zoomDirection.OUT : Camera.zoomDirection.IN;
+                    var direction = this.wheelEvent.deltaY > 0 ? ZOOM_OUT : ZOOM_IN;
+                    var previousDirection = this.previousWheelEvent.deltaY > 0 ? ZOOM_OUT : ZOOM_IN;
                     var cameraRect;
                     var cameraFOVPosition = new Vector2();
                     var sceneContextPosition = new Vector2();
                     var origin = camera.transformOrigin;
-                    var zoom = camera.zoom + camera.zoom * camera.wheelToZoomIncrement * (velocity > 1 ? velocity * 0.5 : 1) * (direction === Camera.zoomDirection.IN ? 1 : -1);
+                    var zoom = camera.zoom + camera.zoom * camera.wheelToZoomIncrement * (velocity > 1 ? velocity * 0.5 : 1) * (direction === ZOOM_IN ? 1 : -1);
 
                     // Performance Optimization: If zoom has not changed because it's at the min/max, don't zoom.
                     if (direction === previousDirection && camera._clampZoom(zoom) !== camera.zoom) { 
@@ -622,13 +624,11 @@ class Camera {
         return this;
     }
     
-    _updateBounds (value) { 
-        value = (value === undefined) ? this._bounds : value;
-        
+    _updateBounds () { 
         var bounds;
         
         if (this.scene) {
-            if (!value) {
+            if (this._bounds === null) {
                 bounds = {
                     minX: null,
                     minY: null,
@@ -636,11 +636,11 @@ class Camera {
                     maxY: null
                 };
             }
-            else if (isFunction(value)) {
-                bounds = value.call(this);
+            else if (isFunction(this._bounds)) {
+                bounds = this._bounds.call(this);
             }
             else {
-                bounds = value;
+                bounds = this._bounds;
             }
             
             this.minPositionX = bounds.minX;
@@ -1003,24 +1003,6 @@ Camera.bounds = {
             maxY: this.scene.height
         };
     },
-};
-
-/**
-* Enum for zoom direction.
-* @enum {number}
-* @memberof constants
-*/
-Camera.zoomDirection = {
-    /**
-    * Zoom in.
-    * @readonly
-    */
-    IN: 1,
-    /**
-    * Zoom out.
-    * @readonly
-    */
-    OUT: 0
 };
 
 export default Camera;
