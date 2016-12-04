@@ -14,6 +14,8 @@
 import Utils from './utils';
 
 /**
+* Description.
+* 
 * @class Oculo.DragControl
 * @requires {@link external:Draggable}
 * @memberof Oculo

@@ -17,6 +17,8 @@ import Utils      from './utils';
 import Vector2    from './math/vector2';
 
 /**
+* Description.
+* 
 * @class Oculo.Animation
 * @constructor
 * @memberof Oculo

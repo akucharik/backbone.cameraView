@@ -5,6 +5,7 @@ import isNil    from 'lodash/isNil';
 
 /**
 * Creates a 2D vector from a series of values.
+* 
 * @param {number} [x] - The x value.
 * @param {number} [y] - The y value.
 */

@@ -9,6 +9,8 @@ import throttle from 'lodash/throttle';
 import Utils    from './utils';
 
 /**
+* Description.
+* 
 * @class Oculo.WheelControl
 * @constructor
 * @memberof Oculo

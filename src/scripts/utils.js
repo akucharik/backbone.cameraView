@@ -11,6 +11,8 @@ import isString  from 'lodash/isString';
 import Vector2   from './math/vector2';
 
 /**
+* Description.
+* 
 * @namespace utils
 * @static
 */

@@ -10,6 +10,8 @@ import DragControl  from './dragControl';
 import WheelControl from './wheelControl';
 
 /**
+* Description.
+* 
 * @class Oculo.TrackControl
 * @constructor
 * @memberof Oculo

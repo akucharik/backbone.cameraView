@@ -31,20 +31,33 @@ const animationName = {
 };
 
 /**
-* Factory: Creates a camera to view a scene.
-* Requires {@link external:Lodash} and {@link external:Zepto}.
+* Description.
 * 
-* @constructs Camera
-* @extends external:Backbone.View
-* @mixes SizableView
-* @param {Object} [options] - An object of options. Includes all Backbone.View options. See {@link external:Backbone.View}.
-* @param {number|string|Element} [options.width] - The camera's {@link Camera.width|width}.
-* @param {number|string|Element} [options.height] - The camera's {@link Camera.height|height}.
-* @param {Object|Element} [options.position] - A {@link Camera.position|position} object.
+* @class Oculo.Camera
+* @constructor
+* @param {Object} [options] - An object of options.
+* @param {function|Object} [options.bounds] - The bounds.
+* @param {boolean} [options.dragToMove] - Whether the camera's position is draggable or not.
 * @param {number} [options.minZoom] - The {@link Camera.minZoom|minimum zoom}.
 * @param {number} [options.maxZoom] - The {@link Camera.maxZoom|maximum zoom}.
-* @param {number} [options.zoom] - A {@link Camera.zoom|zoom} ratio.
+* @param {string|Element|null} [options.view] - The camera's view.
+* @param {boolean} [options.wheelToZoom] - Whether wheeling can be used to zoom or not.
 * @param {number} [options.wheelToZoomIncrement] - The base {@link Camera.wheelToZoomIncrement|zoom increment}.
+* @param {number|string} [options.width] - The camera's {@link Camera.width|width}.
+* @param {number|string} [options.height] - The camera's {@link Camera.height|height}.
+*
+* @example
+* var myCamera = new Oculo.Camera({ 
+*   view: '#camera',
+*   bounds: Oculo.Camera.bounds.WORLD_EDGE,
+*   dragToMove: true,
+*   minZoom: 0.5,
+*   maxZoom: 3,
+*   wheelToZoom: true,
+*   wheelToZoomIncrement: 0.5,
+*   width: 1000,
+*   height: 500
+* });
 */
 class Camera {
     constructor ({ 
@@ -188,7 +201,7 @@ class Camera {
         
         /**
         * @private
-        * @property {Element} - The internally managed view.
+        * @property {Element} - The view.
         */
         this.view = (view === null) ? null : Utils.DOM.parseView(view) || document.createElement('div');
         

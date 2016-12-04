@@ -6,6 +6,8 @@
 */
 
 /**
+* Description.
+* 
 * @class Oculo.CSSRenderer
 * @constructor
 * @memberof Oculo
