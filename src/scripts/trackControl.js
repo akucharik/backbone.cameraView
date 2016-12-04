@@ -5,7 +5,6 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
-import pick         from 'lodash/pick';
 import DragControl  from './dragControl';
 import WheelControl from './wheelControl';
 
@@ -35,12 +34,17 @@ import WheelControl from './wheelControl';
 * });
 */
 class TrackControl {
-    constructor (camera, options) {
+    constructor (camera, {
+        draggable = false,
+        onDrag = undefined,
+        wheelable = false,
+        onWheel = undefined
+    } = {}) {
         /**
         * @property {object} - The initial configuration.
         * @default {};
         */
-        this.config = options || {};
+        this.config = { draggable, onDrag, wheelable, onWheel };
         
         /**
         * @property {Oculo.Camera} - The camera.
@@ -51,31 +55,33 @@ class TrackControl {
         * @property {boolean} - Whether dragging is handled or not.
         * @default false
         */
-        this.isDraggable = this.config.draggable ? true : false;
+        this.isDraggable = (draggable === true) ? true : false;
         
         /**
         * @property {Draggable} - The drag control.
         * @default null
         */
-        this.dragControl = !this.isDraggable ? null : new DragControl(this.camera.scenes.view, Object.assign({
+        this.dragControl = !this.isDraggable ? null : new DragControl(this.camera.scenes.view, {
             dragProxy: this.camera.view,
+            onDrag: onDrag,
             onDragParams: [this.camera],
             zIndexBoost: false
-        }, pick(this.config, DragControl.CONFIG_PROP_NAMES)));
+        });
 
         /**
         * @property {boolean} - Whether wheeling is handled or not.
         * @default false
         */
-        this.isWheelable = this.config.wheelable ? true : false;
+        this.isWheelable = (wheelable === true) ? true : false;
         
         /**
         * @property {WheelControl} - The wheel control.
         * @default null
         */
-        this.wheelControl = !this.isWheelable ? null : new WheelControl(this.camera.view, Object.assign({
+        this.wheelControl = !this.isWheelable ? null : new WheelControl(this.camera.view, {
+            onWheel: onWheel,
             onWheelParams: [this.camera]
-        }, pick(this.config, WheelControl.CONFIG_PROP_NAMES)));
+        });
     }
 
     /**

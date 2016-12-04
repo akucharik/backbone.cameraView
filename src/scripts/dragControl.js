@@ -34,26 +34,33 @@ import Utils from './utils';
 * });
 */
 class DragControl {
-    constructor (target, options) {
+    constructor (target, {
+        dragProxy = target,
+        onDrag = function () {},
+        onDragParams = [],
+        onDragScope = this
+    } = {}) {
         /**
         * @property {object} - The configuration.
         */
-        this.config = options || {};
+        this.config = { dragProxy, onDrag, onDragParams, onDragScope };
         
         /**
         * @property {Draggable} - The object that handles the drag behavior.
         * @readonly
         */
-        this.control = new Draggable(target, Object.assign({
-            callbackScope: this,
+        this.control = new Draggable(target, {
+            callbackScope: onDragScope,
+            onDrag: onDrag,
+            onDragParams: onDragParams,
             zIndexBoost: false
-        }, this.config));
+        });
         
         /**
         * @property {Element} - The element that controls/initiates the drag events.
         * @readonly
         */
-        this.dragProxy = this.config.dragProxy ? Utils.DOM.parseView(this.config.dragProxy) : this.target;
+        this.dragProxy = Utils.DOM.parseView(dragProxy);
         
         /**
         * @property {boolean} - Whether it is dragging or not.
@@ -259,11 +266,5 @@ class DragControl {
         return this;
     }
 }
-
-/**
-* @property {Array} - The configuration property names.
-* @static
-*/
-DragControl.CONFIG_PROP_NAMES = ['dragProxy', 'onDrag', 'onDragParams', 'onDragScope'];
 
 export default DragControl;

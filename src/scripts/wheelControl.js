@@ -28,12 +28,16 @@ import Utils    from './utils';
 * });
 */
 class WheelControl {
-    constructor (target, options) {
+    constructor (target, {
+        onWheel = function () {},
+        onWheelParams = [],
+        onWheelScope = this
+    } = {}) {
         /**
         * @property {object} - The configuration.
         */
-        this.config = options || {};
-        
+        this.config = { onWheel, onWheelParams, onWheelScope };
+
         /**
         * @property {Element} - The target.
         * @readonly
@@ -44,13 +48,13 @@ class WheelControl {
         * @property {WheelEvent} - The last wheel event that affected the instance.
         * @readonly
         */
-        this.wheelEvent = null;
+        this.wheelEvent = {};
         
         /**
         * @property {WheelEvent} - The previous wheel event that affected the instance.
         * @readonly
         */
-        this.previousWheelEvent = null;
+        this.previousWheelEvent = {};
         
         /**
         * @property {boolean} - Whether it is enabled or not.
@@ -63,9 +67,9 @@ class WheelControl {
         * @private
         */
         this._throttledOnWheel = throttle(function (event) {
-            this.previousWheelEvent = this.wheelEvent ? this.wheelEvent : {};
+            this.previousWheelEvent = this.wheelEvent;
             this.wheelEvent = event;
-            this.config.onWheel.apply(this.config.onWheelScope || this, this.config.onWheelParams);
+            this.config.onWheel.apply(this.config.onWheelScope, this.config.onWheelParams);
         }, Utils.Time.getFPSDuration(30, 'ms'));
 
         /**
@@ -125,12 +129,5 @@ class WheelControl {
         return this;
     }
 }
-
-/**
-* The configuration property names.
-* @static
-* @property {Array}
-*/
-WheelControl.CONFIG_PROP_NAMES = ['onWheel', 'onWheelParams', 'onWheelScope'];
 
 export default WheelControl;

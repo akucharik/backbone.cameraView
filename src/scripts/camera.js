@@ -23,9 +23,6 @@ import TrackControl     from './trackControl';
 import Utils            from './utils';
 import Vector2          from './math/vector2';
 
-// TODO:
-// 1) Move scene scaled width/height onto camera?
-
 const animationName = {
     ANONYMOUS: '_anonymous'
 };
@@ -69,7 +66,8 @@ class Camera {
         view = undefined, 
         wheelToZoom = false, 
         wheelToZoomIncrement = 0.01, 
-        width = 0} = {}) {
+        width = 0
+    } = {}) {
         
         /**
         * @property {Oculo.AnimationManager} - An object for managing animations.
@@ -81,7 +79,7 @@ class Camera {
         * @property {boolean} - Whether the camera's position is draggable or not.
         * @default false
         */
-        this.dragToMove = dragToMove;
+        this.dragToMove = (dragToMove === true) ? true : false;
 
         /**
         * @property {boolean} - Whether the camera has been rendered or not.
@@ -209,7 +207,7 @@ class Camera {
         * @property {boolean} - Whether wheeling can be used to zoom or not.
         * @default false
         */
-        this.wheelToZoom = wheelToZoom;
+        this.wheelToZoom = (wheelToZoom === true) ? true : false;
         
         /**
         * @property {number} - The base increment at which the camera will be zoomed. See {@link Camera.zoom|zoom}.
