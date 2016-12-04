@@ -301,45 +301,43 @@ class Camera {
         // Initialize scene manager view and track controls
         if (this.view && this.scenes.view) {
             this.view.appendChild(this.scenes.view);
-            if (this.dragToMove || this.wheelToZoom) {
-                this.trackControl = new TrackControl(this, {
-                    draggable: this.dragToMove,
-                    onDrag: function (camera) {
-                        var position = camera._calculatePositionFromOffset(new Vector2(-this.x, -this.y), camera.center, camera.transformOrigin, camera.transformation);
+            this.trackControl = new TrackControl(this, {
+                draggable: this.dragToMove,
+                onDrag: function (camera) {
+                    var position = camera._calculatePositionFromOffset(new Vector2(-this.x, -this.y), camera.center, camera.transformOrigin, camera.transformation);
+                    new Oculo.Animation(camera, { 
+                        destroyOnComplete: true, 
+                        paused: false 
+                    }).moveTo(position, 0);
+                },
+                wheelable: this.wheelToZoom,
+                onWheel: function (camera) {
+                    var velocity = Math.abs(this.wheelEvent.deltaY);
+                    var direction = this.wheelEvent.deltaY > 0 ? Camera.zoomDirection.OUT : Camera.zoomDirection.IN;
+                    var previousDirection = this.previousWheelEvent.deltaY > 0 ? Camera.zoomDirection.OUT : Camera.zoomDirection.IN;
+                    var cameraRect;
+                    var cameraFOVPosition = new Vector2();
+                    var sceneContextPosition = new Vector2();
+                    var origin = camera.transformOrigin;
+                    var zoom = camera.zoom + camera.zoom * camera.wheelToZoomIncrement * (velocity > 1 ? velocity * 0.5 : 1) * (direction === Camera.zoomDirection.IN ? 1 : -1);
+
+                    // Performance Optimization: If zoom has not changed because it's at the min/max, don't zoom.
+                    if (direction === previousDirection && camera._clampZoom(zoom) !== camera.zoom) { 
+                        cameraRect = camera.view.getBoundingClientRect();
+                        cameraFOVPosition.set(this.wheelEvent.clientX - cameraRect.left, this.wheelEvent.clientY - cameraRect.top);
+                        sceneContextPosition = camera._calculatePositionFromOffset(camera.offset, cameraFOVPosition, camera.transformOrigin, camera.transformation);
+
+                        if (Math.round(origin.x) !== Math.round(sceneContextPosition.x) || Math.round(origin.y) !== Math.round(sceneContextPosition.y)) {
+                            origin = camera._calculatePositionFromOffset(camera.offset, cameraFOVPosition, camera.transformOrigin, camera.transformation);
+                        }
+
                         new Oculo.Animation(camera, { 
                             destroyOnComplete: true, 
                             paused: false 
-                        }).moveTo(position, 0);
-                    },
-                    wheelable: this.wheelToZoom,
-                    onWheel: function (camera) {
-                        var velocity = Math.abs(this.wheelEvent.deltaY);
-                        var direction = this.wheelEvent.deltaY > 0 ? Camera.zoomDirection.OUT : Camera.zoomDirection.IN;
-                        var previousDirection = this.previousWheelEvent.deltaY > 0 ? Camera.zoomDirection.OUT : Camera.zoomDirection.IN;
-                        var cameraRect;
-                        var cameraFOVPosition = new Vector2();
-                        var sceneContextPosition = new Vector2();
-                        var origin = camera.transformOrigin;
-                        var zoom = camera.zoom + camera.zoom * camera.wheelToZoomIncrement * (velocity > 1 ? velocity * 0.5 : 1) * (direction === Camera.zoomDirection.IN ? 1 : -1);
-
-                        // Performance Optimization: If zoom has not changed because it's at the min/max, don't zoom.
-                        if (direction === previousDirection && camera._clampZoom(zoom) !== camera.zoom) { 
-                            cameraRect = camera.view.getBoundingClientRect();
-                            cameraFOVPosition.set(this.wheelEvent.clientX - cameraRect.left, this.wheelEvent.clientY - cameraRect.top);
-                            sceneContextPosition = camera._calculatePositionFromOffset(camera.offset, cameraFOVPosition, camera.transformOrigin, camera.transformation);
-
-                            if (Math.round(origin.x) !== Math.round(sceneContextPosition.x) || Math.round(origin.y) !== Math.round(sceneContextPosition.y)) {
-                                origin = camera._calculatePositionFromOffset(camera.offset, cameraFOVPosition, camera.transformOrigin, camera.transformation);
-                            }
-
-                            new Oculo.Animation(camera, { 
-                                destroyOnComplete: true, 
-                                paused: false 
-                            }).zoomAt(origin, zoom, 0);
-                        }
+                        }).zoomAt(origin, zoom, 0);
                     }
-                });
-            }
+                }
+            });
         }
         
         this.initialize(arguments[0]);
@@ -468,6 +466,24 @@ class Camera {
     };
 
     /**
+    * Apply the shake effect to the camera.
+    *
+    * @private
+    * @returns {this} self
+    */
+    _applyShake () {
+        if (this.isShaking) {
+            this.position.add(this.shakeOffset);
+            
+            if (this.shakeRespectBounds) {
+                this._clampPosition(this.position);
+            }
+        }
+        
+        return this;
+    }
+    
+    /**
     * Calculate the position of the camera on the scene given a scene position to be located a point in the camera's FOV.
     *
     * @private
@@ -568,6 +584,22 @@ class Camera {
     }
     
     /**
+    * Resets the camera to the default state.
+    *
+    * @returns {this} self
+    */
+    _reset () {
+        this.transformOrigin.set(0, 0);
+        this.position.set(this.width * 0.5, this.height * 0.5);
+        this.rotation = 0;
+        this.zoom = 1;
+        this.rawOffset = this._calculateOffsetFromPosition(this.position, this.center, this.transformOrigin, this.transformation);
+        this.offset.copy(this.rawOffset);
+        
+        return this;
+    }
+    
+    /**
     * Sets the transformOrigin.
     *
     * @private
@@ -635,6 +667,16 @@ class Camera {
     }
     
     /**
+    * Gets an animation.
+    *
+    * @param {string} name - The name.
+    * @returns {Oculo.Animation} The animation.
+    */
+    getAnimation (name) {
+        return this.animations.get(name);
+    }
+    
+    /**
     * Adds a scene to the camera.
     *
     * @param {string} name - The name.
@@ -669,13 +711,9 @@ class Camera {
         
         this.view = null;
         this.animations.destroy();
-        this.scenes.destroy();
         this.renderer.destroy();
-        
-        if (this.trackControl) {
-            this.trackControl.destroy();
-        }
-        
+        this.scenes.destroy();
+        this.trackControl.destroy();
         this._events.removeAllListeners();
         
         return this;
@@ -687,9 +725,7 @@ class Camera {
     * @returns {this} self
     */
     disableDragToMove () {
-        if (this.trackControl) {
-            this.trackControl.disableDrag();
-        }
+        this.trackControl.disableDrag();
         
         return this;
     }
@@ -700,9 +736,7 @@ class Camera {
     * @returns {this} self
     */
     enableDragToMove () {
-        if (this.trackControl) {
-            this.trackControl.enableDrag();
-        }
+        this.trackControl.enableDrag();
 
         return this;
     }
@@ -713,9 +747,7 @@ class Camera {
     * @returns {this} self
     */
     disableWheelToZoom () {
-        if (this.trackControl) {
-            this.trackControl.disableWheel();
-        }
+        this.trackControl.disableWheel();
         
         return this;
     }
@@ -726,9 +758,7 @@ class Camera {
     * @returns {this} self
     */
     enableWheelToZoom () {
-        if (this.trackControl) {
-            this.trackControl.enableWheel();
-        }
+        this.trackControl.enableWheel();
 
         return this;
     }
@@ -766,42 +796,17 @@ class Camera {
 
         if (!this.isRendered) {
             this.renderer.renderSize();
-            this.rawOffset = this._calculateOffsetFromPosition(this.position, this.center, this.transformOrigin, this.transformation);
             this.isRendered = true;
         }
         
         // Clamping here ensures bounds have been updated (if zoom has changed) and bounds are enforced during rotateAt
         // Position is manually maintained so animations can smoothly continue when camera is resized
         this.position = this._clampPosition(this._calculatePositionFromOffset(this.rawOffset, this.center, this.transformOrigin, this.transformation));
-
-        if (this.isShaking) {
-            this.position.add(this.shakeOffset);
-
-            if (this.shakeRespectBounds) {
-                this._clampPosition(this.position);
-            }
-        }
-
+        this._applyShake();
         this.offset = this._calculateOffsetFromPosition(this.position, this.center, this.transformOrigin, this.transformation);
         this.renderer.render();
         this.onRender();
 
-        return this;
-    }
-
-    /**
-    * Resets the camera to the default state.
-    *
-    * @returns {this} self
-    */
-    reset () {
-        this.transformOrigin.set(0, 0);
-        this.position.set(this.width * 0.5, this.height * 0.5);
-        this.rotation = 0;
-        this.zoom = 1;
-        this.rawOffset = this._calculateOffsetFromPosition(this.position, this.center, this.transformOrigin, this.transformation);
-        this.offset.copy(this.rawOffset);
-        
         return this;
     }
     
@@ -812,7 +817,7 @@ class Camera {
     */
     setScene (name) {
         this.scenes.setActiveScene(name);
-        this.reset();
+        this._reset();
         this._updateBounds();
 
         return this;
