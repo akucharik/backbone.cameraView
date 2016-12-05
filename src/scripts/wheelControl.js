@@ -88,7 +88,7 @@ class WheelControl {
     /**
     * @property {boolean} - Whether it is enabled or not.
     * @readonly
-    * default true
+    * @default true
     */
     get enabled () {
         return this._enabled;

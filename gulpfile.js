@@ -127,7 +127,7 @@ gulp.task('compile:styles', ['clean:styles'], function () {
 });
 
 gulp.task('generate:docs', ['clean:docs'], function () {
-	executeChildProcess('node ./node_modules/jsdoc/jsdoc.js -c jsdocconfig.json');
+	executeChildProcess('./node_modules/jsdoc/jsdoc.js -c jsdocconfig.json');
 });
 
 gulp.task('test:scripts', function () {

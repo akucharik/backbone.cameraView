@@ -21,6 +21,6 @@
         "encoding": "utf8",
         "destination": "./docs/",
         "recurse": true,
-        "readme": "docs/README.md"
+        "readme": "README.md"
     }
 }
