@@ -1,8 +1,5 @@
 'use strict';
 
-import isFinite from 'lodash/isFinite';
-import isNil    from 'lodash/isNil';
-
 /**
 * Creates a 2D vector from a series of values.
 * 
@@ -93,55 +90,45 @@ class Vector2 {
 
     /**
     * Takes the max of the provided vectors.
-    * @param {...Vector2} v - A vector.
+    * @param {Vector2} a - A vector.
+    * @param {Vector2} b - Another vector.
     * @return {Vector2} A new vector that is the max of the provided vectors.
     */
-    static max (v) {
-        let vectors = Array.prototype.slice.call(arguments);
-
-        return vectors.reduce((a, b) => new Vector2(Math.max(a.x, b.x), Math.max(a.y, b.y)));
+    static max (a, b) {
+        return new Vector2(Math.max(a.x, b.x), Math.max(a.y, b.y));
     }
     
     /**
-    * Sets itself to the max among itself and the provided vectors.
-    * @param {...Vector2} v - A vector.
+    * Sets itself to the max of itself and the provided vector.
+    * @param {Vector2} v - A vector.
     * @return {Vector2} The vector.
     */
     max (v) {
-        var v1;
-        var vectors = Array.prototype.slice.call(arguments);
-        
-        vectors.unshift(this);
-        v1 = this.constructor.max.apply(null, vectors);
-        this.copy(v1);
+        this.x = Math.max(this.x, v.x);
+        this.y = Math.max(this.y, v.y);
 
         return this;
     }
     
     /**
     * Takes the min of the provided vectors.
-    * @param {...Vector2} v - A vector.
+    * @param {Vector2} a - A vector.
+    * @param {Vector2} b - Another vector.
     * @return {Vector2} A new vector that is the min of the provided vectors.
     */
-    static min (v) {
-        let vectors = Array.prototype.slice.call(arguments);
-
-        return vectors.reduce((a, b) => new Vector2(Math.min(a.x, b.x), Math.min(a.y, b.y)));
+    static min (a, b) {
+        return new Vector2(Math.min(a.x, b.x), Math.min(a.y, b.y));
     }
     
     /**
-    * Sets itself to the min among itself and the provided vectors.
-    * @param {...Vector2} v - A vector.
+    * Sets itself to the min of itself and the provided vector.
+    * @param {Vector2} v - A vector.
     * @return {Vector2} The vector.
     */
     min (v) {
-        var v1;
-        var vectors = Array.prototype.slice.call(arguments);
+        this.x = Math.min(this.x, v.x);
+        this.y = Math.min(this.y, v.y);
         
-        vectors.unshift(this);
-        v1 = this.constructor.min.apply(null, vectors);
-        this.copy(v1);
-
         return this;
     }
     
@@ -164,8 +151,8 @@ class Vector2 {
     * @return {Vector2} The vector.
     */
     multiplyScalar (s) {
-        var v = this.constructor.multiplyScalar(this, s);
-        this.set(v.x, v.y);
+        this.x *= s;
+        this.y *= s;
 
         return this;
     }
@@ -234,7 +221,7 @@ class Vector2 {
     * @param {Matrix2|Matrix2D} m - A transformation matrix.
     * @return {Vector2} A new transformed vector.
     */
-    static _transform (v, m) {
+    static transform (v, m) {
         var x1 = v.x * m.e11 + v.y * m.e12 + (m.tx ? m.tx : 0);
         var y1 = v.x * m.e21 + v.y * m.e22 + (m.ty ? m.ty : 0);
 
@@ -242,29 +229,14 @@ class Vector2 {
     }
     
     /**
-    * Transforms a vector using the provided matrices.
+    * Transforms the vector using the provided matrix.
     * @param {Vector2} v - A vector.
-    * @param {...Matrix2|...Matrix2D} m - A transformation matrix.
-    * @return {Vector2} A new transformed vector.
-    */
-    static transform (v, m) {
-        var args = Array.prototype.slice.call(arguments);
-
-        return args.reduce(Vector2._transform);
-    }
-    
-    /**
-    * Transforms the vector using the provided matrices.
-    * @param {...Matrix2|...Matrix2D} m - A transformation matrix.
+    * @param {Matrix2|Matrix2D} m - A transformation matrix.
     * @return {Vector2} The transformed vector.
     */
     transform (m) {
-        var v1 = null;
-        var args = Array.prototype.slice.call(arguments);
-        
-        args.unshift(this);
-        v1 = this.constructor.transform.apply(null, args);
-        this.set(v1.x, v1.y);
+        this.x = this.x * m.e11 + this.y * m.e12 + (m.tx ? m.tx : 0);
+        this.y = this.x * m.e21 + this.y * m.e22 + (m.ty ? m.ty : 0);
 
         return this;
     }

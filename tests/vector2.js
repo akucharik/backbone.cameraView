@@ -50,9 +50,8 @@ test('Vector2', function() {
         assert('should return a vector with the max values of the provided vectors', function() {
             v.set(1,2);
             var v2 = new Vector2(3,10);
-            var v3 = new Vector2(11,4);
-            var v4 = Vector2.max(v, v2, v3);
-            expect(v4).to.deep.equal(new Vector2(11,10));
+            var v3 = Vector2.max(v, v2);
+            expect(v3).to.deep.equal(new Vector2(3,10));
         });
     });
     
@@ -60,9 +59,8 @@ test('Vector2', function() {
         assert('should return a vector with the min values of the provided vectors', function() {
             v.set(1,2);
             var v2 = new Vector2(3,-10);
-            var v3 = new Vector2(-11,4);
-            var v4 = Vector2.min(v, v2, v3);
-            expect(v4).to.deep.equal(new Vector2(-11,-10));
+            var v3 = Vector2.min(v, v2);
+            expect(v3).to.deep.equal(new Vector2(1,-10));
         });
     });
     
@@ -105,11 +103,10 @@ test('Vector2', function() {
     test('Vector2.transform', function() {
         assert('should return a Matrix2 transformed vector', function() {
             v.set(1,2);
-            var m = new Matrix2(2,0,0,2);
-            var m2 = new Matrix2(0,1,-1,0);
-            var v1 = Vector2.transform(v, m, m2);
-            expect(v1.x).to.equal(4);
-            expect(v1.y).to.equal(-2);
+            var m = new Matrix2(0,1,-1,0);
+            var v1 = Vector2.transform(v, m);
+            expect(v1.x).to.equal(2);
+            expect(v1.y).to.equal(-1);
         });
         assert('should return a Matrix2D transformed vector', function() {
             v.set(1,2);
@@ -173,22 +170,20 @@ test('Vector2', function() {
     });
     
     test('max', function() {
-        assert('should set its values to the max values among itself and the provided vectors', function() {
+        assert('should set its values to the max values of itself and the provided vector', function() {
             v.set(1,2);
             var v2 = new Vector2(10,3);
-            var v3 = new Vector2(4,11);
-            v.max(v2, v3);
-            expect(v).to.deep.equal(new Vector2(10,11));
+            v.max(v2);
+            expect(v).to.deep.equal(new Vector2(10,3));
         });
     });
     
     test('min', function() {
-        assert('should set its values to the min values among itself and the provided vectors', function() {
+        assert('should set its values to the min values of itself and the provided vector', function() {
             v.set(1,2);
             var v2 = new Vector2(-10,3);
-            var v3 = new Vector2(4,-11);
-            v.min(v2, v3);
-            expect(v).to.deep.equal(new Vector2(-10,-11));
+            v.min(v2);
+            expect(v).to.deep.equal(new Vector2(-10,2));
         });
     });
     
@@ -227,15 +222,14 @@ test('Vector2', function() {
     });
     
     test('transform', function() {
-        assert('should transform its values by the provided (infinite) Matrix2 matrices', function() {
+        assert('should transform its values by the provided Matrix2', function() {
             v.set(1,2);
             var m = new Matrix2(2,0,0,2);
-            var m2 = new Matrix2(0,1,-1,0);
-            v.transform(m, m2);
-            expect(v.x).to.equal(4);
-            expect(v.y).to.equal(-2);
+            v.transform(m);
+            expect(v.x).to.equal(2);
+            expect(v.y).to.equal(4);
         });
-        assert('should transform its values by the provided Matrix2D matrix', function() {
+        assert('should transform its values by the provided Matrix2D', function() {
             v.set(1,2);
             var m = new Matrix2D(2,0,0,2,10,20);
             v.transform(m);
