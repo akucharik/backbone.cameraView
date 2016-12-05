@@ -10,7 +10,7 @@ import Scene    from './scene';
 /**
 * Description.
 * 
-* @class SceneManager
+* @class Oculo.SceneManager
 * @param {Oculo.Camera} camera - The camera that owns this SceneManager.
 * @param {boolean} [hasView=true] - If true, a 'div' is created and managed internally. Pass false to create a SceneManager without a view.
 */

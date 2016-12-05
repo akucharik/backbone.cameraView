@@ -33,7 +33,6 @@ const animationName = {
 * Description.
 * 
 * @class Oculo.Camera
-* @constructor
 * @param {Object} [options] - An object of options.
 * @param {function|Object} [options.bounds] - The bounds.
 * @param {boolean} [options.dragToMove] - Whether the camera's position is draggable or not.

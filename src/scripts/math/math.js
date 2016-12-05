@@ -3,12 +3,13 @@
 /**
 * A collection of useful mathematical values and functions.
 *
-* @class Oculo.Math
-* @static
+* @namespace Oculo.Math
 */
 const _Math = {
     /**
     * Convert degrees to radians.
+    *
+    * @function Oculo.Math#degToRad
     * @param {number} degrees - The degrees value.
     * @return {number} - The value in radians.
     */
@@ -18,6 +19,8 @@ const _Math = {
 
     /**
     * Convert radians to degrees.
+    *
+    * @function Oculo.Math#radToDeg
     * @param {number} radians - The radians value.
     * @return {number} - The value in degrees.
     */
@@ -28,7 +31,10 @@ const _Math = {
 
 /**
 * The factor used to convert degrees to radians.
-* @name Math#degToRadFactor
+*
+* @name Oculo.Math#degToRadFactor
+* @property {number}
+* @static
 */
 Object.defineProperty(_Math, 'degToRadFactor', {
     value: Math.PI / 180
@@ -36,7 +42,10 @@ Object.defineProperty(_Math, 'degToRadFactor', {
 
 /**
 * The factor used to convert radians to degrees.
-* @name Math2#radToDegFactor
+*
+* @name Oculo.Math#radToDegFactor
+* @property {number}
+* @static
 */
 Object.defineProperty(_Math, 'radToDegFactor', {
     value: 180 / Math.PI

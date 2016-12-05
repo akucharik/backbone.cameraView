@@ -1,25 +1,6 @@
 'use strict';
 
 /**
-* The Backbone library.
-* @external Backbone
-* @see http://backbonejs.org
-*/
-
-/**
-* Backbone.Events
-* @name Events
-* @memberof external:Backbone
-* @see http://backbonejs.org/#Events
-*/
-
-/**
-* The Lodash library.
-* @external Lodash
-* @see http://lodash.com
-*/
-
-/**
 * GSAP's TimelineMax.
 * @external TimelineMax
 * @see http://greensock.com/docs/#/HTML5/GSAP/TimelineMax/
@@ -46,6 +27,10 @@ import Scene         from './scene';
 import Utils         from './utils';
 import Vector2       from './math/vector2';
 
+
+/**
+* @namespace
+*/
 const Oculo = {
     Animation: Animation,
     Camera: Camera,

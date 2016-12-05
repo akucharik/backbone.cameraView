@@ -11,6 +11,7 @@ import Matrix2 from './Matrix2';
 * | c | d |
 * | x | y |
 *
+* @class Oculo.Matrix2D
 * @param {number} [e11=1] - The value of row 1, column 1
 * @param {number} [e12=0] - The value of row 1, column 2
 * @param {number} [e21=0] - The value of row 2, column 1

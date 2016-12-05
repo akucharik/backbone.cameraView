@@ -10,8 +10,7 @@ import isArrayLike from 'lodash/isArrayLike';
 * | e11 | e12 |
 * | e21 | e22 |
 *
-* @class Matrix2
-* @constructor
+* @class Oculo.Matrix2
 * @param {number} [e11=1] - The value of row 1, column 1
 * @param {number} [e12=0] - The value of row 1, column 2
 * @param {number} [e21=0] - The value of row 2, column 1
