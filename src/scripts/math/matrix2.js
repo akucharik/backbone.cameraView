@@ -122,12 +122,7 @@ class Matrix2 {
     * @return {Matrix2} A new matrix that is the product of the provided matrices.
     */
     static multiplyMatrices (a, b) {
-        if (Array.isArray(a)) {
-            let m = a.reduce(Matrix2.multiplyMatrices);
-            
-            return new Matrix2(Matrix2.toArray(m));
-        }
-        else if (a.cols === b.rows) {
+        if (a.cols === b.rows) {
             let n11, n12, n21, n22;
          
             n11 = a.e11 * b.e11 + a.e12 * b.e21;
@@ -144,18 +139,24 @@ class Matrix2 {
     
     /**
     * Multiplies the matrix by another matrix.
-    * @param {Matrix2|Matrix2D} m - a matrix.
-    * @return {this} self
-    *//**
-    * Multiplies the matrix by a list of matrices.
-    * @param {Array} m - A list of matrices.
+    * @param {Matrix2|Matrix2D} m - A matrix.
     * @return {this} self
     */
     multiplyMatrices (m) {
-        var a = Array.isArray(m) ? m.slice() : [m];
-        a.unshift(this);
-        this.setFromArray(this.constructor.multiplyMatrices(a).toArray());
-
+        if (this.cols === m.rows) {
+            let n11, n12, n21, n22;
+            
+            n11 = this.e11 * m.e11 + this.e12 * m.e21;
+            n12 = this.e11 * m.e12 + this.e12 * m.e22;
+            n21 = this.e21 * m.e11 + this.e22 * m.e21;
+            n22 = this.e21 * m.e12 + this.e22 * m.e22;
+            
+            this.set(n11, n12, n21, n22);
+        }
+        else {
+            throw new Error('Cannot multiply incompatible matrices');
+        }
+        
         return this;
     }
     
@@ -180,8 +181,10 @@ class Matrix2 {
     * @return {this} self
     */
     multiplyScalar (s) {
-        var m = this.constructor.multiplyScalar(this, s);
-        this.setFromArray(m.toArray());
+        this.e11 *= s;
+        this.e12 *= s;
+        this.e21 *= s;
+        this.e22 *= s;
 
         return this;
     }
@@ -209,8 +212,7 @@ class Matrix2 {
         var cos = Math.cos(angle);
         var sin = Math.sin(angle);
         var rotationMatrix = new Matrix2(cos, -sin, sin, cos);
-        var rotatedMatrix = this.constructor.multiplyMatrices(this, rotationMatrix);
-        this.set(rotatedMatrix.e11, rotatedMatrix.e12, rotatedMatrix.e21, rotatedMatrix.e22);
+        this.multiplyMatrices(rotationMatrix);
         
         return this;
     }
@@ -233,7 +235,9 @@ class Matrix2 {
     * @return {this} self
     */
     scale (x, y) {
-        return this.copy(this.constructor.scale(this, x, y));
+        this.multiplyMatrices(new Matrix2(x, 0, 0, y));
+        
+        return this;
     }
     
     /**

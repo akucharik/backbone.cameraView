@@ -49,16 +49,6 @@ test('Matrix2', function() {
             expect(m3.e21).to.equal(10);
             expect(m3.e22).to.equal(11);
         });
-        assert('should return the product of any array of matrices', function() {
-            m.set(1,2,3,1);
-            var m2 = new Matrix2(2,3,4,2);
-            var m3 = new Matrix2(2,0,0,2);
-            var m4 = Matrix2.multiplyMatrices([m, m2, m3]);
-            expect(m4.e11).to.equal(20);
-            expect(m4.e12).to.equal(14);
-            expect(m4.e21).to.equal(20);
-            expect(m4.e22).to.equal(22);
-        });
     });
 
     test('Matrix2.multiplyScalar', function() {
@@ -225,13 +215,13 @@ test('Matrix2', function() {
             expect(m.e21).to.equal(10);
             expect(m.e22).to.equal(11);
         });
-        assert('should multiply itself by the provided matrices', function() {
+        assert('should multiply itself by the provided matrix', function() {
             m.set(1,2,3,1);
-            m.multiplyMatrices([new Matrix2(2,3,4,2), new Matrix2(2,0,0,2)]);
-            expect(m.e11).to.equal(20);
-            expect(m.e12).to.equal(14);
-            expect(m.e21).to.equal(20);
-            expect(m.e22).to.equal(22);
+            m.multiplyMatrices(new Matrix2(2,3,4,2));
+            expect(m.e11).to.equal(10);
+            expect(m.e12).to.equal(7);
+            expect(m.e21).to.equal(10);
+            expect(m.e22).to.equal(11);
         });
     });
 
