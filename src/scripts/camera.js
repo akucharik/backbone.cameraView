@@ -4,7 +4,11 @@
 * @copyright    Adam Kucharik
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
-    
+
+// TODO:
+// 1) Import Animation to avoid using Oculo namespace
+// 2) Remove unnecessary isString usage
+
 import clamp            from 'lodash/clamp';
 import isElement        from 'lodash/isElement';
 import isFinite         from 'lodash/isFinite';
@@ -656,9 +660,8 @@ class Camera {
     /**
     * Adds an animation to the camera.
     *
-    * @param {string} name - The name.
-    * @param {Oculo.Animation} animation - The animation.
-    * @returns {this} self
+    * @see Oculo.AnimationManager.add
+    * returns {this} self
     */
     addAnimation (name, animation) {
         this.animations.add(name, animation);
@@ -669,8 +672,7 @@ class Camera {
     /**
     * Gets an animation.
     *
-    * @param {string} name - The name.
-    * @returns {Oculo.Animation} The animation.
+    * @see Oculo.AnimationManager.get
     */
     getAnimation (name) {
         return this.animations.get(name);
@@ -679,8 +681,7 @@ class Camera {
     /**
     * Adds a scene to the camera.
     *
-    * @param {string} name - The name.
-    * @param {string|Oculo.Scene} scene - The scene.
+    * @see Oculo.SceneManager.add
     * @returns {this} self
     */
     addScene (name, scene) {
@@ -692,11 +693,24 @@ class Camera {
     /**
     * Gets a scene.
     *
-    * @param {string} name - The name.
-    * @returns {Oculo.Scene} The scene.
+    * @see Oculo.SceneManager.get
     */
     getScene (name) {
         return this.scenes.get(name);
+    }
+    
+    /**
+    * Sets the active scene.
+    *
+    * @param {string} name - The name of the scene.
+    * @returns {this} self
+    */
+    setScene (name) {
+        this.scenes.setActiveScene(name);
+        this._reset();
+        this._updateBounds();
+
+        return this;
     }
     
     /**
@@ -806,19 +820,6 @@ class Camera {
         this.offset = this._calculateOffsetFromPosition(this.position, this.center, this.transformOrigin, this.transformation);
         this.renderer.render();
         this.onRender();
-
-        return this;
-    }
-    
-    /**
-    * Sets the active scene.
-    *
-    * @returns {this} self
-    */
-    setScene (name) {
-        this.scenes.setActiveScene(name);
-        this._reset();
-        this._updateBounds();
 
         return this;
     }

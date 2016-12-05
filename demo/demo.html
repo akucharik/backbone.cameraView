@@ -96,6 +96,61 @@
         camera.setScene('scene1');
         
         // Animations
+        
+//        camera.addAnimations([
+//            { 
+//              name: 'zoomTo2',
+//              keyframes: [{ 
+//                  zoom: 2, 
+//                  duration: 2, 
+//                  options: { 
+//                      ease: Power2.easeIn 
+//                  }
+//              }, {
+//                  zoom: 1,
+//                  duration: 2,
+//                  options: {
+//                      ease: Power2.easeOut
+//                  }
+//              }]
+//            },
+//            { name: 'moveTo500',
+//              animation: [
+//                  { position: {x: 500, y: 500 }},
+//                  { position: {x: 1000, y: 200 }}
+//              ]
+//            }
+//        ]);
+//        
+//        var animations = [
+//            {
+//                name: 'moveTobox100',
+//                type: 'animate',
+//                value: {position: '#box100', rotation:-20, zoom: 1.5},
+//                duration: 2
+//            }
+//        ];
+//        
+//        animations.forEach(function (item) {
+//            camera.addAnimation(item.name, new Oculo.Animation(camera)[item.type](value, duration)).;
+//        });
+        
+        camera.addAnimation('two', {
+          keyframes: [{ 
+              zoom: 2, 
+              duration: 2, 
+              options: { 
+                  ease: Power2.easeIn 
+              }
+          }, {
+              zoom: 1,
+              duration: 2,
+              options: {
+                  ease: Power2.easeOut
+              }
+          }]
+        });
+        
         //camera.addAnimation('moveTobox100', { duration: 2, position: '#box100', rotation:-20, zoom: 1.5 });
         camera.addAnimation('moveTobox100', new Oculo.Animation(camera).animate({position: '#box100', rotation:-20, zoom: 1.5}, 2));
         camera.addAnimation('moveTo2000', new Oculo.Animation(camera).animate({position: {x:2000, y:500}, zoom: 1.5}, 2));

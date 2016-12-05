@@ -13,6 +13,7 @@ import isObject   from 'lodash/isObject';
 import isString   from 'lodash/isString';
 import _Math      from './math/math';
 import Matrix2    from './math/matrix2';
+import { Type }   from './constants';
 import Utils      from './utils';
 import Vector2    from './math/vector2';
 
@@ -45,6 +46,12 @@ class Animation extends TimelineMax {
         * @default {};
         */
         this.config = options;
+        
+        /**
+        * @property {number} - The type of this object.
+        * @readonly
+        */
+        this.type = Type.ANIMATION;
         
         /**
         * @property {Camera} - The camera on which the animation will be applied.

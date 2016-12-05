@@ -5,7 +5,8 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
-import isString from 'lodash/isString';
+import Animation from './Animation';
+import { Type }  from './constants';
 
 /**
 * Description.
@@ -57,15 +58,54 @@ class AnimationManager {
     * Adds an animation.
     *
     * @param {string} name - The name to give the animation.
-    * @param {Oculo.Animation} animation - The animation.
+    * @param {object|Oculo.Animation} animation - The animation. It can be an actual animation instance or an object representing the animation.
     * @returns {this} self
-    */
+    *
+    * @example <caption>As an animation instance</caption>
+    * myAnimationManager.add('zoomInOut', new Oculo.Animation(myCamera).animate({zoom: 2}, 2, {ease: Power2.easeIn}).animate({zoom: 1}, 2, {ease: Power2.easeOut}));
+    * 
+    * @example <caption>As an object representing an animation</caption>
+    * myAnimationManager.add('zoomInAndOut', { 
+    *   keyframes: [{ 
+    *     zoom: 2, 
+    *     duration: 2, 
+    *     options: { 
+    *       ease: Power2.easeIn 
+    *     }
+    *   }, {
+    *     zoom: 1,
+    *     duration: 2,
+    *     options: {
+    *       ease: Power2.easeOut
+    *     }
+    *   }]
+    * });
+    */        
     add (name, animation) {
+        let newAnimation;
+        
         if (this._animations[name]) {
             this._animations[name].destroy();
         }
         
-        this._animations[name] = animation;
+        if (animation.type === Type.ANIMATION) {
+            newAnimation = animation;
+        }
+        else {
+            newAnimation = new Animation(this.camera);
+            animation.keyframes.forEach((keyframe) => {
+                newAnimation.animate({
+                    origin: keyframe.origin,
+                    position: keyframe.position,
+                    rotation: keyframe.rotation,
+                    shake: keyframe.shake,
+                    zoom: keyframe.zoom
+                }, keyframe.duration, keyframe.options);
+            });
+            
+        }
+        
+        this._animations[name] = newAnimation;
         
         return this;
     }
@@ -115,7 +155,7 @@ class AnimationManager {
     * @returns {this} self
     */
     play (animation) {
-        if (isString(animation)) {
+        if (typeof animation === 'string') {
             animation = this._animations[animation];
         }
         
