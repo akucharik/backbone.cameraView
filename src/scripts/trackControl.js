@@ -108,11 +108,15 @@ class TrackControl {
     destroy () {
         if (this.isDraggable) {
             this.dragControl.destroy();
+            this.dragControl = null;
         }
         
         if (this.isWheelable) {
             this.wheelControl.destroy();
+            this.wheelControl = null;
         }
+        
+        this.config = {};
         
         return this;
     }

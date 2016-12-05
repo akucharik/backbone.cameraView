@@ -101,6 +101,8 @@ class WheelControl {
     */
     destroy () {
         this.disable();
+        this.config = {};
+        this.target = null;
         
         return this;
     }

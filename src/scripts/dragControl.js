@@ -225,6 +225,8 @@ class DragControl {
     destroy () {
         this.disable();
         this.control.kill();
+        this.config = {};
+        this.dragProxy = null;
         
         return this;
     }
