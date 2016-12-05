@@ -5,7 +5,6 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
-import isString from 'lodash/isString';
 import Scene    from './scene';
 
 /**
@@ -54,7 +53,7 @@ class SceneManager {
     * @returns {this} self
     */
     add (name, scene) {
-        if (isString(scene)) {
+        if (typeof scene === 'string') {
             scene = new Scene(this.camera, scene);
         }
         else {

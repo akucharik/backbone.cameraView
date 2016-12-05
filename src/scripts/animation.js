@@ -10,7 +10,6 @@ import isFinite   from 'lodash/isFinite';
 import isFunction from 'lodash/isFunction';
 import isNil      from 'lodash/isNil';
 import isObject   from 'lodash/isObject';
-import isString   from 'lodash/isString';
 import _Math      from './math/math';
 import Matrix2    from './math/matrix2';
 import { Type }   from './constants';

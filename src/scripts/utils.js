@@ -7,7 +7,6 @@
 
 import isElement from 'lodash/isElement';
 import isObject  from 'lodash/isObject';
-import isString  from 'lodash/isString';
 import Vector2   from './math/vector2';
 
 /**
@@ -185,7 +184,7 @@ const Utils = {
         var objectPosition;
         var position = null;
         
-        if (isString(input)) {
+        if (typeof input === 'string') {
             input = document.querySelector(input);
         }
         
@@ -225,7 +224,7 @@ Utils.DOM = {
     parseView: function (input) {
         var output = null;
         
-        if (isString(input)) {
+        if (typeof input === 'string') {
             output = document.querySelector(input);
         }
         else if (isElement(input)) {

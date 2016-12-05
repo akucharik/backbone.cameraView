@@ -7,7 +7,6 @@
 
 // TODO:
 // 1) Import Animation to avoid using Oculo namespace
-// 2) Remove unnecessary isString usage
 
 import clamp            from 'lodash/clamp';
 import isElement        from 'lodash/isElement';
@@ -15,7 +14,6 @@ import isFinite         from 'lodash/isFinite';
 import isFunction       from 'lodash/isFunction';
 import isNil            from 'lodash/isNil';
 import isObject         from 'lodash/isObject';
-import isString         from 'lodash/isString';
 import { EventEmitter } from 'fbemitter';
 import AnimationManager from './animationManager';
 import CSSRenderer      from './cssRenderer';
