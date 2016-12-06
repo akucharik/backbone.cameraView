@@ -18,7 +18,11 @@ var build = {
     demo: {
         destDirectory: './demo/scripts',
         destFileName: 'demo.js',
-        source: './demo/src/scripts/demo.js'
+        source: './demo/src/scripts/demo.js',
+        styles: {
+            destDirectory: './demo/styles',
+            source: './demo/src/styles/**/*.sass'
+        }
     },
     destDirectory:  './build',
     scripts: {
@@ -114,9 +118,34 @@ gulp.task('compile:scripts', ['clean:scripts', 'compile:libraries'], function ()
 gulp.task('compile:styles', ['clean:styles'], function () {
     return gulp.src(build.styles.source)
         .pipe(sass({
+            includePaths: [
+                './src/styles', 
+                './node_modules/foundation-sites/scss',
+                './node_modules/normalize-scss/sass'
+            ],
             outputStyle: 'expanded'
         }).on('error', sass.logError))
         .pipe(gulp.dest(build.styles.destDirectory))
+        // Minify
+//        .pipe(buffer())
+//        .pipe(uglifycss())
+//        .pipe(rename({
+//            suffix: '.min'
+//        }))
+//        .pipe(gulp.dest(build.styles.destDirectory));
+});
+
+gulp.task('compile:demo:styles', ['clean:styles'], function () {
+    return gulp.src(build.demo.styles.source)
+        .pipe(sass({
+            includePaths: [
+                './demo/src/styles', 
+                './node_modules/foundation-sites/scss',
+                './node_modules/normalize-scss/sass'
+            ],
+            outputStyle: 'expanded'
+        }).on('error', sass.logError))
+        .pipe(gulp.dest(build.demo.styles.destDirectory))
         // Minify
 //        .pipe(buffer())
 //        .pipe(uglifycss())
