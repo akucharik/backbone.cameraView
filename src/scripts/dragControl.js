@@ -17,8 +17,8 @@ import Utils from './utils';
 * Description.
 * 
 * @class Oculo.DragControl
+* @constructor
 * @requires {@link external:Draggable}
-* @memberof Oculo
 * @param {string|Element} target - The target.
 * @param {Object} [options] - An object of configuration options.
 * @param {string|Element} [options.dragProxy] - The element that controls/initiates the drag events.

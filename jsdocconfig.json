@@ -3,8 +3,14 @@
         "allowUnknownTags": true
     },
     "source": {
-        "include": [ "src/scripts" ],
-        "exlude": [ "src/scripts/lib" ],
+        "include": [ 
+            "./src/scripts/animation.js",
+            "./src/scripts/camera.js",
+            "./src/scripts/scene.js"
+        ],
+        "exlude": [ 
+            "./src/scripts/lib"
+        ],
         "includePattern": ".+\\.js(doc|x)?$",
         "excludePattern": "(^|\\/|\\\\)_"
     },

@@ -4,8 +4,9 @@
 * Creates a 2D vector from a series of values.
 * 
 * @class Oculo.Vector2
-* @param {number} [x] - The x value.
-* @param {number} [y] - The y value.
+* @constructor
+* @param {number} x=0 - The x value.
+* @param {number} y=0 - The y value.
 */
 class Vector2 {
     constructor (x, y) {

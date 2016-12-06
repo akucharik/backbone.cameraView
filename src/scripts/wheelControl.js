@@ -13,7 +13,6 @@ import Utils    from './utils';
 * 
 * @class Oculo.WheelControl
 * @constructor
-* @memberof Oculo
 * @param {string|Element} target - The target.
 * @param {Object} [options] - An object of configuration options.
 * @param {function} [options.onWheel] - The function to call every time the wheel event occurs.

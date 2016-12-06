@@ -29,7 +29,7 @@ import Vector2       from './math/vector2';
 
 
 /**
-* @namespace
+* @namespace Oculo
 */
 const Oculo = {
     Animation: Animation,

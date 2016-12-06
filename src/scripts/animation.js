@@ -21,7 +21,6 @@ import Vector2    from './math/vector2';
 * 
 * @class Oculo.Animation
 * @constructor
-* @memberof Oculo
 * @extends external:TimelineMax
 * @param {Camera} camera - The camera to be animated.
 * @param {Object} [options] - An object of {@link external:TweenMax|TweenMax} options.

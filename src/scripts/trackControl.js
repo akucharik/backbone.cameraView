@@ -13,7 +13,6 @@ import WheelControl from './wheelControl';
 * 
 * @class Oculo.TrackControl
 * @constructor
-* @memberof Oculo
 * @param {Oculo.Camera} camera - The camera.
 * @param {Object} [options] - An object of configuration options.
 * @param {boolean} [options.draggable] - Whether dragging is handled or not.

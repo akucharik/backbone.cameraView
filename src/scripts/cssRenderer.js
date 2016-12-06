@@ -10,7 +10,6 @@
 * 
 * @class Oculo.CSSRenderer
 * @constructor
-* @memberof Oculo
 *
 * @example
 * var myRenderer = new CSSRenderer(myCamera);

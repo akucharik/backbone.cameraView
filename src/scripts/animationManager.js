@@ -12,6 +12,7 @@ import { Type }  from './constants';
 * Description.
 * 
 * @class Oculo.AnimationManager
+* @constructor
 * @param {Object} camera - The camera that owns this AnimationManager.
 */
 class AnimationManager {
