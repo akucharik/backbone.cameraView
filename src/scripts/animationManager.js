@@ -145,7 +145,9 @@ class AnimationManager {
     * @returns {this} self
     */
     pause () {
-        this.currentAnimation.pause(null, false);
+        if (this.currentAnimation) {
+            this.currentAnimation.pause(null, false);
+        }
 
         return this;
     }
@@ -163,7 +165,8 @@ class AnimationManager {
         if (animation) {
             this.currentAnimation = animation;
             this.currentAnimation.invalidate().restart(false, false);
-        } else {
+        } 
+        else if (this.currentAnimation) {
             this.currentAnimation.play(null, false);
         }
         
@@ -177,8 +180,10 @@ class AnimationManager {
     * @returns {this} self
     */
     resume () {
-        this.currentAnimation.resume(null, false);
-
+        if (this.currentAnimation) {
+            this.currentAnimation.resume(null, false);
+        }
+        
         return this;
     }
 }
