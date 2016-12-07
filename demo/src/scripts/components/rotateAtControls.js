@@ -31,7 +31,7 @@ const RotateAtControls = () => (
             <DropdownList items={data.easeList} valueKey='ease' onChange={actions.updateEase} />
         </div>
         <div>
-            <button onClick={cameraActions.rotateAt}>Rotate</button>
+            <button type="button" className="button" onClick={cameraActions.rotateAt}>Rotate</button>
         </div>
     </div>
 );

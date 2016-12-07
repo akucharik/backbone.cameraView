@@ -26,7 +26,7 @@ const MoveToControls = () => (
             <DropdownList items={data.easeList} valueKey='ease' onChange={actions.updateEase} />
         </div>
         <div>
-            <button onClick={cameraActions.moveTo}>Move</button>
+            <button type="button" className="button" onClick={cameraActions.moveTo}>Move</button>
         </div>
     </div>
 );

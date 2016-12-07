@@ -35,7 +35,6 @@ var build = {
         source: './src/styles/**/*.sass',
         vendor: {
             source: [
-                './src/styles/demo.css', 
                 './src/styles/font-awesome.min.css', 
                 './src/styles/github-markdown.css'
             ]

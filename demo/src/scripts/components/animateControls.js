@@ -55,7 +55,7 @@ const AnimateControls = () => (
             <DropdownList items={data.easeList} valueKey='shakeEaseOut' onChange={actions.updateShakeEaseOut} />
         </div>
         <div>
-            <button onClick={cameraActions.animate}>Animate</button>
+            <button type="button" className="button" onClick={cameraActions.animate}>Animate</button>
         </div>
     </div>
 );

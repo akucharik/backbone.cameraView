@@ -9,10 +9,10 @@ import React         from 'react';
 import cameraActions from '../cameraActions';
 
 const Controls = () => (
-    <div>
-        <button onClick={cameraActions.pause}>Pause</button>
-        <button onClick={cameraActions.play}>Play</button>
-        <button onClick={cameraActions.resume}>Resume</button>
+    <div className="button-group">
+        <button type="button" className="button" onClick={cameraActions.pause}>Pause</button>
+        <button type="button" className="button" onClick={cameraActions.play}>Play</button>
+        <button type="button" className="button" onClick={cameraActions.resume}>Resume</button>
     </div>
 );
 
