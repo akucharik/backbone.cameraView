@@ -25,7 +25,7 @@ Oculo is a simple and intuitive JavaScript 2D camera that allows you to animate 
 
 ```html
 <div id="camera"></div>
-<div id="scene">
+<div id="scene" style="width: 800px; height: 400px; background-color: gray;">
     <div>My first scene...</div>
 </div>
 ```
@@ -35,8 +35,8 @@ Oculo is a simple and intuitive JavaScript 2D camera that allows you to animate 
 ```javascript
 var myCamera = new Oculo.Camera({
     view: '#camera',
-    width: 800,
-    height: 400,
+    width: 500,
+    height: 250,
     dragToMove: true,
     wheelToZoom: true
 }).addScene('scene1', '#scene').render();

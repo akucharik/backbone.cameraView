@@ -300,6 +300,12 @@ class Camera {
         // Initialize event listeners
         this._events.addListener('change:size', this.onResize);
         
+        // Initialize view
+        if (this.view) {
+            this.view.style.overflow = 'hidden';
+            this.view.style.position = 'relative';
+        }
+        
         // Initialize scene manager view and track controls
         if (this.view && this.scenes.view) {
             this.view.appendChild(this.scenes.view);
