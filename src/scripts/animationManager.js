@@ -153,20 +153,23 @@ class AnimationManager {
     }
 
     /**
-    * Plays the current or provided animation. forward from the current playhead position.
+    * Plays the current or provided animation forward from the current playhead position.
+    * @param {string} [name] - The name of the animation to play.
     *
     * @returns {this} self
     */
-    play (animation) {
-        if (typeof animation === 'string') {
-            animation = this._animations[animation];
+    play (name) {
+        var animation;
+        
+        if (typeof name === 'string') {
+            animation = this._animations[name];
         }
         
         if (animation) {
             this.currentAnimation = animation;
             this.currentAnimation.invalidate().restart(false, false);
         } 
-        else if (this.currentAnimation) {
+        else if (name === undefined && this.currentAnimation) {
             this.currentAnimation.play(null, false);
         }
         

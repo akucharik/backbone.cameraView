@@ -169,6 +169,22 @@
           }]
         });
         
+        camera.addAnimation('invariant', {
+          keyframes: [{ 
+              origin: {x: 0, y: 0},
+              position: {x: 0, y: 0},
+              rotation: 0,
+              zoom: 1, 
+              duration: 0
+          }, {
+              zoom: 2,
+              duration: 2,
+              options: {
+                  ease: Power2.easeOut
+              }
+          }]
+        });
+        
         //camera.addAnimation('moveTobox100', { duration: 2, position: '#box100', rotation:-20, zoom: 1.5 });
         camera.addAnimation('moveTobox100', new Oculo.Animation(camera).animate({position: '#box100', rotation:-20, zoom: 1.5}, 2));
         camera.addAnimation('moveTo2000', new Oculo.Animation(camera).animate({position: {x:2000, y:500}, zoom: 1.5}, 2));
