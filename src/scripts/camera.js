@@ -271,21 +271,32 @@ class Camera {
                 onComplete: function (wasAnimating, wasPaused) {
                     // 'this' is bound to the Animation via the Animation class
                     if (wasAnimating) {
-                        var endProps;
-                        var coreAnimation = this.camera.animations.currentAnimation.currentSubAnimation.core;
+//                        var endProps;
+                        var currentAnimation = this.camera.animations.currentAnimation;
+                        var coreAnimation = currentAnimation.currentKeyframe.core;
+                        var currentTime;
 
-                        if (coreAnimation.data.isMoving) {
-                            endProps = this._calculateEndProps(coreAnimation.data.parsedOrigin, coreAnimation.data.parsedPosition, coreAnimation.data.parsedRotation, coreAnimation.data.parsedZoom, this.camera);
-                            Object.assign(coreAnimation.data, endProps);
+                        if (coreAnimation.props.end.isMoving) {
+                            currentTime = currentAnimation.time();
+                            
+                            currentAnimation.seek(currentTime - coreAnimation.time());
+                            coreAnimation.invalidate();
+                            this.camera.position = coreAnimation.props.start.position;
+                            this.camera.rawOffset = this.camera._calculateOffsetFromPosition(coreAnimation.props.start.position, this.camera.center, this.camera.transformOrigin, this.camera.transformation);
+                            currentAnimation._initCoreTween(coreAnimation);
+                            currentAnimation.seek(currentTime);
 
-                            // TODO: for dev only
-                            console.log('tween data after resize: ', coreAnimation.data);
-                            coreAnimation.updateTo({
-                                zoom: endProps.endZoom,
-                                rotation: endProps.endRotation,
-                                rawOffsetX: endProps.endOffsetX,
-                                rawOffsetY: endProps.endOffsetY
-                            });
+//                            endProps = this._calculateEndProps(coreAnimation.props.parsed.origin, coreAnimation.props.parsed.position, coreAnimation.props.parsed.rotation, coreAnimation.props.parsed.zoom, this.camera);
+//                            Object.assign(coreAnimation.data, endProps);
+//
+//                            // TODO: for dev only
+//                            console.log('tween data after resize: ', coreAnimation.data);
+//                            coreAnimation.updateTo({
+//                                zoom: endProps.endZoom,
+//                                rotation: endProps.endRotation,
+//                                rawOffsetX: endProps.endOffsetX,
+//                                rawOffsetY: endProps.endOffsetY
+//                            });
                         }
                         
                         if (!wasPaused) {

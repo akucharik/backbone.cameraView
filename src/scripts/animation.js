@@ -65,7 +65,7 @@ class Animation extends TimelineMax {
         /**
         * @property {TimelineLite} - The current active sub-animation consisting of the core camera animation and effect animations.
         */
-        this.currentSubAnimation = null;
+        this.currentKeyframe = null;
         
         /**
         * @property {boolean} - Whether the animation should be destroyed once it has completed.
@@ -83,8 +83,8 @@ class Animation extends TimelineMax {
         * @private
         */
         this._onStart = function () {
-            var startTween = this.getChildren(false, false, true)[0].getChildren(false, true, false)[0];
-            this._initCoreTween(startTween);
+            var startCoreTween = this.getChildren(false, false, true)[0].getChildren(false, true, false)[0];
+            this._initCoreTween(startCoreTween);
             
             if (this.duration() > 0) {
                 if (this.camera.isDraggable) {
@@ -164,7 +164,7 @@ class Animation extends TimelineMax {
             callbackScope: this,
             onStartParams: ['{self}'],
             onStart: function (self) {
-                this.currentSubAnimation = self;
+                this.currentKeyframe = self;
             }
         });
         var shakeTimeline = null;
@@ -172,8 +172,7 @@ class Animation extends TimelineMax {
         
         // Tween core camera properties
         if (props.origin || props.position || props.rotation || props.zoom) {
-            var coreTween = 
-            TweenMax.to(this.camera, duration, Object.assign({}, options, {
+            var coreTween = TweenMax.to(this.camera, duration, Object.assign({}, options, {
                 rawOffsetX: 0,
                 rawOffsetY: 0,
                 rotation: 0,
@@ -182,54 +181,13 @@ class Animation extends TimelineMax {
                 callbackScope: this,
                 onStartParams: ['{self}'],
                 onStart: function (self) {
-//                    var startProps = this._getStartProps();
-//                    var parsedProps = this._parseProps(self.data.sourceOrigin, self.data.sourcePosition, self.data.sourceRotation, self.data.sourceZoom, this.camera);
-//                    var endProps = this._calculateEndProps(parsedProps.parsedOrigin, parsedProps.parsedPosition, parsedProps.parsedRotation, parsedProps.parsedZoom, this.camera);
-//                    Object.assign(self.data, startProps, parsedProps, endProps);
-//
-//                    this.previousProps.position = this.camera.position;
-//                    this.previousProps.rotation = this.camera.rotation;
-//                    this.previousProps.zoom = this.camera.zoom;
-
                     // Smooth origin change
                     this.camera._setTransformOrigin(self.props.end.origin);
-//                    console.log('tween duration: ', self.duration());
-//                    if (self.duration() === 0) {
-//                        this.camera.render();
-//                    }
-//                    this.camera._setTransformOrigin(endProps.endOrigin);
-                    
-//                    if (duration === 0) {
-//                        if (Number.isFinite(endProps.endOffsetX)) {
-//                            this.camera.rawOffsetX = endProps.endOffsetX;
-//                        }
-//                        if (Number.isFinite(endProps.endOffsetY)) {
-//                            this.camera.rawOffsetY = endProps.endOffsetY;
-//                        }
-//                        if (Number.isFinite(endProps.endRotation)) {
-//                            this.camera.rotation = endProps.endRotation;
-//                        }
-//                        if (Number.isFinite(endProps.endZoom)) {
-//                            this.camera.zoom = endProps.endZoom;
-//                        }
-//                        
-//                        this.camera.render();
-//                    }
-//                    else {
-//                        self.updateTo({
-//                            rawOffsetX: endProps.endOffsetX,
-//                            rawOffsetY: endProps.endOffsetY,
-//                            rotation: endProps.endRotation,
-//                            zoom: endProps.endZoom
-//                        });
-//                    }
+                    self.timeline.core = self;
                     
                     // TODO: For dev only
                     console.log('tween vars: ', self.vars);
-                    console.log('tween data: ', self.props);
-                    //console.log('after updateTo: ', self);
-                    
-                    self.timeline.core = self;
+                    console.log('tween props: ', self.props);
                 },
                 onUpdateParams: ['{self}'],
                 onUpdate: function (self) {
@@ -239,14 +197,12 @@ class Animation extends TimelineMax {
                 },
                 onCompleteParams: ['{self}'],
                 onComplete: function (self) {
-                    var timelines = this.getChildren(false, false, true);
-                    var nextTimeline, nextTween;
-                    
-                    nextTimeline = (self.duration() === 0) ? timelines[1] : this.getChildren(false, false, true, this.time())[0];
+                    var nextTimeline = (self.duration() === 0) ? this.getChildren(false, false, true)[1] : this.getChildren(false, false, true, this.time())[0];
+                    var nextCoreTween;
                     
                     if (nextTimeline) {
-                        nextTween = nextTimeline.getChildren(false, true, false)[0];
-                        this._initCoreTween(nextTween);
+                        nextCoreTween = nextTimeline.getChildren(false, true, false)[0];
+                        this._initCoreTween(nextCoreTween);
                     }
                 }
             }));
@@ -424,7 +380,7 @@ class Animation extends TimelineMax {
     }
     
     /**
-    * Initialize a core tween.
+    * Initializes a core tween.
     *
     * @private
     * @param {TweenMax} tween - The tween.
@@ -453,31 +409,30 @@ class Animation extends TimelineMax {
     * Parses the core animation properties.
     *
     * @private
-    * @param {Object} sourceOrigin - The origin.
-    * @param {Object} sourcePosition - The origin.
-    * @param {number} sourceRotation - The rotation.
-    * @param {number} sourceZoom - The zoom.
-    * @param {Oculo.Camera} camera - The camera.
+    * @param {Object} origin - The origin.
+    * @param {Object} position - The origin.
+    * @param {number} rotation - The rotation.
+    * @param {number} zoom - The zoom.
     * @returns {Object} - The parsed properties.
     */
-    _parseProps (sourceOrigin, sourcePosition, sourceRotation, sourceZoom, camera) {
-        if (sourcePosition === 'previous' && this.previousProps.position) {
-            sourcePosition = this.previousProps.position;
+    _parseProps (origin, position, rotation, zoom) {
+        if (position === 'previous' && this.previousProps.position) {
+            position = this.previousProps.position;
         }
         
-        if (sourceRotation === 'previous' && !isNil(this.previousProps.rotation)) {
-            sourceRotation = this.previousProps.rotation;
+        if (rotation === 'previous' && !isNil(this.previousProps.rotation)) {
+            rotation = this.previousProps.rotation;
         }
         
-        if (sourceZoom === 'previous' && !isNil(this.previousProps.zoom)) {
-            sourceZoom = this.previousProps.zoom;
+        if (zoom === 'previous' && !isNil(this.previousProps.zoom)) {
+            zoom = this.previousProps.zoom;
         }
         
         return { 
-            origin: Utils.parsePosition(sourceOrigin, camera.scene.view),
-            position: Utils.parsePosition(sourcePosition, camera.scene.view),
-            rotation: !isNil(sourceRotation) ? sourceRotation : undefined,
-            zoom: sourceZoom || undefined
+            origin: Utils.parsePosition(origin, this.camera.scene.view),
+            position: Utils.parsePosition(position, this.camera.scene.view),
+            rotation: !isNil(rotation) ? rotation : null,
+            zoom: zoom || null
         };
     }
     
@@ -515,7 +470,7 @@ class Animation extends TimelineMax {
     destroy () {
         super.kill();
         this.camera = null;
-        this.currentSubAnimation = null;
+        this.currentKeyframe = null;
         this.previousProps = null;
     }
     

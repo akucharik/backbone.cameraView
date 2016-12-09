@@ -181,7 +181,7 @@ const Utils = {
     */
     parsePosition: function (input, world) {
         var objectPosition;
-        var position = undefined;
+        var position = null;
         
         if (typeof input === 'string') {
             input = document.querySelector(input);
