@@ -189,6 +189,31 @@ class AnimationManager {
         
         return this;
     }
+    
+    /**
+    * Reverses playback of an animation.
+    *
+    * @param {string} [name=null] - The name of the animation. If none is specified, the current animation will be reversed.
+    * @returns {this} self
+    */
+    reverse (name = null) {
+        var animation;
+        
+        if (typeof name === 'string') {
+            animation = this._animations[name];
+        }
+        
+        if (animation) {
+            this.currentAnimation = animation;
+            this.currentAnimation.invalidate().reverse(0, false);
+        } 
+        else if (name === null && this.currentAnimation) {
+            let time = this.currentAnimation.time();
+            this.currentAnimation.reverse();
+        }
+        
+        return this;
+    }
 }
 
 export default AnimationManager;

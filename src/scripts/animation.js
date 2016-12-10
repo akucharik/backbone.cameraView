@@ -63,6 +63,11 @@ class Animation extends TimelineMax {
         this.camera = camera || null;
         
         /**
+        * @property {array} - The core tweens of this animation in order of execution.
+        */
+        this.coreTweens = [];
+        
+        /**
         * @property {TimelineLite} - The current active sub-animation consisting of the core camera animation and effect animations.
         */
         this.currentKeyframe = null;
@@ -83,7 +88,7 @@ class Animation extends TimelineMax {
         * @private
         */
         this._onStart = function () {
-            var startCoreTween = this.getChildren(false, false, true)[0].getChildren(false, true, false)[0];
+            var startCoreTween = this.coreTweens[0];
             this._initCoreTween(startCoreTween);
             
             if (this.duration() > 0) {
@@ -186,6 +191,7 @@ class Animation extends TimelineMax {
                     self.timeline.core = self;
                     
                     // TODO: For dev only
+                    console.log('core tween started');
                     console.log('tween vars: ', self.vars);
                     console.log('tween props: ', self.props);
                 },
@@ -197,13 +203,13 @@ class Animation extends TimelineMax {
                 },
                 onCompleteParams: ['{self}'],
                 onComplete: function (self) {
-                    var nextTimeline = (self.duration() === 0) ? this.getChildren(false, false, true)[1] : this.getChildren(false, false, true, this.time())[0];
-                    var nextCoreTween;
+                    var nextCoreTween = this.coreTweens[self.index + 1];
                     
-                    if (nextTimeline) {
-                        nextCoreTween = nextTimeline.getChildren(false, true, false)[0];
-                        this._initCoreTween(nextCoreTween);
+                    if (nextCoreTween) {
+                        this._initCoreTween(nextCoreTween, self.props.end);
                     }
+                    // TODO: For dev only
+                    console.log('core tween completed');
                 }
             }));
             
@@ -211,6 +217,7 @@ class Animation extends TimelineMax {
             coreTween.props = {
                 source: {},
                 parsed: {},
+                to: {},
                 start: {},
                 end: {}
             };
@@ -218,6 +225,8 @@ class Animation extends TimelineMax {
             coreTween.props.source.position = props.position;
             coreTween.props.source.rotation = props.rotation;
             coreTween.props.source.zoom = props.zoom;
+            coreTween.index = this.coreTweens.length;
+            this.coreTweens.push(coreTween);
             mainTimeline.add(coreTween, 0);
         }
         
@@ -311,7 +320,7 @@ class Animation extends TimelineMax {
     }
     
     /**
-    * Calculates the end property values.
+    * Calculates the "to" property values.
     *
     * @private
     * @param {Object|Vector2} sourceOrigin - The source origin.
@@ -321,46 +330,53 @@ class Animation extends TimelineMax {
     * @param {Oculo.Camera} camera - The camera.
     * @returns {Object} - The end properties.
     */
-    _calculateEndProps (sourceOrigin, sourcePosition, sourceRotation, sourceZoom, camera) {
-        sourceOrigin = sourceOrigin || {};
-        sourcePosition = sourcePosition || {};
+    _calculateToProps (parsed, from) {
+        var source = {
+            origin: (parsed.origin !== null) ? parsed.origin : {},
+            position: (parsed.position !== null) ? parsed.position : {},
+            rotation: parsed.rotation,
+            zoom: parsed.zoom
+        }
         
-        var endPosition, endOffset;
-        var position = new Vector2(isFinite(sourcePosition.x) ? sourcePosition.x : camera.position.x, isFinite(sourcePosition.y) ? sourcePosition.y : camera.position.y);
-        var origin = new Vector2(isFinite(sourceOrigin.x) ? sourceOrigin.x : camera.transformOrigin.x, isFinite(sourceOrigin.y) ? sourceOrigin.y : camera.transformOrigin.y);
-        var rotation = isFinite(sourceRotation) ? sourceRotation : camera.rotation;
-        var zoom = camera._clampZoom(isFinite(sourceZoom) ? sourceZoom : camera.zoom);
+        var toPosition, toOffset;
+        var position = new Vector2(Number.isFinite(source.position.x) ? source.position.x : from.position.x, Number.isFinite(source.position.y) ? source.position.y : from.position.y);
+        var origin = new Vector2(Number.isFinite(source.origin.x) ? source.origin.x : from.origin.x, Number.isFinite(source.origin.y) ? source.origin.y : from.origin.y);
+        var rotation = Number.isFinite(source.rotation) ? source.rotation : from.rotation;
+        var zoom = this.camera._clampZoom(Number.isFinite(source.zoom) ? source.zoom : from.zoom);
+        var fromTransformation = new Matrix2().scale(from.zoom, from.zoom).rotate(_Math.degToRad(-from.rotation));
         var transformation = new Matrix2().scale(zoom, zoom).rotate(_Math.degToRad(-rotation));
-        var cameraFOVPosition = camera.center;
+        var cameraFOVPosition = this.camera.center;
 
-        var isMoving = isFinite(sourcePosition.x) || isFinite(sourcePosition.y);
-        var isRotating = isFinite(sourceRotation) && sourceRotation !== camera.rotation;
-        var isZooming = isFinite(sourceZoom) && sourceZoom !== camera.zoom;
+        var isMoving = Number.isFinite(source.position.x) || Number.isFinite(source.position.y);
+        var isRotating = Number.isFinite(source.rotation) && source.rotation !== from.rotation;
+        var isZooming = Number.isFinite(source.zoom) && source.zoom !== from.zoom;
 
         // rotateTo, zoomTo
-        if (!isMoving && !isFinite(sourceOrigin.x) && !isFinite(sourceOrigin.y)) {
-            origin.copy(camera.position);
+        if (!isMoving && !Number.isFinite(source.origin.x) && !Number.isFinite(source.origin.y)) {
+            origin.copy(from.position);
         }
         
         // rotateAt, rotateTo, zoomAt, zoomTo
         if (!isMoving) {
             position.copy(origin);
-            cameraFOVPosition = camera._calculateContextPosition(origin, camera.position, camera.center, camera.transformation);
+            cameraFOVPosition = this.camera._calculateContextPosition(origin, from.position, this.camera.center, fromTransformation);
         }
-
-        endPosition = camera._calculatePositionFromPosition(position, cameraFOVPosition, camera.center, origin, transformation);
-        endOffset = camera._calculateOffsetFromPosition(endPosition, camera.center, origin, transformation);
+        
+        toPosition = this.camera._calculatePositionFromPosition(position, cameraFOVPosition, this.camera.center, origin, transformation);
+        toOffset = this.camera._calculateOffsetFromPosition(toPosition, this.camera.center, origin, transformation);
+        console.log('toPosition: ', toPosition);
+        console.log('toOffset: ', toOffset);
         
         return {
             isMoving: isMoving,
             isRotating: isRotating,
             isZooming: isZooming,
-            offsetX: isMoving ? endOffset.x : null,
-            offsetY: isMoving ? endOffset.y : null,
-            origin: (Number.isFinite(sourceOrigin.x) || Number.isFinite(sourceOrigin.y) || !isMoving) ? origin : null,
-            position: endPosition,
-            rotation: !isNil(sourceRotation) ? rotation : null,
-            zoom: sourceZoom ? zoom : null
+            offsetX: isMoving ? toOffset.x : null,
+            offsetY: isMoving ? toOffset.y : null,
+            origin: (Number.isFinite(source.origin.x) || Number.isFinite(source.origin.y) || !isMoving) ? origin : null,
+            position: toPosition,
+            rotation: !isNil(source.rotation) ? rotation : null,
+            zoom: source.zoom ? zoom : null
         };
     }
     
@@ -380,27 +396,43 @@ class Animation extends TimelineMax {
     }
     
     /**
+    * Gets the ending property values.
+    *
+    * @private
+    * @returns {Object} - The ending properties.
+    */
+    _getEndProps (to, start) {
+        return {
+            origin: (to.origin !== null) ? to.origin : start.origin,
+            position: (to.position !== null) ? to.position : start.position,
+            rotation: (to.rotation !== null) ? to.rotation : start.rotation,
+            zoom: (to.zoom !== null) ? to.zoom : start.zoom
+        };
+    }
+    
+    /**
     * Initializes a core tween.
     *
     * @private
     * @param {TweenMax} tween - The tween.
     * @returns {this} self
     */
-    _initCoreTween (tween = {}) {
-        if (tween.type && tween.type === animation.type.CORE) {
-            var startProps = this._getStartProps();
-            var parsedProps = this._parseProps(tween.props.source.origin, tween.props.source.position, tween.props.source.rotation, tween.props.source.zoom, this.camera);
-            var endProps = this._calculateEndProps(parsedProps.origin, parsedProps.position, parsedProps.rotation, parsedProps.zoom, this.camera);
+    _initCoreTween (tween = {}, startProps) {
+        startProps = (startProps !== undefined) ? startProps : this._getStartProps();
+        
+        var parsedProps = this._parseProps(tween.props.source.origin, tween.props.source.position, tween.props.source.rotation, tween.props.source.zoom);
+        var toProps = this._calculateToProps(parsedProps, startProps);
+        var endProps = this._getEndProps(toProps, startProps);
 
-            Object.assign(this.previousProps, startProps);
-            Object.assign(tween.props.start, startProps);
-            Object.assign(tween.props.parsed, parsedProps);
-            Object.assign(tween.props.end, endProps);
-            tween.vars.rawOffsetX = endProps.offsetX;
-            tween.vars.rawOffsetY = endProps.offsetY;
-            tween.vars.rotation = endProps.rotation;
-            tween.vars.zoom = endProps.zoom;
-        }
+        this.previousProps = startProps;
+        tween.props.start = startProps;
+        tween.props.end = endProps;
+        tween.props.parsed = parsedProps;
+        tween.props.to = toProps;
+        tween.vars.rawOffsetX = toProps.offsetX;
+        tween.vars.rawOffsetY = toProps.offsetY;
+        tween.vars.rotation = toProps.rotation;
+        tween.vars.zoom = toProps.zoom;
         
         return this;
     }

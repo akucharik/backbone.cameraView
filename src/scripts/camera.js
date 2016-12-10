@@ -257,54 +257,25 @@ class Camera {
         
         // Initialize custom events
         this.onResize = () => {
-            var wasAnimating = this.animations.isAnimating;
-            var wasPaused = this.animations.isPaused;
-            
-            if (wasAnimating) {
-                this.pause();
-            }
-            
             // Maintain camera position and update the current animation
             new Oculo.Animation(this, { 
                 destroyOnComplete: true, 
                 paused: false, 
-                onComplete: function (wasAnimating, wasPaused) {
+                onComplete: function (wasPaused) {
                     // 'this' is bound to the Animation via the Animation class
-                    if (wasAnimating) {
-//                        var endProps;
-                        var currentAnimation = this.camera.animations.currentAnimation;
-                        var coreAnimation = currentAnimation.currentKeyframe.core;
-                        var currentTime;
+                    var animation = this.camera.animations.currentAnimation;
+                    var time = animation.time();
 
-                        if (coreAnimation.props.end.isMoving) {
-                            currentTime = currentAnimation.time();
-                            
-                            currentAnimation.seek(currentTime - coreAnimation.time());
-                            coreAnimation.invalidate();
-                            this.camera.position = coreAnimation.props.start.position;
-                            this.camera.rawOffset = this.camera._calculateOffsetFromPosition(coreAnimation.props.start.position, this.camera.center, this.camera.transformOrigin, this.camera.transformation);
-                            currentAnimation._initCoreTween(coreAnimation);
-                            currentAnimation.seek(currentTime);
+                    animation.seek(0).invalidate();
+                    this.camera.position = animation.coreTweens[0].props.start.position;
+                    this.camera.rawOffset = this.camera._calculateOffsetFromPosition(this.camera.position, this.camera.center, this.camera.transformOrigin, this.camera.transformation);
+                    animation.seek(time, false);
 
-//                            endProps = this._calculateEndProps(coreAnimation.props.parsed.origin, coreAnimation.props.parsed.position, coreAnimation.props.parsed.rotation, coreAnimation.props.parsed.zoom, this.camera);
-//                            Object.assign(coreAnimation.data, endProps);
-//
-//                            // TODO: for dev only
-//                            console.log('tween data after resize: ', coreAnimation.data);
-//                            coreAnimation.updateTo({
-//                                zoom: endProps.endZoom,
-//                                rotation: endProps.endRotation,
-//                                rawOffsetX: endProps.endOffsetX,
-//                                rawOffsetY: endProps.endOffsetY
-//                            });
-                        }
-                        
-                        if (!wasPaused) {
-                            this.camera.resume();
-                        }
+                    if (!wasPaused) {
+                        this.camera.resume();
                     }
                 },
-                onCompleteParams: [wasAnimating, wasPaused]
+                onCompleteParams: [this.animations.isPaused]
             }).moveTo(this.position, 0, { overwrite: false });
         }
         
@@ -902,6 +873,18 @@ class Camera {
     resume () {
         this.animations.resume();
 
+        return this;
+    }
+    
+    /**
+    * Reverses playback of an animation.
+    *
+    * @param {string} [name] - The name of the animation. If none is specified, the current animation will be reversed.
+    * @returns {this} self
+    */
+    reverse (name) {
+        this.animations.reverse(name);
+        
         return this;
     }
 
