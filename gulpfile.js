@@ -48,7 +48,7 @@ gulp.task('clean:scripts', function () {
     return del(build.scripts.destDirectory);
 });
 
-gulp.task('copy:vendor', function () {
+gulp.task('copy:vendor', ['clean:scripts'], function () {
     return gulp.src(build.vendor.source)
         .pipe(gulp.dest(build.scripts.destDirectory));
 });
