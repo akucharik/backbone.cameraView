@@ -237,10 +237,10 @@ class Vector2 {
     * @return {Vector2} The transformed vector.
     */
     transform (m) {
-        this.x = this.x * m.e11 + this.y * m.e12 + (m.tx ? m.tx : 0);
-        this.y = this.x * m.e21 + this.y * m.e22 + (m.ty ? m.ty : 0);
+        var x1 = this.x * m.e11 + this.y * m.e12 + (m.tx ? m.tx : 0);
+        var y1 = this.x * m.e21 + this.y * m.e22 + (m.ty ? m.ty : 0);
 
-        return this;
+        return this.set(x1, y1);
     }
 }
 
