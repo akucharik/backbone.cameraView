@@ -42,6 +42,9 @@ const actions = {
     resume: function () {
         camera.resume();
     },
+    reverse: function () {
+        camera.reverse();
+    },
     rotateAt: function () {
         let state = store.getState();
         let origin = data.target[state.origin];
