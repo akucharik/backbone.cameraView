@@ -297,7 +297,11 @@ class Camera {
                     var position = camera._calculatePositionFromOffset(new Vector2(-this.x, -this.y), camera.center, camera.transformOrigin, camera.transformation);
                     new Oculo.Animation(camera, { 
                         destroyOnComplete: true, 
-                        paused: false 
+                        paused: false,
+                        onComplete: function (dragControl) {
+                            dragControl.update();
+                        },
+                        onCompleteParams: [this]
                     }).moveTo(position, 0);
                 },
                 wheelable: this.wheelToZoom,

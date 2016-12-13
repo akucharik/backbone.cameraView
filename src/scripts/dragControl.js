@@ -267,6 +267,15 @@ class DragControl {
         this.dragProxy.style.cursor = 'move';
         return this;
     }
+    
+    /**
+    * Updates the control's x and y properties to reflect the target's position.
+    *
+    * @returns {this} self
+    */
+    update () {
+        return this.control.update();
+    }
 }
 
 export default DragControl;
