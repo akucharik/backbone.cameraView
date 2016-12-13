@@ -1,0 +1,73 @@
+@import 'settings';
+@import 'foundation';
+@import 'prettify-min';
+@import 'code';
+
+@include foundation-everything(true);
+
+h1 {
+    color: $dark-gray;
+    font-weight: 700;
+}
+
+h2 {
+    margin-top: $subheader-margin-top;
+}
+
+.top-bar {
+    background-color: $light-gray;
+    font-size: rem-calc(16.8);
+    font-weight: 600;
+    padding: 1.1rem;
+    
+    ul {
+        background-color: transparent;
+    }
+    
+    &-left {
+        > ul > li > a {
+            &:hover {
+                background-color: rgba(0,0,0,0.2);
+            }
+        }
+    }
+    
+    &-logo {
+        padding: 0 2.4rem 0 0;
+
+        &-link {
+            padding-right: 0 !important;
+            padding-left: 0 !important;
+            
+            &:hover {
+                background-color: transparent !important;
+            }
+        }
+    }
+}
+
+.home-banner {
+    background-color: #999;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+.main {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+
+.site-footer {
+    background-color: $light-gray;
+    padding: 2.0rem;
+}
+
+.demo-sidebar {
+    
+}
+
+.bcv-scene {
+    background-color: lightgray;
+    top: 0px;
+    left: 0px;
+}

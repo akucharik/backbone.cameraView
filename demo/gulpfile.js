@@ -33,7 +33,7 @@ var build = {
             '../node_modules/foundation-sites/scss',
             '../node_modules/normalize-scss/sass'
         ],
-        source: './src/styles/**/*.sass',
+        source: './src/styles/demo.scss',
         vendor: {
             source: [
                 './src/styles/font-awesome.min.css', 

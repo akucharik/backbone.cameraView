@@ -2,27 +2,33 @@
 <html lang="en">
 <head>
 	<title>Backbone Camera Demo</title>
+    <script src="http://use.edgefonts.net/source-sans-pro:n4,i4,n6,i6,n7,i7;source-code-pro.js"></script>
     <link type="text/css" href="styles/font-awesome.min.css" rel="stylesheet" />
     <link type="text/css" href="styles/github-markdown.css" rel="stylesheet" />
     <link type="text/css" href="styles/demo.css" rel="stylesheet" />
 </head>
 <body>
-    <header class="top-bar">
-        <div class="top-bar-left">
-            <ul class="menu">
-                <li class="menu-text">Oculo.js</li>
-                <li><a href="#">Download</a></li>
-                <li><a href="#">Getting Started</a></li>
-                <li><a href="#">Documentation</a></li>
-                <li><a href="#">Source</a></li>
-            </ul>
+    <nav class="top-bar">
+        <div class="row column">
+            <div class="top-bar-left">
+                <ul class="menu">
+                    <li class="menu-text top-bar-logo"><a class="top-bar-logo-link" href="">Oculo.js</a></li>
+                    <li><a href="#">Download</a></li>
+                    <li><a href="#">Get Started</a></li>
+                    <li><a href="#">Documentation</a></li>
+                    <li><a href="#">Source</a></li>
+                </ul>
+            </div>
+            <div class="top-bar-right">
+                <a href="" style="background-image: url('images/GitHub-Mark-32px.png'); width: 32px; height: 32px; display: inline-block;"></a>
+            </div>
         </div>
-    </header>
+    </nav>
     
-    <div class="callout large">
-        <div class="row expanded">
+    <div class="callout large home-banner">
+        <div class="row collapse">
             <div class="shrink columns demo-main">
-                <div id="camera" class="bcv-camera">
+                <div id="camera">
                     <div class="bcv-ignore-pointer-events" style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid blue; z-index: 1;"></div>
                     <div class="bcv-ignore-pointer-events" style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 200px; height: 200px; border: 1px solid red; z-index: 1;"></div>
 
@@ -67,7 +73,6 @@
                 
             </div>
             <div class="columns demo-sidebar">
-                <h2>Commands</h2>
                 <div id="app" style="padding: 1.0em; background-color: gray;"></div>
                 <div id="print"></div>
             </div>
@@ -76,46 +81,75 @@
 
     </div>
     
-    <div class="row expanded">
-        <h2>Console Examples</h2>
-        <ul>
-            <li class="markdown-body">
-                <pre><code class="language-js">camera.<span class="pl-en">zoomOn</span>(<span class="pl-c1">2</span>, <span class="pl-c1">300</span>, <span class="pl-c1">300</span>, <span class="pl-c1">5</span>).<span class="pl-en">rotateAt</span>(<span class="pl-c1">30</span>, <span class="pl-c1">300</span>, <span class="pl-c1">300</span>, <span class="pl-c1">5</span>);</code></pre>
-            </li>
-        </ul>
-    </div>
-    
-    <div>
-        <pre class="prettyprint"><code>new Camera();</code></pre>
-    </div>
-    
-    
-    
-    <h1>Getting started</h1>
-    <h2>1. <a href="">Download Oculo</a> and add it and its dependencies to your page.</h2>
+    <div class="row main">
+        <div class="small-12 columns">
+            <h1>Get started</h1>
+            <h2>1. <a href="">Download</a> and add Oculo and its dependencies to your page.</h2>
 <pre class="prettyprint"><code>&lt;script type="text/javascript" src="oculo/dist/TweenMax.min.js"&gt;&lt;/script&gt;
 &lt;script type="text/javascript" src="oculo/dist/Draggable.min.js"&gt;&lt;/script&gt;
 &lt;script type="text/javascript" src="oculo/dist/oculo.min.js"&gt;&lt;/script&gt;</code></pre>
 
-    <h2>2. Set up your HTML</h2>
+            <h2>2. Set up your HTML</h2>
 <pre class="prettyprint"><code>&lt;div id="camera"&gt;&lt;/div&gt;
 &lt;div id="scene" style="width: 800px; height: 400px; background-color: gray;"&gt;
     &lt;div&gt;My first scene...&lt;/div&gt;
 &lt;/div&gt;</code></pre>
 
-    <h2>3. Initialize your camera</h2>
+            <h2>3. Activate your camera</h2>
 <pre class="prettyprint"><code>var myCamera = new Oculo.Camera({
     view: '#camera',
     width: 500,
     height: 250,
     dragToMove: true,
     wheelToZoom: true
-}).addScene('scene1', '#scene').render();</code>
-</pre>
+}).addScene('scene1', '#scene').setScene('scene1').render();</code></pre>
+            
+            <h2>4. Animate your camera</h2>
+<pre class="prettyprint"><code>myCamera.zoomTo(2, 1, { ease: Power2.easeOut });</code></pre>
+            
+            <h2>5. Create reusable animations</h2>
+            <p>Creating reusable animations can make working with your camera a breeze. 
+                Simply add your animation to your camera and play it in the future. 
+                If you create an animation without a defined starting point, it will play from the current camera state.</p>
+<pre class="prettyprint"><code>myCamera.addAnimation('zoomTo2Then1', {
+  keyframes: [{ 
+      zoom: 2, 
+      duration: 1, 
+      options: { 
+          ease: Power2.easeIn 
+      }
+  }, {
+      zoom: 1,
+      duration: 1,
+      options: {
+          ease: Power2.easeOut
+      }
+  }]
+});
+
+// Play your animation in the future:
+myCamera.play('zoomTo2Then1');</code></pre>
+            
+            <p>If you want an animation to consistently play from a starting point, just set the first keyframe's duration to 0.</p>
+<pre class="prettyprint"><code>myCamera.addAnimation('zoomFrom1To2', {
+  keyframes: [{ 
+      zoom: 1, 
+      duration: 0,
+  }, {
+      zoom: 2,
+      duration: 1,
+      options: {
+          ease: Power2.easeOut
+      }
+  }]
+});</code></pre>
+            
+        </div>
+    </div>
     
-    
-    
-    <footer class="site-footer">&copy; <span id="copyrightYear"></span> Adam Kucharik All rights reserved.</footer>
+    <footer class="site-footer">
+        <div class="row column">&copy; <span id="copyrightYear"></span> Adam Kucharik All rights reserved.</div>
+    </footer>
     
     <script type="text/javascript" src="scripts/TweenMax.min.js"></script>
     <script type="text/javascript" src="scripts/Draggable.min.js"></script>
@@ -135,8 +169,8 @@
             //minZoom: 0.1,
             wheelToZoom: true,
             //wheelToZoomIncrement: 0.5,
-            width: 800,
-            height: 500
+            width: 700,
+            height: 400
         });
         
         // Scenes
