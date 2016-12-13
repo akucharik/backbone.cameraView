@@ -21,7 +21,8 @@ var build = {
             source: [
                 '../dist/TweenMax.min.js', 
                 '../dist/Draggable.min.js',
-                '../dist/oculo.js'
+                '../dist/oculo.js',
+                './src/scripts/vendor/prettify-min.js'
             ]
         }
     },

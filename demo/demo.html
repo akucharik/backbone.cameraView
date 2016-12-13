@@ -85,15 +85,47 @@
         </ul>
     </div>
     
+    <div>
+        <pre class="prettyprint"><code>new Camera();</code></pre>
+    </div>
+    
+    
+    
+    <h1>Getting started</h1>
+    <h2>1. <a href="">Download Oculo</a> and add it and its dependencies to your page.</h2>
+<pre class="prettyprint"><code>&lt;script type="text/javascript" src="oculo/dist/TweenMax.min.js"&gt;&lt;/script&gt;
+&lt;script type="text/javascript" src="oculo/dist/Draggable.min.js"&gt;&lt;/script&gt;
+&lt;script type="text/javascript" src="oculo/dist/oculo.min.js"&gt;&lt;/script&gt;</code></pre>
+
+    <h2>2. Set up your HTML</h2>
+<pre class="prettyprint"><code>&lt;div id="camera"&gt;&lt;/div&gt;
+&lt;div id="scene" style="width: 800px; height: 400px; background-color: gray;"&gt;
+    &lt;div&gt;My first scene...&lt;/div&gt;
+&lt;/div&gt;</code></pre>
+
+    <h2>3. Initialize your camera</h2>
+<pre class="prettyprint"><code>var myCamera = new Oculo.Camera({
+    view: '#camera',
+    width: 500,
+    height: 250,
+    dragToMove: true,
+    wheelToZoom: true
+}).addScene('scene1', '#scene').render();</code>
+</pre>
+    
+    
+    
     <footer class="site-footer">&copy; <span id="copyrightYear"></span> Adam Kucharik All rights reserved.</footer>
     
     <script type="text/javascript" src="scripts/TweenMax.min.js"></script>
     <script type="text/javascript" src="scripts/Draggable.min.js"></script>
     <script type="text/javascript" src="../dist/oculo.js"></script>
     <script type="text/javascript" src="scripts/demo.js"></script>
+    <script type="text/javascript" src="scripts/prettify-min.js"></script>
     
     <script type="text/javascript">
         document.getElementById('copyrightYear').innerHTML = new Date().getFullYear();
+        prettyPrint();
         
         camera = new Oculo.Camera({
             view: '#camera',
@@ -186,7 +218,7 @@
         });
         
         //camera.addAnimation('moveTobox100', { duration: 2, position: '#box100', rotation:-20, zoom: 1.5 });
-        camera.addAnimation('moveTobox100', new Oculo.Animation(camera).animate({position: '#box100', rotation:-20, zoom: 1.5}, 2));
+        camera.addAnimation('moveTobox100', new Oculo.Animation(camera).animate({position: {x:200, y:200}}, 1).animate({position: '#box100', rotation:-20, zoom: 2}, 2));
         camera.addAnimation('moveTo2000', new Oculo.Animation(camera).animate({position: {x:2000, y:500}, zoom: 1.5}, 2));
         camera.addAnimation('moveTo800Slow', new Oculo.Animation(camera).animate({position: {x:800}, zoom: 1.5}, 8));
         camera.addAnimation('rotateAt200', new Oculo.Animation(camera).rotateAt({x:200, y:200}, -50, 5));
