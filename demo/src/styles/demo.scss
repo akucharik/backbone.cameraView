@@ -1,23 +1,32 @@
 @import 'settings';
 @import 'foundation';
+@include foundation-everything(true);
 @import 'prettify-min';
 @import 'code';
 
-@include foundation-everything(true);
+body {
+    -webkit-font-smoothing: auto;
+    -moz-osx-font-smoothing: auto;
+}
 
 h1 {
     color: $dark-gray;
-    font-weight: 700;
 }
 
 h2 {
+    font-weight: 600;
     margin-top: $subheader-margin-top;
 }
 
+.button {
+    /*text-transform: uppercase;*/
+}
+
 .top-bar {
-    background-color: $light-gray;
+    /*background-color: $light-gray;*/
+    background-color: #fff;
     font-size: rem-calc(16.8);
-    font-weight: 600;
+    font-weight: 400;
     padding: 1.1rem;
     
     ul {
@@ -25,23 +34,50 @@ h2 {
     }
     
     &-left {
-        > ul > li > a {
-            &:hover {
+        > ul > li {
+            position: relative;
+            
+            &:after {
+                content: '';
+                display: block;
+                position: absolute;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                left: 0;
+                transform: scale(0.9);
+                transition: 0.2s;
+            }
+
+            &:hover:after {
                 background-color: rgba(0,0,0,0.2);
+                transform: scale(1);
+            }
+            
+            > a {
+                position: relative;
+                transition: 0.2s;
+                z-index: 2;
+
+                &:hover {
+                    color: #fff;
+                }
+
+                
             }
         }
     }
     
     &-logo {
         padding: 0 2.4rem 0 0;
+        
+        &:after {
+            content: none !important;
+        }
 
         &-link {
             padding-right: 0 !important;
-            padding-left: 0 !important;
-            
-            &:hover {
-                background-color: transparent !important;
-            }
+            padding-left: 0 !important;   
         }
     }
 }
@@ -50,9 +86,20 @@ h2 {
     background-color: #999;
     padding-top: 0 !important;
     padding-bottom: 0 !important;
+    
+    &-headline {
+        font-size: rem-calc(24);
+        font-weight: 600;
+        line-height: 1.2;
+    }
+    
+    .button {
+        margin-right: 1.0rem;
+    }
 }
 
 .main {
+    background-color: #fafcff;
     padding-top: 2rem;
     padding-bottom: 2rem;
 }

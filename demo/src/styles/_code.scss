@@ -3,7 +3,7 @@
 
 pre .str, code .str { color: #65B042; } /* string  - green */
 pre .kwd, code .kwd { color: #E28964; } /* keyword - dark pink */
-pre .com, code .com { color: #AEAEAE; font-style: italic; } /* comment - gray */
+pre .com, code .com { color: #AEAEAE; } /* comment - gray */
 pre .typ, code .typ { color: #89bdff; } /* type - light blue */
 pre .lit, code .lit { color: #3387CC; } /* literal - blue */
 pre .pun, code .pun { color: #fff; } /* punctuation - white */
@@ -13,8 +13,13 @@ pre .atn, code .atn { color: #bdb76b; } /* html/xml attribute name  - khaki */
 pre .atv, code .atv { color: #65B042; } /* html/xml attribute value - green */
 pre .dec, code .dec { color: #3387CC; } /* decimal - blue */
 
+code, kbd, samp {
+    font-size: 0.85rem;
+}
+
 pre.prettyprint, code.prettyprint {
-	background-color: #000;
+	background-color: #282828;
+    border-left: rem-calc(10) solid #555;
 	/*border-radius: 8px;*/
 }
 
@@ -24,6 +29,12 @@ pre.prettyprint {
 	margin: 0.3rem auto 1.2rem;
 	padding: 1.5rem 2.5rem;
 	white-space: pre-wrap;
+}
+
+pre.prettyprint > code {
+    background-color: transparent;
+    border: 0 none transparent;
+    padding: 0;
 }
 
 

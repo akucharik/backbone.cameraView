@@ -122,8 +122,8 @@ $header-styles: (
     'h6': ('font-size': 16),
   ),
   medium: (
-    'h1': ('font-size': 44),
-    'h2': ('font-size': 32),
+    'h1': ('font-size': 46),
+    'h2': ('font-size': 30),
     'h3': ('font-size': 28),
     'h4': ('font-size': 24),
     'h5': ('font-size': 20),
@@ -139,9 +139,9 @@ $paragraph-text-rendering: optimizeLegibility;
 $code-color: $black;
 $code-font-family: $font-family-monospace;
 $code-font-weight: $global-weight-normal;
-$code-background: transparent;
-$code-border: 0px none transparent;
-$code-padding: rem-calc(0);
+$code-background: $light-gray;
+$code-border: 1px solid #cacaca;
+$code-padding: rem-calc(0 3);
 $anchor-color: $primary-color;
 $anchor-color-hover: scale-color($anchor-color, $lightness: -14%);
 $anchor-text-decoration: none;
@@ -240,7 +240,7 @@ $breadcrumbs-item-slash: true;
 // 11. Button
 // ----------
 
-$button-padding: 0.85em 1em;
+$button-padding: 0.85em 1.2em;
 $button-margin: 0 0 $global-margin 0;
 $button-fill: solid;
 $button-background: $primary-color;
@@ -250,8 +250,8 @@ $button-color-alt: $black;
 $button-radius: $global-radius;
 $button-sizes: (
   tiny: 0.6rem,
-  small: 0.75rem,
-  default: 0.9rem,
+  small: 0.85rem,
+  default: 1.0rem,
   large: 1.25rem,
 );
 $button-opacity-disabled: 0.25;
