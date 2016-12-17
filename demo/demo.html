@@ -8,6 +8,11 @@
     <link type="text/css" href="styles/demo.css" rel="stylesheet" />
 </head>
 <body>
+    <div style="position: absolute;">
+        <div style="position: absolute; width: 200px; height: 200px;"></div>
+        <div style="width: 100px; height: 100px;"></div>
+    </div>
+    
     <nav class="top-bar">
         <div class="row column">
             <div class="top-bar-left">
@@ -37,21 +42,23 @@
                             <button type="button" class="button">Download</button>
                             <button type="button" class="button">Demo</button>
                         </div>
+                    </div>                    
+                    <div class="bcv-ignore-pointer-events">
+                        <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid blue; z-index: 1;"></div>
+                        <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 200px; height: 200px; border: 1px solid red; z-index: 1;"></div>
+
+                        <div style="box-sizing: border-box; position: absolute; top: 105px; left: 180px; width: 3px; height: 3px; background-color: red; z-index: 1;"></div>
+                        <div style="box-sizing: border-box; position: absolute; top: 249px; left: 615px; width: 3px; height: 3px; background-color: red; z-index: 1;"></div>
+
+                        <div style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 50px; height: 2px; background-color: red; transform: translateX(-25px) translateY(-1px); z-index: 1;"></div>
+                        <div style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 2px; height: 50px; background-color: red; transform: translateX(-1px) translateY(-25px); z-index: 1;"></div>
+
+                        <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; bottom: 0; right: 0; border: 1px solid black; z-index: 1;"></div>
+                        <div id="point" style="position: absolute; width: 4px; height: 4px; background-color: #ff9900; top: -1000px; left: -1000px; z-index: 1000;"></div>
                     </div>
-                    <div class="bcv-ignore-pointer-events" style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid blue; z-index: 1;"></div>
-                    <div class="bcv-ignore-pointer-events" style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 200px; height: 200px; border: 1px solid red; z-index: 1;"></div>
-
-                    <div class="bcv-ignore-pointer-events" style="box-sizing: border-box; position: absolute; top: 105px; left: 180px; width: 3px; height: 3px; background-color: red; z-index: 1;"></div>
-                    <div class="bcv-ignore-pointer-events" style="box-sizing: border-box; position: absolute; top: 249px; left: 615px; width: 3px; height: 3px; background-color: red; z-index: 1;"></div>
-
-                    <div class="bcv-ignore-pointer-events" style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 50px; height: 2px; background-color: red; transform: translateX(-25px) translateY(-1px); z-index: 1;"></div>
-                    <div class="bcv-ignore-pointer-events" style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 2px; height: 50px; background-color: red; transform: translateX(-1px) translateY(-25px); z-index: 1;"></div>
-
-                    <div class="bcv-ignore-pointer-events" style="box-sizing: border-box; position: absolute; top: 0; left: 0; bottom: 0; right: 0; border: 1px solid black; z-index: 1;"></div>
-                    <div id="point" style="position: absolute; width: 4px; height: 4px; background-color: #ff9900; top: -1000px; left: -1000px; z-index: 1000;"></div>
                 </div>
 
-                <div id="scene1" class="bcv-scene" style="display: none;">
+                <div id="scene1" style="display: none;">
                     <div style="box-sizing: border-box; width: 1200px; height: 700px; background-color: #def; border: 10px solid black;"></div>
                     <div style="box-sizing: border-box; position: absolute; top: 100px; left: 300px; width: 200px; height: 200px; background-color: #cdf;"></div>
                     <div id="box100" style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid green;"></div>
@@ -61,7 +68,7 @@
                     <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 300px; height: 300px; border: 1px solid green;"></div>
                 </div>
 
-                <div id="scene2" class="bcv-scene" style="display: none;">
+                <div id="scene2" style="display: none;">
                     <img src="images/FFL-Spritesheet-White-1827x1215.png" alt="Final Fantasy Legend Sprites" width="1827" height="1215" />
                     <div id="box100" style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid green;"></div>
                     <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 150px; height: 150px; border: 1px solid green;"></div>
@@ -70,8 +77,8 @@
                     <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 300px; height: 300px; border: 1px solid green;"></div>
                 </div>
 
-                <div id="scene3" class="bcv-scene" style="display: none;">
-                    <div style="box-sizing: border-box; width: 1000px; height: 500px; background-color: #eee; border: 10px solid black; position: absolute;"></div>
+                <div id="scene3" style="display: none; width: 1000px; height: 500px;">
+                    <div style="height: 100%; background-color: #eee; border: 10px solid black;"></div>
                     <img src="images/FFL-Meat-White-64x48.png" alt="Final Fantasy Legend Meat" width="64" height="48" style="position: absolute; left: 100px; top: 100px;" />
                     <img src="images/FFL-Meat-White-64x48.png" alt="Final Fantasy Legend Meat" width="64" height="48" style="position: absolute; left: 200px; top: 100px;"/>
                     <img src="images/FFL-Meat-White-64x48.png" alt="Final Fantasy Legend Meat" width="64" height="48" style="position: absolute; left: 100px; top: 200px;"/>

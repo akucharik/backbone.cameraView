@@ -42,6 +42,7 @@ class SceneManager {
         
         // View setup
         if (this.view) {
+            this.view.style.position = 'absolute';
             this.view.style.willChange = 'transform';
         }
     }
