@@ -15,6 +15,7 @@ h1 {
 
 h2 {
     font-weight: 600;
+    line-height: 1.1;
     margin-top: $subheader-margin-top;
 }
 
@@ -27,7 +28,7 @@ h2 {
     background-color: #fff;
     font-size: rem-calc(16.8);
     font-weight: 400;
-    padding: 1.1rem;
+    padding: 1.1rem 0;
     
     ul {
         background-color: transparent;
@@ -50,11 +51,12 @@ h2 {
             }
 
             &:hover:after {
-                background-color: rgba(0,0,0,0.2);
+                background-color: $primary-color; /* rgba(0,0,0,0.2);*/
                 transform: scale(1);
             }
             
             > a {
+                color: $primary-color;
                 position: relative;
                 transition: 0.2s;
                 z-index: 2;
@@ -87,6 +89,12 @@ h2 {
     padding-top: 0 !important;
     padding-bottom: 0 !important;
     
+    &-message {
+        @include breakpoint(medium) {
+            margin-bottom: 50px;
+        }
+    }
+    
     &-headline {
         font-size: rem-calc(24);
         font-weight: 600;
@@ -95,6 +103,23 @@ h2 {
     
     .button {
         margin-right: 1.0rem;
+    }
+    
+    &-camera {
+        border: 60px solid $primary-color;
+        border-radius: 50%;
+        height: 400px;
+        position: absolute;
+        right: 25px;
+        bottom: -25%;
+        width: 400px;
+        
+        @include breakpoint(medium) {
+            top: -25%;
+            right: auto;
+            bottom: auto;
+            left: 0;
+        }
     }
 }
 

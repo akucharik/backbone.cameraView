@@ -30,7 +30,50 @@
         </div>
     </nav>
     
+    <!--
+    <div class="callout medium" style="background-color: #999; margin: 0;">
+        <div class="row columns" style="color: #fff;">
+            <p>
+                A simple and intuitive 2D camera for animating HTML within a frame
+            </p>
+        </div>
+    </div>
+    -->
+    
     <div class="home-banner">
+        <div class="row align-middle" style="min-height: 350px;">
+            <div class="columns small-12 medium-5 large-5 large-offset-1">
+                 <div class="home-banner-message">
+                    <h1>Oculo</h1>
+                    <p class="home-banner-headline">
+                        A simple and intuitive 2D camera for animating HTML within a frame
+                    </p>
+                    <div class="button-group">
+                        <button type="button" class="button">Download</button>
+                        <button type="button" class="button">Demo</button>
+                    </div>
+                </div>
+            </div>
+            <div class="columns small-12 medium-7 large-6" style="height: 350px; overflow: hidden; position: relative;">
+                <div class="home-banner-camera">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="callout" style="background-color: #262626; margin: 0; padding: 2rem 0 2.6rem 0;">
+        <div class="row align-middle">
+            <div class="columns small-12 medium-5 large-offset-1">
+                <h2 style="color: #fff;">Performance &amp; Compatibility</h2>
+                <p style="color: #bbb;">Oculo uses GSAP to handle its tweening and benefits from GSAP's performance and compatibility.</p>
+            </div>
+            <div class="columns small-12 medium-7 large-6">
+                <img src="images/greensock-logo.svg" alt="GreenSock logo" width="300" height="110" style="height: 110px;" />
+            </div>
+        </div>
+    </div>
+    
+    <div class="home-banner" style="display: none;">
         <div class="row collapse">
             <div class="shrink columns demo-main">
                 <div id="camera" style="width: 700px; height: 400px;">
@@ -108,7 +151,7 @@
 &lt;script type="text/javascript" src="oculo/dist/oculo.min.js"&gt;&lt;/script&gt;</code></pre>
 
                 <h2>2. Set up your HTML</h2>
-                <p>Create HTML elements that correspond to your camera and scene and give them each a unique id.
+                <p>Create HTML elements that correspond to your camera and scene.
                     If you don't, Oculo will create a <code>&lt;div&gt;</code> for each component when you activate them, and you will have to manually add the elements to the document.</p>
 <pre class="prettyprint"><code>&lt;div id="camera"&gt;&lt;/div&gt;
 &lt;div id="scene" style="width: 800px; height: 400px; background-color: gray;"&gt;
@@ -152,7 +195,7 @@
 //Play your animation in the future
 myCamera.play('zoomTo2Then1');</code></pre>
             
-                <p>If you want an animation to consistently play from a starting point, just set the first keyframe's duration to 0.</p>
+                <p>If you want an animation to consistently play from a defined starting point, just set the first keyframe's duration to 0.</p>
 <pre class="prettyprint"><code>myCamera.addAnimation('zoomFrom1To2', {
   keyframes: [{ 
       zoom: 1, 
