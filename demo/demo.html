@@ -14,19 +14,23 @@
     </div>
     
     <nav class="top-bar">
-        <div class="row column">
+        <div class="row columns align-middle top-bar-row">
+            <!--<div class="top-bar-title">
+                <a class="top-bar-title-link" href="">OculoJS</a>
+            </div>-->
             <div class="top-bar-left">
                 <ul class="menu">
-                    <li class="menu-text top-bar-logo"><a class="top-bar-logo-link" href="">Oculo.js</a></li>
-                    <li><a href="#">Download</a></li>
+                    <li><a href="#">Demo</a></li>
                     <li><a href="#">Get Started</a></li>
                     <li><a href="#">Documentation</a></li>
                     <li><a href="#">Source</a></li>
                 </ul>
             </div>
+            <!--
             <div class="top-bar-right">
                 <a href="" style="background-image: url('images/GitHub-Mark-32px.png'); width: 32px; height: 32px; display: inline-block;"></a>
             </div>
+            -->
         </div>
     </nav>
     
@@ -41,20 +45,17 @@
     -->
     
     <div class="home-banner">
-        <div class="row align-middle" style="min-height: 350px;">
+        <div class="row align-middle" style="min-height: 325px;">
             <div class="columns small-12 medium-5 large-5 large-offset-1">
                  <div class="home-banner-message">
-                    <h1>Oculo</h1>
+                    <h1>OculoJS</h1>
                     <p class="home-banner-headline">
                         A simple and intuitive 2D camera for animating HTML within a frame
                     </p>
-                    <div class="button-group">
-                        <button type="button" class="button">Download</button>
-                        <button type="button" class="button">Demo</button>
-                    </div>
+                    <button type="button" class="button large">Download</button>
                 </div>
             </div>
-            <div class="columns small-12 medium-7 large-6" style="height: 350px; overflow: hidden; position: relative;">
+            <div class="columns small-12 medium-7 large-6" style="height: 325px; overflow: hidden; position: relative;">
                 <div class="home-banner-camera">
                 </div>
             </div>
@@ -65,10 +66,10 @@
         <div class="row align-middle">
             <div class="columns small-12 medium-5 large-offset-1">
                 <h2 style="color: #fff;">Performance &amp; Compatibility</h2>
-                <p style="color: #bbb;">Oculo uses GSAP to handle its tweening and benefits from GSAP's performance and compatibility.</p>
+                <p style="color: #bbb;">Oculo uses GSAP to handle its animation and benefits from GSAP's performance and compatibility.</p>
             </div>
             <div class="columns small-12 medium-7 large-6">
-                <img src="images/greensock-logo.svg" alt="GreenSock logo" width="300" height="110" style="height: 110px;" />
+                <img src="images/greensock-logo.svg" alt="GreenSock logo" width="300" height="110" style="height: 110px; margin-left: 20px;" />
             </div>
         </div>
     </div>
@@ -140,12 +141,18 @@
 
     </div>
     
+    <div class="row">
+        <div class="small-12 columns">
+            <h1>Demo</h1>
+        </div>
+    </div>
+    
     <div class="main">
         <div class="row">
             <div class="small-12 columns">
                 <h1>Get started</h1>
                 <h2>1. Add Oculo and its dependencies to the page.</h2>
-                <p>After you <a href="">download</a> Oculo, add the necessary files to the page.</p>
+                <p>After you <a href="#">download</a> Oculo, add the necessary files to the page.</p>
 <pre class="prettyprint"><code>&lt;script type="text/javascript" src="oculo/dist/TweenMax.min.js"&gt;&lt;/script&gt;
 &lt;script type="text/javascript" src="oculo/dist/Draggable.min.js"&gt;&lt;/script&gt;
 &lt;script type="text/javascript" src="oculo/dist/oculo.min.js"&gt;&lt;/script&gt;</code></pre>
@@ -214,7 +221,9 @@ myCamera.play('zoomTo2Then1');</code></pre>
     </div>
     
     <footer class="site-footer">
-        <div class="row column">&copy; <span id="copyrightYear"></span> Adam Kucharik All rights reserved.</div>
+        <div class="row">
+            <div class="columns">&copy; <span id="copyrightYear"></span> Adam Kucharik All rights reserved.</div>
+        </div>
     </footer>
     
     <script type="text/javascript" src="scripts/TweenMax.min.js"></script>

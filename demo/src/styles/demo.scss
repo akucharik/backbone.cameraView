@@ -4,6 +4,23 @@
 @import 'prettify-min';
 @import 'code';
 
+$bright-purple: #660099;
+$dark-purple: #5d407b;
+$light-purple: #d1b2e0;
+$gray-purple: #9c8aa5;
+$light-gray-purple: #bdaec6;
+$light-blue-purple: #c3c3e5;
+$light-bright-purple: #8c489f;
+
+
+@mixin top-bar-width {
+    width: 100%;
+        
+    @include breakpoint(medium) {
+        width: auto;
+    }
+}
+
 body {
     -webkit-font-smoothing: auto;
     -moz-osx-font-smoothing: auto;
@@ -14,7 +31,7 @@ h1 {
 }
 
 h2 {
-    font-weight: 600;
+    font-weight: 400;
     line-height: 1.1;
     margin-top: $subheader-margin-top;
 }
@@ -24,68 +41,97 @@ h2 {
 }
 
 .top-bar {
-    /*background-color: $light-gray;*/
     background-color: #fff;
     font-size: rem-calc(16.8);
     font-weight: 400;
     padding: 1.1rem 0;
+    position: relative;
+    z-index: 2;
+    /*
+    &:after  {
+        border-bottom: 1px solid rgba(0,0,0,0.2);
+        box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+        content: '';
+        display: block;
+        position: absolute;
+        height: 10px;
+        right: -5px;
+        bottom: -1px;
+        left: -5px;
+        z-index: 1;
+    }
+    */
+    &-row {
+        flex-flow: column;
+        
+        @include breakpoint(medium) {
+            flex-flow: row;
+        }
+    }
     
-    ul {
-        background-color: transparent;
+    &-title {
+        @include top-bar-width;
+        margin: 0;
+        
+        &-link {
+            display: block;
+            line-height: 1;
+            padding: 0.7rem 1.2rem;
+            text-align: center;
+        }
     }
     
     &-left {
-        > ul > li {
-            position: relative;
-            
-            &:after {
-                content: '';
-                display: block;
-                position: absolute;
-                top: 0;
-                right: 0;
-                bottom: 0;
-                left: 0;
-                transform: scale(0.9);
-                transition: 0.2s;
-            }
+        @include top-bar-width;
+        
+        > .menu {
+            background-color: transparent;
+            flex-flow: column;
 
-            &:hover:after {
-                background-color: $primary-color; /* rgba(0,0,0,0.2);*/
-                transform: scale(1);
+            @include breakpoint(medium) {
+                flex-flow: row;
             }
-            
-            > a {
-                color: $primary-color;
+        
+             > li {
                 position: relative;
-                transition: 0.2s;
-                z-index: 2;
+                @include top-bar-width;
 
-                &:hover {
-                    color: #fff;
+                &:after {
+                    content: '';
+                    display: block;
+                    position: absolute;
+                    top: 0;
+                    right: 0;
+                    bottom: 0;
+                    left: 0;
+                    transform: scale(0.9);
+                    transition: 0.2s;
                 }
 
-                
-            }
-        }
-    }
-    
-    &-logo {
-        padding: 0 2.4rem 0 0;
-        
-        &:after {
-            content: none !important;
-        }
+                &:hover:after {
+                    background-color: $primary-color;
+                    transform: scale(1);
+                }
 
-        &-link {
-            padding-right: 0 !important;
-            padding-left: 0 !important;   
+                > a {
+                    color: $primary-color;
+                    display: block;
+                    position: relative;
+                    text-align: center;
+                    transition: 0.2s;
+                    z-index: 2;
+
+                    &:hover {
+                        color: #fff;
+                    }
+                }
+            }
         }
     }
 }
 
 .home-banner {
-    background-color: #999;
+    background: linear-gradient(to bottom, #ffffff 20%, #adcee3 100%); /* addef3 */
     padding-top: 0 !important;
     padding-bottom: 0 !important;
     
@@ -93,20 +139,24 @@ h2 {
         @include breakpoint(medium) {
             margin-bottom: 50px;
         }
+        
+        > .button {
+            background-color: #496989;
+            margin: 0;
+            padding-right: 2.2rem;
+            padding-left: 2.2rem;
+        }
     }
     
     &-headline {
         font-size: rem-calc(24);
-        font-weight: 600;
+        font-weight: 400;
         line-height: 1.2;
     }
     
-    .button {
-        margin-right: 1.0rem;
-    }
-    
     &-camera {
-        border: 60px solid $primary-color;
+        background-color: whitesmoke;
+        border: 60px solid $dark-purple;
         border-radius: 50%;
         height: 400px;
         position: absolute;
@@ -115,9 +165,9 @@ h2 {
         width: 400px;
         
         @include breakpoint(medium) {
-            top: -25%;
+            /*top: -25%;*/
             right: auto;
-            bottom: auto;
+            /*bottom: auto;*/
             left: 0;
         }
     }
