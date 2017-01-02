@@ -1,6 +1,7 @@
 @import 'settings';
 @import 'foundation';
 @include foundation-everything(true);
+@import 'foundation-icons';
 @import 'prettify-min';
 @import 'code';
 
@@ -38,6 +39,12 @@ h2 {
 
 .button {
     /*text-transform: uppercase;*/
+}
+
+.top {
+    color: $light-bright-purple;
+    font-size: 80%;
+    margin-left: 0.8rem;
 }
 
 .top-bar {
@@ -180,7 +187,7 @@ h2 {
 }
 
 .site-footer {
-    background-color: $light-gray;
+    background-color: #bdaec6; /* $dark-purple; /*$light-gray;*/
     padding: 2.0rem;
 }
 

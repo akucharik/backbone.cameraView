@@ -8,6 +8,7 @@
     <link type="text/css" href="styles/demo.css" rel="stylesheet" />
 </head>
 <body>
+    <a id="anchorTop"></a>
     <div style="position: absolute;">
         <div style="position: absolute; width: 200px; height: 200px;"></div>
         <div style="width: 100px; height: 100px;"></div>
@@ -20,10 +21,10 @@
             </div>-->
             <div class="top-bar-left">
                 <ul class="menu">
-                    <li><a href="#">Demo</a></li>
-                    <li><a href="#">Get Started</a></li>
-                    <li><a href="#">Documentation</a></li>
-                    <li><a href="#">Source</a></li>
+                    <li><a id="navDemo" href="#anchorDemo">Demo</a></li>
+                    <li><a id="navGetStarted" href="#anchorGetStarted">Get Started</a></li>
+                    <li><a id="navDocumentation" href="#anchorDocumentation">Documentation</a></li>
+                    <li><a href="https://github.com/akucharik/backbone.cameraView">Source</a></li>
                 </ul>
             </div>
             <!--
@@ -74,83 +75,87 @@
         </div>
     </div>
     
-    <div class="home-banner" style="display: none;">
-        <div class="row collapse">
-            <div class="shrink columns demo-main">
-                <div id="camera" style="width: 700px; height: 400px;">
-                    <div class="bcv-ignore-pointer-events" style="position: absolute; width: 400px; z-index: 100; top: 60%; left: 50%; transform: translate(-50%, -50%);">
-                        <p class="home-banner-headline">
-                            A simple and intuitive 2D camera for animating HTML within a frame
-                        </p>
-                        <div class="button-group">
-                            <button type="button" class="button">Download</button>
-                            <button type="button" class="button">Demo</button>
+    <a id="anchorDemo"></a>
+    <div style="background-color: #eee;">
+        <div class="row" style="padding-top: 2.0rem; padding-bottom: 2.0rem;">
+            <div class="small-12 columns">
+                <h1>Demo <a id="topDemo" href="#anchorTop" class="top"><i class="fa fa-arrow-circle-up"></i></a></h1>
+
+                <div>
+                    <div class="row">
+                        <div class="shrink columns">
+                            <div id="camera" style="width: 600px; height: 400px;">
+                                <div class="bcv-ignore-pointer-events" style="display: none; position: absolute; width: 400px; z-index: 100; top: 60%; left: 50%; transform: translate(-50%, -50%);">
+                                    <p class="home-banner-headline">
+                                        A simple and intuitive 2D camera for animating HTML within a frame
+                                    </p>
+                                    <div class="button-group">
+                                        <button type="button" class="button">Download</button>
+                                        <button type="button" class="button">Demo</button>
+                                    </div>
+                                </div>                    
+                                <div class="bcv-ignore-pointer-events">
+                                    <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid blue; z-index: 1;"></div>
+                                    <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 200px; height: 200px; border: 1px solid red; z-index: 1;"></div>
+
+                                    <div style="box-sizing: border-box; position: absolute; top: 105px; left: 180px; width: 3px; height: 3px; background-color: red; z-index: 1;"></div>
+                                    <div style="box-sizing: border-box; position: absolute; top: 249px; left: 615px; width: 3px; height: 3px; background-color: red; z-index: 1;"></div>
+
+                                    <div style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 50px; height: 2px; background-color: red; transform: translateX(-25px) translateY(-1px); z-index: 1;"></div>
+                                    <div style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 2px; height: 50px; background-color: red; transform: translateX(-1px) translateY(-25px); z-index: 1;"></div>
+
+                                    <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; bottom: 0; right: 0; border: 1px solid black; z-index: 1;"></div>
+                                    <div id="point" style="position: absolute; width: 4px; height: 4px; background-color: #ff9900; top: -1000px; left: -1000px; z-index: 1000;"></div>
+                                </div>
+                            </div>
+
+                            <div id="scene1" style="display: none;">
+                                <div style="box-sizing: border-box; width: 1200px; height: 700px; background-color: #def; border: 10px solid black;"></div>
+                                <div style="box-sizing: border-box; position: absolute; top: 100px; left: 300px; width: 200px; height: 200px; background-color: #cdf;"></div>
+                                <div id="box100" style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid green;"></div>
+                                <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 150px; height: 150px; border: 1px solid green;"></div>
+                                <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 200px; height: 200px; border: 1px solid green;"></div>
+                                <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 250px; height: 250px; border: 1px solid green;"></div>
+                                <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 300px; height: 300px; border: 1px solid green;"></div>
+                            </div>
+
+                            <div id="scene2" style="display: none;">
+                                <img src="images/FFL-Spritesheet-White-1827x1215.png" alt="Final Fantasy Legend Sprites" width="1827" height="1215" />
+                                <div id="box100" style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid green;"></div>
+                                <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 150px; height: 150px; border: 1px solid green;"></div>
+                                <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 200px; height: 200px; border: 1px solid green;"></div>
+                                <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 250px; height: 250px; border: 1px solid green;"></div>
+                                <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 300px; height: 300px; border: 1px solid green;"></div>
+                            </div>
+
+                            <div id="scene3" style="display: none; width: 1000px; height: 500px;">
+                                <div style="height: 100%; background-color: #eee; border: 10px solid black;"></div>
+                                <img src="images/FFL-Meat-White-64x48.png" alt="Final Fantasy Legend Meat" width="64" height="48" style="position: absolute; left: 100px; top: 100px;" />
+                                <img src="images/FFL-Meat-White-64x48.png" alt="Final Fantasy Legend Meat" width="64" height="48" style="position: absolute; left: 200px; top: 100px;"/>
+                                <img src="images/FFL-Meat-White-64x48.png" alt="Final Fantasy Legend Meat" width="64" height="48" style="position: absolute; left: 100px; top: 200px;"/>
+                                <img src="images/FFL-Meat-White-64x48.png" alt="Final Fantasy Legend Meat" width="64" height="48" style="position: absolute; left: 200px; top: 200px;"/>
+                                <div id="box100" style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid green;"></div>
+                            </div>
+
+
                         </div>
-                    </div>                    
-                    <div class="bcv-ignore-pointer-events">
-                        <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid blue; z-index: 1;"></div>
-                        <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 200px; height: 200px; border: 1px solid red; z-index: 1;"></div>
-
-                        <div style="box-sizing: border-box; position: absolute; top: 105px; left: 180px; width: 3px; height: 3px; background-color: red; z-index: 1;"></div>
-                        <div style="box-sizing: border-box; position: absolute; top: 249px; left: 615px; width: 3px; height: 3px; background-color: red; z-index: 1;"></div>
-
-                        <div style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 50px; height: 2px; background-color: red; transform: translateX(-25px) translateY(-1px); z-index: 1;"></div>
-                        <div style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 2px; height: 50px; background-color: red; transform: translateX(-1px) translateY(-25px); z-index: 1;"></div>
-
-                        <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; bottom: 0; right: 0; border: 1px solid black; z-index: 1;"></div>
-                        <div id="point" style="position: absolute; width: 4px; height: 4px; background-color: #ff9900; top: -1000px; left: -1000px; z-index: 1000;"></div>
+                        <div class="columns demo-sidebar">
+                            <div id="app" style="padding: 1.0em; background-color: gray;"></div>
+                            <div id="print"></div>
+                        </div>
                     </div>
-                </div>
 
-                <div id="scene1" style="display: none;">
-                    <div style="box-sizing: border-box; width: 1200px; height: 700px; background-color: #def; border: 10px solid black;"></div>
-                    <div style="box-sizing: border-box; position: absolute; top: 100px; left: 300px; width: 200px; height: 200px; background-color: #cdf;"></div>
-                    <div id="box100" style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid green;"></div>
-                    <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 150px; height: 150px; border: 1px solid green;"></div>
-                    <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 200px; height: 200px; border: 1px solid green;"></div>
-                    <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 250px; height: 250px; border: 1px solid green;"></div>
-                    <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 300px; height: 300px; border: 1px solid green;"></div>
-                </div>
 
-                <div id="scene2" style="display: none;">
-                    <img src="images/FFL-Spritesheet-White-1827x1215.png" alt="Final Fantasy Legend Sprites" width="1827" height="1215" />
-                    <div id="box100" style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid green;"></div>
-                    <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 150px; height: 150px; border: 1px solid green;"></div>
-                    <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 200px; height: 200px; border: 1px solid green;"></div>
-                    <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 250px; height: 250px; border: 1px solid green;"></div>
-                    <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 300px; height: 300px; border: 1px solid green;"></div>
                 </div>
-
-                <div id="scene3" style="display: none; width: 1000px; height: 500px;">
-                    <div style="height: 100%; background-color: #eee; border: 10px solid black;"></div>
-                    <img src="images/FFL-Meat-White-64x48.png" alt="Final Fantasy Legend Meat" width="64" height="48" style="position: absolute; left: 100px; top: 100px;" />
-                    <img src="images/FFL-Meat-White-64x48.png" alt="Final Fantasy Legend Meat" width="64" height="48" style="position: absolute; left: 200px; top: 100px;"/>
-                    <img src="images/FFL-Meat-White-64x48.png" alt="Final Fantasy Legend Meat" width="64" height="48" style="position: absolute; left: 100px; top: 200px;"/>
-                    <img src="images/FFL-Meat-White-64x48.png" alt="Final Fantasy Legend Meat" width="64" height="48" style="position: absolute; left: 200px; top: 200px;"/>
-                    <div id="box100" style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid green;"></div>
-                </div>
-
-                
             </div>
-            <div class="columns demo-sidebar">
-                <div id="app" style="padding: 1.0em; background-color: gray;"></div>
-                <div id="print"></div>
-            </div>
-        </div>
-        
-
-    </div>
-    
-    <div class="row">
-        <div class="small-12 columns">
-            <h1>Demo</h1>
         </div>
     </div>
     
-    <div class="main">
+    <a id="anchorGetStarted"></a>
+    <div class="main" style="border-top: 1px solid #ccc;">
         <div class="row">
             <div class="small-12 columns">
-                <h1>Get started</h1>
+                <h1>Get started <a id="topGetStarted" href="#anchorTop" class="top"><i class="fa fa-arrow-circle-up"></i></a></h1>
                 <h2>1. Add Oculo and its dependencies to the page.</h2>
                 <p>After you <a href="#">download</a> Oculo, add the necessary files to the page.</p>
 <pre class="prettyprint"><code>&lt;script type="text/javascript" src="oculo/dist/TweenMax.min.js"&gt;&lt;/script&gt;
@@ -220,7 +225,16 @@ myCamera.play('zoomTo2Then1');</code></pre>
         </div>
     </div>
     
-    <footer class="site-footer">
+    <a id="anchorDocumentation"></a>
+    <div style="border-top: 1px solid #ccc;">
+        <div class="row" style="padding-top: 2.0rem; padding-bottom: 2.0rem;">
+            <div class="small-12 columns">
+                <h1>Documentation <a id="topDocumentation" href="#anchorTop" class="top"><i class="fa fa-arrow-circle-up"></i></a></h1>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="site-footer" style="border-top: 1px solid #ccc;">
         <div class="row">
             <div class="columns">&copy; <span id="copyrightYear"></span> Adam Kucharik All rights reserved.</div>
         </div>
@@ -228,6 +242,7 @@ myCamera.play('zoomTo2Then1');</code></pre>
     
     <script type="text/javascript" src="scripts/TweenMax.min.js"></script>
     <script type="text/javascript" src="scripts/Draggable.min.js"></script>
+    <script type="text/javascript" src="scripts/ScrollToPlugin.js"></script>
     <script type="text/javascript" src="../dist/oculo.js"></script>
     <script type="text/javascript" src="scripts/demo.js"></script>
     <script type="text/javascript" src="scripts/prettify-min.js"></script>
@@ -235,6 +250,35 @@ myCamera.play('zoomTo2Then1');</code></pre>
     <script type="text/javascript">
         document.getElementById('copyrightYear').innerHTML = new Date().getFullYear();
         prettyPrint();
+        
+        var myApp = {
+            scrollItems: [{
+                target: '#anchorDemo',
+                trigger: '#navDemo'
+            }, {
+                target: '#anchorGetStarted',
+                trigger: '#navGetStarted'
+            }, {
+                target: '#anchorDocumentation',
+                trigger: '#navDocumentation'
+            }, {
+                target: 0,
+                trigger: '#topDemo'
+            }, {
+                target: 0,
+                trigger: '#topGetStarted'
+            }, {
+                target: 0,
+                trigger: '#topDocumentation'
+            }]
+        };
+        
+        myApp.scrollItems.forEach(function (item) {
+            document.querySelector(item.trigger).addEventListener('click', function () {
+                event.preventDefault();
+                TweenLite.to(window, 0.7, { scrollTo: item.target, ease: Power2.easeOut });
+            })
+        }); 
         
         camera = new Oculo.Camera({
             view: '#camera',
@@ -244,7 +288,7 @@ myCamera.play('zoomTo2Then1');</code></pre>
             //minZoom: 0.1,
             wheelToZoom: true,
             //wheelToZoomIncrement: 0.5,
-            width: 700,
+            width: 600,
             height: 400
         });
         
