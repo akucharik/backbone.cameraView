@@ -806,6 +806,7 @@ class Camera {
         // Clamping here ensures bounds have been updated (if zoom has changed) and bounds are enforced during rotateAt
         // Position is manually maintained so animations can smoothly continue when camera is resized
         this.position = this._clampPosition(this._calculatePositionFromOffset(this.rawOffset, this.center, this.transformOrigin, this.transformation));
+        this.rawOffset = this._calculateOffsetFromPosition(this.position, this.center, this.transformOrigin, this.transformation);
         this._applyShake();
         this.offset = this._calculateOffsetFromPosition(this.position, this.center, this.transformOrigin, this.transformation);
         this.renderer.render();

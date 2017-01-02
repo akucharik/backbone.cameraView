@@ -51,7 +51,7 @@ class CSSRenderer {
                     x: -this.camera.offset.x,
                     y: -this.camera.offset.y
                 }
-            });    
+            });
         }
     }
     
