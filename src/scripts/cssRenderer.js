@@ -41,6 +41,8 @@ class CSSRenderer {
     */
     render () {
         if (this.camera.scene && this.camera.scenes.view) {
+            var offset = this.camera._positionToOffset(this.camera.position, this.camera.center, this.camera.transformOrigin, this.camera.transformation);
+            
             this.camera.scene.view.style.visibility = 'visible';
             TweenLite.set(this.camera.scenes.view, { 
                 css: {
@@ -48,8 +50,8 @@ class CSSRenderer {
                     scaleX: this.camera.zoom,
                     scaleY: this.camera.zoom,
                     rotation: -this.camera.rotation,
-                    x: -this.camera.offset.x,
-                    y: -this.camera.offset.y
+                    x: -offset.x,
+                    y: -offset.y
                 }
             });
         }
