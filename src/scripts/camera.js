@@ -65,6 +65,9 @@ class Camera {
         height = 0, 
         maxZoom = 3, 
         minZoom = 0.5, 
+        onInitialize = null,
+        onBeforeRender = null,
+        onRender = null,
         view = undefined, 
         wheelToZoom = false, 
         wheelToZoomIncrement = 0.01, 
@@ -237,7 +240,19 @@ class Camera {
         // Initialize position
         this.setRawPosition(new Vector2(width * 0.5, height * 0.5));
         
-        // Initialize custom events
+        // Initialize events
+        if (onInitialize !== null) {
+            this.onInitialize = onInitialize;
+        }
+        
+        if (onBeforeRender !== null) {
+            this.onBeforeRender = onBeforeRender;
+        }
+        
+        if (onRender !== null) {
+            this.onRender = onRender;
+        }
+        
         this.onResize = () => {
             // Maintain camera position and update the current animation
             new Oculo.Animation(this, { 
@@ -324,7 +339,7 @@ class Camera {
             });
         }
         
-        this.initialize(arguments[0]);
+        this.onInitialize(arguments[0]);
     }
     
     /**
@@ -750,23 +765,23 @@ class Camera {
     }
 
     /**
-    * Called when the camera has been created. The default implementation of initialize is a no-op. Override this function with your own code.
+    * Called when the camera has been initialized. The default implementation is a no-op. Override this function with your own code.
     *
     * @param {Object} [options] - The options passed to the constructor when the camera was created.
     */
-    initialize (options) {
+    onInitialize (options) {
         
     }
 
     /**
-    * Called before the camera has rendered. The default implementation of initialize is a no-op. Override this function with your own code.
+    * Called before the camera has rendered. The default implementation is a no-op. Override this function with your own code.
     */
     onBeforeRender () {
 
     }
 
     /**
-    * Called after the camera has rendered. The default implementation of initialize is a no-op. Override this function with your own code.
+    * Called after the camera has rendered. The default implementation is a no-op. Override this function with your own code.
     */
     onRender () {
 
