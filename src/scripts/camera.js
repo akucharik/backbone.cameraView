@@ -281,7 +281,7 @@ class Camera {
             this.trackControl = new TrackControl(this, {
                 draggable: this.dragToMove,
                 onDrag: function (camera) {
-                    var position = camera._offsetToPosition(new Vector2(-this.x, -this.y), camera.center, camera.transformOrigin, camera.transformation);
+                    var position = camera._convertOffsetToPosition(new Vector2(-this.x, -this.y), camera.center, camera.transformOrigin, camera.transformation);
                     new Oculo.Animation(camera, { 
                         destroyOnComplete: true, 
                         paused: false,
@@ -308,7 +308,8 @@ class Camera {
                     if (direction === previousDirection && camera._clampZoom(zoom) !== camera.zoom) { 
                         cameraRect = camera.view.getBoundingClientRect();
                         cameraFOVPosition.set(this.wheelEvent.clientX - cameraRect.left, this.wheelEvent.clientY - cameraRect.top);
-                        scenePosition = camera._fovPositionToScenePosition(cameraFOVPosition, camera.position, camera.center, camera.transformation);
+                        scenePosition = camera._convertFOVPositionToScenePosition(cameraFOVPosition, camera.position, camera.center, camera.transformation);
+                        console.log('s pos: ', scenePosition);
                         
                         if (Math.floor(origin.x) !== Math.floor(scenePosition.x) || Math.floor(origin.y) !== Math.floor(scenePosition.y)) {
                             origin = scenePosition;
@@ -449,87 +450,7 @@ class Camera {
     };
     
     /**
-    * Convert a FOV position to a scene position.
-    *
-    * @private
-    * @param {Vector2} cameraFOVPosition - The point in the camera's FOV.
-    * @param {Vector2} cameraPosition - The camera's position.
-    * @param {Vector2} cameraCenter - The center of the camera's FOV.
-    * @param {Matrix2} sceneTransformation - The scene's transformation matrix.
-    * @returns {Vector2} The scene position.
-    */
-    _fovPositionToScenePosition (cameraFOVPosition, cameraPosition, cameraCenter, sceneTransformation) {
-        return cameraPosition.clone().transform(sceneTransformation).subtract(cameraCenter.clone().subtract(cameraFOVPosition)).transform(sceneTransformation.getInverse());
-    }
-    
-    /**
-    * Convert a scene position to a FOV position.
-    *
-    * @private
-    * @param {Vector2} scenePosition - The raw point on the scene.
-    * @param {Vector2} cameraPosition - The camera's position.
-    * @param {Vector2} cameraCenter - The center of the camera's FOV.
-    * @param {Matrix2} sceneTransformation - The scene's transformation matrix.
-    * @returns {Vector2} The position in the camera's FOV.
-    */
-    _scenePositionToFOVPosition (scenePosition, cameraPosition, cameraCenter, sceneTransformation) {
-        var cameraOffset = this._positionToOffset(cameraPosition, cameraCenter, new Vector2(), sceneTransformation);
-
-        return scenePosition.clone().transform(sceneTransformation).subtract(cameraOffset);
-    }
-    
-    /**
-    * Convert a scene position located at a FOV position to a camera position.
-    *
-    * @private
-    * @param {Vector2} scenePosition - The raw point on the scene.
-    * @param {Vector2} cameraFOVPosition - The point in the camera's FOV.
-    * @param {Vector2} cameraCenter - The center of the camera's FOV.
-    * @param {Vector2} sceneOrigin - The scene's origin.
-    * @param {Matrix2} sceneTransformation - The scene's transformation matrix.
-    * @returns {Vector2} The camera's position.
-    */
-    _scenePositionToCameraPosition (scenePosition, cameraFOVPosition, cameraCenter, sceneOrigin, sceneTransformation) {
-        var sceneOriginOffset = sceneOrigin.clone().transform(sceneTransformation).subtract(sceneOrigin);
-        var offset = scenePosition.clone().transform(sceneTransformation).subtract(sceneOriginOffset).subtract(cameraFOVPosition);
-
-        return this._offsetToPosition(offset, cameraCenter, sceneOrigin, sceneTransformation);
-    }
-    
-    /**
-    * Convert a camera offset to a camera position.
-    *
-    * @private
-    * @param {Vector2} cameraOffset - The camera's offset on the scene.
-    * @param {Vector2} cameraCenter - The center of the camera's FOV.
-    * @param {Vector2} sceneOrigin - The scene's origin.
-    * @param {Matrix2} sceneTransformation - The scene's transformation matrix.
-    * @returns {Vector2} The camera's position.
-    */
-    _offsetToPosition (cameraOffset, cameraCenter, sceneOrigin, sceneTransformation) {
-        var sceneOriginOffset = sceneOrigin.clone().transform(sceneTransformation).subtract(sceneOrigin);
-
-        return cameraOffset.clone().add(sceneOriginOffset).add(cameraCenter).transform(sceneTransformation.getInverse());
-    }
-    
-    /**
-    * Convert a camera position to a camera offset.
-    *
-    * @private
-    * @param {Vector2} cameraPosition - The camera's position on the scene.
-    * @param {Vector2} cameraCenter - The center of the camera's FOV.
-    * @param {Vector2} sceneOrigin - The scene's origin.
-    * @param {Matrix2} sceneTransformation - The scene's transformation matrix.
-    * @returns {Vector2} The camera's offset.
-    */
-    _positionToOffset (cameraPosition, cameraCenter, sceneOrigin, sceneTransformation) {
-        var sceneOriginOffset = sceneOrigin.clone().transform(sceneTransformation).subtract(sceneOrigin);
-
-        return cameraPosition.clone().transform(sceneTransformation).subtract(sceneOriginOffset).subtract(cameraCenter);
-    }
-    
-    /**
-    * Clamp the X position.
+    * Clamps the X position.
     *
     * @private
     * @param {number} x - The position.
@@ -540,14 +461,11 @@ class Camera {
             x = clamp(x, this.minPositionX, this.maxPositionX);
         }
         
-        // TODO: For dev only
-        console.log('clamp positionX');
-        
         return x;
     }
     
     /**
-    * Clamp the Y position.
+    * Clamps the Y position.
     *
     * @private
     * @param {number} y - The position.
@@ -558,14 +476,11 @@ class Camera {
             y = clamp(y, this.minPositionY, this.maxPositionY);
         }
         
-        // TODO: For dev only
-        console.log('clamp positionY');
-        
         return y;
     }
     
     /**
-    * Clamp the zoom.
+    * Clamps the zoom.
     *
     * @private
     * @param {number} zoom - The zoom.
@@ -573,6 +488,96 @@ class Camera {
     */
     _clampZoom (zoom) {
         return clamp(zoom, this.minZoom, this.maxZoom);
+    }
+    
+    /**
+    * Converts a FOV position to a scene position.
+    *
+    * @private
+    * @param {Vector2} cameraFOVPosition - The point in the camera's FOV.
+    * @param {Vector2} cameraPosition - The camera's position.
+    * @param {Vector2} cameraCenter - The center of the camera's FOV.
+    * @param {Matrix2} transformation - The transformation matrix.
+    * @returns {Vector2} The scene position.
+    */
+    _convertFOVPositionToScenePosition (cameraFOVPosition, cameraPosition, cameraCenter, transformation) {
+        return cameraPosition.clone().transform(transformation).subtract(cameraCenter.clone().subtract(cameraFOVPosition)).transform(transformation.getInverse());
+    }
+    
+    /**
+    * Converts a scene position to a FOV position.
+    *
+    * @private
+    * @param {Vector2} scenePosition - The raw point on the scene.
+    * @param {Vector2} cameraPosition - The camera's position.
+    * @param {Vector2} cameraCenter - The center of the camera's FOV.
+    * @param {Matrix2} transformation - The transformation matrix.
+    * @returns {Vector2} The FOV position.
+    */
+    _convertScenePositionToFOVPosition (scenePosition, cameraPosition, cameraCenter, transformation) {
+        return cameraCenter.clone().add(scenePosition.clone().transform(transformation).subtract(cameraPosition.clone().transform(transformation)));
+    }
+    
+    /**
+    * Converts a scene position located at a FOV position to a camera position.
+    *
+    * @private
+    * @param {Vector2} scenePosition - The raw point on the scene.
+    * @param {Vector2} cameraFOVPosition - The point in the camera's FOV.
+    * @param {Vector2} cameraCenter - The center of the camera's FOV.
+    * @param {Vector2} transformOrigin - The transform origin.
+    * @param {Matrix2} transformation - The transformation matrix.
+    * @returns {Vector2} The camera position.
+    */
+    _convertScenePositionToCameraPosition (scenePosition, cameraFOVPosition, cameraCenter, transformOrigin, transformation) {
+        var transformOriginOffset = this._getTransformOriginOffset(transformOrigin, transformation);
+        var offset = scenePosition.clone().transform(transformation).subtract(transformOriginOffset).subtract(cameraFOVPosition);
+
+        return this._convertOffsetToPosition(offset, cameraCenter, transformOrigin, transformation);
+    }
+    
+    /**
+    * Converts a camera offset to a camera position.
+    *
+    * @private
+    * @param {Vector2} cameraOffset - The camera's offset on the scene.
+    * @param {Vector2} cameraCenter - The center of the camera's FOV.
+    * @param {Vector2} transformOrigin - The transform origin.
+    * @param {Matrix2} transformation - The transformation matrix.
+    * @returns {Vector2} The camera position.
+    */
+    _convertOffsetToPosition (cameraOffset, cameraCenter, transformOrigin, transformation) {
+        var transformOriginOffset = this._getTransformOriginOffset(transformOrigin, transformation);
+
+        return cameraOffset.clone().add(transformOriginOffset).add(cameraCenter).transform(transformation.getInverse());
+    }
+    
+    /**
+    * Converts a camera position to a camera offset.
+    *
+    * @private
+    * @param {Vector2} cameraPosition - The camera's position on the scene.
+    * @param {Vector2} cameraCenter - The center of the camera's FOV.
+    * @param {Vector2} transformOrigin - The transform origin.
+    * @param {Matrix2} transformation - The transformation matrix.
+    * @returns {Vector2} The camera offset.
+    */
+    _convertPositionToOffset (cameraPosition, cameraCenter, transformOrigin, transformation) {
+        var transformOriginOffset = this._getTransformOriginOffset(transformOrigin, transformation);
+
+        return cameraPosition.clone().transform(transformation).subtract(transformOriginOffset).subtract(cameraCenter);
+    }
+    
+    /**
+    * Gets the offset of the transform origin.
+    *
+    * @private
+    * @param {Vector2} transformOrigin - The transformation origin.
+    * @param {Matrix2} transformation - The transformation matrix.
+    * @returns {Vector2} The offset.
+    */
+    _getTransformOriginOffset (transformOrigin, transformation) {
+        return transformOrigin.clone().transform(transformation).subtract(transformOrigin);
     }
     
     /**
@@ -589,6 +594,11 @@ class Camera {
         return this;
     }
     
+    /**
+    * Updates the bounds.
+    *
+    * returns {this} self
+    */
     _updateBounds () { 
         var bounds;
         
@@ -614,8 +624,10 @@ class Camera {
             this.maxPositionY = bounds.maxY;
 
             // TODO: For dev only
-            //console.log('update bounds');
+            console.log('update bounds');
         }
+        
+        return this;
     }
     
     /**
@@ -669,7 +681,6 @@ class Camera {
     setScene (name) {
         this.scenes.setActiveScene(name);
         this._reset();
-        this._updateBounds();
 
         return this;
     }
@@ -807,7 +818,7 @@ class Camera {
     setRawPosition (position) {
         this.rawPosition.set(this._clampPositionX(position.x), this._clampPositionY(position.y));
         this.position.copy(this.rawPosition);
-        this.rawOffset.copy(this._positionToOffset(this.rawPosition, this.center, this.transformOrigin, this.transformation));
+        this.rawOffset.copy(this._convertPositionToOffset(this.rawPosition, this.center, this.transformOrigin, this.transformation));
         
         return this;
     }
@@ -854,7 +865,7 @@ class Camera {
             this.transformOrigin.copy(origin);
 
             if (this.isRotated || this.isZoomed) {
-                this.rawOffset.copy(this._positionToOffset(this.rawPosition, this.center, this.transformOrigin, this.transformation));
+                this.rawOffset.copy(this._convertPositionToOffset(this.rawPosition, this.center, this.transformOrigin, this.transformation));
             }
         }
         

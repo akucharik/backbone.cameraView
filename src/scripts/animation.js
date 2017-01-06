@@ -196,7 +196,7 @@ class Animation extends TimelineMax {
                 onUpdateParams: ['{self}'],
                 onUpdate: function (self) {
                     // Position is manually maintained so animations can smoothly continue when camera is resized
-                    this.camera.setRawPosition(this.camera._offsetToPosition(this.camera.rawOffset, this.camera.center, this.camera.transformOrigin, this.camera.transformation));
+                    this.camera.setRawPosition(this.camera._convertOffsetToPosition(this.camera.rawOffset, this.camera.center, this.camera.transformOrigin, this.camera.transformation));
                     
                     if (self.duration() === 0) {
                         this._onUpdate();
@@ -371,11 +371,12 @@ class Animation extends TimelineMax {
         else if (isOriginChanging && !isPositionChanging) {
             isAnchored = true;
             isPositionChanging = true;
-            fovPosition = this.camera._scenePositionToFOVPosition(toOrigin, start.position, this.camera.center, startTransformation);
-            toPosition = this.camera._scenePositionToCameraPosition(toOrigin, fovPosition, this.camera.center, toOrigin, toTransformation);
+            fovPosition = this.camera._convertScenePositionToFOVPosition(toOrigin, start.position, this.camera.center, startTransformation);
+            console.log('fov pos: ', fovPosition);
+            toPosition = this.camera._convertScenePositionToCameraPosition(toOrigin, fovPosition, this.camera.center, toOrigin, toTransformation);
         }
         
-        toOffset = this.camera._positionToOffset(toPosition, this.camera.center, toOrigin, toTransformation);
+        toOffset = this.camera._convertPositionToOffset(toPosition, this.camera.center, toOrigin, toTransformation);
         
         return {
             offsetX: isOffsetChanging ? toOffset.x : null,

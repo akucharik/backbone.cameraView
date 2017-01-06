@@ -41,7 +41,7 @@ class CSSRenderer {
     */
     render () {
         if (this.camera.scene && this.camera.scenes.view) {
-            var offset = this.camera._positionToOffset(this.camera.position, this.camera.center, this.camera.transformOrigin, this.camera.transformation);
+            var offset = this.camera._convertPositionToOffset(this.camera.position, this.camera.center, this.camera.transformOrigin, this.camera.transformation);
             
             this.camera.scene.view.style.visibility = 'visible';
             TweenLite.set(this.camera.scenes.view, { 
