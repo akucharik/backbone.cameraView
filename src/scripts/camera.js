@@ -233,6 +233,12 @@ class Camera {
         
         /**
         * @private
+        * @property {number} - The scale at which the scene is rasterized.
+        */
+        this._rasterScale = 1;
+        
+        /**
+        * @private
         * @property {number} - The internally managed zoom.
         */
         this._zoom = 1;
@@ -604,6 +610,7 @@ class Camera {
         this.transformOrigin.set(0, 0);
         this.rotation = 0;
         this.zoom = 1;
+        this._rasterScale = 1;
         this.setRawPosition(new Vector2(this.width * 0.5, this.height * 0.5));
         
         return this;

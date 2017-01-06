@@ -197,10 +197,6 @@ class Animation extends TimelineMax {
                 onUpdate: function (self) {
                     // Position is manually maintained so animations can smoothly continue when camera is resized
                     this.camera.setRawPosition(this.camera._convertOffsetToPosition(this.camera.rawOffset, this.camera.center, this.camera.transformOrigin, this.camera.transformation));
-                    
-                    if (self.duration() === 0) {
-                        this._onUpdate();
-                    }
                 },
                 onCompleteParams: ['{self}'],
                 onComplete: function (self) {

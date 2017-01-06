@@ -5,6 +5,8 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
+import round  from 'lodash/round';
+
 /**
 * Description.
 * 
@@ -42,6 +44,21 @@ class CSSRenderer {
     render () {
         if (this.camera.scene && this.camera.scenes.view) {
             var offset = this.camera._convertPositionToOffset(this.camera.position, this.camera.center, this.camera.transformOrigin, this.camera.transformation);
+            var rasterIncrement = 0.5;
+            var scale = round(this.camera.zoom, 2);
+            
+            // Control rasterization to maintain clarity when zooming
+            if (scale > this.camera._rasterScale + rasterIncrement) {
+                this.camera._rasterScale = this.camera.zoom;
+                this.camera.scenes.view.style.willChange = 'auto';
+            }
+            else if (scale > 1 && scale < this.camera._rasterScale - rasterIncrement) {
+                this.camera._rasterScale = this.camera.zoom;
+                this.camera.scenes.view.style.willChange = 'auto';
+            }
+            else {
+                this.camera.scenes.view.style.willChange = 'transform';
+            }
             
             this.camera.scene.view.style.visibility = 'visible';
             TweenLite.set(this.camera.scenes.view, { 
