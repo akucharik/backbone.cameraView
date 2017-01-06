@@ -6,6 +6,14 @@
     <link type="text/css" href="styles/font-awesome.min.css" rel="stylesheet" />
     <link type="text/css" href="styles/github-markdown.css" rel="stylesheet" />
     <link type="text/css" href="styles/demo.css" rel="stylesheet" />
+    <style>
+        .box {
+            background-color: gray;
+            margin: 1px;
+            width: 110px;
+            height: 110px;
+        }
+    </style>
 </head>
 <body>
     <a id="anchorTop"></a>
@@ -84,7 +92,7 @@
                 <div>
                     <div class="row">
                         <div class="shrink columns">
-                            <div id="camera" style="width: 600px; height: 400px;">
+                            <div id="camera" style="background-color: white; border: 1px solid #999; width: 600px; height: 400px;">
                                 <div class="bcv-ignore-pointer-events" style="display: none; position: absolute; width: 400px; z-index: 100; top: 60%; left: 50%; transform: translate(-50%, -50%);">
                                     <p class="home-banner-headline">
                                         A simple and intuitive 2D camera for animating HTML within a frame
@@ -94,6 +102,7 @@
                                         <button type="button" class="button">Demo</button>
                                     </div>
                                 </div>                    
+                                <!--
                                 <div class="bcv-ignore-pointer-events">
                                     <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid blue; z-index: 1;"></div>
                                     <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 200px; height: 200px; border: 1px solid red; z-index: 1;"></div>
@@ -107,9 +116,11 @@
                                     <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; bottom: 0; right: 0; border: 1px solid black; z-index: 1;"></div>
                                     <div id="point" style="position: absolute; width: 4px; height: 4px; background-color: #ff9900; top: -1000px; left: -1000px; z-index: 1000;"></div>
                                 </div>
+                                -->
                             </div>
 
-                            <div id="scene1" style="display: none; width: 1200px; height: 700px;">
+                            <div id="scene1" style="display: none; width: 898px; height: 674px;">
+                                <!--
                                 <div style="box-sizing: border-box; height: 100%; background-color: #def; border: 10px solid black;"></div>
                                 <div style="box-sizing: border-box; position: absolute; top: 100px; left: 300px; width: 200px; height: 200px; background-color: #cdf;"></div>
                                 <div id="box100" style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 100px; height: 100px; border: 1px solid green;"></div>
@@ -117,6 +128,47 @@
                                 <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 200px; height: 200px; border: 1px solid green;"></div>
                                 <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 250px; height: 250px; border: 1px solid green;"></div>
                                 <div style="box-sizing: border-box; position: absolute; top: 0; left: 0; width: 300px; height: 300px; border: 1px solid green;"></div>
+                                -->
+                                <div style="filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5)); position: absolute; top: 100px; left: 100px;">
+                                    <div style="background-color: white; line-height: 1.2; padding: 1.0rem; width: 200px;">Hi, my name is "thing", and I'm HTML.</div>
+                                    <svg width="20" height="20" viewBox="0 0 100 100" preserveAspectRatio="none" style="position: absolute; top: 50%; right: 2px; transform: translate(100%, -50%);">
+                                        <polygon points="0,0 100,50 0,100" style="fill: white;" />
+                                    </svg>
+                                </div>
+                                <div id="demoBoxes" style="background-color: white; display: flex; flex-wrap: wrap; padding: 1px;">
+                                    <div class="box"></div>
+                                    <div class="box"></div>
+                                    <div class="box"></div>
+                                    <div class="box"></div>
+                                    <div class="box"></div>
+                                    <div class="box"></div>
+                                    <div class="box"></div>
+                                    <div class="box"></div>
+                                    <div class="box"></div>
+                                    <div class="box"></div>
+                                    <div class="box"></div>
+                                    <div class="box"></div>
+                                    <div class="box"></div>
+                                    <div class="box"></div>
+                                    <div class="box"></div>
+                                    <div class="box"></div>
+                                    <div class="box"></div>
+                                    <div class="box"></div>
+                                    <div class="box"></div>
+                                    <div class="box"></div>
+                                    <div class="box"></div>
+                                    <div class="box"></div>
+                                    <div class="box"></div>
+                                    <div class="box"></div>
+                                    <div class="box"></div>
+                                    <div class="box"></div>
+                                    <div class="box"></div>
+                                    <div class="box"></div>
+                                    <div class="box"></div>
+                                    <div class="box"></div>
+                                    <div class="box"></div>
+                                    <div class="box"></div>
+                                </div>
                             </div>
 
                             <div id="scene2" style="display: none; width: 1827px; height: 1215px;">
@@ -252,6 +304,7 @@ myCamera.play('zoomTo2Then1');</code></pre>
         prettyPrint();
         
         var myApp = {
+            boxes: document.querySelectorAll('#demoBoxes > .box'),
             scrollItems: [{
                 target: '#anchorDemo',
                 trigger: '#navDemo'
@@ -279,6 +332,11 @@ myCamera.play('zoomTo2Then1');</code></pre>
                 TweenLite.to(window, 0.7, { scrollTo: item.target, ease: Power2.easeOut });
             })
         }); 
+        
+        myApp.boxes.forEach(function (box) {
+            var color = Math.floor(Math.random() * (220 - 150 + 1) + 150);
+            box.style.backgroundColor = 'rgb(' + color + ',' + color + ',' + color + ')';
+        });
         
         camera = new Oculo.Camera({
             view: '#camera',
