@@ -13,6 +13,75 @@
             width: 110px;
             height: 110px;
         }
+        
+        .pt {
+            position: relative;
+            width: 1350px;
+            height: 900px;
+        }
+        
+        .element {
+            /*background-color: #5d407b;*/
+            /*border: 1px solid rgba(0,0,0,0.05);*/
+            position: absolute;
+            text-align: center;
+            width: 70px;
+            height: 85px;
+        }
+        
+        .element:after {
+            border: 1px solid rgba(0,0,0,0.1);
+            content: '';
+            display: block;
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+        }
+        
+        .metal {
+            background: linear-gradient(to bottom, #692583 30%, #5d407b 100%);
+        }
+        
+        .metalloid {
+            background: linear-gradient(to bottom, #bc78cf 30%, #8c489f 100%);
+        }
+        
+        .nonmetal {
+            background: linear-gradient(to bottom, #7999b9 30%, #496989 100%);
+        }
+        
+        .element-number {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.7rem;
+            line-height: 1.3;
+            padding: 0.4rem 0.4rem 0 0;
+            text-align: right;
+            text-shadow: 0 0 5px rgba(0,0,0,0.3);
+        }
+        
+        .element-symbol {
+            color: rgba(255,255,255,1);
+            font-size: 1.8rem;
+            font-weight: bold;
+            line-height: 1.2;
+            text-shadow: 0 0 10px rgba(255,255,255,0.6);
+        }
+        
+        .element-name {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.5rem;
+            line-height: 1.3;
+            text-shadow: 0 0 5px rgba(0,0,0,0.3);
+        }
+        
+        .element-weight {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.5em;
+            line-height: 1.0;
+            text-shadow: 0 0 5px rgba(0,0,0,0.3);
+        }
     </style>
 </head>
 <body>
@@ -119,7 +188,11 @@
                                 -->
                             </div>
 
-                            <div id="scene1" style="display: none; width: 898px; height: 674px;">
+                            <div id="scene1" style="display: none; width: 1350px; height: 900px;">
+                                <div id="pt" class="pt"></div>
+                            </div>
+                            
+                            <div id="scene10" style="display: none; width: 898px; height: 674px;">
                                 <!--
                                 <div style="box-sizing: border-box; height: 100%; background-color: #def; border: 10px solid black;"></div>
                                 <div style="box-sizing: border-box; position: absolute; top: 100px; left: 300px; width: 200px; height: 200px; background-color: #cdf;"></div>
@@ -286,6 +359,8 @@ myCamera.play('zoomTo2Then1');</code></pre>
         </div>
     </div>
     
+    
+    
     <footer class="site-footer" style="border-top: 1px solid #ccc;">
         <div class="row">
             <div class="columns">&copy; <span id="copyrightYear"></span> Adam Kucharik All rights reserved.</div>
@@ -323,8 +398,280 @@ myCamera.play('zoomTo2Then1');</code></pre>
             }, {
                 target: 0,
                 trigger: '#topDocumentation'
-            }]
+            }],
+            pt: [
+                {"atomicNumber":1,"name":"Hydrogen","symbol":"H","weight":"1.00794","metalCategory":"Nonmetal","row":1,"col":1},
+                {"atomicNumber":2,"name":"Helium","symbol":"He","weight":"4.002602","metalCategory":"Nonmetal","row":18,"col":1},
+                {"atomicNumber":3,"name":"Lithium","symbol":"Li","weight":"6.941","metalCategory":"Metal","row":1,"col":2},
+                {"atomicNumber":4,"name":"Beryllium","symbol":"Be","weight":"9.012182","metalCategory":"Metal","row":2,"col":2},
+                {"atomicNumber":5,"name":"Boron","symbol":"B","weight":"10.811","metalCategory":"Metalloid","row":13,"col":2},
+                {"atomicNumber":6,"name":"Carbon","symbol":"C","weight":"12.0107","metalCategory":"Nonmetal","row":14,"col":2},
+                {"atomicNumber":7,"name":"Nitrogen","symbol":"N","weight":"14.0067","metalCategory":"Nonmetal","row":15,"col":2},
+                {"atomicNumber":8,"name":"Oxygen","symbol":"O","weight":"15.9994","metalCategory":"Nonmetal","row":16,"col":2},
+                {"atomicNumber":9,"name":"Fluorine","symbol":"F","weight":"18.9984032","metalCategory":"Nonmetal","row":17,"col":2},
+                {"atomicNumber":10,"name":"Neon","symbol":"Ne","weight":"20.1797","metalCategory":"Nonmetal","row":18,"col":2},
+                {"atomicNumber":11,"name":"Sodium","symbol":"Na","weight":"22.98976...","metalCategory":"Metal","row":1,"col":3},
+                {"atomicNumber":12,"name":"Magnesium","symbol":"Mg","weight":"24.305","metalCategory":"Metal","row":2,"col":3},
+                {"atomicNumber":13,"name":"Aluminium","symbol":"Al","weight":"26.9815386","metalCategory":"Metal","row":13,"col":3},
+                {"atomicNumber":14,"name":"Silicon","symbol":"Si","weight":"28.0855","metalCategory":"Metalloid","row":14,"col":3},
+                {"atomicNumber":15,"name":"Phosphorus","symbol":"P","weight":"30.973762","metalCategory":"Nonmetal","row":15,"col":3},
+                {"atomicNumber":16,"name":"Sulfur","symbol":"S","weight":"32.065","metalCategory":"Nonmetal","row":16,"col":3},
+                {"atomicNumber":17,"name":"Chlorine","symbol":"Cl","weight":"35.453","metalCategory":"Nonmetal","row":17,"col":3},
+                {"atomicNumber":18,"name":"Argon","symbol":"Ar","weight":"39.948","metalCategory":"Nonmetal","row":18,"col":3},
+                {"atomicNumber":19,"name":"Potassium","symbol":"K","weight":"39.948","metalCategory":"Metal","row":1,"col":4},
+                {"atomicNumber":20,"name":"Calcium","symbol":"Ca","weight":"40.078","metalCategory":"Metal","row":2,"col":4},
+                {"atomicNumber":21,"name":"Scandium","symbol":"Sc","weight":"44.955912","metalCategory":"Metal","row":3,"col":4},
+                {"atomicNumber":22,"name":"Titanium","symbol":"Ti","weight":"47.867","metalCategory":"Metal","row":4,"col":4},
+                {"atomicNumber":23,"name":"Vanadium","symbol":"V","weight":"50.9415","metalCategory":"Metal","row":5,"col":4},
+                {"atomicNumber":24,"name":"Chromium","symbol":"Cr","weight":"51.9961","metalCategory":"Metal","row":6,"col":4},
+                {"atomicNumber":25,"name":"Manganese","symbol":"Mn","weight":"54.938045","metalCategory":"Metal","row":7,"col":4},
+                {"atomicNumber":26,"name":"Iron","symbol":"Fe","weight":"55.845","metalCategory":"Metal","row":8,"col":4},
+                {"atomicNumber":27,"name":"Cobalt","symbol":"Co","weight":"58.933195","metalCategory":"Metal","row":9,"col":4},
+                {"atomicNumber":28,"name":"Nickel","symbol":"Ni","weight":"58.6934","metalCategory":"Metal","row":10,"col":4},
+                {"atomicNumber":29,"name":"Copper","symbol":"Cu","weight":"63.546","metalCategory":"Metal","row":11,"col":4},
+                {"atomicNumber":30,"name":"Zinc","symbol":"Zn","weight":"65.38","metalCategory":"Metal","row":12,"col":4},
+                {"atomicNumber":31,"name":"Gallium","symbol":"Ga","weight":"69.723","metalCategory":"Metal","row":13,"col":4},
+                {"atomicNumber":32,"name":"Germanium","symbol":"Ge","weight":"72.63","metalCategory":"Metalloid","row":14,"col":4},
+                {"atomicNumber":33,"name":"Arsenic","symbol":"As","weight":"74.9216","metalCategory":"Metalloid","row":15,"col":4},
+                {"atomicNumber":34,"name":"Selenium","symbol":"Se","weight":"78.96","metalCategory":"Nonmetal","row":16,"col":4},
+                {"atomicNumber":35,"name":"Bromine","symbol":"Br","weight":"79.904","metalCategory":"Nonmetal","row":17,"col":4},
+                {"atomicNumber":36,"name":"Krypton","symbol":"Kr","weight":"83.798","metalCategory":"Nonmetal","row":18,"col":4},
+                {"atomicNumber":37,"name":"Rubidium","symbol":"Rb","weight":"85.4678","metalCategory":"Metal","row":1,"col":5},
+                {"atomicNumber":38,"name":"Strontium","symbol":"Sr","weight":"87.62","metalCategory":"Metal","row":2,"col":5},
+                {"atomicNumber":39,"name":"Yttrium","symbol":"Y","weight":"88.90585","metalCategory":"Metal","row":3,"col":5},
+                {"atomicNumber":40,"name":"Zirconium","symbol":"Zr","weight":"91.224","metalCategory":"Metal","row":4,"col":5},
+                {"atomicNumber":41,"name":"Niobium","symbol":"Nb","weight":"92.90628","metalCategory":"Metal","row":5,"col":5},
+                {"atomicNumber":42,"name":"Molybdenum","symbol":"Mo","weight":"95.96","metalCategory":"Metal","row":6,"col":5},
+                {"atomicNumber":43,"name":"Technetium","symbol":"Tc","weight":"(98)","metalCategory":"Metal","row":7,"col":5},
+                {"atomicNumber":44,"name":"Ruthenium","symbol":"Ru","weight":"101.07","metalCategory":"Metal","row":8,"col":5},
+                {"atomicNumber":45,"name":"Rhodium","symbol":"Rh","weight":"102.9055","metalCategory":"Metal","row":9,"col":5},
+                {"atomicNumber":46,"name":"Palladium","symbol":"Pd","weight":"106.42","metalCategory":"Metal","row":10,"col":5},
+                {"atomicNumber":47,"name":"Silver","symbol":"Ag","weight":"107.8682","metalCategory":"Metal","row":11,"col":5},
+                {"atomicNumber":48,"name":"Cadmium","symbol":"Cd","weight":"112.411","metalCategory":"Metal","row":12,"col":5},
+                {"atomicNumber":49,"name":"Indium","symbol":"In","weight":"114.818","metalCategory":"Metal","row":13,"col":5},
+                {"atomicNumber":50,"name":"Tin","symbol":"Sn","weight":"118.71","metalCategory":"Metal","row":14,"col":5},
+                {"atomicNumber":51,"name":"Antimony","symbol":"Sb","weight":"121.76","metalCategory":"Metalloid","row":15,"col":5},
+                {"atomicNumber":52,"name":"Tellurium","symbol":"Te","weight":"127.6","metalCategory":"Metalloid","row":16,"col":5},
+                {"atomicNumber":53,"name":"Iodine","symbol":"I","weight":"126.90447","metalCategory":"Nonmetal","row":17,"col":5},
+                {"atomicNumber":54,"name":"Xenon","symbol":"Xe","weight":"131.293","metalCategory":"Nonmetal","row":18,"col":5},
+                {"atomicNumber":55,"name":"Caesium","symbol":"Cs","weight":"132.9054","metalCategory":"Metal","row":1,"col":6},
+                {"atomicNumber":56,"name":"Barium","symbol":"Ba","weight":"132.9054","metalCategory":"Metal","row":2,"col":6},
+                {"atomicNumber":"57-71","name":"","symbol":"","weight":"","metalCategory":"Metal","row":3,"col":6},
+                {"atomicNumber":57,"name":"Lanthanum","symbol":"La","weight":"138.90547","metalCategory":"Metal","row":4,"col":9},
+                {"atomicNumber":58,"name":"Cerium","symbol":"Ce","weight":"140.116","metalCategory":"Metal","row":5,"col":9},
+                {"atomicNumber":59,"name":"Praseodymium","symbol":"Pr","weight":"140.90765","metalCategory":"Metal","row":6,"col":9},
+                {"atomicNumber":60,"name":"Neodymium","symbol":"Nd","weight":"144.242","metalCategory":"Metal","row":7,"col":9},
+                {"atomicNumber":61,"name":"Promethium","symbol":"Pm","weight":"(145)","metalCategory":"Metal","row":8,"col":9},
+                {"atomicNumber":62,"name":"Samarium","symbol":"Sm","weight":"150.36","metalCategory":"Metal","row":9,"col":9},
+                {"atomicNumber":63,"name":"Europium","symbol":"Eu","weight":"151.964","metalCategory":"Metal","row":10,"col":9},
+                {"atomicNumber":64,"name":"Gadolinium","symbol":"Gd","weight":"157.25","metalCategory":"Metal","row":11,"col":9},
+                {"atomicNumber":65,"name":"Terbium","symbol":"Tb","weight":"158.92535","metalCategory":"Metal","row":12,"col":9},
+                {"atomicNumber":66,"name":"Dysprosium","symbol":"Dy","weight":"162.5","metalCategory":"Metal","row":13,"col":9},
+                {"atomicNumber":67,"name":"Holmium","symbol":"Ho","weight":"164.93032","metalCategory":"Metal","row":14,"col":9},
+                {"atomicNumber":68,"name":"Erbium","symbol":"Er","weight":"167.259","metalCategory":"Metal","row":15,"col":9},
+                {"atomicNumber":69,"name":"Thulium","symbol":"Tm","weight":"168.93421","metalCategory":"Metal","row":16,"col":9},
+                {"atomicNumber":70,"name":"Ytterbium","symbol":"Yb","weight":"173.054","metalCategory":"Metal","row":17,"col":9},
+                {"atomicNumber":71,"name":"Lutetium","symbol":"Lu","weight":"174.9668","metalCategory":"Metal","row":18,"col":9},
+                {"atomicNumber":72,"name":"Hafnium","symbol":"Hf","weight":"178.49","metalCategory":"Metal","row":4,"col":6},
+                {"atomicNumber":73,"name":"Tantalum","symbol":"Ta","weight":"180.94788","metalCategory":"Metal","row":5,"col":6},
+                {"atomicNumber":74,"name":"Tungsten","symbol":"W","weight":"183.84","metalCategory":"Metal","row":6,"col":6},
+                {"atomicNumber":75,"name":"Rhenium","symbol":"Re","weight":"186.207","metalCategory":"Metal","row":7,"col":6},
+                {"atomicNumber":76,"name":"Osmium","symbol":"Os","weight":"190.23","metalCategory":"Metal","row":8,"col":6},
+                {"atomicNumber":77,"name":"Iridium","symbol":"Ir","weight":"192.217","metalCategory":"Metal","row":9,"col":6},
+                {"atomicNumber":78,"name":"Platinum","symbol":"Pt","weight":"195.084","metalCategory":"Metal","row":10,"col":6},
+                {"atomicNumber":79,"name":"Gold","symbol":"Au","weight":"196.966569","metalCategory":"Metal","row":11,"col":6},
+                {"atomicNumber":80,"name":"Mercury","symbol":"Hg","weight":"200.59","metalCategory":"Metal","row":12,"col":6},
+                {"atomicNumber":81,"name":"Thallium","symbol":"Tl","weight":"204.3833","metalCategory":"Metal","row":13,"col":6},
+                {"atomicNumber":82,"name":"Lead","symbol":"Pb","weight":"207.2","metalCategory":"Metal","row":14,"col":6},
+                {"atomicNumber":83,"name":"Bismuth","symbol":"Bi","weight":"208.9804","metalCategory":"Metal","row":15,"col":6},
+                {"atomicNumber":84,"name":"Polonium","symbol":"Po","weight":"(209)","metalCategory":"Metalloid","row":16,"col":6},
+                {"atomicNumber":85,"name":"Astatine","symbol":"At","weight":"(210)","metalCategory":"Nonmetal","row":17,"col":6},
+                {"atomicNumber":86,"name":"Radon","symbol":"Rn","weight":"(222)","metalCategory":"Nonmetal","row":18,"col":6},
+                {"atomicNumber":87,"name":"Francium","symbol":"Fr","weight":"(223)","metalCategory":"Metal","row":1,"col":7},
+                {"atomicNumber":88,"name":"Radium","symbol":"Ra","weight":"(226)","metalCategory":"Metal","row":2,"col":7},
+                {"atomicNumber":"89-103","name":"","symbol":"","weight":"","metalCategory":"Metal","row":3,"col":7},
+                {"atomicNumber":89,"name":"Actinium","symbol":"Ac","weight":"(227)","metalCategory":"Metal","row":4,"col":10},
+                {"atomicNumber":90,"name":"Thorium","symbol":"Th","weight":"232.03806","metalCategory":"Metal","row":5,"col":10},
+                {"atomicNumber":91,"name":"Protactinium","symbol":"Pa","weight":"231.0588","metalCategory":"Metal","row":6,"col":10},
+                {"atomicNumber":92,"name":"Uranium","symbol":"U","weight":"238.02891","metalCategory":"Metal","row":7,"col":10},
+                {"atomicNumber":93,"name":"Neptunium","symbol":"Np","weight":"(237)","metalCategory":"Metal","row":8,"col":10},
+                {"atomicNumber":94,"name":"Plutonium","symbol":"Pu","weight":"(244)","metalCategory":"Metal","row":9,"col":10},
+                {"atomicNumber":95,"name":"Americium","symbol":"Am","weight":"(243)","metalCategory":"Metal","row":10,"col":10},
+                {"atomicNumber":96,"name":"Curium","symbol":"Cm","weight":"(247)","metalCategory":"Metal","row":11,"col":10},
+                {"atomicNumber":97,"name":"Berkelium","symbol":"Bk","weight":"(247)","metalCategory":"Metal","row":12,"col":10},
+                {"atomicNumber":98,"name":"Californium","symbol":"Cf","weight":"(251)","metalCategory":"Metal","row":13,"col":10},
+                {"atomicNumber":99,"name":"Einstenium","symbol":"Es","weight":"(252)","metalCategory":"Metal","row":14,"col":10},
+                {"atomicNumber":100,"name":"Fermium","symbol":"Fm","weight":"(257)","metalCategory":"Metal","row":15,"col":10},
+                {"atomicNumber":101,"name":"Mendelevium","symbol":"Md","weight":"(258)","metalCategory":"Metal","row":16,"col":10},
+                {"atomicNumber":102,"name":"Nobelium","symbol":"No","weight":"(259)","metalCategory":"Metal","row":17,"col":10},
+                {"atomicNumber":103,"name":"Lawrencium","symbol":"Lr","weight":"(262)","metalCategory":"Metal","row":18,"col":10},
+                {"atomicNumber":104,"name":"Rutherfordium","symbol":"Rf","weight":"(267)","metalCategory":"Metal","row":4,"col":7},
+                {"atomicNumber":105,"name":"Dubnium","symbol":"Db","weight":"(268)","metalCategory":"Metal","row":5,"col":7},
+                {"atomicNumber":106,"name":"Seaborgium","symbol":"Sg","weight":"(271)","metalCategory":"Metal","row":6,"col":7},
+                {"atomicNumber":107,"name":"Bohrium","symbol":"Bh","weight":"(272)","metalCategory":"Metal","row":7,"col":7},
+                {"atomicNumber":108,"name":"Hassium","symbol":"Hs","weight":"(270)","metalCategory":"Metal","row":8,"col":7},
+                {"atomicNumber":109,"name":"Meitnerium","symbol":"Mt","weight":"(276)","metalCategory":"Metal","row":9,"col":7},
+                {"atomicNumber":110,"name":"Darmstadium","symbol":"Ds","weight":"(281)","metalCategory":"Metal","row":10,"col":7},
+                {"atomicNumber":111,"name":"Roentgenium","symbol":"Rg","weight":"(280)","metalCategory":"Metal","row":11,"col":7},
+                {"atomicNumber":112,"name":"Copernicium","symbol":"Cn","weight":"(285)","metalCategory":"Metal","row":12,"col":7},
+                {"atomicNumber":113,"name":"Unutrium","symbol":"Uut","weight":"(284)","metalCategory":"Metal","row":13,"col":7},
+                {"atomicNumber":114,"name":"Flerovium","symbol":"Fl","weight":"(289)","metalCategory":"Metal","row":14,"col":7},
+                {"atomicNumber":115,"name":"Ununpentium","symbol":"Uup","weight":"(288)","metalCategory":"Metal","row":15,"col":7},
+                {"atomicNumber":116,"name":"Livermorium","symbol":"Lv","weight":"(293)","metalCategory":"Metal","row":16,"col":7},
+                {"atomicNumber":117,"name":"Ununseptium","symbol":"Uus","weight":"(294)","metalCategory":"Nonmetal","row":17,"col":7},
+                {"atomicNumber":118,"name":"Ununoctium","symbol":"Uuo","weight":"(294)","metalCategory":"Nonmetal","row":18,"col":7}
+            ],
+            periodicTable: [
+				"H", "Hydrogen", "1.00794", 1, 1,
+				"He", "Helium", "4.002602", 18, 1,
+				"Li", "Lithium", "6.941", 1, 2,
+				"Be", "Beryllium", "9.012182", 2, 2,
+				"B", "Boron", "10.811", 13, 2,
+				"C", "Carbon", "12.0107", 14, 2,
+				"N", "Nitrogen", "14.0067", 15, 2,
+				"O", "Oxygen", "15.9994", 16, 2,
+				"F", "Fluorine", "18.9984032", 17, 2,
+				"Ne", "Neon", "20.1797", 18, 2,
+				"Na", "Sodium", "22.98976...", 1, 3,
+				"Mg", "Magnesium", "24.305", 2, 3,
+				"Al", "Aluminium", "26.9815386", 13, 3,
+				"Si", "Silicon", "28.0855", 14, 3,
+				"P", "Phosphorus", "30.973762", 15, 3,
+				"S", "Sulfur", "32.065", 16, 3,
+				"Cl", "Chlorine", "35.453", 17, 3,
+				"Ar", "Argon", "39.948", 18, 3,
+				"K", "Potassium", "39.948", 1, 4,
+				"Ca", "Calcium", "40.078", 2, 4,
+				"Sc", "Scandium", "44.955912", 3, 4,
+				"Ti", "Titanium", "47.867", 4, 4,
+				"V", "Vanadium", "50.9415", 5, 4,
+				"Cr", "Chromium", "51.9961", 6, 4,
+				"Mn", "Manganese", "54.938045", 7, 4,
+				"Fe", "Iron", "55.845", 8, 4,
+				"Co", "Cobalt", "58.933195", 9, 4,
+				"Ni", "Nickel", "58.6934", 10, 4,
+				"Cu", "Copper", "63.546", 11, 4,
+				"Zn", "Zinc", "65.38", 12, 4,
+				"Ga", "Gallium", "69.723", 13, 4,
+				"Ge", "Germanium", "72.63", 14, 4,
+				"As", "Arsenic", "74.9216", 15, 4,
+				"Se", "Selenium", "78.96", 16, 4,
+				"Br", "Bromine", "79.904", 17, 4,
+				"Kr", "Krypton", "83.798", 18, 4,
+				"Rb", "Rubidium", "85.4678", 1, 5,
+				"Sr", "Strontium", "87.62", 2, 5,
+				"Y", "Yttrium", "88.90585", 3, 5,
+				"Zr", "Zirconium", "91.224", 4, 5,
+				"Nb", "Niobium", "92.90628", 5, 5,
+				"Mo", "Molybdenum", "95.96", 6, 5,
+				"Tc", "Technetium", "(98)", 7, 5,
+				"Ru", "Ruthenium", "101.07", 8, 5,
+				"Rh", "Rhodium", "102.9055", 9, 5,
+				"Pd", "Palladium", "106.42", 10, 5,
+				"Ag", "Silver", "107.8682", 11, 5,
+				"Cd", "Cadmium", "112.411", 12, 5,
+				"In", "Indium", "114.818", 13, 5,
+				"Sn", "Tin", "118.71", 14, 5,
+				"Sb", "Antimony", "121.76", 15, 5,
+				"Te", "Tellurium", "127.6", 16, 5,
+				"I", "Iodine", "126.90447", 17, 5,
+				"Xe", "Xenon", "131.293", 18, 5,
+				"Cs", "Caesium", "132.9054", 1, 6,
+				"Ba", "Barium", "132.9054", 2, 6,
+				"La", "Lanthanum", "138.90547", 4, 9,
+				"Ce", "Cerium", "140.116", 5, 9,
+				"Pr", "Praseodymium", "140.90765", 6, 9,
+				"Nd", "Neodymium", "144.242", 7, 9,
+				"Pm", "Promethium", "(145)", 8, 9,
+				"Sm", "Samarium", "150.36", 9, 9,
+				"Eu", "Europium", "151.964", 10, 9,
+				"Gd", "Gadolinium", "157.25", 11, 9,
+				"Tb", "Terbium", "158.92535", 12, 9,
+				"Dy", "Dysprosium", "162.5", 13, 9,
+				"Ho", "Holmium", "164.93032", 14, 9,
+				"Er", "Erbium", "167.259", 15, 9,
+				"Tm", "Thulium", "168.93421", 16, 9,
+				"Yb", "Ytterbium", "173.054", 17, 9,
+				"Lu", "Lutetium", "174.9668", 18, 9,
+				"Hf", "Hafnium", "178.49", 4, 6,
+				"Ta", "Tantalum", "180.94788", 5, 6,
+				"W", "Tungsten", "183.84", 6, 6,
+				"Re", "Rhenium", "186.207", 7, 6,
+				"Os", "Osmium", "190.23", 8, 6,
+				"Ir", "Iridium", "192.217", 9, 6,
+				"Pt", "Platinum", "195.084", 10, 6,
+				"Au", "Gold", "196.966569", 11, 6,
+				"Hg", "Mercury", "200.59", 12, 6,
+				"Tl", "Thallium", "204.3833", 13, 6,
+				"Pb", "Lead", "207.2", 14, 6,
+				"Bi", "Bismuth", "208.9804", 15, 6,
+				"Po", "Polonium", "(209)", 16, 6,
+				"At", "Astatine", "(210)", 17, 6,
+				"Rn", "Radon", "(222)", 18, 6,
+				"Fr", "Francium", "(223)", 1, 7,
+				"Ra", "Radium", "(226)", 2, 7,
+				"Ac", "Actinium", "(227)", 4, 10,
+				"Th", "Thorium", "232.03806", 5, 10,
+				"Pa", "Protactinium", "231.0588", 6, 10,
+				"U", "Uranium", "238.02891", 7, 10,
+				"Np", "Neptunium", "(237)", 8, 10,
+				"Pu", "Plutonium", "(244)", 9, 10,
+				"Am", "Americium", "(243)", 10, 10,
+				"Cm", "Curium", "(247)", 11, 10,
+				"Bk", "Berkelium", "(247)", 12, 10,
+				"Cf", "Californium", "(251)", 13, 10,
+				"Es", "Einstenium", "(252)", 14, 10,
+				"Fm", "Fermium", "(257)", 15, 10,
+				"Md", "Mendelevium", "(258)", 16, 10,
+				"No", "Nobelium", "(259)", 17, 10,
+				"Lr", "Lawrencium", "(262)", 18, 10,
+				"Rf", "Rutherfordium", "(267)", 4, 7,
+				"Db", "Dubnium", "(268)", 5, 7,
+				"Sg", "Seaborgium", "(271)", 6, 7,
+				"Bh", "Bohrium", "(272)", 7, 7,
+				"Hs", "Hassium", "(270)", 8, 7,
+				"Mt", "Meitnerium", "(276)", 9, 7,
+				"Ds", "Darmstadium", "(281)", 10, 7,
+				"Rg", "Roentgenium", "(280)", 11, 7,
+				"Cn", "Copernicium", "(285)", 12, 7,
+				"Uut", "Unutrium", "(284)", 13, 7,
+				"Fl", "Flerovium", "(289)", 14, 7,
+				"Uup", "Ununpentium", "(288)", 15, 7,
+				"Lv", "Livermorium", "(293)", 16, 7,
+				"Uus", "Ununseptium", "(294)", 17, 7,
+				"Uuo", "Ununoctium", "(294)", 18, 7
+			]
         };
+        
+        var pt = document.getElementById('pt');
+        
+        myApp.pt.forEach(function (item) {
+            var element = document.createElement('div');
+            element.className = 'element ' + item.metalCategory.toLowerCase();
+            element.setAttribute('id', item.name);
+            element.innerHTML = '<div class="element-number">' + item.atomicNumber + '</div><div class="element-symbol">' + item.symbol + '</div><div class="element-name">' + item.name + '</div><div class="element-weight">' + item.weight + '</div>';
+            element.style.top = (item.col - 1) * 90 + 'px';
+            element.style.left = (item.row - 1) * 75 + 'px';
+            pt.appendChild(element);
+        });
+        
+//        var ptData = [];
+//        for (var i = 0; i < myApp.periodicTable.length; i += 5) {
+//            
+//            var item = {
+//                atomicNumber: (i/5) + 1,
+//                name: myApp.periodicTable[i + 1],
+//                symbol: myApp.periodicTable[i],
+//                weight: myApp.periodicTable[i + 2],
+//                row: myApp.periodicTable[i + 3],
+//                col: myApp.periodicTable[i + 4]
+//            };
+//            ptData.push(item);
+//        }
+//        
+//        var element = document.createElement( 'div' );
+//        element.innerHTML = JSON.stringify(ptData);
+//        document.body.appendChild(element);
         
         myApp.scrollItems.forEach(function (item) {
             document.querySelector(item.trigger).addEventListener('click', function () {
@@ -343,7 +690,7 @@ myCamera.play('zoomTo2Then1');</code></pre>
             bounds: Oculo.Camera.bounds.WORLD_EDGE,
             dragToMove: true,
             //maxZoom: 6,
-            //minZoom: 0.1,
+            minZoom: 0.40,
             wheelToZoom: true,
             //wheelToZoomIncrement: 0.5,
             width: 600,
@@ -395,6 +742,20 @@ myCamera.play('zoomTo2Then1');</code></pre>
 //        animations.forEach(function (item) {
 //            camera.addAnimation(item.name, new Oculo.Animation(camera)[item.type](value, duration)).;
 //        });
+        
+        camera.addAnimation('zoomOutFromCenter', {
+          keyframes: [{ 
+              position: { x: 675, y: 450 },
+              zoom: 2, 
+              duration: 0
+          }, { 
+              zoom: 0.4, 
+              duration: 0.6,
+              options: {
+                  ease: Power2.easeInOut
+              }
+          }]
+        });
         
         camera.addAnimation('box100', {
           keyframes: [{ 
@@ -493,7 +854,7 @@ myCamera.play('zoomTo2Then1');</code></pre>
         
         camera.render();
         //camera.moveTo({x:200, y:200}, 0);
-        //camera.play('moveTobox100');
+        camera.play('zoomOutFromCenter');
     </script>
     
     <script>

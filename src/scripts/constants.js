@@ -9,8 +9,16 @@
 * Object types.
 * @enum {number}
 */
-const Type = {
+export const Type = {
     ANIMATION: 0
 }
 
-export { Type };
+/**
+* Zoom direction.
+* @enum {number}
+*/
+export const zoomDirection = {
+    NONE: 0,
+    IN: 1,
+    OUT: -1
+};

@@ -5,16 +5,17 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
-import isElement  from 'lodash/isElement';
-import isFinite   from 'lodash/isFinite';
-import isFunction from 'lodash/isFunction';
-import isNil      from 'lodash/isNil';
-import isObject   from 'lodash/isObject';
-import _Math      from './math/math';
-import Matrix2    from './math/matrix2';
-import { Type }   from './constants';
-import Utils      from './utils';
-import Vector2    from './math/vector2';
+import isElement            from 'lodash/isElement';
+import isFinite             from 'lodash/isFinite';
+import isFunction           from 'lodash/isFunction';
+import isNil                from 'lodash/isNil';
+import isObject             from 'lodash/isObject';
+import { zoomDirection }    from './constants';
+import _Math                from './math/math';
+import Matrix2              from './math/matrix2';
+import { Type }             from './constants';
+import Utils                from './utils';
+import Vector2              from './math/vector2';
 
 const animation = {
     type: {
@@ -185,9 +186,19 @@ class Animation extends TimelineMax {
                 callbackScope: this,
                 onStartParams: ['{self}'],
                 onStart: function (self) {
+                    var zDirection = zoomDirection.NONE;
                     self.timeline.core = self;
                     this.camera.setTransformOrigin(self.props.to.origin);
                     
+                    if (self.props.to.zoom > this.camera.zoom) {
+                        zDirection = zoomDirection.IN;
+                    }
+                    else if (self.props.to.zoom < this.camera.zoom) {
+                        zDirection = zoomDirection.OUT;
+                    }
+                    
+                    this.camera.zoomDirection = zDirection;
+                                        
                     // TODO: For dev only
                     console.log('core tween started');
                     console.log('tween vars: ', self.vars);

@@ -8,22 +8,23 @@
 // TODO:
 // 1) Import Animation to avoid using Oculo namespace
 
-import clamp            from 'lodash/clamp';
-import isElement        from 'lodash/isElement';
-import isFinite         from 'lodash/isFinite';
-import isFunction       from 'lodash/isFunction';
-import isNil            from 'lodash/isNil';
-import isObject         from 'lodash/isObject';
-import { EventEmitter } from 'fbemitter';
-import AnimationManager from './animationManager';
-import CSSRenderer      from './cssRenderer';
-import _Math            from './math/math';
-import Matrix2          from './math/matrix2';
-import Scene            from './scene';
-import SceneManager     from './sceneManager';
-import TrackControl     from './trackControl';
-import Utils            from './utils';
-import Vector2          from './math/vector2';
+import clamp                from 'lodash/clamp';
+import isElement            from 'lodash/isElement';
+import isFinite             from 'lodash/isFinite';
+import isFunction           from 'lodash/isFunction';
+import isNil                from 'lodash/isNil';
+import isObject             from 'lodash/isObject';
+import { zoomDirection }    from './constants';
+import { EventEmitter }     from 'fbemitter';
+import AnimationManager     from './animationManager';
+import CSSRenderer          from './cssRenderer';
+import _Math                from './math/math';
+import Matrix2              from './math/matrix2';
+import Scene                from './scene';
+import SceneManager         from './sceneManager';
+import TrackControl         from './trackControl';
+import Utils                from './utils';
+import Vector2              from './math/vector2';
 
 const animationName = {
     ANONYMOUS: '_anonymous'
@@ -92,6 +93,13 @@ class Camera {
         */
         this.dragToMove = (dragToMove === true) ? true : false;
 
+        /**
+        * @property {number} - The height.
+        * @readonly
+        * @default 0
+        */
+        this.height = height;
+        
         /**
         * @property {boolean} - Whether the camera has been rendered or not.
         * @readonly
@@ -211,13 +219,13 @@ class Camera {
         * @default 0
         */
         this.width = width;
-
+        
         /**
-        * @property {number} - The height.
+        * @property {number} - The zoom direction.
         * @readonly
         * @default 0
         */
-        this.height = height;
+        this.zoomDirection = zoomDirection.NONE;
         
         /**
         * @private

@@ -5,7 +5,8 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
-import round  from 'lodash/round';
+import round                from 'lodash/round';
+import { zoomDirection }    from './constants';
 
 /**
 * Description.
@@ -44,15 +45,11 @@ class CSSRenderer {
     render () {
         if (this.camera.scene && this.camera.scenes.view) {
             var offset = this.camera._convertPositionToOffset(this.camera.position, this.camera.center, this.camera.transformOrigin, this.camera.transformation);
-            var rasterIncrement = 0.5;
-            var scale = round(this.camera.zoom, 2);
+            var rasterIncrement = 0.3;
+            var scaleLevel = Math.floor(this.camera.zoom);
             
             // Control rasterization to maintain clarity when zooming
-            if (scale > this.camera._rasterScale + rasterIncrement) {
-                this.camera._rasterScale = this.camera.zoom;
-                this.camera.scenes.view.style.willChange = 'auto';
-            }
-            else if (scale > 1 && scale < this.camera._rasterScale - rasterIncrement) {
+            if (this.camera.zoom === this.camera.maxZoom || (this.camera.zoomDirection === zoomDirection.IN && this.camera.zoom > this.camera._rasterScale + rasterIncrement * scaleLevel) ) {
                 this.camera._rasterScale = this.camera.zoom;
                 this.camera.scenes.view.style.willChange = 'auto';
             }
