@@ -58,6 +58,23 @@ window.onload = () => {
         pt.appendChild(htmlElement);
     });
     
+//    pt.addEventListener('mousemove', function (event) {
+//        //console.log('event: ', event.target);
+//        if (event.target.className.indexOf('element') !== -1) {
+//            console.log('enlarge element!');
+//            TweenLite.to(event.target, 0.3, { scale: 1.3 });
+//        }
+//        
+//    });
+//    
+//    pt.addEventListener('mouseout', function (event) {
+//        //console.log('event: ', event.target);
+//        if (event.target.className.indexOf('element') !== -1) {
+//            console.log('shrink element!');
+//            TweenLite.to(event.target, 0.3, { scale: 1 });
+//        }
+//    });
+    
     console.log('initial state: ', store.getState());
     
     let subscription = store.subscribe(() => 

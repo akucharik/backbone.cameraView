@@ -58,6 +58,12 @@ const actions = {
 
         camera.rotateTo(parseFloat(state.rotation), duration, { ease: state.ease });
     },
+    setBounds: function () {
+        let state = store.getState();
+        
+        camera.bounds = data.bounds[state.bounds];
+        camera.render();
+    },
     setSize: function () {
         let state = store.getState();
         

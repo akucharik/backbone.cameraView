@@ -41,9 +41,6 @@ actions.updateBehaviorGroup = function (group) {
 
 // Camera properties
 actions.updateBounds = function (bounds) {
-    camera.bounds = data.bounds[bounds];
-    camera.render();
-    
     return {
         type: actions.type.UPDATE_BOUNDS,
         bounds: bounds

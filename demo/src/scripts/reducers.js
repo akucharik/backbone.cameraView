@@ -67,7 +67,7 @@ reducers.width = function (value, action) {
 // Animation properties
 reducers.position = function (value, action) {
     if (value === undefined) {
-        value = data.targetList[data.lookups.targetList['200,200']].value;
+        value = data.targetList[data.lookups.targetList['Actinium']].value;
     }
     
     switch (action.type) {
@@ -106,7 +106,7 @@ reducers.zoom = function (value, action) {
 
 reducers.origin = function (value, action) {
     if (value === undefined) {
-        value = data.targetList[data.lookups.targetList['200,200']].value;
+        value = data.targetList[data.lookups.targetList['Actinium']].value;
     }
     
     switch (action.type) {

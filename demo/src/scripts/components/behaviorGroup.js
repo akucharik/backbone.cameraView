@@ -5,41 +5,45 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
-import React            from 'react';
-import AnimateControls  from '../components/animateControls';
-import MoveToControls   from '../components/moveToControls';
-import RotateAtControls from '../components/rotateAtControls';
-import RotateToControls from '../components/rotateToControls';
-import SetSizeControls  from '../components/setSizeControls';
-import ShakeControls    from '../components/shakeControls';
-import ZoomAtControls   from '../components/zoomAtControls';
-import ZoomToControls   from '../components/zoomToControls';
+import React    from 'react';
+import Animate  from '../components/animateControls';
+import Bounds   from '../components/bounds';
+import MoveTo   from '../components/moveToControls';
+import RotateAt from '../components/rotateAtControls';
+import RotateTo from '../components/rotateToControls';
+import SetSize  from '../components/setSizeControls';
+import Shake    from '../components/shakeControls';
+import ZoomAt   from '../components/zoomAtControls';
+import ZoomTo   from '../components/zoomToControls';
 
 const BehaviorGroup = ({ behaviorGroup }) => (
     <div>
         {behaviorGroup === 'animate' &&
-            <AnimateControls />
+            <Animate />
+        }
+        {behaviorGroup === 'bounds' &&
+            <Bounds />
         }
         {behaviorGroup === 'moveTo' &&
-            <MoveToControls />
+            <MoveTo />
         }
         {behaviorGroup === 'rotateAt' &&
-            <RotateAtControls />
+            <RotateAt />
         }
         {behaviorGroup === 'rotateTo' &&
-            <RotateToControls />
+            <RotateTo />
         }
         {behaviorGroup === 'setSize' &&
-            <SetSizeControls />
+            <SetSize />
         }
         {behaviorGroup === 'shake' &&
-            <ShakeControls />
+            <Shake />
         }
         {behaviorGroup === 'zoomAt' &&
-            <ZoomAtControls />
+            <ZoomAt />
         }
         {behaviorGroup === 'zoomTo' &&
-            <ZoomToControls />
+            <ZoomTo />
         }
     </div>
 );

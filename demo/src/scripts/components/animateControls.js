@@ -39,22 +39,6 @@ const AnimateControls = () => (
             <DropdownList items={data.easeList} valueKey='ease' onChange={actions.updateEase} />
         </div>
         <div>
-            <label>Shake intensity</label>
-            <DropdownList items={data.shakeIntensityList} valueKey='shakeIntensity' onChange={actions.updateShakeIntensity} />
-        </div>
-        <div>
-            <label>Shake direction</label>
-            <DropdownList items={data.shakeDirectionList} valueKey='shakeDirection' onChange={actions.updateShakeDirection} />
-        </div>
-        <div>
-            <label>Shake ease in</label>
-            <DropdownList items={data.easeList} valueKey='shakeEaseIn' onChange={actions.updateShakeEaseIn} />
-        </div>
-        <div>
-            <label>Shake ease out</label>
-            <DropdownList items={data.easeList} valueKey='shakeEaseOut' onChange={actions.updateShakeEaseOut} />
-        </div>
-        <div>
             <button type="button" className="button" onClick={cameraActions.animate}>Animate</button>
         </div>
     </div>

@@ -14,11 +14,17 @@ import DropdownList  from '../containers/dropdownList';
 import Properties    from '../components/properties';
 
 const App = () => (
-    <div>
+    <div className="row">
+    <div className="medium-6 columns">
+        <h3>Behavior</h3>
         <DropdownList items={data.behaviorGroups} itemTextKey='text' itemValueKey='value' valueKey='behaviorGroup' onChange={actions.updateBehaviorGroup} />
         <BehaviorGroup />
+        
+    </div>
+    <div className="medium-6 columns">
+        <h3>Play Controls</h3>
         <Controls />
-        <Properties />
+    </div>
     </div>
 );
 

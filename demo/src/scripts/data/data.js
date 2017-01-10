@@ -5,6 +5,8 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
+import sortBy  from 'lodash/sortBy';
+
 const store = {
 //    moveTo: {
 //        position: { x: 0, y: 0 },
@@ -186,6 +188,8 @@ data.elements = [
     {"atomicNumber":118,"name":"Oganesson","symbol":"Og","weight":"(294)","metalCategory":"Nonmetal","row":18,"col":7}
 ];
 
+data.elements = sortBy(data.elements, ['name']);
+
 data.behaviorGroups = [{
         text: 'Move To',
         value: 'moveTo'
@@ -210,6 +214,9 @@ data.behaviorGroups = [{
     }, {
         text: 'Resize',
         value: 'setSize'
+    }, {
+        text: 'Bounds',
+        value: 'bounds'
     }
 ];
 
@@ -499,14 +506,24 @@ data.target = {
     '200,200': { x:200, y:200 }
 };
 
-data.targetList = [
-    { text: '#box100', value: '#box100' }, 
-    { text: '200, 200', value: '200,200' }
-];
+data.elements.forEach((item) => {
+    if (item.name) {
+        data.target[item.name] = '#' + item.name;
+    }
+});
 
-data.lookups.targetList = {
-    '#box100': 0,
-    '200,200': 1
-};
+data.targetList = [];
+
+data.elements.forEach((item) => {
+    if (item.name) {
+        data.targetList.push({ text: item.name, value: item.name });
+    }
+});
+
+data.lookups.targetList = {};
+
+data.targetList.forEach((item, index) => {
+    data.lookups.targetList[item.value] = index;
+});
 
 export default data;
