@@ -22,11 +22,16 @@
         
         .element {
             /*background-color: #5d407b;*/
-            /*border: 1px solid rgba(0,0,0,0.05);*/
+            border: 1px solid rgba(0,0,0,0.05);
             position: absolute;
             text-align: center;
             width: 70px;
             height: 85px;
+        }
+        
+        .element:hover {
+            background: white !important;
+            border-color: rgba(0,0,0,0.3);
         }
         
         .element:after {
@@ -161,7 +166,7 @@
                 <div>
                     <div class="row">
                         <div class="shrink columns">
-                            <div id="camera" style="background-color: white; border: 1px solid #999; width: 600px; height: 400px;">
+                            <div id="camera" style="background-color: white; box-shadow: 0 0 10px rgba(0,0,0,0.2); width: 600px; height: 400px;">
                                 <div class="bcv-ignore-pointer-events" style="display: none; position: absolute; width: 400px; z-index: 100; top: 60%; left: 50%; transform: translate(-50%, -50%);">
                                     <p class="home-banner-headline">
                                         A simple and intuitive 2D camera for animating HTML within a frame
@@ -266,7 +271,6 @@
                         </div>
                         <div class="columns demo-sidebar">
                             <div id="app" style="padding: 1.0em; background-color: gray;"></div>
-                            <div id="print"></div>
                         </div>
                     </div>
 
@@ -433,16 +437,13 @@ myCamera.play('zoomTo2Then1');</code></pre>
 //            camera.addAnimation(item.name, new Oculo.Animation(camera)[item.type](value, duration)).;
 //        });
         
-        camera.addAnimation('zoomOutFromCenter', {
+        camera.addAnimation('delayedZoomOut', {
           keyframes: [{ 
-              position: { x: 675, y: 450 },
-              zoom: 2, 
-              duration: 0
-          }, { 
               zoom: 0.4, 
               duration: 0.6,
               options: {
-                  ease: Power2.easeInOut
+                  ease: Power2.easeInOut,
+                  delay: 0.5
               }
           }]
         });
@@ -543,7 +544,7 @@ myCamera.play('zoomTo2Then1');</code></pre>
         }
         
         camera.render();
-        camera.play('zoomOutFromCenter');
+        camera.animate({position: {x:675,y:450}, zoom:2}, 0, {onComplete: function () { camera.play('delayedZoomOut'); }});
     </script>
     
     <script>

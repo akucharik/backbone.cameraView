@@ -90,15 +90,14 @@ class Animation extends TimelineMax {
         */
         this._onStart = function () {
             this._initCoreTween(this.coreTweens[0]);
-            
-            if (this.duration() > 0) {
-                if (this.camera.isDraggable) {
-                    this.camera.trackControl.disableDrag();
-                }
+            this.camera.isAnimating = true;
 
-                if (this.camera.isManualZoomable) {
-                    this.camera.trackControl.disableWheel();
-                }
+            if (this.camera.isDraggable) {
+                this.camera.trackControl.disableDrag();
+            }
+
+            if (this.camera.isManualZoomable) {
+                this.camera.trackControl.disableWheel();
             }
             
             if (this.config.onStart !== undefined) {
@@ -127,14 +126,14 @@ class Animation extends TimelineMax {
         * @private
         */
         this._onComplete = function () {
-            if (this.duration() > 0) {
-                if (this.camera.isDraggable) {
-                    this.camera.trackControl.enableDrag();
-                }
+            this.camera.isAnimating = false;
 
-                if (this.camera.isManualZoomable) {
-                    this.camera.trackControl.enableWheel();
-                }
+            if (this.camera.isDraggable) {
+                this.camera.trackControl.enableDrag();
+            }
+
+            if (this.camera.isManualZoomable) {
+                this.camera.trackControl.enableWheel();
             }
 
             if (this.config.onComplete !== undefined) {
@@ -177,7 +176,7 @@ class Animation extends TimelineMax {
         
         // Tween core camera properties
         if (props.origin || props.position || props.rotation || props.zoom) {
-            var coreTween = TweenMax.to(this.camera, duration, Object.assign({}, options, {
+            var coreTween = TweenMax.to(this.camera, duration !== 0 ? duration : 0.016, Object.assign({}, options, {
                 rawOffsetX: 0,
                 rawOffsetY: 0,
                 rotation: 0,
@@ -187,8 +186,6 @@ class Animation extends TimelineMax {
                 onStartParams: ['{self}'],
                 onStart: function (self) {
                     var zDirection = zoomDirection.NONE;
-                    self.timeline.core = self;
-                    this.camera.setTransformOrigin(self.props.to.origin);
                     
                     if (self.props.to.zoom > this.camera.zoom) {
                         zDirection = zoomDirection.IN;
@@ -198,6 +195,8 @@ class Animation extends TimelineMax {
                     }
                     
                     this.camera.zoomDirection = zDirection;
+                    this.camera.setTransformOrigin(self.props.end.origin);
+                    self.timeline.core = self;
                                         
                     // TODO: For dev only
                     console.log('core tween started');
@@ -214,6 +213,10 @@ class Animation extends TimelineMax {
                     this._initCoreTween(this.coreTweens[self.index + 1], self.props.end);
                     // TODO: For dev only
                     console.log('core tween completed');
+                },
+                onReverseCompleteParams: ['{self}'],
+                onReverseComplete: function (self) {
+                    this.camera.setTransformOrigin(self.props.start.origin);
                 }
             }));
             
@@ -379,7 +382,6 @@ class Animation extends TimelineMax {
             isAnchored = true;
             isPositionChanging = true;
             fovPosition = this.camera._convertScenePositionToFOVPosition(toOrigin, start.position, this.camera.center, startTransformation);
-            console.log('fov pos: ', fovPosition);
             toPosition = this.camera._convertScenePositionToCameraPosition(toOrigin, fovPosition, this.camera.center, toOrigin, toTransformation);
         }
         

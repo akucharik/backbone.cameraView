@@ -101,6 +101,13 @@ class Camera {
         this.height = height;
         
         /**
+        * @property {boolean} - Whether the camera is animating or not.
+        * @readonly
+        * @default
+        */
+        this.isAnimating = false;
+        
+        /**
         * @property {boolean} - Whether the camera has been rendered or not.
         * @readonly
         * @default
@@ -652,6 +659,10 @@ class Camera {
             this.minPositionY = bounds.minY;
             this.maxPositionX = bounds.maxX;
             this.maxPositionY = bounds.maxY;
+            
+            if (!this.isAnimating) {
+                this.setRawPosition(this._convertOffsetToPosition(this.rawOffset, this.center, this.transformOrigin, this.transformation));
+            }
 
             // TODO: For dev only
             console.log('update bounds');
@@ -957,7 +968,7 @@ class Camera {
     * @returns {this} self
     */
     animate (props, duration, options) {
-        this.animations.add(animationName.ANONYMOUS, new Oculo.Animation(this).animate(props, duration, options));
+        this.animations.add(animationName.ANONYMOUS, new Oculo.Animation(this, options).animate(props, duration));
         this.animations.play(animationName.ANONYMOUS);
         
         return this;
@@ -970,7 +981,7 @@ class Camera {
     * @returns {this} self
     */
     moveTo (position, duration, options) {
-        this.animations.add(animationName.ANONYMOUS, new Oculo.Animation(this).moveTo(position, duration, options));
+        this.animations.add(animationName.ANONYMOUS, new Oculo.Animation(this, options).moveTo(position, duration));
         this.animations.play(animationName.ANONYMOUS);
         
         return this;
@@ -983,7 +994,7 @@ class Camera {
     * @returns {this} self
     */
     rotateAt (origin, rotation, duration, options) {
-        this.animations.add(animationName.ANONYMOUS, new Oculo.Animation(this).rotateAt(origin, rotation, duration, options));
+        this.animations.add(animationName.ANONYMOUS, new Oculo.Animation(this, options).rotateAt(origin, rotation, duration));
         this.animations.play(animationName.ANONYMOUS);
         
         return this;
@@ -996,7 +1007,7 @@ class Camera {
     * @returns {this} self
     */
     rotateTo (rotation, duration, options) {
-        this.animations.add(animationName.ANONYMOUS, new Oculo.Animation(this).rotateTo(rotation, duration, options));
+        this.animations.add(animationName.ANONYMOUS, new Oculo.Animation(this, options).rotateTo(rotation, duration));
         this.animations.play(animationName.ANONYMOUS);
         
         return this;
@@ -1009,7 +1020,7 @@ class Camera {
     * @returns {this} self
     */
     shake (intensity, duration, direction, options) {
-        this.animations.add(animationName.ANONYMOUS, new Oculo.Animation(this).shake(intensity, duration, direction, options));
+        this.animations.add(animationName.ANONYMOUS, new Oculo.Animation(this, options).shake(intensity, duration, direction));
         this.animations.play(animationName.ANONYMOUS);
         
         return this;
@@ -1022,7 +1033,7 @@ class Camera {
     * @returns {this} self
     */
     zoomAt (origin, zoom, duration, options) {
-        this.animations.add(animationName.ANONYMOUS, new Oculo.Animation(this).zoomAt(origin, zoom, duration, options));
+        this.animations.add(animationName.ANONYMOUS, new Oculo.Animation(this, options).zoomAt(origin, zoom, duration));
         this.animations.play(animationName.ANONYMOUS);
         
         return this;
@@ -1035,7 +1046,7 @@ class Camera {
     * @returns {this} self
     */
     zoomTo (zoom, duration, options) {
-        this.animations.add(animationName.ANONYMOUS, new Oculo.Animation(this).zoomTo(zoom, duration, options));
+        this.animations.add(animationName.ANONYMOUS, new Oculo.Animation(this, options).zoomTo(zoom, duration));
         this.animations.play(animationName.ANONYMOUS);
 
         return this;
