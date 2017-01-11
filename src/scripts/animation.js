@@ -165,14 +165,47 @@ class Animation extends TimelineMax {
         options = options || {};
         
         var mainTimeline = new TimelineLite({
+            data: {
+                onStart: options.onStart,
+                onUpdate: options.onUpdate,
+                onComplete: options.onComplete,
+                onReverseComplete: options.onReverseComplete
+            },
             callbackScope: this,
             onStartParams: ['{self}'],
             onStart: function (self) {
                 this.currentKeyframe = self;
+                if (self.data.onStart !== undefined) {
+                    self.data.onStart.apply(this, self.data.onStartParams);
+                }
+            },
+            onUpdateParams: ['{self}'],
+            onUpdate: function (self) {
+                if (self.data.onUpdate !== undefined) {
+                    self.data.onUpdate.apply(this, self.data.onUpdateParams);
+                }
+            },
+            onCompleteParams: ['{self}'],
+            onComplete: function (self) {
+                if (self.data.onComplete !== undefined) {
+                    self.data.onComplete.apply(this, self.data.onCompleteParams);
+                }
+            },
+            onReverseCompleteParams: ['{self}'],
+            onReverseComplete: function (self) {
+                if (self.data.onReverseComplete !== undefined) {
+                    self.data.onReverseComplete.apply(this, self.data.onReverseCompleteParams);
+                }
             }
         });
         var shakeTimeline = null;
         var shake = this._parseShake(props.shake);
+        
+        // Delete callbacks so children don't pick them up but get other options
+        delete options.onStart;
+        delete options.onUpdate;
+        delete options.onComplete;
+        delete options.onReverseComplete;
         
         // Tween core camera properties
         if (props.origin || props.position || props.rotation || props.zoom) {
@@ -195,6 +228,8 @@ class Animation extends TimelineMax {
                     }
                     
                     this.camera.zoomDirection = zDirection;
+                    
+                    // Origin must be set in case animation was reversed (origin was reverted)
                     this.camera.setTransformOrigin(self.props.end.origin);
                     self.timeline.core = self;
                                         
@@ -448,6 +483,8 @@ class Animation extends TimelineMax {
             tween.props.parsed = parsedProps;
             tween.props.to = toProps;
             
+            // Origin must be updated before tween starts
+            this.camera.setTransformOrigin(toProps.origin);
             tween.vars.rawOffsetX = toProps.offsetX;
             tween.vars.rawOffsetY = toProps.offsetY;
             tween.vars.rotation = toProps.rotation;
