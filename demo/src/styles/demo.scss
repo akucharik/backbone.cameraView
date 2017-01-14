@@ -191,12 +191,82 @@ h2 {
     padding: 2.0rem;
 }
 
-.demo-sidebar {
+.demo-controls {
+    @include flex-grid-column(12);
+    background-color: #bbb;
+    box-shadow: 0 0 10px rgba(0,0,0,0.25);
+    max-width: 600px;
+    min-width: 600px;
+    padding: 1.3em 2.0em;
     
+    @include breakpoint(large) {
+        @include flex-grid-size(expand);
+        height: 500px;
+        max-width: auto;
+        min-width: auto;
+    }
 }
 
 .bcv-scene {
     background-color: lightgray;
     top: 0px;
     left: 0px;
+}
+
+.custom-dropdown {
+    position: relative;
+    
+    &-input {
+        cursor: pointer;
+        font-size: rem-calc(28);
+        font-weight: $header-font-weight;
+        line-height: $header-lineheight;
+        margin-bottom: $header-margin-bottom;
+    }
+    
+    &-arrow {
+        font-size: 85%;
+        padding-left: 0.2rem;
+        transform-origin: 57% 47%;
+        transition: all 0.2s ease-out;
+    }
+    
+    &-popup-list {
+        background-color: #eee;
+        box-shadow: 0 0 7px rgba(0,0,0,0.2);
+        min-width: 150px;
+        padding: 0.2rem 0;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        
+        &:after {
+            border: 1px solid rgba(0,0,0,0.1);
+            content: '';
+            display: block;
+            position: absolute;
+            top: -1px;
+            right: -1px;
+            bottom: -1px;
+            left: -1px;
+            z-index: 1;
+        }
+        
+        > li {
+            color: black;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0.1rem 1.4rem 0.25rem;
+            position: relative;
+            z-index: 2;
+            
+            &:hover {
+                background-color: #bc78cf;
+            }
+        }
+    }
+}
+
+.behavior-actions {
+    margin-top: 0.4em;
 }

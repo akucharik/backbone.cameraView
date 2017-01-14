@@ -17,8 +17,8 @@ const Bounds = () => (
             <label>Bounds</label>
             <DropdownList items={data.boundsList} valueKey='bounds' onChange={actions.updateBounds} />
         </div>
-        <div>
-            <button type="button" className="button" onClick={cameraActions.setBounds}>Set Bounds</button>
+        <div className="behavior-actions">
+            <button type="button" className="button expanded" onClick={cameraActions.setBounds}>Set Bounds</button>
         </div>
     </div>
 );

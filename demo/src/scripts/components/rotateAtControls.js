@@ -30,8 +30,8 @@ const RotateAtControls = () => (
             <label>Ease</label>
             <DropdownList items={data.easeList} valueKey='ease' onChange={actions.updateEase} />
         </div>
-        <div>
-            <button type="button" className="button" onClick={cameraActions.rotateAt}>Rotate</button>
+        <div className="behavior-actions">
+            <button type="button" className="button expanded" onClick={cameraActions.rotateAt}>Rotate</button>
         </div>
     </div>
 );

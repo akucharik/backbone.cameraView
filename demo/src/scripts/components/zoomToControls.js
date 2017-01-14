@@ -26,8 +26,8 @@ const ZoomToControls = () => (
             <label>Ease</label>
             <DropdownList items={data.easeList} valueKey='ease' onChange={actions.updateEase} />
         </div>
-        <div>
-            <button type="button" className="button" onClick={cameraActions.zoomTo}>Zoom</button>
+        <div className="behavior-actions">
+            <button type="button" className="button expanded" onClick={cameraActions.zoomTo}>Zoom</button>
         </div>
     </div>
 );

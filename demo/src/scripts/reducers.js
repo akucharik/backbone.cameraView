@@ -24,6 +24,19 @@ reducers.behaviorGroup = function (value, action) {
     }
 };
 
+reducers.behaviorGroupListIsVisible = function (value, action) {
+    if (value === undefined) {
+        value = false;
+    }
+    
+    switch (action.type) {
+        case actions.type.UPDATE_BEHAVIOR_GROUP_LIST_VISIBILITY:
+            return action.isVisible;
+        default: 
+            return value;
+    }
+};
+
 // Camera properties
 reducers.bounds = function (value, action) {
     if (value === undefined) {
@@ -204,6 +217,7 @@ reducers.app = function (state, action) {
     return {
         // UI properties
         behaviorGroup: reducers.behaviorGroup(state.behaviorGroup, action),
+        behaviorGroupListIsVisible: reducers.behaviorGroupListIsVisible(state.behaviorGroupListIsVisible, action),
         
         // Camera properties
         bounds: reducers.bounds(state.bounds, action),

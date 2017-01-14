@@ -21,8 +21,8 @@ const SetSizeControls = () => (
             <label>Height</label>
             <Textbox valueKey='height' onChange={actions.updateHeight} />
         </div>
-        <div>
-            <button type="button" className="button" onClick={cameraActions.setSize}>Resize</button>
+        <div className="behavior-actions">
+            <button type="button" className="button expanded" onClick={cameraActions.setSize}>Resize</button>
         </div>
     </div>
 );

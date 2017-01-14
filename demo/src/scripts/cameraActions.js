@@ -17,13 +17,7 @@ const actions = {
             origin: data.target[state.origin],
             position: data.target[state.position],
             rotation: parseFloat(state.rotation),
-            zoom: parseFloat(state.zoom),
-            shake: {
-                intensity: data.shakeIntensity[state.shakeIntensity],
-                direction: data.shakeDirection[state.shakeDirection],
-                easeIn: state.shakeEaseIn,
-                easeOut: state.shakeEaseOut
-            }
+            zoom: parseFloat(state.zoom)
         }, duration, { ease: state.animateEase });
     },
     moveTo: function () {

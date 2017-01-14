@@ -37,8 +37,8 @@ const ShakeControls = () => (
             <label>Ease out</label>
             <DropdownList items={data.easeList} valueKey='shakeEaseOut' onChange={actions.updateShakeEaseOut} />
         </div>
-        <div>
-            <button type="button" className="button" onClick={cameraActions.shake}>Shake</button>
+        <div className="behavior-actions">
+            <button type="button" className="button expanded" onClick={cameraActions.shake}>Shake</button>
         </div>
     </div>
 );

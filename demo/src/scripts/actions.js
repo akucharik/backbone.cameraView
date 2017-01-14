@@ -11,6 +11,7 @@ const actions = {
     type: {
         // UI properties
         UPDATE_BEHAVIOR_GROUP: 'UPDATE_BEHAVIOR_GROUP',
+        UPDATE_BEHAVIOR_GROUP_LIST_VISIBILITY: 'UPDATE_BEHAVIOR_GROUP_LIST_VISIBILITY',
         
         // Camera properties
         UPDATE_BOUNDS: 'UPDATE_BOUNDS',
@@ -36,6 +37,13 @@ actions.updateBehaviorGroup = function (group) {
     return {
         type: actions.type.UPDATE_BEHAVIOR_GROUP,
         group: group
+    };
+};
+
+actions.updateBehaviorGroupListVisibility = function (isVisible) {
+    return {
+        type: actions.type.UPDATE_BEHAVIOR_GROUP_LIST_VISIBILITY,
+        isVisible: isVisible
     };
 };
 

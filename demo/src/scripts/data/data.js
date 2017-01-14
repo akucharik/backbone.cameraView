@@ -220,6 +220,18 @@ data.behaviorGroups = [{
     }
 ];
 
+data.lookups.behaviorGroups = {
+    'moveTo': 0,
+    'rotateTo': 1,
+    'rotateAt': 2,
+    'zoomTo': 3,
+    'zoomAt': 4,
+    'shake': 5,
+    'animate': 6,
+    'setSize': 7,
+    'bounds': 8
+};
+
 data.lookups.behaviorType = {
     move: data.behaviorGroups[0],
     rotate: data.behaviorGroups[1],

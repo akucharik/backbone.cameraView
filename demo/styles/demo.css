@@ -1708,9 +1708,9 @@ textarea {
   display: block;
   box-sizing: border-box;
   width: 100%;
-  height: 2.4375rem;
-  margin: 0 0 1rem;
-  padding: 0.5rem;
+  height: 1.6875rem;
+  margin: 0 0 0.5rem;
+  padding: 0.25rem;
   border: 1px solid #cacaca;
   border-radius: 0;
   background-color: #fefefe;
@@ -1765,15 +1765,15 @@ input[type='search'] {
 [type='file'],
 [type='checkbox'],
 [type='radio'] {
-  margin: 0 0 1rem;
+  margin: 0 0 0.5rem;
 }
 
 [type='checkbox'] + label,
 [type='radio'] + label {
   display: inline-block;
   vertical-align: baseline;
-  margin-left: 0.5rem;
-  margin-right: 1rem;
+  margin-left: 0.25rem;
+  margin-right: 0.5rem;
   margin-bottom: 0;
 }
 
@@ -1784,7 +1784,7 @@ input[type='search'] {
 
 label > [type='checkbox'],
 label > [type='radio'] {
-  margin-right: 0.5rem;
+  margin-right: 0.25rem;
 }
 
 [type='file'] {
@@ -1801,12 +1801,12 @@ label {
 }
 
 label.middle {
-  margin: 0 0 1rem;
-  padding: 0.5625rem 0;
+  margin: 0 0 0.5rem;
+  padding: 0.3125rem 0;
 }
 
 .help-text {
-  margin-top: -0.5rem;
+  margin-top: -0.25rem;
   font-size: 0.8125rem;
   font-style: italic;
   color: #0a0a0a;
@@ -1815,7 +1815,7 @@ label.middle {
 .input-group {
   display: flex;
   width: 100%;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   align-items: stretch;
 }
 
@@ -1873,7 +1873,7 @@ label.middle {
 .input-group-button input,
 .input-group-button button,
 .input-group-button label {
-  height: 2.5rem;
+  height: 1.75rem;
   padding-top: 0;
   padding-bottom: 0;
   font-size: 1rem;
@@ -1887,7 +1887,7 @@ fieldset {
 
 legend {
   max-width: 100%;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
 .fieldset {
@@ -1904,9 +1904,9 @@ legend {
 }
 
 select {
-  height: 2.4375rem;
-  margin: 0 0 1rem;
-  padding: 0.5rem;
+  height: 1.6875rem;
+  margin: 0 0 0.5rem;
+  padding: 0.25rem;
   appearance: none;
   border: 1px solid #cacaca;
   border-radius: 0;
@@ -1917,10 +1917,10 @@ select {
   color: #0a0a0a;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' width='32' height='24' viewBox='0 0 32 24'><polygon points='0,0 32,0 16,24' style='fill: rgb%28138, 138, 138%29'></polygon></svg>");
   background-origin: content-box;
-  background-position: right -1rem center;
+  background-position: right -0.5rem center;
   background-repeat: no-repeat;
   background-size: 9px 6px;
-  padding-right: 1.5rem;
+  padding-right: 0.75rem;
   transition: box-shadow 0.5s, border-color 0.25s ease-in-out;
 }
 
@@ -1967,8 +1967,8 @@ select[multiple] {
 
 .form-error {
   display: none;
-  margin-top: -0.5rem;
-  margin-bottom: 1rem;
+  margin-top: -0.25rem;
+  margin-bottom: 0.5rem;
   font-size: 0.75rem;
   font-weight: bold;
   color: #cc4b37;
@@ -1987,7 +1987,7 @@ select[multiple] {
   border: 1px solid transparent;
   border-radius: 0;
   transition: background-color 0.25s ease-out, color 0.25s ease-out;
-  font-size: 1rem;
+  font-size: 0.9rem;
   line-height: 1;
   text-align: center;
   cursor: pointer;
@@ -2399,9 +2399,9 @@ select[multiple] {
 
 .button-group .button {
   margin: 0;
-  margin-right: 5px;
-  margin-bottom: 5px;
-  font-size: 1rem;
+  margin-right: 8px;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
   flex: 0 0 auto;
 }
 
@@ -6763,8 +6763,95 @@ h2 {
   padding: 2.0rem;
 }
 
+.demo-controls {
+  flex: 0 0 100%;
+  max-width: 100%;
+  padding-right: 1.5625rem;
+  padding-left: 1.5625rem;
+  max-width: 100%;
+  background-color: #bbb;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
+  max-width: 600px;
+  min-width: 600px;
+  padding: 1.3em 2.0em;
+}
+
+@media print, screen and (min-width: 40em) {
+  .demo-controls {
+    padding-right: 1.5625rem;
+    padding-left: 1.5625rem;
+  }
+}
+
+@media print, screen and (min-width: 64em) {
+  .demo-controls {
+    flex: 1 1 0px;
+    height: 500px;
+    max-width: auto;
+    min-width: auto;
+  }
+}
+
 .bcv-scene {
   background-color: lightgray;
   top: 0px;
   left: 0px;
+}
+
+.custom-dropdown {
+  position: relative;
+}
+
+.custom-dropdown-input {
+  cursor: pointer;
+  font-size: 1.75rem;
+  font-weight: normal;
+  line-height: 1.4;
+  margin-bottom: 0.3rem;
+}
+
+.custom-dropdown-arrow {
+  font-size: 85%;
+  padding-left: 0.2rem;
+  transform-origin: 57% 47%;
+  transition: all 0.2s ease-out;
+}
+
+.custom-dropdown-popup-list {
+  background-color: #eee;
+  box-shadow: 0 0 7px rgba(0, 0, 0, 0.2);
+  min-width: 150px;
+  padding: 0.2rem 0;
+  position: absolute;
+  top: 100%;
+  left: 0;
+}
+
+.custom-dropdown-popup-list:after {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  content: '';
+  display: block;
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  bottom: -1px;
+  left: -1px;
+  z-index: 1;
+}
+
+.custom-dropdown-popup-list > li {
+  color: black;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0.1rem 1.4rem 0.25rem;
+  position: relative;
+  z-index: 2;
+}
+
+.custom-dropdown-popup-list > li:hover {
+  background-color: #bc78cf;
+}
+
+.behavior-actions {
+  margin-top: 0.4em;
 }
