@@ -286,13 +286,15 @@ class Camera {
                         var animation = this.camera.animations.currentAnimation;
                         var time = animation.time();
 
-                        animation.seek(0).invalidate();
-                        
-                        if (animation.coreTweens[0]) {
-                            this.camera.setRawPosition(animation.coreTweens[0].props.start.position);
+                        if (animation.totalProgress() > 0) {
+                            animation.seek(0).invalidate();
+
+                            if (animation.coreTweens[0]) {
+                                this.camera.setRawPosition(animation.coreTweens[0].props.start.position);
+                            }
+
+                            animation.seek(time, false);
                         }
-                        
-                        animation.seek(time, false);
 
                         if (!wasPaused) {
                             this.camera.resume();
