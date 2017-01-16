@@ -167,9 +167,13 @@ class Animation extends TimelineMax {
         var mainTimeline = new TimelineLite({
             data: {
                 onStart: options.onStart,
+                onStartParams: options.onStartParams,
                 onUpdate: options.onUpdate,
+                onUpdateParams: options.onUpdateParams,
                 onComplete: options.onComplete,
-                onReverseComplete: options.onReverseComplete
+                onCompleteParams: options.onCompleteParams,
+                onReverseComplete: options.onReverseComplete,
+                onReverseCompleteParams: options.onReverseCompleteParams
             },
             callbackScope: this,
             onStartParams: ['{self}'],
@@ -203,9 +207,13 @@ class Animation extends TimelineMax {
         
         // Delete callbacks so children don't pick them up but get other options
         delete options.onStart;
+        delete options.onStartParams;
         delete options.onUpdate;
+        delete options.onUpdateParams;
         delete options.onComplete;
+        delete options.onCompleteParams;
         delete options.onReverseComplete;
+        delete options.onReverseCompleteParams;
         
         // Tween core camera properties
         if (props.origin || props.position || props.rotation || props.zoom) {

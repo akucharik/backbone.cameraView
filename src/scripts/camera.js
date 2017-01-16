@@ -321,14 +321,13 @@ class Camera {
                 draggable: this.dragToMove,
                 onDrag: function (camera) {
                     var position = camera._convertOffsetToPosition(new Vector2(-this.x, -this.y), camera.center, camera.transformOrigin, camera.transformation);
-                    new Oculo.Animation(camera, { 
-                        destroyOnComplete: true, 
-                        paused: false,
+                    
+                    camera.moveTo(position, 0, { 
+                        onCompleteParams: [this],
                         onComplete: function (dragControl) {
                             dragControl.update();
-                        },
-                        onCompleteParams: [this]
-                    }).moveTo(position, 0);
+                        }
+                    });
                 },
                 wheelable: this.wheelToZoom,
                 onWheel: function (camera) {
@@ -354,10 +353,7 @@ class Camera {
                             origin = scenePosition;
                         }
                         
-                        new Oculo.Animation(camera, { 
-                            destroyOnComplete: true, 
-                            paused: false 
-                        }).zoomAt(origin, zoom, 0);
+                        camera.zoomAt(origin, zoom, 0);
                     }
                 }
             });
