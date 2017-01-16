@@ -147,6 +147,10 @@ h2 {
             margin-bottom: 50px;
         }
         
+        > h1 {
+            margin-left: -3px;
+        }
+        
         > .button {
             background-color: #496989;
             margin: 0;
@@ -195,18 +199,11 @@ h2 {
     @include flex-grid-column(12);
     background-color: #bbb;
     box-shadow: 0 0 10px rgba(0,0,0,0.25);
-    max-width: 600px;
-    min-width: 600px;
-    
-    @include breakpoint(medium) {
-        padding: 1.3em 2.0em;
-    }
+    padding: 1.3em 2.0em;
     
     @include breakpoint(large) {
         @include flex-grid-size(expand);
         height: 500px;
-        max-width: auto;
-        min-width: auto;
     }
 }
 
@@ -221,10 +218,14 @@ h2 {
     
     &-input {
         cursor: pointer;
-        font-size: rem-calc(28);
+        font-size: rem-calc(20);
         font-weight: $header-font-weight;
         line-height: $header-lineheight;
         margin-bottom: $header-margin-bottom;
+        
+        @include breakpoint(medium) {
+            font-size: rem-calc(28);
+        }
     }
     
     &-arrow {

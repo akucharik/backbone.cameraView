@@ -538,6 +538,7 @@ myCamera.play('zoomTo2Then1');</code></pre>
             el.innerHTML = html;
         }
         
+        Demo.initialize();
         camera.render();
         camera.animate({position: {x:675,y:450}, zoom:2}, 0, {onComplete: function () { camera.play('delayedZoomOut'); }});
     </script>

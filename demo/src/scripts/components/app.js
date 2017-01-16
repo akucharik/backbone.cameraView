@@ -27,7 +27,7 @@ const App = () => (
             <BehaviorGroup />
         </div>
         <div className="medium-6 columns" style={{paddingLeft: '0.8em'}}>
-            <h3>Play Controls</h3>
+            <h3 style={{whiteSpace: 'nowrap'}}>Play Controls</h3>
             <Controls />
         </div>
     </div>

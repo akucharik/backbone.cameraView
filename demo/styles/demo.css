@@ -1379,7 +1379,7 @@ h6 small {
 }
 
 h1 {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   line-height: 1.4;
   margin-top: 0;
   margin-bottom: 0.3rem;
@@ -6438,7 +6438,7 @@ li.L1, li.L3, li.L5, li.L7, li.L9 {
 
 /* Pretty printing styles. Used with prettify.js. */
 /*
-// Github Markdown
+// Inspired by Github
 pre .str, code .str { color: #183691; } // string
 pre .kwd, code .kwd { color: #a71d5d; } // keyword
 pre .com, code .com { color: #AEAEAE; } // comment
@@ -6463,7 +6463,7 @@ pre .str, code .str {
 }
 
 pre .kwd, code .kwd {
-  color: #49afef;
+  color: #69a9d9;
 }
 
 pre .com, code .com {
@@ -6487,7 +6487,7 @@ pre .pln, code .pln {
 }
 
 pre .tag, code .tag {
-  color: #3c98df;
+  color: #69a9d9;
 }
 
 pre .atn, code .atn {
@@ -6748,6 +6748,10 @@ h2 {
   }
 }
 
+.home-banner-message > h1 {
+  margin-left: -3px;
+}
+
 .home-banner-message > .button {
   background-color: #496989;
   margin: 0;
@@ -6801,8 +6805,7 @@ h2 {
   max-width: 100%;
   background-color: #bbb;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
-  max-width: 600px;
-  min-width: 600px;
+  padding: 1.3em 2.0em;
 }
 
 @media print, screen and (min-width: 40em) {
@@ -6812,18 +6815,10 @@ h2 {
   }
 }
 
-@media print, screen and (min-width: 40em) {
-  .demo-controls {
-    padding: 1.3em 2.0em;
-  }
-}
-
 @media print, screen and (min-width: 64em) {
   .demo-controls {
     flex: 1 1 0px;
     height: 500px;
-    max-width: auto;
-    min-width: auto;
   }
 }
 
@@ -6839,10 +6834,16 @@ h2 {
 
 .custom-dropdown-input {
   cursor: pointer;
-  font-size: 1.75rem;
+  font-size: 1.25rem;
   font-weight: normal;
   line-height: 1.4;
   margin-bottom: 0.3rem;
+}
+
+@media print, screen and (min-width: 40em) {
+  .custom-dropdown-input {
+    font-size: 1.75rem;
+  }
 }
 
 .custom-dropdown-arrow {
