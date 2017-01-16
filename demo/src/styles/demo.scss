@@ -197,7 +197,10 @@ h2 {
     box-shadow: 0 0 10px rgba(0,0,0,0.25);
     max-width: 600px;
     min-width: 600px;
-    padding: 1.3em 2.0em;
+    
+    @include breakpoint(medium) {
+        padding: 1.3em 2.0em;
+    }
     
     @include breakpoint(large) {
         @include flex-grid-size(expand);

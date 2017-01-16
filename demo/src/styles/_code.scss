@@ -1,33 +1,61 @@
 /* Pretty printing styles. Used with prettify.js. */
-/* Vim sunburst theme by David Leibovic */
+/*
+// Inspired by Github
+pre .str, code .str { color: #183691; } // string
+pre .kwd, code .kwd { color: #a71d5d; } // keyword
+pre .com, code .com { color: #AEAEAE; } // comment
+pre .typ, code .typ { color: #795da3; } // type
+pre .lit, code .lit { color: #0086b3; } // literal
+pre .pun, code .pun { color: #a71d5d; } // punctuation
+pre .pln, code .pln { color: #333; } // plaintext
+pre .tag, code .tag { color: #63a35c; } // html/xml tag
+pre .atn, code .atn { color: #795da3; } // html/xml attribute name 
+pre .atv, code .atv { color: #183691; } // html/xml attribute value
+pre .dec, code .dec { color: #3387CC; } // decimal
 
-pre .str, code .str { color: #65B042; } /* string  - green */
-pre .kwd, code .kwd { color: #E28964; } /* keyword - dark pink */
-pre .com, code .com { color: #AEAEAE; } /* comment - gray */
-pre .typ, code .typ { color: #89bdff; } /* type - light blue */
-pre .lit, code .lit { color: #3387CC; } /* literal - blue */
-pre .pun, code .pun { color: #fff; } /* punctuation - white */
-pre .pln, code .pln { color: #fff; } /* plaintext - white */
-pre .tag, code .tag { color: #89bdff; } /* html/xml tag    - light blue */
-pre .atn, code .atn { color: #bdb76b; } /* html/xml attribute name  - khaki */
-pre .atv, code .atv { color: #65B042; } /* html/xml attribute value - green */
-pre .dec, code .dec { color: #3387CC; } /* decimal - blue */
-
-code, kbd, samp {
-    font-size: 0.85rem;
+pre.prettyprint, code.prettyprint {
+    background-color: rgba(0,0,0,0.04);
+    border: 0 none transparent;
+    border-left: rem-calc(10) solid rgba(0,0,0,0.10);
+	border-radius: 3px;
 }
+*/
+
+// Custom Dark
+pre .str, code .str { color: #b383bf; } // string
+pre .kwd, code .kwd { color: #49afef; } // keyword
+pre .com, code .com { color: #999; } // comment
+pre .typ, code .typ { color: #cc983f; } // type
+pre .lit, code .lit { color: #78a81f; } // literal
+pre .pun, code .pun { color: #bbb; } // punctuation
+pre .pln, code .pln { color: #fff; } // plaintext
+pre .tag, code .tag { color: #3c98df; } // html/xml tag
+pre .atn, code .atn { color: #3c981f; } // html/xml attribute name
+pre .atv, code .atv { color: #bc78cf; } // html/xml attribute value
+pre .dec, code .dec { color: #3387CC; } // decimal
+
+.html .kwd { color: #b383bf; } //keyword
+.html .lit { color: #b383bf; } // literal
+.html .pun + .pln { color: #b383bf; } // plaintext
+.html .atn { color: #cc983f; } // html/xml attribute name
+.html .atv { color: #b383bf; } // html/xml attribute value
 
 pre.prettyprint, code.prettyprint {
 	background-color: #282828;
+    border: 0 none transparent;
     border-left: rem-calc(10) solid #555;
-	/*border-radius: 8px;*/
+	border-radius: 3px;
+}
+
+code, kbd, samp {
+    font-size: 0.95rem;
 }
 
 pre.prettyprint {
 	width: 100%;
     line-height: 1.3;
 	margin: 0.3rem auto 1.2rem;
-	padding: 1.5rem 2.5rem;
+	padding: 1.5rem 2.0rem;
 	white-space: pre-wrap;
 }
 
