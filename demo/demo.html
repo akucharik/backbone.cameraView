@@ -7,91 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Backbone Camera Demo</title>
     <script src="http://use.edgefonts.net/source-sans-pro:n4,i4,n6,i6,n7,i7;source-code-pro.js"></script>
-    <link type="text/css" href="styles/font-awesome.min.css" rel="stylesheet" />
-    <link type="text/css" href="styles/github-markdown.css" rel="stylesheet" />
     <link type="text/css" href="styles/demo.css" rel="stylesheet" />
-    <style>
-        .box {
-            background-color: gray;
-            margin: 1px;
-            width: 110px;
-            height: 110px;
-        }
-        
-        .pt {
-            position: relative;
-            width: 1350px;
-            height: 900px;
-        }
-        
-        .element {
-            /*background-color: #5d407b;*/
-            border: 1px solid rgba(0,0,0,0.05);
-            position: absolute;
-            text-align: center;
-            width: 70px;
-            height: 85px;
-        }
-        
-        .element:hover {
-            background: white !important;
-            border-color: rgba(0,0,0,0.3);
-        }
-        
-        .element:after {
-            border: 1px solid rgba(0,0,0,0.1);
-            content: '';
-            display: block;
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 0;
-        }
-        
-        .metal {
-            background: linear-gradient(to bottom, #692583 30%, #5d407b 100%);
-        }
-        
-        .metalloid {
-            background: linear-gradient(to bottom, #bc78cf 30%, #8c489f 100%);
-        }
-        
-        .nonmetal {
-            background: linear-gradient(to bottom, #7999b9 30%, #496989 100%);
-        }
-        
-        .element-number {
-            color: rgba(255,255,255,0.8);
-            font-size: 0.7rem;
-            line-height: 1.3;
-            padding: 0.4rem 0.4rem 0 0;
-            text-align: right;
-            text-shadow: 0 0 5px rgba(0,0,0,0.3);
-        }
-        
-        .element-symbol {
-            color: rgba(255,255,255,1);
-            font-size: 1.8rem;
-            font-weight: bold;
-            line-height: 1.2;
-            text-shadow: 0 0 10px rgba(255,255,255,0.6);
-        }
-        
-        .element-name {
-            color: rgba(255,255,255,0.8);
-            font-size: 0.5rem;
-            line-height: 1.3;
-            text-shadow: 0 0 5px rgba(0,0,0,0.3);
-        }
-        
-        .element-weight {
-            color: rgba(255,255,255,0.8);
-            font-size: 0.5em;
-            line-height: 1.0;
-            text-shadow: 0 0 5px rgba(0,0,0,0.3);
-        }
-    </style>
 </head>
 <body>
     <a id="anchorTop"></a>
@@ -162,11 +78,11 @@
     </div>
     
     <a id="anchorDemo"></a>
-    <div style="background-color: #eee;">
-        <div class="row" style="padding-top: 2.0rem; padding-bottom: 2.0rem;">
-            <div class="small-12 columns">
+    <div class="demo">
+        <section>
+            <div class="column-full">
                 <h1>Demo <a id="topDemo" href="#anchorTop" class="top"><i class="fa fa-arrow-circle-up"></i></a></h1>
-                <div class="row columns">
+                <div class="row">
                     <div class="shrink">
                         <div id="camera" style="background-color: white; box-shadow: 0 0 10px rgba(0,0,0,0.2); width: 600px; height: 400px;">
                             <div class="bcv-ignore-pointer-events" style="display: none; position: absolute; width: 400px; z-index: 100; top: 60%; left: 50%; transform: translate(-50%, -50%);">
@@ -272,13 +188,13 @@
                     <div id="app" class="demo-controls"></div>
                 </div>
             </div>
-        </div>
+        </section>
     </div>
     
     <a id="anchorGetStarted"></a>
-    <div class="main" style="border-top: 1px solid #ccc;">
-        <div class="row">
-            <div class="small-12 columns">
+    <div class="get-started">
+        <section>
+            <div class="column-full">
                 <h1>Get started <a id="topGetStarted" href="#anchorTop" class="top"><i class="fa fa-arrow-circle-up"></i></a></h1>
                 <h2>1. Add Oculo and its dependencies to the page.</h2>
                 <p>After you <a href="#">download</a> Oculo, add the necessary files to the page.</p>
@@ -346,22 +262,24 @@ myCamera.play('zoomTo2Then1');</code></pre>
 });</code></pre>
             
             </div>
-        </div>
+        </section>
     </div>
     
     <a id="anchorDocumentation"></a>
-    <div style="border-top: 1px solid #ccc;">
-        <div class="row" style="padding-top: 2.0rem; padding-bottom: 2.0rem;">
-            <div class="small-12 columns">
+    <div class="documentation">
+        <section>
+            <div class="column-full">
                 <h1>Documentation <a id="topDocumentation" href="#anchorTop" class="top"><i class="fa fa-arrow-circle-up"></i></a></h1>
             </div>
-        </div>
+        </section>
     </div>
     
-    <footer class="site-footer" style="border-top: 1px solid #ccc;">
-        <div class="row">
-            <div class="columns">&copy; <span id="copyrightYear"></span> Adam Kucharik All rights reserved.</div>
-        </div>
+    <footer class="footer">
+        <section>
+            <div class="column-full">
+                <p class="footer-copyright">&copy; <span id="copyrightYear"></span> All rights reserved. Made by <a href="https://github.com/akucharik"><i class="fa fa-github footer-github" aria-hidden="true"></i>akucharik</a>.</p>
+            </div>
+        </section>
     </footer>
     
     <script type="text/javascript" src="scripts/TweenMax.min.js"></script>
