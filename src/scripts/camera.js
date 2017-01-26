@@ -160,18 +160,6 @@ class Camera {
         this.position = new Vector2(0, 0);
         
         /**
-        * @property {number} - The offset of the camera's top left corner relative to the scene without any effects applied.
-        * @readonly
-        */
-        this.rawOffset = new Vector2(0, 0);
-        
-        /**
-        * @property {number} - The position of the camera on the scene without any effects applied.
-        * @readonly
-        */
-        this.rawPosition = new Vector2(0, 0);
-        
-        /**
         * @property {number} - The renderer.
         * @readonly
         */
@@ -255,12 +243,18 @@ class Camera {
         
         /**
         * @private
+        * @property {number} - The offset of the camera's top left corner relative to the scene without any clamping or effects applied. Used to animate the camera.
+        */
+        this._rawOffset = new Vector2(0, 0);
+        
+        /**
+        * @private
         * @property {number} - The internally managed zoom.
         */
         this._zoom = 1;
         
         // Initialize position
-        this.setRawPosition(new Vector2(width * 0.5, height * 0.5));
+        this.setPosition(new Vector2(width * 0.5, height * 0.5));
         
         // Initialize events
         if (onInitialize !== null) {
@@ -290,7 +284,7 @@ class Camera {
                             animation.seek(0).invalidate();
 
                             if (animation.coreTweens[0]) {
-                                this.camera.setRawPosition(animation.coreTweens[0].props.start.position);
+                                this.camera.setPosition(animation.coreTweens[0].props.start.position);
                             }
 
                             animation.seek(time, false);
@@ -302,7 +296,7 @@ class Camera {
                     }
                 },
                 onCompleteParams: [this.animations.isPaused]
-            }).moveTo(this.rawPosition, 0, { overwrite: false });
+            }).moveTo(this.position, 0, { overwrite: false });
         }
         
         // Initialize event listeners
@@ -428,27 +422,27 @@ class Camera {
     }
     
     /**
-    * @name Camera#rawOffsetX
+    * @name Camera#_rawOffsetX
     * @property {Vector2} - The X offset of the camera's top left corner relative to the scene without any effects applied.
     */
-    get rawOffsetX () {
-        return this.rawOffset.x;
+    get _rawOffsetX () {
+        return this._rawOffset.x;
     }
     
-    set rawOffsetX (value) {
-        this.rawOffset.x = value;
+    set _rawOffsetX (value) {
+        this._rawOffset.x = value;
     }
     
     /**
-    * @name Camera#rawOffsetY
+    * @name Camera#_rawOffsetY
     * @property {Vector2} - The Y offset of the camera's top left corner relative to the scene without any effects applied.
     */
-    get rawOffsetY () {
-        return this.rawOffset.y;
+    get _rawOffsetY () {
+        return this._rawOffset.y;
     }
     
-    set rawOffsetY (value) {
-        this.rawOffset.y = value;
+    set _rawOffsetY (value) {
+        this._rawOffset.y = value;
     }
     
     /**
@@ -483,6 +477,17 @@ class Camera {
         this._zoom = this._clampZoom(value);
         this._updateBounds();
     };
+    
+    /**
+    * Clamps the position.
+    *
+    * @private
+    * @param {Vector2} position - The position.
+    * @returns {Vector2} The clamped position.
+    */
+    _clampPosition (position) {
+        return position.clone().set(this._clampPositionX(position.x), this._clampPositionY(position.y));
+    }
     
     /**
     * Clamps the X position.
@@ -622,10 +627,11 @@ class Camera {
     */
     _reset () {
         this.transformOrigin.set(0, 0);
+        this.position.set(this.width * 0.5, this.height * 0.5);
         this.rotation = 0;
         this.zoom = 1;
         this._rasterScale = 1;
-        this.setRawPosition(new Vector2(this.width * 0.5, this.height * 0.5));
+        this._rawOffset.set(0, 0);
         
         return this;
     }
@@ -660,7 +666,7 @@ class Camera {
             this.maxPositionY = bounds.maxY;
             
             if (!this.isAnimating) {
-                this.setRawPosition(this._convertOffsetToPosition(this.rawOffset, this.center, this.transformOrigin, this.transformation));
+                this.setPosition(this._convertOffsetToPosition(this._rawOffset, this.center, this.transformOrigin, this.transformation));
             }
 
             // TODO: For dev only
@@ -838,27 +844,13 @@ class Camera {
     * @param {boolean} enforceBounds - Whether to enforce bounds or not.
     * @returns {this} self
     */
-    setPosition (position, enforceBounds = true) {
+    setPosition (position, enforceBounds = true, updateRawPosition) {
         if (enforceBounds) {
             this.position.set(this._clampPositionX(position.x), this._clampPositionY(position.y));
         }
         else {
             this.position.set(position.x, position.y);
         }
-        
-        return this;
-    }
-    
-    /**
-    * Sets the raw position and updates dependent data.
-    *
-    * @param {Vector2} position - The new position.
-    * @returns {this} self
-    */
-    setRawPosition (position) {
-        this.rawPosition.set(this._clampPositionX(position.x), this._clampPositionY(position.y));
-        this.position.copy(this.rawPosition);
-        this.rawOffset.copy(this._convertPositionToOffset(this.rawPosition, this.center, this.transformOrigin, this.transformation));
         
         return this;
     }
@@ -905,7 +897,7 @@ class Camera {
             this.transformOrigin.copy(origin);
 
             if (this.isRotated || this.isZoomed) {
-                this.rawOffset.copy(this._convertPositionToOffset(this.rawPosition, this.center, this.transformOrigin, this.transformation));
+                this._rawOffset.copy(this._convertPositionToOffset(this.position, this.center, this.transformOrigin, this.transformation));
             }
         }
         
@@ -1056,7 +1048,7 @@ Camera.bounds = {
     NONE: null,
     WORLD: function () {
         var transformation = new Matrix2().scale(this.zoom, this.zoom).getInverse();
-        var min = new Vector2().add(this.center).transform(transformation);
+        var min = new Vector2(0, 0).add(this.center).transform(transformation);
         var max = new Vector2(this.scene.scaledWidth, this.scene.scaledHeight).subtract(this.center).transform(transformation);
 
         return {

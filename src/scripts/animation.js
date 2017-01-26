@@ -218,8 +218,8 @@ class Animation extends TimelineMax {
         // Tween core camera properties
         if (props.origin || props.position || props.rotation || props.zoom) {
             var coreTween = TweenMax.to(this.camera, duration !== 0 ? duration : 0.016, Object.assign({}, options, {
-                rawOffsetX: 0,
-                rawOffsetY: 0,
+                _rawOffsetX: 0,
+                _rawOffsetY: 0,
                 rotation: 0,
                 zoom: 0,
                 immediateRender: false,
@@ -249,7 +249,7 @@ class Animation extends TimelineMax {
                 onUpdateParams: ['{self}'],
                 onUpdate: function (self) {
                     // Position is manually maintained so animations can smoothly continue when camera is resized
-                    this.camera.setRawPosition(this.camera._convertOffsetToPosition(this.camera.rawOffset, this.camera.center, this.camera.transformOrigin, this.camera.transformation));
+                    this.camera.setPosition(this.camera._convertOffsetToPosition(this.camera._rawOffset, this.camera.center, this.camera.transformOrigin, this.camera.transformation));
                 },
                 onCompleteParams: ['{self}'],
                 onComplete: function (self) {
@@ -295,20 +295,21 @@ class Animation extends TimelineMax {
                 },
                 onUpdateParams: ['{self}'],
                 onUpdate: function (self) {
-                    var isFinalFrame = self.time() === self.duration();
+                    var isFirstFrame = self.progress() === 0;
+                    var isFinalFrame = self.progress() === 1;
                     var offsetX = 0;
                     var offsetY = 0;
-                    var position = this.camera.rawPosition.clone();
+                    var position = this.camera._clampPosition(this.camera._convertOffsetToPosition(this.camera._rawOffset, this.camera.center, this.camera.transformOrigin, this.camera.transformation));
                     
                     if (self.data.direction === Animation.shake.direction.HORIZONTAL || self.data.direction === Animation.shake.direction.BOTH) {
-                        if (!isFinalFrame) {
+                        if (!isFirstFrame && !isFinalFrame) {
                             offsetX = Math.random() * self.data.intensity * this.camera.width * 2 - self.data.intensity * this.camera.width;
                             position.x += offsetX;
                         }
                     }
 
                     if (self.data.direction === Animation.shake.direction.VERTICAL || self.data.direction === Animation.shake.direction.BOTH) {
-                        if (!isFinalFrame) {
+                        if (!isFirstFrame && !isFinalFrame) {
                             offsetY = Math.random() * self.data.intensity * this.camera.height * 2 - self.data.intensity * this.camera.height;
                             position.y += offsetY;
                         }
@@ -480,6 +481,9 @@ class Animation extends TimelineMax {
     _initCoreTween (tween, startProps) {
         if (tween !== undefined) {
             startProps = (startProps !== undefined) ? startProps : this._getStartProps();
+            
+            // Ensure raw offset matches current position before animation begins
+            this.camera._rawOffset.copy(this.camera._convertPositionToOffset(this.camera.position, this.camera.center, this.camera.transformOrigin, this.camera.transformation));
 
             var parsedProps = this._parseProps(tween.props.source.origin, tween.props.source.position, tween.props.source.rotation, tween.props.source.zoom);
             var toProps = this._calculateToProps(parsedProps, startProps);
@@ -493,8 +497,8 @@ class Animation extends TimelineMax {
             
             // Origin must be updated before tween starts
             this.camera.setTransformOrigin(toProps.origin);
-            tween.vars.rawOffsetX = toProps.offsetX;
-            tween.vars.rawOffsetY = toProps.offsetY;
+            tween.vars._rawOffsetX = toProps.offsetX;
+            tween.vars._rawOffsetY = toProps.offsetY;
             tween.vars.rotation = toProps.rotation;
             tween.vars.zoom = toProps.zoom;
         }
