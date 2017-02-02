@@ -5,13 +5,17 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
+export const originKeyword = {
+    AUTO: 'auto'
+};
+
 /**
 * Object types.
 * @enum {number}
 */
 export const Type = {
     ANIMATION: 0
-}
+};
 
 /**
 * Zoom direction.

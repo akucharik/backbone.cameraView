@@ -5,9 +5,10 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
-import isElement from 'lodash/isElement';
-import isObject  from 'lodash/isObject';
-import Vector2   from './math/vector2';
+import isElement            from 'lodash/isElement';
+import isObject             from 'lodash/isObject';
+import { originKeyword }    from './constants';
+import Vector2              from './math/vector2';
 
 /**
 * Description.
@@ -169,6 +170,25 @@ const Utils = {
                 });    
             }
         };
+    },
+    
+    /**
+    * Parse the origin of the given input.
+    *
+    * @private
+    * @param {string|Element|Object} [input] - The origin to parse.
+    * @param {Element} world - The world.
+    * @returns {string|Object} The parsed origin.
+    */
+    parseOrigin: function (input, world) {
+        var origin = originKeyword.AUTO;
+        var position = Utils.parsePosition(input, world);
+        
+        if (position !== null) {
+            origin = position;
+        }
+        
+        return origin;
     },
     
     /**

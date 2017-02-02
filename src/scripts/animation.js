@@ -13,6 +13,7 @@ import isObject             from 'lodash/isObject';
 import { zoomDirection }    from './constants';
 import _Math                from './math/math';
 import Matrix2              from './math/matrix2';
+import { originKeyword }    from './constants';
 import { Type }             from './constants';
 import Utils                from './utils';
 import Vector2              from './math/vector2';
@@ -218,8 +219,13 @@ class Animation extends TimelineMax {
         // Tween core camera properties
         if (props.origin || props.position || props.rotation || props.zoom) {
             var coreTween = TweenMax.to(this.camera, duration !== 0 ? duration : 0.016, Object.assign({}, options, {
+                data: {
+                    enforceBounds: (options.enforceBounds === false) ? false : true
+                },
                 _rawOffsetX: 0,
                 _rawOffsetY: 0,
+                _rawScaleOffsetX: 0,
+                _rawScaleOffsetY: 0,
                 rotation: 0,
                 zoom: 0,
                 immediateRender: false,
@@ -238,7 +244,7 @@ class Animation extends TimelineMax {
                     this.camera.zoomDirection = zDirection;
                     
                     // Origin must be set in case animation was reversed (origin was reverted)
-                    this.camera.setTransformOrigin(self.props.end.origin);
+                    this.camera.setTransformOrigin(self.props.to.origin);
                     self.timeline.core = self;
                                         
                     // TODO: For dev only
@@ -248,8 +254,17 @@ class Animation extends TimelineMax {
                 },
                 onUpdateParams: ['{self}'],
                 onUpdate: function (self) {
+                    var offset = this.camera._rawOffset;
+                    var position;
+                    
+                    // Handle direct offset tweening, then apply rotation
+                    if (self.props.to.isOriginAuto && self.props.to.isPositionChanging && self.props.to.isRotationChanging) {
+                        position = this.camera._convertOffsetToPosition(this.camera._rawScaleOffset, this.camera.center, this.camera.transformOrigin, this.camera.scaleTransformation);
+                        offset = this.camera._convertPositionToOffset(position, this.camera.center, this.camera.transformOrigin, this.camera.transformation);
+                    }
+                    
                     // Position is manually maintained so animations can smoothly continue when camera is resized
-                    this.camera.setPosition(this.camera._convertOffsetToPosition(this.camera._rawOffset, this.camera.center, this.camera.transformOrigin, this.camera.transformation));
+                    this.camera.setPosition(this.camera._convertOffsetToPosition(offset, this.camera.center, this.camera.transformOrigin, this.camera.transformation), self.data.enforceBounds);
                 },
                 onCompleteParams: ['{self}'],
                 onComplete: function (self) {
@@ -286,7 +301,7 @@ class Animation extends TimelineMax {
                 data: {
                     intensity: 0,
                     direction: shake.direction,
-                    enforceBounds: (shake.enforceBounds === false) ? false : true
+                    enforceBounds: (options.enforceBounds === false) ? false : true
                 },
                 callbackScope: this,
                 onStartParams: ['{self}'],
@@ -388,17 +403,20 @@ class Animation extends TimelineMax {
     */
     _calculateToProps (parsed, start) {
         var source = {
-            origin: (parsed.origin !== null) ? parsed.origin : {},
+            origin: (parsed.origin !== originKeyword.AUTO) ? parsed.origin : {},
             position: (parsed.position !== null) ? parsed.position : {},
             rotation: parsed.rotation,
             zoom: parsed.zoom
         }
         
         var isAnchored = false;
+        
         // Changing to same origin is necessary for wheel zoom
+        var isOriginAuto = parsed.origin === originKeyword.AUTO;
         var isOriginXChanging = Number.isFinite(source.origin.x);
         var isOriginYChanging = Number.isFinite(source.origin.y);
         var isOriginChanging = isOriginXChanging || isOriginYChanging;
+        
         // Changing to same position is necessary for camera resize
         var isPositionXChanging = Number.isFinite(source.position.x);
         var isPositionYChanging = Number.isFinite(source.position.y);
@@ -407,17 +425,19 @@ class Animation extends TimelineMax {
         var isRotationChanging = Number.isFinite(source.rotation) && source.rotation !== start.rotation;
         var isZoomChanging = Number.isFinite(source.zoom) && source.zoom !== start.zoom;
 
-        var startTransformation = new Matrix2().scale(start.zoom, start.zoom).rotate(_Math.degToRad(-start.rotation));
         var fovPosition = this.camera.center;
+        var startTransformation = new Matrix2().scale(start.zoom, start.zoom).rotate(_Math.degToRad(-start.rotation));
+        var toScaleOffset;
         var toOffset;
         var toOrigin = new Vector2(isOriginXChanging ? source.origin.x : start.origin.x, isOriginYChanging ? source.origin.y : start.origin.y);
         var toPosition = new Vector2(isPositionXChanging ? source.position.x : start.position.x, isPositionYChanging ? source.position.y : start.position.y);
         var toRotation = isRotationChanging ? source.rotation : start.rotation;
         var toZoom = isZoomChanging ? source.zoom : start.zoom;
+        var toScaleTransformation = new Matrix2().scale(toZoom, toZoom);
         var toTransformation = new Matrix2().scale(toZoom, toZoom).rotate(_Math.degToRad(-toRotation));
         
         // rotateTo, zoomTo
-        if (!isOriginChanging && !isPositionChanging) {
+        if (isOriginAuto && !isPositionChanging) {
             isAnchored = true;
             toOrigin.copy(start.position);
         }
@@ -428,13 +448,23 @@ class Animation extends TimelineMax {
             fovPosition = this.camera._convertScenePositionToFOVPosition(toOrigin, start.position, this.camera.center, startTransformation);
             toPosition = this.camera._convertScenePositionToCameraPosition(toOrigin, fovPosition, this.camera.center, toOrigin, toTransformation);
         }
+        // animate (with auto origin)
+        else if (isOriginAuto && isPositionChanging && isRotationChanging) {
+            toOrigin.copy(toPosition);
+        }
         
+        toScaleOffset = this.camera._convertPositionToOffset(toPosition, this.camera.center, toOrigin, toScaleTransformation);
         toOffset = this.camera._convertPositionToOffset(toPosition, this.camera.center, toOrigin, toTransformation);
         
         return {
+            isOriginAuto: isOriginAuto,
+            isPositionChanging: isPositionChanging,
+            isRotationChanging: isRotationChanging,
+            scaleOffsetX: isOffsetChanging ? toScaleOffset.x : null,
+            scaleOffsetY: isOffsetChanging ? toScaleOffset.y : null,
             offsetX: isOffsetChanging ? toOffset.x : null,
             offsetY: isOffsetChanging ? toOffset.y : null,
-            origin: isAnchored || isOriginChanging ? toOrigin : null,
+            origin: isAnchored || isOriginChanging || (isOriginAuto && isPositionChanging && isRotationChanging) ? toOrigin : null,
             position: isPositionChanging ? toPosition : null,
             rotation: isRotationChanging ? toRotation : null,
             zoom: isZoomChanging ? toZoom : null
@@ -482,9 +512,6 @@ class Animation extends TimelineMax {
         if (tween !== undefined) {
             startProps = (startProps !== undefined) ? startProps : this._getStartProps();
             
-            // Ensure raw offset matches current position before animation begins
-            this.camera._rawOffset.copy(this.camera._convertPositionToOffset(this.camera.position, this.camera.center, this.camera.transformOrigin, this.camera.transformation));
-
             var parsedProps = this._parseProps(tween.props.source.origin, tween.props.source.position, tween.props.source.rotation, tween.props.source.zoom);
             var toProps = this._calculateToProps(parsedProps, startProps);
             var endProps = this._getEndProps(toProps, startProps);
@@ -495,10 +522,16 @@ class Animation extends TimelineMax {
             tween.props.parsed = parsedProps;
             tween.props.to = toProps;
             
-            // Origin must be updated before tween starts
+            // Ensure offset matches current position before tween starts
+            this.camera._updateRawOffset();
+            
+            // Origin and offset must be updated before tween starts
             this.camera.setTransformOrigin(toProps.origin);
+            
             tween.vars._rawOffsetX = toProps.offsetX;
             tween.vars._rawOffsetY = toProps.offsetY;
+            tween.vars._rawScaleOffsetX = toProps.scaleOffsetX;
+            tween.vars._rawScaleOffsetY = toProps.scaleOffsetY;
             tween.vars.rotation = toProps.rotation;
             tween.vars.zoom = toProps.zoom;
         }
@@ -530,7 +563,7 @@ class Animation extends TimelineMax {
         }
         
         return { 
-            origin: Utils.parsePosition(origin, this.camera.scene.view),
+            origin: Utils.parseOrigin(origin, this.camera.scene.view),
             position: Utils.parsePosition(position, this.camera.scene.view),
             rotation: !isNil(rotation) ? rotation : null,
             zoom: zoom || null
@@ -552,8 +585,7 @@ class Animation extends TimelineMax {
                 intensity: isNil(shake.intensity) ? 0 : shake.intensity,
                 direction: isNil(shake.direction) ? Animation.shake.direction.BOTH : shake.direction,
                 easeIn: shake.easeIn,
-                easeOut: shake.easeOut,
-                enforceBounds: shake.enforceBounds
+                easeOut: shake.easeOut
             };
         }
         

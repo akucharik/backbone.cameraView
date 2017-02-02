@@ -243,9 +243,21 @@ class Camera {
         
         /**
         * @private
-        * @property {number} - The offset of the camera's top left corner relative to the scene without any clamping or effects applied. Used to animate the camera.
+        * @property {Vector2} - The offset of the camera's top left corner relative to the scene without clamping or effects applied. Used to animate the camera.
         */
         this._rawOffset = new Vector2(0, 0);
+        
+        /**
+        * @private
+        * @property {Vector2} - The offset of the camera's top left corner relative to the scene without clamping or effects applied and only taking scale into account. Used to animate the camera.
+        */
+        this._rawScaleOffset = new Vector2(0, 0);
+        
+        /**
+        * @private
+        * @property {Vector2} - The offset of the scene's transform origin from 0,0.
+        */
+        this._transformOriginOffset = new Vector2(0, 0);
         
         /**
         * @private
@@ -423,7 +435,7 @@ class Camera {
     
     /**
     * @name Camera#_rawOffsetX
-    * @property {Vector2} - The X offset of the camera's top left corner relative to the scene without any effects applied.
+    * @property {Vector2} - The X offset of the camera's top left corner relative to the scene without clamping or effects applied.
     */
     get _rawOffsetX () {
         return this._rawOffset.x;
@@ -435,7 +447,7 @@ class Camera {
     
     /**
     * @name Camera#_rawOffsetY
-    * @property {Vector2} - The Y offset of the camera's top left corner relative to the scene without any effects applied.
+    * @property {Vector2} - The Y offset of the camera's top left corner relative to the scene without clamping or effects applied.
     */
     get _rawOffsetY () {
         return this._rawOffset.y;
@@ -445,6 +457,30 @@ class Camera {
         this._rawOffset.y = value;
     }
     
+        /**
+    * @name Camera#_rawScaleOffsetX
+    * @property {Vector2} - The X offset of the camera's top left corner relative to the scene without clamping or effects applied and only taking scale into account.
+    */
+    get _rawScaleOffsetX () {
+        return this._rawScaleOffset.x;
+    }
+    
+    set _rawScaleOffsetX (value) {
+        this._rawScaleOffset.x = value;
+    }
+    
+    /**
+    * @name Camera#_rawScaleOffsetY
+    * @property {Vector2} - The Y offset of the camera's top left corner relative to the scene without clamping or effects applied and only taking scale into account.
+    */
+    get _rawScaleOffsetY () {
+        return this._rawScaleOffset.y;
+    }
+    
+    set _rawScaleOffsetY (value) {
+        this._rawScaleOffset.y = value;
+    }
+    
     /**
     * @name Camera#scene
     * @property {Oculo.Scene} - The active scene.
@@ -452,6 +488,15 @@ class Camera {
     */
     get scene () {
         return this.scenes.activeScene;
+    }
+    
+    /**
+    * @name Camera#scaleTransformation
+    * @property {Matrix2} - The scale transformation of the scene.
+    * @readonly
+    */
+    get scaleTransformation () {
+        return new Matrix2().scale(this.zoom, this.zoom);
     }
     
     /**
@@ -623,15 +668,16 @@ class Camera {
     /**
     * Resets the camera to the default state.
     *
+    * @private
     * @returns {this} self
     */
     _reset () {
         this.transformOrigin.set(0, 0);
-        this.position.set(this.width * 0.5, this.height * 0.5);
+        this.setPosition(new Vector2(this.width * 0.5, this.height * 0.5));
         this.rotation = 0;
         this.zoom = 1;
         this._rasterScale = 1;
-        this._rawOffset.set(0, 0);
+        this._updateRawOffset();
         
         return this;
     }
@@ -639,6 +685,7 @@ class Camera {
     /**
     * Updates the bounds.
     *
+    * @private
     * returns {this} self
     */
     _updateBounds () { 
@@ -665,13 +712,27 @@ class Camera {
             this.maxPositionX = bounds.maxX;
             this.maxPositionY = bounds.maxY;
             
+            // TODO: Turn applyBounds into a separate function that calls _updateBounds, then applies them
             if (!this.isAnimating) {
-                this.setPosition(this._convertOffsetToPosition(this._rawOffset, this.center, this.transformOrigin, this.transformation));
+                this.setPosition(this.position);
             }
 
             // TODO: For dev only
             console.log('update bounds');
         }
+        
+        return this;
+    }
+    
+    /**
+    * Updates the raw offset.
+    *
+    * @private
+    * @returns {this} self
+    */
+    _updateRawOffset () {
+        this._rawOffset.copy(this._convertPositionToOffset(this.position, this.center, this.transformOrigin, this.transformation));
+        this._rawScaleOffset.copy(this._convertPositionToOffset(this.position, this.center, this.transformOrigin, this.scaleTransformation)); 
         
         return this;
     }
@@ -844,7 +905,7 @@ class Camera {
     * @param {boolean} enforceBounds - Whether to enforce bounds or not.
     * @returns {this} self
     */
-    setPosition (position, enforceBounds = true, updateRawPosition) {
+    setPosition (position, enforceBounds = true) {
         if (enforceBounds) {
             this.position.set(this._clampPositionX(position.x), this._clampPositionY(position.y));
         }
@@ -897,7 +958,7 @@ class Camera {
             this.transformOrigin.copy(origin);
 
             if (this.isRotated || this.isZoomed) {
-                this._rawOffset.copy(this._convertPositionToOffset(this.position, this.center, this.transformOrigin, this.transformation));
+                this._updateRawOffset();
             }
         }
         
