@@ -6,68 +6,81 @@
 */
 
 import Utils     from './utils';
-import Vector2   from './math/vector2';
+
+const sceneSize = {
+    AUTO: 'auto'
+};
 
 /**
 * Creates a scene.
 * 
 * @class Oculo.Scene
 * @constructor
-* @param {Camera} [camera=null] - The camera that owns this Scene.
 * @param {string|Element} [view=null] - The view for the scene. It can be a selector or an element.
+* @param {number} [width='auto'] - The width of the scene.
+* @param {number} [height='auto'] - The height of the scene.
 */
 class Scene {
-    constructor (camera = null, view = null) {
-        /**
-        * @property {Oculo.Camera} - The camera.
-        */
-        this.camera = camera;
-        
+    constructor (view = null, width = 'auto', height = 'auto') {
         /**
         * @property {Element} - The view. An HTML element.
         */
-        this.view = Utils.DOM.parseView(view);
+        this.view = null;
         
-        // View setup
-        if (this.view && this.view.parentNode) {
-            this.view.parentNode.removeChild(this.view);
-        }
+        /**
+        * @private
+        * @property {number|string} - The width.
+        */
+        this._width = width;
+        
+        /**
+        * @private
+        * @property {number|string} - The height.
+        */
+        this._height = height;
+        
+        // Set up view
+        this.setView(view);
     }
     
     /**
     * @name Scene#width
     * @property {number} - The width.
-    * @readonly
     */
     get width () {
-        return this.view ? this.view.offsetWidth : 0;
+        return this._width !== sceneSize.AUTO ? this._width : (this.view ? this.view.offsetWidth : 0);
+    }
+    
+    set width (value) {
+        this._width = value;
     }
 
     /**
     * @name Scene#height
     * @property {number} - The height.
-    * @readonly
     */
     get height () {
-        return this.view ? this.view.offsetHeight : 0;
+        return this._height !== sceneSize.AUTO ? this._height : (this.view ? this.view.offsetHeight : 0);
+    }
+    
+    set height (value) {
+        this._height = value;
     }
     
     /**
-    * @name Scene#scaledWidth
-    * @property {number} - The scaled width.
-    * @readonly
+    * Activates the view.
+    *
+    * @returns {this} self
     */
-    get scaledWidth () {
-        return this.view ? this.width * this.camera.zoom : this.width;
-    }
-    
-    /**
-    * @name Scene#scaledHeight
-    * @property {number} - The scaled height.
-    * @readonly
-    */
-    get scaledHeight () {
-        return this.view ? this.height * this.camera.zoom : this.height;
+    activateView () {
+        if (!this.view) {
+            this.view = document.createElement('div');
+        }
+        
+        this.view.style.visibility = 'hidden';
+        this.view.style.display = 'block';
+        
+        return this;
     }
     
     /**
@@ -76,10 +89,39 @@ class Scene {
     * @returns {this} self
     */
     destroy () {
-        this.camera = null;
+        this.removeView();
         this.view = null;
         
         return this;
+    }
+    
+    /**
+    * Removes the view from the document.
+    *
+    * @param {Element} view - The view.
+    * @returns {this} self
+    */
+    removeView () {
+        if (this.view && this.view.parentNode) {
+            this.view.parentNode.removeChild(this.view);
+        }
+        
+        return this;
+    }
+    
+    /**
+    * Sets the view.
+    *
+    * @param {string|Element} view - The view. This can be a selector or an element.
+    * @returns {this} self
+    */
+    setView (view) {
+        view = Utils.DOM.parseView(view);
+        
+        this.removeView();
+        this.view = view;
+        // Ensure the new view is not in the DOM if it originated there
+        this.removeView();
     }
 }
 

@@ -40,12 +40,6 @@ class TrackControl {
         onWheel = undefined
     } = {}) {
         /**
-        * @property {object} - The initial configuration.
-        * @default {};
-        */
-        this.config = { draggable, onDrag, wheelable, onWheel };
-        
-        /**
         * @property {Oculo.Camera} - The camera.
         */
         this.camera = camera;
@@ -105,6 +99,8 @@ class TrackControl {
     * @returns {this} self
     */
     destroy () {
+        this.camera = null;
+        
         if (this.isDraggable) {
             this.dragControl.destroy();
             this.dragControl = null;
@@ -114,8 +110,6 @@ class TrackControl {
             this.wheelControl.destroy();
             this.wheelControl = null;
         }
-        
-        this.config = {};
         
         return this;
     }

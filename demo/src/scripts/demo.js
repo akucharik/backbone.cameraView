@@ -74,7 +74,7 @@ const Demo = {
         Demo.camera = camera;
         
         camera.addScene('scene1', '#scene1');
-        camera.addScene('scene2', new Oculo.Scene(camera, '#scene2'));
+        camera.addScene('scene2', new Oculo.Scene('#scene2', 1827, 1215));
         camera.addScene('scene3', '#scene3');
         camera.setScene('scene1');
         

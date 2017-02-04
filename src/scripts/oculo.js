@@ -24,6 +24,7 @@ import CSSRenderer   from './cssRenderer';
 import Math          from './math/math';
 import Matrix2       from './math/matrix2';
 import Scene         from './scene';
+import SceneManager  from './sceneManager';
 import Utils         from './utils';
 import Vector2       from './math/vector2';
 
@@ -38,6 +39,7 @@ const Oculo = {
     Math: Math,
     Matrix2: Matrix2,
     Scene: Scene,
+    SceneManager: SceneManager,
     Utils: Utils,
     Vector2: Vector2
 };

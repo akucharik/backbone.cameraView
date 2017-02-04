@@ -70,7 +70,7 @@ class Camera {
         onInitialize = null,
         onBeforeRender = null,
         onRender = null,
-        view = undefined, 
+        view = null, 
         wheelToZoom = false, 
         wheelToZoomIncrement = 0.01, 
         width = 0
@@ -176,7 +176,7 @@ class Camera {
         * @property {Oculo.SceneManager} - An object for managing scenes.
         * @readonly
         */
-        this.scenes = new SceneManager(this);
+        this.scenes = new SceneManager();
         
         /**
         * @property {TrackControl} - The track control.
@@ -195,7 +195,7 @@ class Camera {
         * @private
         * @property {Element} - The view.
         */
-        this.view = (view === null) ? null : Utils.DOM.parseView(view) || document.createElement('div');
+        this.view = null;
         
         /**
         * @property {boolean} - Whether wheeling can be used to zoom or not.
@@ -315,55 +315,7 @@ class Camera {
         this._events.addListener('change:size', this.onResize);
         
         // Initialize view
-        if (this.view) {
-            this.view.style.overflow = 'hidden';
-            this.view.style.position = 'relative';
-        }
-        
-        // Initialize scene manager view and track controls
-        if (this.view && this.scenes.view) {
-            this.view.appendChild(this.scenes.view);
-            this.trackControl = new TrackControl(this, {
-                draggable: this.dragToMove,
-                onDrag: function (camera) {
-                    var position = camera._convertOffsetToPosition(new Vector2(-this.x, -this.y), camera.center, camera.transformOrigin, camera.transformation);
-                    
-                    camera.moveTo(position, 0, { 
-                        onCompleteParams: [this],
-                        onComplete: function (dragControl) {
-                            dragControl.update();
-                        }
-                    });
-                },
-                wheelable: this.wheelToZoom,
-                onWheel: function (camera) {
-                    const ZOOM_IN = 1;
-                    const ZOOM_OUT = 0;
-                    var velocity = Math.abs(this.wheelEvent.deltaY);
-                    var direction = this.wheelEvent.deltaY > 0 ? ZOOM_OUT : ZOOM_IN;
-                    var previousDirection = this.previousWheelEvent.deltaY > 0 ? ZOOM_OUT : ZOOM_IN;
-                    var cameraRect;
-                    var cameraFOVPosition = new Vector2();
-                    var scenePosition = new Vector2();
-                    var origin = camera.transformOrigin;
-                    var zoom = camera.zoom + camera.zoom * camera.wheelToZoomIncrement * (velocity > 1 ? velocity * 0.5 : 1) * (direction === ZOOM_IN ? 1 : -1);
-
-                    // Performance Optimization: If zoom has not changed because it's at the min/max, don't zoom.
-                    if (direction === previousDirection && camera._clampZoom(zoom) !== camera.zoom) { 
-                        cameraRect = camera.view.getBoundingClientRect();
-                        cameraFOVPosition.set(this.wheelEvent.clientX - cameraRect.left, this.wheelEvent.clientY - cameraRect.top);
-                        scenePosition = camera._convertFOVPositionToScenePosition(cameraFOVPosition, camera.position, camera.center, camera.transformation);
-                        console.log('s pos: ', scenePosition);
-                        
-                        if (Math.floor(origin.x) !== Math.floor(scenePosition.x) || Math.floor(origin.y) !== Math.floor(scenePosition.y)) {
-                            origin = scenePosition;
-                        }
-                        
-                        camera.zoomAt(origin, zoom, 0);
-                    }
-                }
-            });
-        }
+        this.setView(view);
         
         this.onInitialize(arguments[0]);
     }
@@ -385,9 +337,9 @@ class Camera {
     *
     * @example <caption>As a function that returns a bounds object</caption>
     * function () { 
-    *   var transformation = new Matrix2().scale(this.zoom, this.zoom).getInverse();
-    *   var min = new Vector2().add(this.center).transform(transformation);
-    *   var max = new Vector2(this.scene.scaledWidth, this.scene.scaledHeight).subtract(this.center).transform(transformation);
+    *   var transformation = this.scaleTransform.getInverse();
+    *   var min = this.center.clone().transform(transformation);
+    *   var max = new Vector2(this.scene.width, this.scene.height).transform(this.scaleTransform).subtract(this.center).transform(transformation);
     * 
     *   return {
     *     minX: min.x,
@@ -798,15 +750,10 @@ class Camera {
     * @returns {this} self
     */
     destroy () {
-        if (this.view && this.view.parentNode) {
-            this.view.parentNode.removeChild(this.view);
-        }
-        
-        this.view = null;
+        this.setView(null);
         this.animations.destroy();
         this.renderer.destroy();
         this.scenes.destroy();
-        this.trackControl.destroy();
         this._events.removeAllListeners();
         
         return this;
@@ -818,8 +765,10 @@ class Camera {
     * @returns {this} self
     */
     disableDragToMove () {
-        this.trackControl.disableDrag();
-        
+        if (this.trackControl && this.dragToMove) {
+            this.trackControl.disableDrag();
+        }
+            
         return this;
     }
 
@@ -829,7 +778,9 @@ class Camera {
     * @returns {this} self
     */
     enableDragToMove () {
-        this.trackControl.enableDrag();
+        if (this.trackControl && this.dragToMove) {
+            this.trackControl.enableDrag();
+        }
 
         return this;
     }
@@ -840,7 +791,9 @@ class Camera {
     * @returns {this} self
     */
     disableWheelToZoom () {
-        this.trackControl.disableWheel();
+        if (this.trackControl && this.wheelToZoom) {
+            this.trackControl.disableWheel();
+        }
         
         return this;
     }
@@ -851,7 +804,9 @@ class Camera {
     * @returns {this} self
     */
     enableWheelToZoom () {
-        this.trackControl.enableWheel();
+        if (this.trackControl && this.wheelToZoom) {
+            this.trackControl.enableWheel();
+        }
 
         return this;
     }
@@ -880,19 +835,17 @@ class Camera {
     }
 
     /**
-    * Render the camera view. If you need to manipulate how the camera renders, use {@link Camera#onBeforeRender|onBeforeRender} and {@link Camera#onRender|onRender}.
+    * Render the camera. If you need to manipulate how the camera renders, use {@link Camera#onBeforeRender|onBeforeRender} and {@link Camera#onRender|onRender}.
     *
-    * @returns {Camera} The view.
+    * @returns {this} self
     */
     render () {
         this.onBeforeRender();
-
-        if (!this.isRendered) {
-            this.renderer.renderSize();
-            this.isRendered = true;
+        
+        if (this.view !== null) {
+            this.renderer.render();
         }
         
-        this.renderer.render();
         this.onRender();
 
         return this;
@@ -939,7 +892,9 @@ class Camera {
         }
         
         if (hasChanged) {
-            this.renderer.renderSize();
+            if (this.view !== null) {
+                this.renderer.renderSize();
+            }
             this._events.emit('change:size');
         }
         
@@ -960,6 +915,79 @@ class Camera {
             if (this.isRotated || this.isZoomed) {
                 this._updateRawOffset();
             }
+        }
+        
+        return this;
+    }
+    
+    /**
+    * Sets the view.
+    *
+    * @param {string|Element} view - The view. This can be a selector or an element.
+    * @returns {this} self
+    */
+    setView (view) {
+        view = Utils.DOM.parseView(view);
+        
+        if (this.view) {
+            if (this.view.parentNode) {
+                this.view.parentNode.removeChild(this.view);
+            }
+            
+            this.trackControl.destroy();
+            this.trackControl = null;
+            this.view = null;
+            this.isRendered = false;
+            this._rasterScale = this.zoom;
+        }
+        
+        if (view) {
+            this.view = view;
+            this.scenes.ensureView();
+            this.view.style.display = 'none';
+            this.view.style.overflow = 'hidden';
+            this.view.style.position = 'relative';
+            this.view.appendChild(this.scenes.view);
+            this.trackControl = new TrackControl(this, {
+                draggable: this.dragToMove,
+                onDrag: function (camera) {
+                    var position = camera._convertOffsetToPosition(new Vector2(-this.x, -this.y), camera.center, camera.transformOrigin, camera.transformation);
+
+                    camera.moveTo(position, 0, { 
+                        onCompleteParams: [this],
+                        onComplete: function (dragControl) {
+                            dragControl.update();
+                        }
+                    });
+                },
+                wheelable: this.wheelToZoom,
+                onWheel: function (camera) {
+                    const ZOOM_IN = 1;
+                    const ZOOM_OUT = 0;
+                    var velocity = Math.abs(this.wheelEvent.deltaY);
+                    var direction = this.wheelEvent.deltaY > 0 ? ZOOM_OUT : ZOOM_IN;
+                    var previousDirection = this.previousWheelEvent.deltaY > 0 ? ZOOM_OUT : ZOOM_IN;
+                    var cameraRect;
+                    var cameraFOVPosition = new Vector2();
+                    var scenePosition = new Vector2();
+                    var origin = camera.transformOrigin;
+                    var zoom = camera.zoom + camera.zoom * camera.wheelToZoomIncrement * (velocity > 1 ? velocity * 0.5 : 1) * (direction === ZOOM_IN ? 1 : -1);
+
+                    // Performance Optimization: If zoom has not changed because it's at the min/max, don't zoom.
+                    if (direction === previousDirection && camera._clampZoom(zoom) !== camera.zoom) { 
+                        cameraRect = camera.view.getBoundingClientRect();
+                        cameraFOVPosition.set(this.wheelEvent.clientX - cameraRect.left, this.wheelEvent.clientY - cameraRect.top);
+                        scenePosition = camera._convertFOVPositionToScenePosition(cameraFOVPosition, camera.position, camera.center, camera.transformation);
+                        console.log('s pos: ', scenePosition);
+
+                        if (Math.floor(origin.x) !== Math.floor(scenePosition.x) || Math.floor(origin.y) !== Math.floor(scenePosition.y)) {
+                            origin = scenePosition;
+                        }
+
+                        camera.zoomAt(origin, zoom, 0);
+                    }
+                }
+            });
         }
         
         return this;
@@ -1108,9 +1136,9 @@ class Camera {
 Camera.bounds = {
     NONE: null,
     WORLD: function () {
-        var transformation = new Matrix2().scale(this.zoom, this.zoom).getInverse();
-        var min = new Vector2(0, 0).add(this.center).transform(transformation);
-        var max = new Vector2(this.scene.scaledWidth, this.scene.scaledHeight).subtract(this.center).transform(transformation);
+        var transformation = this.scaleTransform.getInverse();
+        var min = this.center.clone().transform(transformation);
+        var max = new Vector2(this.scene.width, this.scene.height).transform(this.scaleTransform).subtract(this.center).transform(transformation);
 
         return {
             minX: min.x,
