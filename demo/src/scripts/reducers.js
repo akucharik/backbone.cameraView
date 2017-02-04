@@ -119,7 +119,7 @@ reducers.zoom = function (value, action) {
 
 reducers.origin = function (value, action) {
     if (value === undefined) {
-        value = data.targetList[data.lookups.targetList['Actinium']].value;
+        value = data.originList[data.lookups.originList['auto']].value;
     }
     
     switch (action.type) {

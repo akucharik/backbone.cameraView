@@ -20,7 +20,7 @@ const ZoomAtControls = () => (
         </div>
         <div>
             <label>Origin</label>
-            <DropdownList items={data.targetList} valueKey='origin' onChange={actions.updateOrigin} />
+            <DropdownList items={data.originList} valueKey='origin' onChange={actions.updateOrigin} />
         </div>
         <div>
             <label>Duration</label>

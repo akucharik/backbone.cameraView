@@ -14,7 +14,7 @@ const actions = {
         let duration = data.duration[state.duration];
 
         Demo.camera.animate({
-            origin: data.target[state.origin],
+            origin: data.origin[state.origin],
             position: data.target[state.position],
             rotation: parseFloat(state.rotation),
             zoom: parseFloat(state.zoom)
@@ -41,7 +41,7 @@ const actions = {
     },
     rotateAt: function () {
         let state = store.getState();
-        let origin = data.target[state.origin];
+        let origin = data.origin[state.origin];
         let duration = data.duration[state.duration];
         
         Demo.camera.rotateAt(origin, parseFloat(state.rotation), duration, { ease: state.ease });
@@ -77,7 +77,7 @@ const actions = {
     zoomAt: function () {
         let state = store.getState();
         let zoom = parseFloat(state.zoom);
-        let origin = data.target[state.origin];
+        let origin = data.origin[state.origin];
         let duration = data.duration[state.duration];
 
         Demo.camera.zoomAt(origin, zoom, duration, { ease: state.ease });

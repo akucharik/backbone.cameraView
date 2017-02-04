@@ -538,4 +538,29 @@ data.targetList.forEach((item, index) => {
     data.lookups.targetList[item.value] = index;
 });
 
+// Origin
+data.origin = {
+    'Auto': 'auto'
+};
+
+data.elements.forEach((item) => {
+    if (item.name) {
+        data.origin[item.name] = '#' + item.name;
+    }
+});
+
+data.originList = [{ text: 'Auto', value: 'auto'}];
+
+data.elements.forEach((item) => {
+    if (item.name) {
+        data.originList.push({ text: item.name, value: item.name });
+    }
+});
+
+data.lookups.originList = {};
+
+data.originList.forEach((item, index) => {
+    data.lookups.originList[item.value] = index;
+});
+
 export default data;
