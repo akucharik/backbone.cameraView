@@ -7,12 +7,14 @@ import {
 import { expect }  from 'chai';
 
 var Oculo = require('../dist/oculo');
+var Scene = Oculo.Scene;
+var SceneManager = Oculo.SceneManager;
 
 test('SceneManager', function() {
     var sm;
 
     beforeEach('Instantiate a new scene manager', function() {
-        sm = new Oculo.SceneManager();
+        sm = new SceneManager();
     });
     
     afterEach('Clean up scene manager', function() {
@@ -30,7 +32,7 @@ test('SceneManager', function() {
     
     test('add', function() {
         assert('should add a newly instantiated scene', function() {
-            sm.add('scene1', new Oculo.Scene(null));
+            sm.add('scene1', new Scene(null));
             expect(sm._scenes).to.have.property('scene1');
         });
     });
@@ -38,9 +40,9 @@ test('SceneManager', function() {
     test('get', function() {
         assert('should return the requested scene', function() {
             var scene;
-            sm.add('scene1', new Oculo.Scene(null));
+            sm.add('scene1', new Scene(null));
             scene = sm.get('scene1');
-            expect(scene).to.be.instanceof(Oculo.Scene);
+            expect(scene).to.be.instanceof(Scene);
         });
         
         assert('should not return the requested scene', function() {
@@ -52,9 +54,9 @@ test('SceneManager', function() {
     
     test('setActiveScene', function() {
         assert('should set the specified scene to the active scene', function() {
-            sm.add('scene1', new Oculo.Scene(null));
+            sm.add('scene1', new Scene(null));
             sm.setActiveScene('scene1');
-            expect(sm.activeScene).to.be.instanceof(Oculo.Scene);
+            expect(sm.activeScene).to.be.instanceof(Scene);
         });
     });
 });

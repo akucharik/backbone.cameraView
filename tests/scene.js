@@ -7,12 +7,13 @@ import {
 import { expect }  from 'chai';
 
 var Oculo = require('../dist/oculo');
+var Scene = Oculo.Scene
 
 test('Scene', function() {
     var scene;
 
     beforeEach('Instantiate a new scene', function() {
-        scene = new Oculo.Scene(null, 1000, 500);
+        scene = new Scene(null, 1000, 500);
     });
     
     afterEach('Clean up scene', function() {

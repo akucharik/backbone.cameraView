@@ -85,5 +85,9 @@ gulp.task('test:scripts', function () {
                 js: babelRegister
             },
             reporter: 'nyan'
+        })
+        // HACK: process hangs when GSAP is imported in a test
+        .once('end', function () {
+          process.exit();
         }));
 });

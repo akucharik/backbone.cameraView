@@ -7,14 +7,11 @@ import {
 import { expect }  from 'chai';
 import isElement   from 'lodash/isElement';
 
-global.window = {};
-
-global.document = {
-    querySelector: function () { 
-        return new HTMLElement();
-    }
+global.window = global.window || {};
+global.document = global.document || {};
+global.document.querySelector = function () { 
+    return new HTMLElement();
 };
-
 global.HTMLElement = function () {
     this.nodeType = 1;
     this.offsetHeight = 100;
@@ -23,12 +20,7 @@ global.HTMLElement = function () {
     this.offsetWidth = 100;
 };
 
-global.TimelineMax = function () {};
-global.TimelineMax.prototype.eventCallback = function () {};
-global.TimelineMax.prototype.kill = function () {};
-global.TimelineMax.prototype.pause = function () {};
-
-var Oculo = require('../build/scripts/oculo');
+var Oculo = require('../dist/oculo');
 var Utils = Oculo.Utils;
 var Vector2 = Oculo.Vector2;
 
