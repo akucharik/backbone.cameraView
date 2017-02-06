@@ -10,31 +10,46 @@ import { TweenMax } from 'gsap';
 var Oculo = require('../dist/oculo');
 var Animation = Oculo.Animation;
 var Camera = Oculo.Camera;
+var Scene = Oculo.Scene;
 var Vector2 = Oculo.Vector2;
 
 test('Animation', function() {
-    //var a;
-    //var c;
+    var a;
+    var c;
 
     beforeEach('Instantiate a new animation', function() {
-        //a = new Oculo.Animation();
-        //c = new Camera({
-        //    scene: '#scene'
-        //});
+        c = new Camera().addScene('scene1', new Scene(null, 1000, 500)).setScene('scene1');
+        a = new Oculo.Animation(c);
     });
     
     afterEach('Clean up animation', function() {
-        //a.destroy();
+        a.destroy();
+        c.destroy();
     });
     
-    test('tween', function() {
-        assert('should tween', function() {
-            var test = {
-                num: 0
+    test('_parseProps', function() {
+        assert('should evaluate rotation when provided as a function', function() {
+            var random = Math.random();
+            var props = {
+                rotation: function () {
+                    return 360 * random;
+                }
             };
-            TweenLite.set(test, { num: 10 });
             
-            expect(test.num).to.equal(10);
+            var parsed = a._parseProps(props);
+            expect(parsed.rotation).to.equal(360 * random);
+        });
+        
+        assert('should evaluate zoom when provided as a function', function() {
+            var random = Math.random();
+            var props = {
+                zoom: function () {
+                    return 1 + random;
+                }
+            };
+            
+            var parsed = a._parseProps(props);
+            expect(parsed.zoom).to.equal(1 + random);
         });
     });
     

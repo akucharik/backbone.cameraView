@@ -512,7 +512,7 @@ class Animation extends TimelineMax {
         if (tween !== undefined) {
             startProps = (startProps !== undefined) ? startProps : this._getStartProps();
             
-            var parsedProps = this._parseProps(tween.props.source.origin, tween.props.source.position, tween.props.source.rotation, tween.props.source.zoom);
+            var parsedProps = this._parseProps(tween.props.source);
             var toProps = this._calculateToProps(parsedProps, startProps);
             var endProps = this._getEndProps(toProps, startProps);
 
@@ -549,7 +549,12 @@ class Animation extends TimelineMax {
     * @param {number} zoom - The zoom.
     * @returns {Object} - The parsed properties.
     */
-    _parseProps (origin, position, rotation, zoom) {
+    _parseProps ({
+        origin = null, 
+        position = null, 
+        rotation = null, 
+        zoom = null 
+    } = {}) {
         if (position === 'previous' && this.previousProps.position) {
             position = this.previousProps.position;
         }
@@ -565,8 +570,8 @@ class Animation extends TimelineMax {
         return { 
             origin: Utils.parseOrigin(origin, this.camera.scene.view),
             position: Utils.parsePosition(position, this.camera.scene.view),
-            rotation: !isNil(rotation) ? rotation : null,
-            zoom: zoom || null
+            rotation: isFunction(rotation) ? rotation() : rotation,
+            zoom: isFunction(zoom) ? zoom() : zoom
         };
     }
     

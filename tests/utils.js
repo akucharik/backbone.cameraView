@@ -29,28 +29,39 @@ test('Utils', function() {
         var position, expected;
         var world = new HTMLElement();
         
-        assert('should return the center of the element when provided a valid selector', function() {
+        assert('should return a vector when provided a valid function', function() {
+            position = function () {
+                return  { 
+                    x: 1000 * 0.5,
+                    y: 500 * 0.5
+                };
+            }
+            expected = new Vector2(500, 250);
+            expect(Utils.parsePosition(position, world)).to.deep.equal(expected);
+        });
+        
+        assert('should return a vector when provided a valid selector', function() {
             position = '#view';
             expected = new Vector2(50, 50);
             expect(Utils.parsePosition(position, world)).to.deep.equal(expected);
         });
         
-        assert('should return the center of the provided element', function() {
+        assert('should return vector when provided an element', function() {
             position = new HTMLElement();
             expected = new Vector2(50, 50);
             expect(Utils.parsePosition(position, world)).to.deep.equal(expected);
         });
         
-        assert('should return a vector built from the provided object', function() {
+        assert('should return a vector when provided a valid generic object', function() {
             position = { x: 200, y: 200 };
             expected = new Vector2(200, 200);
             expect(Utils.parsePosition(position, world)).to.deep.equal(expected);
         });
         
-        assert('should return null when provided an invalid parameter', function() {
+        assert('should return null when provided an invalid position parameter', function() {
             position = 9;
             expected = null;
-            expect(Utils.parsePosition(position, world)).to.deep.equal(expected);
+            expect(Utils.parsePosition(position, world)).to.equal(expected);
         });
     });
 });

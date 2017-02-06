@@ -6,6 +6,7 @@
 */
 
 import isElement            from 'lodash/isElement';
+import isFunction           from 'lodash/isFunction';
 import isObject             from 'lodash/isObject';
 import { originKeyword }    from './constants';
 import Vector2              from './math/vector2';
@@ -202,6 +203,10 @@ const Utils = {
     parsePosition: function (input, world) {
         var objectPosition;
         var position = null;
+        
+        if (isFunction(input)) {
+            input = input();
+        }
         
         if (typeof input === 'string') {
             input = document.querySelector(input);
