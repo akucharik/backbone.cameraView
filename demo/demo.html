@@ -10,6 +10,24 @@
     <link type="text/css" href="styles/demo.css" rel="stylesheet" />
 </head>
 <body>
+    <div id="bannerCamScene" style="display: block; font-family: Arial; font-size: 30px; line-height: 1; position: relative; width: 400px; height: 500px;">
+        <span id="zoom" style="opacity: 0; position: absolute; top: 20px; left: 0px;">zoom</span>
+        <!--<span style="background-color: red; position: absolute; left: 35px; top: 10px; width: 1px; height: 30px;"></span>-->
+        <i id="zoomInIcon" style="opacity: 0; position: absolute; top: 22px; left: 25px;" class="fa fa-search-plus"></i>
+        <i id="zoomOutIcon" style="opacity: 1; position: absolute; top: 22px; left: 25px;" class="fa fa-search-minus"></i>
+        <div id="other" style="opacity: 0;">
+            <div style="border-top: 1px dashed black; height: 1px; position: absolute; top: 37px; left: 90px; width: 250px;"></div>
+            <span id="pan" style="opacity: 0; position: absolute; top: 21px; right: 0;">pan</span>
+            <i id="panIcon" style="opacity: 1; position: absolute; top: 23px; right: 11px;" class="fa fa-arrows"></i>
+            <div style="display: none; background-color: black; height: 1px; position: absolute; top:135px; left:10px; width: 200px; transform: rotate(50deg);"></div>
+            <span id="rotate" style="opacity: 0; position: absolute; top: 250px; left: 50%; transform: translate(-50%, -50%);">rotate</span>
+            <i id="rotateIcon" style="opacity: 1; position: absolute; top: 252px; left: 50%; transform: translate(-50%, -50%);" class="fa fa-rotate-left"></i>
+            <div style="background-color: black; height: 1px; position: absolute; top:135px; right: 10px; width: 200px; transform: rotate(-50deg);"></div>
+            <span id="more" style="font-size: 20px; position: absolute; top: 400px; left: 50%; transform: translate(-50%, -50%) translate(3px, 0);">and more&hellip;</span>
+            <span id="ease" style="opacity: 0; font-size: 10px; position: absolute; top: 416px; left: 50%; transform: translate(-50%, -50%) translate(-3px, 0);">(with ease)</span>
+        </div>
+    </div>
+    
     <a id="anchorTop"></a>
     <div style="position: absolute;">
         <div style="position: absolute; width: 200px; height: 200px;"></div>
@@ -59,6 +77,14 @@
                 </div>
             </div>
             <div class="columns small-12 medium-7 large-6" style="height: 325px; overflow: hidden; position: relative;">
+                <div id="bannerCam" style="top: 55px; left: 30px;">
+                    <!--<div class="bcv-ignore-pointer-events">
+                        <div style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 42px; height: 3px; background-color: rgba(255,255,255,0.5); transform: translateX(-50%) translateY(-1px); z-index: 1;"></div>
+                        <div style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 3px; height: 42px; background-color: rgba(255,255,255,0.5); transform: translateX(-1px) translateY(-50%); z-index: 1;"></div>
+                        <div style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 40px; height: 1px; background-color: rgba(0,0,0,1); transform: translateX(-50%) translateY(0%); z-index: 1;"></div>
+                        <div style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 1px; height: 40px; background-color: rgba(0,0,0,1); transform: translateX(0%) translateY(-50%); z-index: 1;"></div>
+                    </div>-->
+                </div>
                 <div class="home-banner-camera">
                 </div>
             </div>
@@ -84,7 +110,7 @@
                 <h1>Demo <a id="topDemo" href="#anchorTop" class="top"><i class="fa fa-arrow-circle-up"></i></a></h1>
                 <div class="row">
                     <div class="shrink">
-                        <div id="camera" style="background-color: white; box-shadow: 0 0 10px rgba(0,0,0,0.2); width: 600px; height: 400px;">
+                        <div id="camera" style="display: none; background-color: white; box-shadow: 0 0 10px rgba(0,0,0,0.2); width: 600px; height: 400px;">
                             <div class="bcv-ignore-pointer-events" style="display: none; position: absolute; width: 400px; z-index: 100; top: 60%; left: 50%; transform: translate(-50%, -50%);">
                                 <p class="home-banner-headline">
                                     A simple and intuitive 2D camera for animating HTML within a frame
@@ -275,6 +301,7 @@ myCamera.play('zoomTo2Then1');</code></pre>
         <section>
             <div class="column-full">
                 <h1>Documentation <a id="topDocumentation" href="#anchorTop" class="top"><i class="fa fa-arrow-circle-up"></i></a></h1>
+                <p>Coming soon!</p>
             </div>
         </section>
     </div>
@@ -294,6 +321,108 @@ myCamera.play('zoomTo2Then1');</code></pre>
     <script type="text/javascript" src="scripts/demo.js"></script>
     <script type="text/javascript" src="scripts/prettify-min.js"></script>
     <script type="text/javascript">
+        var bannerCam = new Oculo.Camera({
+            view: '#bannerCam',
+            height: 275,
+            width: 290
+        });
+        
+        var animations = [{
+            name: 'start',
+            keyframes: [{
+                position: '#zoom',
+                zoom: 3,
+                duration: 0
+            }]
+        }, {
+            name: 'zoom',
+            keyframes: [{
+                position: '#zoom',
+                zoom: 3,
+                duration: 0
+            }, {
+                zoom: 0.5,
+                duration: 1,
+                options: {
+                    delay: 2,
+                    ease: Power4.easeOut,
+                    onComplete: function () { 
+                        var tl = new TimelineLite();
+                        tl.to('#zoomOutIcon', 0.3, { opacity: 0 }, 0)
+                          .from('#zoomInIcon', 0.3, { opacity: 1 }, 0)
+                          .to('#zoom', 0.3, { opacity: 1 }, 0.1);
+                          
+                    }
+                }
+            }, {
+                zoom: 2,
+                duration: 2,
+                options: {
+                    ease: Elastic.easeOut.config(2, 0.5)
+                }
+            }, {
+                position: '#pan',
+                duration: 3.5,
+                options: {
+                    delay: 0.5,
+                    ease: Power4.easeOut,
+                    onStart: function () {
+                        var tl = new TimelineLite()
+                        tl.to('#other', 0.5, { opacity: 1 }, 0.5)
+                          .to('#panIcon', 1, { opacity: 0 }, 1.8)
+                          .to('#pan', 1, { opacity: 1 }, 2.0);
+                    }
+                }
+            }, {
+                position: '#rotate',
+                duration: 0.5,
+                options: {
+                    delay: 0.5,
+                    ease: Power4.easeOut
+                }
+            }, {
+                rotation: 2160,
+                duration: 2,
+                options: {
+                    ease: Power4.easeOut,
+                    onStart: function () {
+                        TweenLite.to('#rotateIcon', 0.5, { delay: 0.5, opacity: 0 });
+                        TweenLite.to('#rotate', 0.5, { delay: 0.5, opacity: 1 });
+                    }
+                }
+            }, {
+                position: function () {
+                    var position = bannerCam.getElementPosition('#more');
+                    return { 
+                        x: bannerCam.position.x, 
+                        y: position.y
+                    };
+                },
+                duration: 1,
+                options: {
+                    ease: Power2.easeOut,
+                    onComplete: function () {
+                        TweenLite.to('#ease', 1, { delay: 1, opacity: 1 });
+                    }
+                }
+            }, {
+                position: function () {
+                    return bannerCam.position.clone().add(new Oculo.Vector2(0, 3));
+                },
+                duration: 1,
+                options: {
+                    delay: 1,
+                    ease: Power2.easeOut,
+                }
+            }]
+        }];
+        
+        animations.forEach(function (item) {
+            bannerCam.addAnimation(item.name, item);
+        });
+        
+        bannerCam.addScene('scene1', '#bannerCamScene').setScene('scene1').render().play('zoom');
+        
         Demo.initialize();
     </script>
 </body>
