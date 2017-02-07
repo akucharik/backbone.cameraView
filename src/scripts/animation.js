@@ -568,8 +568,8 @@ class Animation extends TimelineMax {
         }
         
         return { 
-            origin: Utils.parseOrigin(origin, this.camera.scene.view),
-            position: Utils.parsePosition(position, this.camera.scene.view),
+            origin: Utils.parseOrigin(origin, this.camera.scene, this.camera.transformation),
+            position: Utils.parsePosition(position, this.camera.scene, this.camera.transformation),
             rotation: isFunction(rotation) ? rotation() : rotation,
             zoom: isFunction(zoom) ? zoom() : zoom
         };

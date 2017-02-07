@@ -178,12 +178,13 @@ const Utils = {
     *
     * @private
     * @param {string|Element|Object} [input] - The origin to parse.
-    * @param {Element} world - The world.
+    * @param {Oculo.Scene} world - The world.
+    * @param {Matrix2} projectionMatrix - The camera's projection matrix.
     * @returns {string|Object} The parsed origin.
     */
-    parseOrigin: function (input, world) {
+    parseOrigin: function (input, world, projectionMatrix) {
         var origin = originKeyword.AUTO;
-        var position = Utils.parsePosition(input, world);
+        var position = Utils.parsePosition(input, world, projectionMatrix);
         
         if (position !== null) {
             origin = position;
@@ -197,10 +198,11 @@ const Utils = {
     *
     * @private
     * @param {string|Element|Object} [input] - The input to parse.
-    * @param {Element} world - The world.
+    * @param {Oculo.Scene} world - The world.
+    * @param {Matrix2} projectionMatrix - The camera's projection matrix.
     * @returns {Object} The parsed position as an x/y position object.
     */
-    parsePosition: function (input, world) {
+    parsePosition: function (input, world, projectionMatrix) {
         var objectPosition;
         var position = null;
         
@@ -213,7 +215,7 @@ const Utils = {
         }
         
         if (isElement(input)) {
-            objectPosition = Utils.DOM.getObjectWorldPosition(input, world);
+            objectPosition = Utils.DOM.getObjectWorldPosition(input, world, projectionMatrix);
             position = new Vector2(objectPosition.x, objectPosition.y);
         }
         else if (isObject(input)) {
@@ -229,14 +231,18 @@ Utils.DOM = {
     * Get an object's position in the world.
     *
     * @param {Element} object - The object.
-    * @param {Element} world - The world.
+    * @param {Oculo.Scene} world - The world.
+    * @param {Matrix2} projectionMatrix - The camera's projection matrix.
     * @returns {Vector2} The object's position.
     */
-    getObjectWorldPosition: function (object, world) {
-        var x = (object.offsetWidth / 2) + object.offsetLeft - world.offsetLeft;
-        var y = (object.offsetHeight / 2) + object.offsetTop - world.offsetTop;
-
-        return new Vector2(x, y);
+    getObjectWorldPosition: function (object, world, projectionMatrix) {
+        var objectRect = object.getBoundingClientRect();
+        var objectCenter = new Vector2(objectRect.left + objectRect.width * 0.5, objectRect.top + objectRect.height * 0.5);
+        var worldRect = world.view.getBoundingClientRect();
+        var worldCenter = new Vector2(worldRect.left + worldRect.width * 0.5, worldRect.top + worldRect.height * 0.5);
+        var positionFromCenter = objectCenter.subtract(worldCenter).transform(projectionMatrix.getInverse());
+        
+        return positionFromCenter.add(new Vector2(world.width * 0.5, world.height * 0.5));
     },
     
     /**
