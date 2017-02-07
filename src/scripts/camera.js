@@ -810,6 +810,16 @@ class Camera {
 
         return this;
     }
+    
+    /**
+    * Get an element's position in the scene.
+    *
+    * @param {string|Element} element - The element. This can be a selector or an element.
+    * @returns {Vector2} The position.
+    */
+    getElementPosition (element) {
+        return Utils.DOM.getObjectWorldPosition(Utils.DOM.parseView(element), this.scene, this.transformation);
+    }
 
     /**
     * Called when the camera has been initialized. The default implementation is a no-op. Override this function with your own code.

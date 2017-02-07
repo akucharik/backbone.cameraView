@@ -211,7 +211,7 @@ const Utils = {
         }
         
         if (typeof input === 'string') {
-            input = document.querySelector(input);
+            input = world.view.querySelector(input);
         }
         
         if (isElement(input)) {
@@ -241,7 +241,7 @@ Utils.DOM = {
         var worldRect = world.view.getBoundingClientRect();
         var worldCenter = new Vector2(worldRect.left + worldRect.width * 0.5, worldRect.top + worldRect.height * 0.5);
         var positionFromCenter = objectCenter.subtract(worldCenter).transform(projectionMatrix.getInverse());
-        
+
         return positionFromCenter.add(new Vector2(world.width * 0.5, world.height * 0.5));
     },
     
