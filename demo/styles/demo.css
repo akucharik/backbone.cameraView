@@ -7961,7 +7961,7 @@ h2 {
 }
 
 .top-bar {
-  background-color: #fff;
+  background-color: transparent;
   font-size: 1.05rem;
   font-weight: 400;
   padding: 1.1rem 0;
@@ -8087,7 +8087,12 @@ h2 {
 }
 
 .home-banner-message > h1 {
+  color: #691989;
   margin-left: -3px;
+}
+
+.home-banner-message > p {
+  color: #496989;
 }
 
 .home-banner-message > .button {
@@ -8104,10 +8109,6 @@ h2 {
 }
 
 .home-banner-camera {
-  background-color: whitesmoke;
-  border: 60px solid #5d407b;
-  border-radius: 50%;
-  height: 400px;
   position: absolute;
   right: 25px;
   bottom: -25%;

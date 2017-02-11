@@ -8,13 +8,34 @@
 	<title>Backbone Camera Demo</title>
     <script src="http://use.edgefonts.net/source-sans-pro:n4,i4,n6,i6,n7,i7;source-code-pro.js"></script>
     <link type="text/css" href="styles/demo.css" rel="stylesheet" />
+    <style>
+        .banner-circle {
+            /*background-color: black;*/
+            border: 45px solid #496989;
+            border-radius: 50%;
+            width: 250px;
+            height: 250px;
+            opacity: 0;
+            position: absolute;
+            /*transform: translate(-50%, -50%);*/
+        }
+    </style>
 </head>
 <body>
-    <div id="bannerCamScene" style="display: block; font-family: Arial; font-size: 30px; line-height: 1; position: relative; width: 400px; height: 500px;">
+    <div id="bannerCamScene" style="display: block; color: #666; font-family: Arial; font-size: 30px; line-height: 1; position: relative; width: 400px; height: 500px;">
+        <!--<img style="position: absolute; top: -50px; left: -50px; max-width: none;" src="images/stock-photo-blue-festive-christmas-elegant-abstract-background-with-bokeh-lights-and-stars-114681208.jpg" width="1500" height="1600"/>-->
+        <!--<img style="position: absolute; top: -50px; left: -50px; max-width: none;" src="images/stock-photo-dark-blue-abstract-backgrounds-with-bokeh-354617600.jpg" width="750" height="547"/>-->
+        <!--<img style="position: absolute; top: -50px; left: -50px; max-width: none;" src="images/stock-photo-abstract-background-multicolored-bokeh-circles-beautiful-background-with-particles-368178371.jpg" width="750" height="557"/>-->
+        <!--<img style="position: absolute; top: -50px; left: -50px; max-width: none;" src="images/stock-photo-bright-abstract-mosaic-multicolored-background-with-gloss-433335025.jpg" width="750" height="557"/>-->
+        <!--<img style="position: absolute; top: -50px; left: -50px; max-width: none;" src="images/stock-vector-purple-circle-pixel-mosaic-background-311004404.jpg" width="750" height="800"/>-->
+        <!--<img style="position: absolute; top: -50px; left: -50px; max-width: none;" src="images/stock-vector-background-halftone-dots-548704921.jpg" width="750" height="800"/>-->
+        <img style="position: absolute; top: -50px; left: -50px; max-width: none;" src="images/stock-vector-vector-illustration-of-an-abstract-background-284563400.jpg" width="750" height="800"/>
+        <!--<img style="position: absolute; top: -50px; left: -50px; max-width: none;" src="images/stock-vector-purple-circle-pixel-mosaic-background-311004404.jpg" width="750" height="800"/>-->
+        
         <span id="zoom" style="opacity: 0; position: absolute; top: 20px; left: 0px;">zoom</span>
         <!--<span style="background-color: red; position: absolute; left: 35px; top: 10px; width: 1px; height: 30px;"></span>-->
         <i id="zoomInIcon" style="opacity: 0; position: absolute; top: 22px; left: 25px;" class="fa fa-search-plus"></i>
-        <i id="zoomOutIcon" style="opacity: 1; position: absolute; top: 22px; left: 25px;" class="fa fa-search-minus"></i>
+        <i id="zoomOutIcon" style="opacity: 0; position: absolute; top: 22px; left: 25px;" class="fa fa-search-minus"></i>
         <div id="other" style="opacity: 0;">
             <div style="border-top: 1px dashed black; height: 1px; position: absolute; top: 37px; left: 90px; width: 250px;"></div>
             <span id="pan" style="opacity: 0; position: absolute; top: 21px; right: 0;">pan</span>
@@ -33,7 +54,7 @@
         <div style="position: absolute; width: 200px; height: 200px;"></div>
         <div style="width: 100px; height: 100px;"></div>
     </div>
-    
+    <div id="bannerCircles" style="position: relative; overflow: hidden;">
     <nav class="top-bar">
         <div class="row columns align-middle top-bar-row">
             <!--<div class="top-bar-title">
@@ -69,7 +90,7 @@
         <div class="row align-middle" style="min-height: 325px;">
             <div class="columns small-12 medium-5 large-5 large-offset-1">
                  <div class="home-banner-message">
-                    <h1>OculoJS</h1>
+                    <img src="images/oculojs-logo.svg" alt="OculoJS logo" width="200" style="margin-bottom: 1.0em;" />
                     <p class="home-banner-headline">
                         A simple and intuitive 2D camera for animating HTML within a frame
                     </p>
@@ -85,12 +106,13 @@
                         <div style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 1px; height: 40px; background-color: rgba(0,0,0,1); transform: translateX(0%) translateY(-50%); z-index: 1;"></div>
                     </div>-->
                 </div>
-                <div class="home-banner-camera">
-                </div>
+                <img class="home-banner-camera" src="images/animation-frame.svg" alt="Animation frame" width="400" style="" />
             </div>
         </div>
+        
     </div>
-    
+        <!--<img src="images/animation-frame.svg" alt="Animation frame" width="400" style="position: absolute; right: 0px; bottom: -350px;" />-->
+    </div>
     <div class="callout" style="background-color: #262626; margin: 0; padding: 2rem 0 2.6rem 0;">
         <div class="row align-middle">
             <div class="columns small-12 medium-5 large-offset-1">
@@ -327,54 +349,89 @@ myCamera.play('zoomTo2Then1');</code></pre>
             width: 290
         });
         
+        var zoomOutIcon = document.getElementById('zoomOutIcon');
+        var zoomInIcon = document.getElementById('zoomInIcon');
+        var zoomText = document.getElementById('zoom');
+        var other = document.getElementById('other');
+        var panIcon = document.getElementById('panIcon');
+        var panText = document.getElementById('pan');
+        var rotateIcon = document.getElementById('rotateIcon');
+        var rotateText = document.getElementById('rotate');
+        var easeText = document.getElementById('ease');
+        
+        var setupAnim = new TimelineLite({ paused: true });
+        setupAnim.to(zoomOutIcon, 0.5, { delay: 0.5, opacity: 1 }, 0)
+            .set(zoomInIcon, { opacity: 0 }, 0)
+            .set(zoomText, { opacity: 0 }, 0)
+            .set(other, { opacity: 0 }, 0)
+            .set(panIcon, { opacity: 1 }, 0)
+            .set(panText, { opacity: 0 }, 0)
+            .set(rotateIcon, { opacity: 1 }, 0)
+            .set(rotateText, { opacity: 0 }, 0)
+            .set(easeText, { opacity: 0 });
+        
+        var zoomAnim = new TimelineLite({ paused: true });
+        zoomAnim.to(zoomOutIcon, 0.3, { opacity: 0 }, 0)
+            .fromTo(zoomInIcon, 0.3, { opacity: 1 }, { opacity: 0 }, 0)
+            .to(zoomText, 0.3, { opacity: 1 }, 0.1);
+        
+        var panAnim = new TimelineLite({ paused: true });
+        panAnim.to(other, 0.5, { opacity: 1 }, 0.5)
+           .to(panIcon, 1, { opacity: 0 }, 1.8)
+           .to(panText, 1, { opacity: 1 }, 2.0);
+        
+        var rotateAnim = new TimelineLite({ paused: true });
+        rotateAnim.to(rotateIcon, 0.5, { opacity: 0 }, 0.5)
+            .to(rotateText, 0.5, { opacity: 1 }, 0.5);
+        
+        var easeAnim = new TweenLite(easeText, 1, { delay: 0.5, opacity: 1, paused: true });
+        
         var animations = [{
-            name: 'start',
+            name: 'oculo',
+            options: {
+                repeat: 1,
+                repeatDelay: 2,
+                onStart: function () {
+                    setupAnim.restart();
+                },
+                onRepeat: function () {
+                    console.log('I repeat!');
+                    setupAnim.restart();
+                }
+            },
             keyframes: [{
-                position: '#zoom',
-                zoom: 3,
-                duration: 0
-            }]
-        }, {
-            name: 'zoom',
-            keyframes: [{
-                position: '#zoom',
-                zoom: 3,
-                duration: 0
+                duration: 0,
+                position: zoomText,
+                rotation: 0,
+                zoom: 3
             }, {
-                zoom: 0.5,
                 duration: 1,
+                zoom: 0.5,
                 options: {
                     delay: 2,
-                    ease: Power4.easeOut,
-                    onComplete: function () { 
-                        var tl = new TimelineLite();
-                        tl.to('#zoomOutIcon', 0.3, { opacity: 0 }, 0)
-                          .from('#zoomInIcon', 0.3, { opacity: 1 }, 0)
-                          .to('#zoom', 0.3, { opacity: 1 }, 0.1);
-                          
+                    ease: Power4.easeOut
+                }
+            }, {
+                duration: 2,
+                zoom: 0.7,
+                options: {
+                    ease: Elastic.easeOut.config(2, 0.5),
+                    onStart: function () {
+                        zoomAnim.restart();
                     }
                 }
             }, {
-                zoom: 2,
-                duration: 2,
-                options: {
-                    ease: Elastic.easeOut.config(2, 0.5)
-                }
-            }, {
-                position: '#pan',
                 duration: 3.5,
+                position: panText,
                 options: {
                     delay: 0.5,
                     ease: Power4.easeOut,
                     onStart: function () {
-                        var tl = new TimelineLite()
-                        tl.to('#other', 0.5, { opacity: 1 }, 0.5)
-                          .to('#panIcon', 1, { opacity: 0 }, 1.8)
-                          .to('#pan', 1, { opacity: 1 }, 2.0);
+                        panAnim.restart();
                     }
                 }
             }, {
-                position: '#rotate',
+                position: rotateText,
                 duration: 0.5,
                 options: {
                     delay: 0.5,
@@ -386,33 +443,36 @@ myCamera.play('zoomTo2Then1');</code></pre>
                 options: {
                     ease: Power4.easeOut,
                     onStart: function () {
-                        TweenLite.to('#rotateIcon', 0.5, { delay: 0.5, opacity: 0 });
-                        TweenLite.to('#rotate', 0.5, { delay: 0.5, opacity: 1 });
+                        rotateAnim.restart();
                     }
                 }
             }, {
                 position: function () {
-                    var position = bannerCam.getElementPosition('#more');
+                    var more = bannerCam.getElementPosition('#more');
+                    
                     return { 
                         x: bannerCam.position.x, 
-                        y: position.y
+                        y: more.y
                     };
                 },
-                duration: 1,
+                duration: 3,
                 options: {
-                    ease: Power2.easeOut,
-                    onComplete: function () {
-                        TweenLite.to('#ease', 1, { delay: 1, opacity: 1 });
-                    }
+                    ease: Power2.easeOut
                 }
             }, {
                 position: function () {
-                    return bannerCam.position.clone().add(new Oculo.Vector2(0, 3));
+                    var position = bannerCam.position.clone();
+                    position.y += 3;
+                    
+                    return position;
                 },
                 duration: 1,
                 options: {
                     delay: 1,
                     ease: Power2.easeOut,
+                    onStart: function () {
+                        easeAnim.restart();
+                    }
                 }
             }]
         }];
@@ -421,7 +481,85 @@ myCamera.play('zoomTo2Then1');</code></pre>
             bannerCam.addAnimation(item.name, item);
         });
         
-        bannerCam.addScene('scene1', '#bannerCamScene').setScene('scene1').render().play('zoom');
+        bannerCam.animations.get('oculo').timeScale(2);
+        
+        bannerCam.addScene('scene1', '#bannerCamScene').setScene('scene1').render().play('oculo');
+        //bannerCam.addScene('scene1', new Oculo.Scene('#bannerCamScene', 400, 500)).setScene('scene1').render().play('zoom');
+        
+        var max = 0;
+        var circles = [];
+        var bannerCircles = document.getElementById('bannerCircles');
+        
+        while (max < 15) {
+            var circle = document.createElement('div');
+            circle.classList = 'banner-circle';
+            //circle.src = "images/animation-frame.svg";
+            //circle.alt = "circle";
+            //circle.width = Math.random() * 300;
+            circle.style.top = Math.random() * 100 + '%';
+            circle.style.left = Math.random() * 100 + '%';
+            circles.push(circle);
+            max++;
+        }
+        
+        circles.forEach(function (item) {
+            var size = Math.random() * 300 + 'px'
+            //item.style.width = size;
+            //item.style.height = size;
+            
+            //item.style.transform = 'scale(' + Math.random() * 1 +')';
+            TweenLite.set(item, {
+                scale: Math.random() * 1,
+                xPercent: -50,
+                yPercent: -50
+            });
+            
+            bannerCircles.appendChild(item);
+            
+            TweenMax.to(item, Math.random() * 10 + 6, { 
+                opacity: Math.random() * 0.06, 
+                delay: Math.random() * 3, 
+                repeat: -1, 
+                repeatDelay: Math.random() * 3, 
+                yoyo: true, 
+                ease: Power2.easeInOut 
+            });
+            TweenMax.to(item, Math.random() * 10 + 6, { 
+                x: Math.random() * 200 * (Math.random() < 0.5) ? -1 : 1, 
+                //xPercent: Math.random() * 50 * (Math.random() < 0.5) ? -1 : 1,
+                delay: Math.random() * 3, 
+                repeat: -1, 
+                repeatDelay: Math.random() * 3, 
+                yoyo: true, 
+                ease: Power2.easeInOut 
+            });
+            TweenMax.to(item, Math.random() * 10 + 6, { 
+                xPercent: Math.random() * 50 * (Math.random() < 0.5) ? -1 : 1,
+                delay: Math.random() * 3, 
+                repeat: -1, 
+                repeatDelay: Math.random() * 3, 
+                yoyo: true, 
+                ease: Power2.easeInOut 
+            });
+            TweenMax.to(item, Math.random() * 10 + 6, { 
+                y: Math.random() * 200 * (Math.random() < 0.5) ? -1 : 1, 
+                //yPercent: Math.random() * 50 * (Math.random() < 0.5) ? -1 : 1,
+                delay: Math.random() * 3, 
+                repeat: -1, 
+                repeatDelay: Math.random() * 3, 
+                yoyo: true, 
+                ease: Power2.easeInOut 
+            });
+            TweenMax.to(item, Math.random() * 10 + 6, { 
+                yPercent: Math.random() * 50 * (Math.random() < 0.5) ? -1 : 1,
+                delay: Math.random() * 3, 
+                repeat: -1, 
+                repeatDelay: Math.random() * 3, 
+                yoyo: true, 
+                ease: Power2.easeInOut 
+            });
+        });
+        
         
         Demo.initialize();
     </script>

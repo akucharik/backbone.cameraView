@@ -5,13 +5,14 @@
 @import 'prettify-min';
 @import 'code';
 
-$bright-purple: #660099;
+$bright-purple: #691989;
 $dark-purple: #5d407b;
 $light-purple: #d1b2e0;
 $gray-purple: #9c8aa5;
 $light-gray-purple: #bdaec6;
 $light-blue-purple: #c3c3e5;
 $light-bright-purple: #8c489f;
+$dark-blue: #496989;
 
 
 @mixin top-bar-width {
@@ -52,7 +53,7 @@ h2 {
 }
 
 .top-bar {
-    background-color: #fff;
+    background-color: transparent;
     font-size: rem-calc(16.8);
     font-weight: 400;
     padding: 1.1rem 0;
@@ -152,7 +153,12 @@ h2 {
         }
         
         > h1 {
+            color: $bright-purple;
             margin-left: -3px;
+        }
+        
+        > p{
+            color: $dark-blue;
         }
         
         > .button {
@@ -170,10 +176,10 @@ h2 {
     }
     
     &-camera {
-        background-color: whitesmoke;
-        border: 60px solid $dark-purple;
-        border-radius: 50%;
-        height: 400px;
+        //background-color: whitesmoke;
+        //border: 60px solid $dark-purple;
+        //border-radius: 50%;
+        //height: 400px;
         position: absolute;
         right: 25px;
         bottom: -25%;
