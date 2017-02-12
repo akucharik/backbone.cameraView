@@ -5,6 +5,7 @@
 @import 'prettify-min';
 @import 'code';
 
+$oculo-purple: #692969;
 $bright-purple: #691989;
 $dark-purple: #5d407b;
 $light-purple: #d1b2e0;
@@ -44,6 +45,10 @@ h2 {
 
 .column-full {
     @include flex-grid-column();
+    @include breakpoint(medium) {
+        padding-right: rem-calc(40);
+        padding-left: rem-calc(40);
+    }
 }
 
 .top {
@@ -143,9 +148,22 @@ h2 {
 }
 
 .home-banner {
-    background: linear-gradient(to bottom, #ffffff 20%, #adcee3 100%); /* addef3 */
     padding-top: 0 !important;
     padding-bottom: 0 !important;
+    
+    &-bkgd {
+        background: linear-gradient(to bottom, #ffffff 20%, #adcee3 100%); /* addef3 */
+        overflow: hidden;
+        position: relative;
+    }
+    
+    &-circle {
+        border: 40px solid #496989;
+        border-radius: 50%;
+        position: absolute;
+        width: 250px;
+        height: 250px;
+    }
     
     &-message {
         @include breakpoint(medium) {
@@ -175,22 +193,41 @@ h2 {
         line-height: 1.2;
     }
     
-    &-camera {
+    &-camera,
+    &-camera-frame {
         //background-color: whitesmoke;
         //border: 60px solid $dark-purple;
         //border-radius: 50%;
         //height: 400px;
-        position: absolute;
-        right: 25px;
-        bottom: -25%;
-        width: 400px;
+        position: absolute !important;
+        top: 70%;
+        left: 60%;
+        transform: translate(-50%, -50%);
+        //right: 25px;
+        //bottom: -25%;
+        //width: 400px;
         
         @include breakpoint(medium) {
-            /*top: -25%;*/
-            right: auto;
-            /*bottom: auto;*/
-            left: 0;
+            //top: 70%;
+            left: 40%;
         }
+    }
+    
+    &-camera-frame {
+        width: 400px;
+    }
+}
+
+.greensock-logo {
+    position: relative;
+    left: -50%;
+    transform: translate(-50%, 0);
+
+    @include breakpoint(medium) {
+        position: absolute;
+        top: 50%;
+        left: 40%;
+        transform: translate(-50%, -50%);
     }
 }
 
