@@ -24,6 +24,11 @@ $dark-blue: #496989;
     }
 }
 
+@mixin custom-flex-grid-row {
+    padding-left: rem-calc(20);
+    padding-right: rem-calc(20);
+}
+
 body {
     -webkit-font-smoothing: auto;
     -moz-osx-font-smoothing: auto;
@@ -45,6 +50,10 @@ h2 {
 
 .column-full {
     @include flex-grid-column();
+    
+    padding-right: rem-calc(30);
+    padding-left: rem-calc(30);
+    
     @include breakpoint(medium) {
         padding-right: rem-calc(40);
         padding-left: rem-calc(40);
@@ -148,9 +157,6 @@ h2 {
 }
 
 .home-banner {
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    
     &-bkgd {
         background: linear-gradient(to bottom, #ffffff 20%, #adcee3 100%); /* addef3 */
         overflow: hidden;
@@ -165,76 +171,158 @@ h2 {
         height: 250px;
     }
     
-    &-message {
+    &-section {
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+    
+    &-text-column {
+        @include flex-grid-column(12, 50);
+        padding-top: 1.6rem;
+        padding-bottom: 1.6rem;
+        text-align: center;
+        
         @include breakpoint(medium) {
-            margin-bottom: 50px;
+            @include flex-grid-column(4, 0);
+            padding-top: 0;
+            text-align: left;
         }
         
-        > h1 {
-            color: $bright-purple;
-            margin-left: -3px;
-        }
-        
-        > p{
-            color: $dark-blue;
-        }
-        
-        > .button {
-            background-color: #496989;
-            margin: 0;
-            padding-right: 2.2rem;
-            padding-left: 2.2rem;
+        @include breakpoint(large) {
+            @include flex-grid-column(5, 0);
+            @include grid-column-offset(1);
         }
     }
     
-    &-headline {
+    &-header {
+        margin-bottom: 1.0em;
+        position: relative;
+        left: -2px;
+    }
+    
+    &-text {
+        color: $dark-blue;
         font-size: rem-calc(24);
         font-weight: 400;
         line-height: 1.2;
     }
     
-    &-camera,
-    &-camera-frame {
-        //background-color: whitesmoke;
-        //border: 60px solid $dark-purple;
-        //border-radius: 50%;
-        //height: 400px;
-        position: absolute !important;
-        top: 70%;
-        left: 60%;
-        transform: translate(-50%, -50%);
-        //right: 25px;
-        //bottom: -25%;
-        //width: 400px;
+    &-button {
+        @include button(false, #496989, 'auto', #fff, solid);
+        font-size: 1.25rem;
+        margin: 0;
+        padding-right: 2.2rem;
+        padding-left: 2.2rem;
+    }
+    
+    
+    &-camera-column {
+        @include flex-grid-column(12, 0);
+        height: 325px;
+        position: relative;
         
         @include breakpoint(medium) {
-            //top: 70%;
+            @include flex-grid-column(7, 0);
+            @include grid-column-offset(1);
+        }
+        
+        @include breakpoint(large) {
+            @include flex-grid-column(6, 0);
+            @include grid-column-offset(0);
+        }
+    }
+    
+    &-camera,
+    &-camera-frame {
+        position: absolute !important;
+        top: 70%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        
+        @include breakpoint(medium) {
+            left: 50%;
+        }
+        
+        @include breakpoint(large) {
             left: 40%;
         }
     }
     
     &-camera-frame {
+        max-width: none;
         width: 400px;
     }
 }
 
-.greensock-logo {
-    position: relative;
-    left: -50%;
-    transform: translate(-50%, 0);
+.greensock {
+    background-color: #262626;
+    
+    &-text-column {
+        @include flex-grid-column(12, 0);
+        text-align: center;
+        
+        @include breakpoint(medium) {
+            @include flex-grid-column(5, 0);
+            text-align: left;
+        }
+        
+        @include breakpoint(large) {
+            @include grid-column-offset(1);
+        }
+    }
+    
+    &-header {
+        color: #fff;
+        line-height: 1.2;
+        margin-top: 0.6rem;
+        margin-bottom: 0.6rem;
+        
+        @include breakpoint(medium) {
+            font-size: rem-calc(30);
+        }
+    }
+    
+    &-text {
+        color: #bbb;
+    }
+    
+    &-graphic-column {
+        @include flex-grid-column(12, 0);
+        position: relative;
+        
+        @include breakpoint(medium) {
+            @include flex-grid-column(7, 0);
+            text-align: left;
+        }
+        
+        @include breakpoint(large) {
+            @include flex-grid-column(6, 0);
+        }
+    }
+    
+    &-graphic {
+        margin-left: -8px;
+        position: relative;
+        left: 50%;
+        transform: translate(-50%, 0);
 
-    @include breakpoint(medium) {
-        position: absolute;
-        top: 50%;
-        left: 40%;
-        transform: translate(-50%, -50%);
+        @include breakpoint(medium) {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        @include breakpoint(large) {
+            left: 40%;
+        }
     }
 }
 
 section {
     @include flex-grid-row();
-    padding-top: 2.0rem;
-    padding-bottom: 2.0rem;
+    padding-top: rem-calc(30);
+    padding-bottom: rem-calc(30);
 }
 
 .demo {
