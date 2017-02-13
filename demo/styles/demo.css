@@ -2105,7 +2105,7 @@ select[multiple] {
   line-height: 1;
   text-align: center;
   cursor: pointer;
-  background-color: #692969;
+  background-color: #7e317e;
   color: #fefefe;
 }
 
@@ -2114,7 +2114,7 @@ select[multiple] {
 }
 
 .button:hover, .button:focus {
-  background-color: #592359;
+  background-color: #6b2a6b;
   color: #fefefe;
 }
 
@@ -6280,13 +6280,13 @@ section {
 }
 
 .top {
-  color: #9d3d9d;
+  color: #7e317e;
   font-size: 80%;
   margin-left: 0.8rem;
 }
 
 .top:hover {
-  color: #833383;
+  color: #6b2a6b;
 }
 
 .top-bar {
@@ -6460,7 +6460,7 @@ section {
 
 .home-banner-header {
   max-width: none;
-  margin-bottom: 1.0em;
+  margin-bottom: 0.4em;
   position: relative;
   left: -2px;
 }
@@ -6473,24 +6473,25 @@ section {
   line-height: 1;
   white-space: nowrap;
   cursor: default;
-  color: #6287ac;
+  color: #5980a6;
   font-size: 0.6875rem;
   padding: 0 0 0 3px;
   position: absolute;
-  top: 0;
+  top: 2px;
 }
 
 @media print, screen and (min-width: 40em) {
   .home-banner .phase {
-    left: 200px;
+    left: 198px;
   }
 }
 
 .home-banner-text {
-  color: #496989;
-  font-size: 1.5rem;
+  color: #3e5974;
+  font-size: 1.375rem;
   font-weight: 400;
   line-height: 1.2;
+  margin-bottom: 1.2em;
 }
 
 .home-banner-button {
@@ -6508,7 +6509,7 @@ section {
   cursor: pointer;
   background-color: #496989;
   color: #fefefe;
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   margin: 0;
   padding-right: 2.2rem;
   padding-left: 2.2rem;
@@ -6680,6 +6681,10 @@ section {
 
 .demo {
   background-color: #ececec;
+}
+
+.demo > section {
+  padding-bottom: 3.125rem;
 }
 
 .demo-camera {

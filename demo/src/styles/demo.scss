@@ -94,12 +94,12 @@ section {
 
 // Go to top
 .top {
-    color: scale-color($primary-color, $lightness: 20%);
+    color: $button-background;
     font-size: 80%;
     margin-left: 0.8rem;
     
     &:hover {
-        color: scale-color($primary-color, $lightness: 10%);
+        color: $button-background-hover;
     }
 }
 
@@ -236,34 +236,35 @@ section {
     
     &-header {
         max-width: none;
-        margin-bottom: 1.0em;
+        margin-bottom: 0.4em;
         position: relative;
         left: -2px;
     }
     
     .phase {
         @include label;
-        color: scale-color($secondary-color, $lightness: 20%);
+        color: scale-color($secondary-color, $lightness: 15%);
         font-size: rem-calc(11);
         padding: 0 0 0 3px;
         position: absolute;
-        top: 0;
+        top: 2px;
         
         @include breakpoint(medium) {
-            left: 200px;
+            left: 198px;
         }
     }
     
     &-text {
-        color: $secondary-color;
-        font-size: rem-calc(24);
+        color: scale-color($secondary-color, $lightness: -15%);;
+        font-size: rem-calc(22);
         font-weight: 400;
         line-height: 1.2;
+        margin-bottom: 1.2em;
     }
     
     &-button {
         @include button(false, $secondary-color, 'auto', $white, solid);
-        font-size: 1.25rem;
+        font-size: 1.2rem;
         margin: 0;
         padding-right: 2.2rem;
         padding-left: 2.2rem;
@@ -372,6 +373,10 @@ section {
 
 .demo {
      background-color: scale-color($light-gray, $lightness: 25%);
+    
+    > section {
+        padding-bottom: rem-calc(50);
+    }
     
     &-camera {
         background-color: $white;

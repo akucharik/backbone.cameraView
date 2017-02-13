@@ -245,7 +245,7 @@ $breadcrumbs-item-slash: true;
 $button-padding: 0.85em 1.2em;
 $button-margin: 0 0 $global-margin 0;
 $button-fill: solid;
-$button-background: $primary-color;
+$button-background: scale-color($primary-color, $lightness: 8%);
 $button-background-hover: scale-color($button-background, $lightness: -15%);
 $button-color: $white;
 $button-color-alt: $black;
