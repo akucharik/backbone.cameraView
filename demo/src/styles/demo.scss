@@ -1,21 +1,49 @@
 @import 'settings';
 @import 'foundation';
-@include foundation-everything(true);
+@include foundation-global-styles;
+//@include foundation-grid;
+@include foundation-flex-grid;
+@include foundation-flex-classes;
+@include foundation-typography;
+@include foundation-forms;
+@include foundation-button;
+//@include foundation-accordion;
+//@include foundation-accordion-menu;
+//@include foundation-badge;
+@include foundation-breadcrumbs;
+@include foundation-button-group;
+//@include foundation-callout;
+//@include foundation-card;
+//@include foundation-close-button;
+@include foundation-menu;
+//@include foundation-menu-icon;
+//@include foundation-drilldown-menu;
+//@include foundation-dropdown;
+//@include foundation-dropdown-menu;
+@include foundation-responsive-embed;
+@include foundation-label;
+//@include foundation-media-object;
+//@include foundation-off-canvas;
+//@include foundation-orbit;
+//@include foundation-pagination;
+//@include foundation-progress-bar;
+//@include foundation-slider;
+//@include foundation-sticky;
+//@include foundation-reveal;
+//@include foundation-switch;
+@include foundation-table;
+//@include foundation-tabs;
+//@include foundation-thumbnail;
+@include foundation-title-bar;
+@include foundation-tooltip;
+@include foundation-top-bar;
+@include foundation-visibility-classes;
+//@include foundation-float-classes;
 @import 'font-awesome';
 @import 'prettify-min';
 @import 'code';
 
-$oculo-purple: #692969;
-$bright-purple: #691989;
-$dark-purple: #5d407b;
-$light-purple: #d1b2e0;
-$gray-purple: #9c8aa5;
-$light-gray-purple: #bdaec6;
-$light-blue-purple: #c3c3e5;
-$light-bright-purple: #8c489f;
-$dark-blue: #496989;
-
-
+// Mixins
 @mixin top-bar-width {
     width: 100%;
         
@@ -29,6 +57,7 @@ $dark-blue: #496989;
     padding-right: rem-calc(20);
 }
 
+// Tags
 body {
     -webkit-font-smoothing: auto;
     -moz-osx-font-smoothing: auto;
@@ -44,10 +73,13 @@ h2 {
     margin-top: $subheader-margin-top;
 }
 
-.button {
-    /*text-transform: uppercase;*/
+section {
+    @include flex-grid-row();
+    padding-top: rem-calc(30);
+    padding-bottom: rem-calc(30);
 }
 
+// Columns
 .column-full {
     @include flex-grid-column();
     
@@ -60,12 +92,18 @@ h2 {
     }
 }
 
+// Go to top
 .top {
-    color: $light-bright-purple;
+    color: scale-color($primary-color, $lightness: 20%);
     font-size: 80%;
     margin-left: 0.8rem;
+    
+    &:hover {
+        color: scale-color($primary-color, $lightness: 10%);
+    }
 }
 
+// Navigation
 .top-bar {
     background-color: transparent;
     font-size: rem-calc(16.8);
@@ -148,7 +186,7 @@ h2 {
                     z-index: 2;
 
                     &:hover {
-                        color: #fff;
+                        color: $white;
                     }
                 }
             }
@@ -158,13 +196,13 @@ h2 {
 
 .home-banner {
     &-bkgd {
-        background: linear-gradient(to bottom, #ffffff 20%, #adcee3 100%); /* addef3 */
+        background: linear-gradient(to bottom, $white 20%, #adcee3 100%); /* addef3 */
         overflow: hidden;
         position: relative;
     }
     
     &-circle {
-        border: 40px solid #496989;
+        border: 40px solid $secondary-color;
         border-radius: 50%;
         position: absolute;
         width: 250px;
@@ -178,13 +216,15 @@ h2 {
     
     &-text-column {
         @include flex-grid-column(12, 50);
-        padding-top: 1.6rem;
-        padding-bottom: 1.6rem;
+        overflow: visible;
+        margin-top: 1.6rem;
+        margin-bottom: 1.6rem;
+        position: relative;
         text-align: center;
         
         @include breakpoint(medium) {
             @include flex-grid-column(4, 0);
-            padding-top: 0;
+            margin-top: 0;
             text-align: left;
         }
         
@@ -195,20 +235,36 @@ h2 {
     }
     
     &-header {
+        max-width: none;
         margin-bottom: 1.0em;
         position: relative;
         left: -2px;
     }
     
+    .phase {
+        @include label;
+        background-color: scale-color($secondary-color, $lightness: 40%);
+        border-radius: 20px;
+        color: $white;
+        font-size: rem-calc(11);
+        padding: 0.25rem 0.5rem;
+        position: absolute;
+        top: 0;
+        
+        @include breakpoint(medium) {
+            left: 205px;
+        }
+    }
+    
     &-text {
-        color: $dark-blue;
+        color: $secondary-color;
         font-size: rem-calc(24);
         font-weight: 400;
         line-height: 1.2;
     }
     
     &-button {
-        @include button(false, #496989, 'auto', #fff, solid);
+        @include button(false, $secondary-color, 'auto', $white, solid);
         font-size: 1.25rem;
         margin: 0;
         padding-right: 2.2rem;
@@ -255,7 +311,7 @@ h2 {
 }
 
 .greensock {
-    background-color: #262626;
+    background-color: $greensock-black;
     
     &-text-column {
         @include flex-grid-column(12, 0);
@@ -272,7 +328,7 @@ h2 {
     }
     
     &-header {
-        color: #fff;
+        color: $white;
         line-height: 1.2;
         margin-top: 0.6rem;
         margin-bottom: 0.6rem;
@@ -283,7 +339,7 @@ h2 {
     }
     
     &-text {
-        color: #bbb;
+        color: $medium-gray;
     }
     
     &-graphic-column {
@@ -307,10 +363,7 @@ h2 {
         transform: translate(-50%, 0);
 
         @include breakpoint(medium) {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            @include absolute-center();
         }
         
         @include breakpoint(large) {
@@ -319,18 +372,98 @@ h2 {
     }
 }
 
-section {
-    @include flex-grid-row();
-    padding-top: rem-calc(30);
-    padding-bottom: rem-calc(30);
-}
-
 .demo {
-     background-color: #eee;
+     background-color: scale-color($light-gray, $lightness: 25%);
+    
+    &-camera {
+        background-color: $white;
+        box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        display: none;
+        height: 400px;
+        width: 600px;
+    }
+    
+    &-controls {
+        @include flex-grid-column(12);
+        background-color: scale-color($medium-gray, $lightness: -8%);
+        box-shadow: 0 0 10px rgba(0,0,0,0.25);
+        padding: 1.3em 1.6em !important;
+
+        @include breakpoint(medium) {
+            padding: 1.3em 2.0em !important;
+        }
+        
+        @include breakpoint(large) {
+            @include flex-grid-size(expand);
+            height: 500px;
+        }
+    }
+    
+    .behavior-actions {
+        margin-top: 0.4em;
+    }
+    
+    .custom-dropdown {
+        position: relative;
+
+        &-input {
+            cursor: pointer;
+            font-size: rem-calc(20);
+            font-weight: $header-font-weight;
+            line-height: $header-lineheight;
+            margin-bottom: $header-margin-bottom;
+
+            @include breakpoint(medium) {
+                font-size: rem-calc(28);
+            }
+        }
+
+        &-arrow {
+            font-size: 85%;
+            padding-left: 0.2rem;
+            transform-origin: 57% 47%;
+            transition: all 0.2s ease-out;
+        }
+
+        &-popup-list {
+            background-color: $light-gray;
+            box-shadow: 0 0 7px rgba(0,0,0,0.2);
+            min-width: 150px;
+            padding: 0.2rem 0;
+            position: absolute;
+            top: 100%;
+            left: 0;
+
+            &:after {
+                border: 1px solid rgba(0,0,0,0.1);
+                content: '';
+                display: block;
+                position: absolute;
+                top: -1px;
+                right: -1px;
+                bottom: -1px;
+                left: -1px;
+                z-index: 1;
+            }
+
+            > li {
+                color: $black;
+                cursor: pointer;
+                font-size: 1rem;
+                padding: 0.1rem 1.4rem 0.25rem;
+                position: relative;
+                z-index: 2;
+
+                &:hover {
+                    background-color: #bc78cf;
+                    background-color: scale-color($primary-color, $lightness: 40%);
+                }
+            }
+        }
+    }
 }
 
 .get-started {
-    background-color: #fafcff;
     border-top: 1px solid #ccc;
 }
 
@@ -350,114 +483,22 @@ section {
     }
 }
 
-.demo-controls {
-    @include flex-grid-column(12);
-    background-color: #bbb;
-    box-shadow: 0 0 10px rgba(0,0,0,0.25);
-    padding: 1.3em 2.0em;
-    
-    @include breakpoint(large) {
-        @include flex-grid-size(expand);
-        height: 500px;
-    }
-}
-
-.bcv-scene {
-    background-color: lightgray;
-    top: 0px;
-    left: 0px;
-}
-
-.custom-dropdown {
-    position: relative;
-    
-    &-input {
-        cursor: pointer;
-        font-size: rem-calc(20);
-        font-weight: $header-font-weight;
-        line-height: $header-lineheight;
-        margin-bottom: $header-margin-bottom;
-        
-        @include breakpoint(medium) {
-            font-size: rem-calc(28);
-        }
-    }
-    
-    &-arrow {
-        font-size: 85%;
-        padding-left: 0.2rem;
-        transform-origin: 57% 47%;
-        transition: all 0.2s ease-out;
-    }
-    
-    &-popup-list {
-        background-color: #eee;
-        box-shadow: 0 0 7px rgba(0,0,0,0.2);
-        min-width: 150px;
-        padding: 0.2rem 0;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        
-        &:after {
-            border: 1px solid rgba(0,0,0,0.1);
-            content: '';
-            display: block;
-            position: absolute;
-            top: -1px;
-            right: -1px;
-            bottom: -1px;
-            left: -1px;
-            z-index: 1;
-        }
-        
-        > li {
-            color: black;
-            cursor: pointer;
-            font-size: 1rem;
-            padding: 0.1rem 1.4rem 0.25rem;
-            position: relative;
-            z-index: 2;
-            
-            &:hover {
-                background-color: #bc78cf;
-            }
-        }
-    }
-}
-
-.behavior-actions {
-    margin-top: 0.4em;
-}
-
-.pt {
+// Demo scene
+.periodic-table {
     position: relative;
     width: 1350px;
     height: 900px;
 }
 
 .element {
-    /*background-color: #5d407b;*/
-    border: 1px solid rgba(0,0,0,0.05);
+    border: 1px solid;
     position: absolute;
     text-align: center;
     width: 70px;
     height: 85px;
     
-    &:hover {
-        background: white !important;
-        border-color: rgba(0,0,0,0.3);
-    }
-    
-    &:after {
-        border: 1px solid rgba(0,0,0,0.1);
-        content: '';
-        display: block;
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
+    &:hover > &-symbol  {
+        text-shadow: 0 0 10px rgba(0,0,0,0.3);
     }
     
     &-number {
@@ -493,13 +534,31 @@ section {
 }
 
 .metal {
-    background: linear-gradient(to bottom, #692583 30%, #5d407b 100%);
+    background: linear-gradient(to bottom, scale-color($primary-color, $lightness: 15%) 30%, scale-color($primary-color, $lightness: -15%) 100%);
+    border-color: scale-color($primary-color, $lightness: -25%);
+    
+    &:hover {
+        background: linear-gradient(to bottom, scale-color($primary-color, $lightness: 45%) 30%, scale-color($primary-color, $lightness: 15%) 100%);
+        border-color: scale-color($primary-color, $lightness: 5%);
+    }
 }
 
 .metalloid {
-    background: linear-gradient(to bottom, #bc78cf 30%, #8c489f 100%);
+    background: linear-gradient(to bottom, scale-color($dark-gray, $lightness: 0%) 30%, scale-color($dark-gray, $lightness: -30%) 100%);
+    border-color: scale-color($dark-gray, $lightness: -40%);
+    
+    &:hover {
+        background: linear-gradient(to bottom, scale-color($dark-gray, $lightness: 30%) 30%, scale-color($dark-gray, $lightness: 0%) 100%);
+        border-color: scale-color($dark-gray, $lightness: -10%);
+    }
 }
 
 .nonmetal {
-    background: linear-gradient(to bottom, #7999b9 30%, #496989 100%);
+    background: linear-gradient(to bottom, scale-color($secondary-color, $lightness: 15%) 30%, scale-color($secondary-color, $lightness: -15%) 100%);
+    border-color: scale-color($secondary-color, $lightness: -25%);
+    
+    &:hover {
+        background: linear-gradient(to bottom, scale-color($secondary-color, $lightness: 45%) 30%, scale-color($secondary-color, $lightness: 15%) 100%);
+        border-color: scale-color($secondary-color, $lightness: 5%);
+    }
 }

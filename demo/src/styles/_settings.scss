@@ -50,12 +50,14 @@ $global-font-size: 100%;
 $global-width: rem-calc(1200);
 $global-lineheight: 1.5;
 $foundation-palette: (
-  primary: #692969, //rgb(105, 25, 135), /*#1779ba,*/
-  secondary: #767676,
+  primary: #692969,
+  secondary: #496989,
+  tertiary: #cc983f,
   success: #3adb76,
   warning: #ffae00,
   alert: #cc4b37,
 );
+$greensock-black: #262626;
 $light-gray: #e6e6e6;
 $medium-gray: #cacaca;
 $dark-gray: #8a8a8a;
@@ -114,9 +116,9 @@ $header-lineheight: 1.4;
 $header-margin-bottom: 0.3rem;
 $header-styles: (
   small: (
-    'h1': ('font-size': 28),
-    'h2': ('font-size': 20),
-    'h3': ('font-size': 19),
+    'h1': ('font-size': 32),
+    'h2': ('font-size': 24),
+    'h3': ('font-size': 20),
     'h4': ('font-size': 18),
     'h5': ('font-size': 17),
     'h6': ('font-size': 16),
@@ -179,7 +181,7 @@ $lead-lineheight: 1.6;
 $subheader-lineheight: 1.4;
 $subheader-color: $dark-gray;
 $subheader-font-weight: $global-weight-normal;
-$subheader-margin-top: 1.5rem;
+$subheader-margin-top: 1.0rem;
 $subheader-margin-bottom: 0.5rem;
 $stat-font-size: 2.5rem;
 
