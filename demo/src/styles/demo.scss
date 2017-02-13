@@ -243,16 +243,14 @@ section {
     
     .phase {
         @include label;
-        background-color: scale-color($secondary-color, $lightness: 40%);
-        border-radius: 20px;
-        color: $white;
+        color: scale-color($secondary-color, $lightness: 20%);
         font-size: rem-calc(11);
-        padding: 0.25rem 0.5rem;
+        padding: 0 0 0 3px;
         position: absolute;
         top: 0;
         
         @include breakpoint(medium) {
-            left: 205px;
+            left: 200px;
         }
     }
     
@@ -383,7 +381,7 @@ section {
         width: 600px;
     }
     
-    &-controls {
+    &-cpanel {
         @include flex-grid-column(12);
         background-color: scale-color($medium-gray, $lightness: -8%);
         box-shadow: 0 0 10px rgba(0,0,0,0.25);
@@ -397,67 +395,96 @@ section {
             @include flex-grid-size(expand);
             height: 500px;
         }
-    }
-    
-    .behavior-actions {
-        margin-top: 0.4em;
-    }
-    
-    .custom-dropdown {
-        position: relative;
-
-        &-input {
-            cursor: pointer;
-            font-size: rem-calc(20);
-            font-weight: $header-font-weight;
-            line-height: $header-lineheight;
-            margin-bottom: $header-margin-bottom;
-
+        
+        &-behaviors {
+            @include flex-grid-column(6);
+            padding-right: 0.65em;
+            
             @include breakpoint(medium) {
-                font-size: rem-calc(28);
+                padding-right: 0.75em;
             }
         }
-
-        &-arrow {
-            font-size: 85%;
-            padding-left: 0.2rem;
-            transform-origin: 57% 47%;
-            transition: all 0.2s ease-out;
+        
+        &-controls {
+            @include flex-grid-column(6);
+            padding-left: 0.65em;
+            
+            @include breakpoint(medium) {
+                padding-left: 0.75em;
+            }
         }
+        
+        &-header {
+            line-height: 1.05;
+        }
+        
+        &-behavior-actions {
+            margin-top: 0.4em;
+        }
+        
+        &-controls-actions {
+            @include button-group;
+            @include button-group-expand;
+            @include button-group-stack;
+            margin-top: 1.05em;
+        }
+    }
+}
 
-        &-popup-list {
-            background-color: $light-gray;
-            box-shadow: 0 0 7px rgba(0,0,0,0.2);
-            min-width: 150px;
-            padding: 0.2rem 0;
+.custom-dropdown {
+    position: relative;
+
+    &-input {
+        cursor: pointer;
+        font-size: rem-calc(20);
+        font-weight: $header-font-weight;
+        line-height: $header-lineheight;
+        margin-bottom: $header-margin-bottom;
+
+        @include breakpoint(medium) {
+            font-size: rem-calc(28);
+        }
+    }
+
+    &-arrow {
+        font-size: 85%;
+        padding-left: 0.2rem;
+        transform-origin: 57% 47%;
+        transition: all 0.2s ease-out;
+    }
+
+    &-popup-list {
+        background-color: $light-gray;
+        box-shadow: 0 0 7px rgba(0,0,0,0.2);
+        min-width: 150px;
+        padding: 0.2rem 0;
+        position: absolute;
+        top: 100%;
+        left: 0;
+
+        &:after {
+            border: 1px solid rgba(0,0,0,0.1);
+            content: '';
+            display: block;
             position: absolute;
-            top: 100%;
-            left: 0;
+            top: -1px;
+            right: -1px;
+            bottom: -1px;
+            left: -1px;
+            z-index: 1;
+        }
 
-            &:after {
-                border: 1px solid rgba(0,0,0,0.1);
-                content: '';
-                display: block;
-                position: absolute;
-                top: -1px;
-                right: -1px;
-                bottom: -1px;
-                left: -1px;
-                z-index: 1;
-            }
+        > li {
+            color: $black;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0.1rem 1.4rem 0.25rem;
+            position: relative;
+            z-index: 2;
 
-            > li {
-                color: $black;
-                cursor: pointer;
-                font-size: 1rem;
-                padding: 0.1rem 1.4rem 0.25rem;
-                position: relative;
-                z-index: 2;
-
-                &:hover {
-                    background-color: #bc78cf;
-                    background-color: scale-color($primary-color, $lightness: 40%);
-                }
+            &:hover {
+                background-color: #bc78cf;
+                background-color: scale-color($primary-color, $lightness: 40%);
             }
         }
     }

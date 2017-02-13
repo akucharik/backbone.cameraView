@@ -14,7 +14,7 @@ import CustomDropdownList   from '../containers/customDropdownList';
 
 const App = () => (
     <div className="row">
-        <div className="medium-6 columns" style={{paddingRight: '0.8em'}}>
+        <div className="demo-cpanel-behaviors">
             <CustomDropdownList 
                 items={data.behaviorGroups} 
                 itemTextKey='text' 
@@ -26,8 +26,8 @@ const App = () => (
                 onChange={actions.updateBehaviorGroup} />
             <BehaviorGroup />
         </div>
-        <div className="medium-6 columns" style={{paddingLeft: '0.8em'}}>
-            <h3 style={{whiteSpace: 'nowrap'}}>Play Controls</h3>
+        <div className="demo-cpanel-controls">
+            <h3 className="demo-cpanel-header">Play Controls</h3>
             <Controls />
         </div>
     </div>

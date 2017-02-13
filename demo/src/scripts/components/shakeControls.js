@@ -37,7 +37,7 @@ const ShakeControls = () => (
             <label>Ease out</label>
             <DropdownList items={data.easeList} valueKey='shakeEaseOut' onChange={actions.updateShakeEaseOut} />
         </div>
-        <div className="behavior-actions">
+        <div className="demo-cpanel-behavior-actions">
             <button type="button" className="button expanded" onClick={cameraActions.shake}>Shake</button>
         </div>
     </div>

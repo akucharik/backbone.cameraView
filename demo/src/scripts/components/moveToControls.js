@@ -25,7 +25,7 @@ const MoveToControls = () => (
             <label>Ease</label>
             <DropdownList items={data.easeList} valueKey='ease' onChange={actions.updateEase} />
         </div>
-        <div className="behavior-actions">
+        <div className="demo-cpanel-behavior-actions">
             <button type="button" className="button expanded" onClick={cameraActions.moveTo}>Move</button>
         </div>
     </div>

@@ -6473,18 +6473,16 @@ section {
   line-height: 1;
   white-space: nowrap;
   cursor: default;
-  background-color: #8aa5c0;
-  border-radius: 20px;
-  color: #fefefe;
+  color: #6287ac;
   font-size: 0.6875rem;
-  padding: 0.25rem 0.5rem;
+  padding: 0 0 0 3px;
   position: absolute;
   top: 0;
 }
 
 @media print, screen and (min-width: 40em) {
   .home-banner .phase {
-    left: 205px;
+    left: 200px;
   }
 }
 
@@ -6692,7 +6690,7 @@ section {
   width: 600px;
 }
 
-.demo-controls {
+.demo-cpanel {
   flex: 0 0 100%;
   max-width: 100%;
   padding-right: 1.25rem;
@@ -6704,34 +6702,126 @@ section {
 }
 
 @media print, screen and (min-width: 40em) {
-  .demo-controls {
+  .demo-cpanel {
     padding-right: 1.25rem;
     padding-left: 1.25rem;
   }
 }
 
 @media print, screen and (min-width: 40em) {
-  .demo-controls {
+  .demo-cpanel {
     padding: 1.3em 2.0em !important;
   }
 }
 
 @media print, screen and (min-width: 64em) {
-  .demo-controls {
+  .demo-cpanel {
     flex: 1 1 0px;
     height: 500px;
   }
 }
 
-.demo .behavior-actions {
+.demo-cpanel-behaviors {
+  flex: 0 0 50%;
+  max-width: 50%;
+  padding-right: 1.25rem;
+  padding-left: 1.25rem;
+  max-width: 50%;
+  padding-right: 0.65em;
+}
+
+@media print, screen and (min-width: 40em) {
+  .demo-cpanel-behaviors {
+    padding-right: 1.25rem;
+    padding-left: 1.25rem;
+  }
+}
+
+@media print, screen and (min-width: 40em) {
+  .demo-cpanel-behaviors {
+    padding-right: 0.75em;
+  }
+}
+
+.demo-cpanel-controls {
+  flex: 0 0 50%;
+  max-width: 50%;
+  padding-right: 1.25rem;
+  padding-left: 1.25rem;
+  max-width: 50%;
+  padding-left: 0.65em;
+}
+
+@media print, screen and (min-width: 40em) {
+  .demo-cpanel-controls {
+    padding-right: 1.25rem;
+    padding-left: 1.25rem;
+  }
+}
+
+@media print, screen and (min-width: 40em) {
+  .demo-cpanel-controls {
+    padding-left: 0.75em;
+  }
+}
+
+.demo-cpanel-header {
+  line-height: 1.05;
+}
+
+.demo-cpanel-behavior-actions {
   margin-top: 0.4em;
 }
 
-.demo .custom-dropdown {
+.demo-cpanel-controls-actions {
+  margin-bottom: 0.5rem;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  flex-wrap: wrap;
+  margin-top: 1.05em;
+}
+
+.demo-cpanel-controls-actions::before, .demo-cpanel-controls-actions::after {
+  display: table;
+  content: ' ';
+  flex-basis: 0;
+  order: 1;
+}
+
+.demo-cpanel-controls-actions::after {
+  clear: both;
+}
+
+.demo-cpanel-controls-actions .button {
+  margin: 0;
+  margin-right: 8px;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  flex: 0 0 auto;
+}
+
+.demo-cpanel-controls-actions .button:last-child {
+  margin-right: 0;
+}
+
+.demo-cpanel-controls-actions .button {
+  flex: 1 1 0px;
+}
+
+.demo-cpanel-controls-actions .button {
+  flex: 0 0 100%;
+}
+
+.demo-cpanel-controls-actions .button:last-child {
+  margin-bottom: 0;
+}
+
+.custom-dropdown {
   position: relative;
 }
 
-.demo .custom-dropdown-input {
+.custom-dropdown-input {
   cursor: pointer;
   font-size: 1.25rem;
   font-weight: normal;
@@ -6740,19 +6830,19 @@ section {
 }
 
 @media print, screen and (min-width: 40em) {
-  .demo .custom-dropdown-input {
+  .custom-dropdown-input {
     font-size: 1.75rem;
   }
 }
 
-.demo .custom-dropdown-arrow {
+.custom-dropdown-arrow {
   font-size: 85%;
   padding-left: 0.2rem;
   transform-origin: 57% 47%;
   transition: all 0.2s ease-out;
 }
 
-.demo .custom-dropdown-popup-list {
+.custom-dropdown-popup-list {
   background-color: #e6e6e6;
   box-shadow: 0 0 7px rgba(0, 0, 0, 0.2);
   min-width: 150px;
@@ -6762,7 +6852,7 @@ section {
   left: 0;
 }
 
-.demo .custom-dropdown-popup-list:after {
+.custom-dropdown-popup-list:after {
   border: 1px solid rgba(0, 0, 0, 0.1);
   content: '';
   display: block;
@@ -6774,7 +6864,7 @@ section {
   z-index: 1;
 }
 
-.demo .custom-dropdown-popup-list > li {
+.custom-dropdown-popup-list > li {
   color: #0a0a0a;
   cursor: pointer;
   font-size: 1rem;
@@ -6783,7 +6873,7 @@ section {
   z-index: 2;
 }
 
-.demo .custom-dropdown-popup-list > li:hover {
+.custom-dropdown-popup-list > li:hover {
   background-color: #bc78cf;
   background-color: #c262c2;
 }

@@ -17,7 +17,7 @@ const Bounds = () => (
             <label>Bounds</label>
             <DropdownList items={data.boundsList} valueKey='bounds' onChange={actions.updateBounds} />
         </div>
-        <div className="behavior-actions">
+        <div className="demo-cpanel-behavior-actions">
             <button type="button" className="button expanded" onClick={cameraActions.setBounds}>Set Bounds</button>
         </div>
     </div>

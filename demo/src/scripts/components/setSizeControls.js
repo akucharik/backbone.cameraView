@@ -21,7 +21,7 @@ const SetSizeControls = () => (
             <label>Height</label>
             <Textbox valueKey='height' onChange={actions.updateHeight} />
         </div>
-        <div className="behavior-actions">
+        <div className="demo-cpanel-behavior-actions">
             <button type="button" className="button expanded" onClick={cameraActions.setSize}>Resize</button>
         </div>
     </div>
