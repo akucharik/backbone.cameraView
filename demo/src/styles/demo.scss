@@ -195,6 +195,9 @@ section {
 }
 
 .home-banner {
+    position: relative;
+    z-index: 2;
+    
     &-bkgd {
         background: linear-gradient(to bottom, $white 20%, #adcee3 100%); /* addef3 */
         overflow: hidden;
@@ -207,6 +210,7 @@ section {
         position: absolute;
         width: 250px;
         height: 250px;
+        z-index: 1;
     }
     
     &-section {

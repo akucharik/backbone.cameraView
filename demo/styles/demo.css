@@ -6402,6 +6402,11 @@ section {
   color: #fefefe;
 }
 
+.home-banner {
+  position: relative;
+  z-index: 2;
+}
+
 .home-banner-bkgd {
   background: linear-gradient(to bottom, #fefefe 20%, #adcee3 100%);
   /* addef3 */
@@ -6415,6 +6420,7 @@ section {
   position: absolute;
   width: 250px;
   height: 250px;
+  z-index: 1;
 }
 
 .home-banner-section {

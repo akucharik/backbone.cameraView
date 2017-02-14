@@ -283,32 +283,36 @@ class Camera {
         
         this.onResize = () => {
             // Maintain camera position and update the current animation
-            new Oculo.Animation(this, { 
-                destroyOnComplete: true, 
-                paused: false, 
-                onComplete: function (wasPaused) {
-                    if (this.camera.animations.currentAnimation) {
-                        // 'this' is bound to the Animation via the Animation class
-                        var animation = this.camera.animations.currentAnimation;
-                        var time = animation.time();
+            if (this.view !== null) {
+                this.renderer.renderSize();
+                
+                new Oculo.Animation(this, { 
+                    destroyOnComplete: true, 
+                    paused: false, 
+                    onComplete: function (wasPaused) {
+                        if (this.camera.animations.currentAnimation) {
+                            // 'this' is bound to the Animation via the Animation class
+                            var animation = this.camera.animations.currentAnimation;
+                            var time = animation.time();
 
-                        if (animation.totalProgress() > 0) {
-                            animation.seek(0).invalidate();
+                            if (animation.totalProgress() > 0) {
+                                animation.seek(0).invalidate();
 
-                            if (animation.coreTweens[0]) {
-                                this.camera.setPosition(animation.coreTweens[0].props.start.position);
+                                if (animation.coreTweens[0]) {
+                                    this.camera.setPosition(animation.coreTweens[0].props.start.position);
+                                }
+
+                                animation.seek(time, false);
                             }
 
-                            animation.seek(time, false);
+                            if (!wasPaused) {
+                                this.camera.resume();
+                            }
                         }
-
-                        if (!wasPaused) {
-                            this.camera.resume();
-                        }
-                    }
-                },
-                onCompleteParams: [this.animations.isPaused]
-            }).moveTo(this.position, 0, { overwrite: false });
+                    },
+                    onCompleteParams: [this.animations.isPaused]
+                }).moveTo(this.position, 0, { overwrite: false });
+            }
         }
         
         // Initialize event listeners
@@ -902,9 +906,6 @@ class Camera {
         }
         
         if (hasChanged) {
-            if (this.view !== null) {
-                this.renderer.renderSize();
-            }
             this._events.emit('change:size');
         }
         
