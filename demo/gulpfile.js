@@ -19,11 +19,11 @@ var build = {
         source: './src/scripts/demo.js',
         vendor: {
             source: [
-                '../dist/TweenMax.min.js', 
-                '../dist/Draggable.min.js',
+                './src/scripts/vendor/TweenMax.min.js', 
+                './src/scripts/vendor/Draggable.min.js',
+                './src/scripts/vendor/ScrollToPlugin.js',
                 //'../dist/oculo.js',
-                './src/scripts/vendor/prettify-min.js',
-                './src/scripts/vendor/ScrollToPlugin.js'
+                './src/scripts/vendor/prettify-min.js'
             ]
         }
     },
@@ -49,6 +49,14 @@ gulp.task('default', ['build']);
 
 gulp.task('build', ['compile:styles', 'compile:scripts'], function () {
     return;
+});
+
+gulp.task('build:prod', ['env:prod', 'compile:styles', 'compile:scripts'], function () {
+    return;
+});
+
+gulp.task('env:prod', function() {
+    process.env.NODE_ENV = 'production';
 });
 
 gulp.task('clean:scripts', function () {
@@ -79,28 +87,24 @@ gulp.task('compile:scripts', ['clean:scripts', 'copy:vendor:scripts'], function 
             console.log('Error: ' + error.message); 
         })
         .pipe(source(build.scripts.destFileName))
-        .pipe(gulp.dest(build.scripts.destDirectory))
+        
         // Minify
-//        .pipe(buffer())
-//        .pipe(uglify())
-//        .pipe(rename({
-//            suffix: '.min'
-//        }))
-//        .pipe(gulp.dest(build.scripts.destDirectory));
+        .pipe(buffer())
+        .pipe(uglify())
+        .pipe(rename({
+            suffix: '.min'
+        }))
+        .pipe(gulp.dest(build.scripts.destDirectory));
 });
 
 gulp.task('compile:styles', ['clean:styles', 'copy:vendor:styles'], function () {
     return gulp.src(build.styles.source)
         .pipe(sass({
             includePaths: build.styles.paths,
-            outputStyle: 'expanded'
+            outputStyle: process.env.NODE_ENV === 'production' ? 'compressed' : 'expanded'
         }).on('error', sass.logError))
-        .pipe(gulp.dest(build.styles.destDirectory))
-        // Minify
-//        .pipe(buffer())
-//        .pipe(uglifycss())
-//        .pipe(rename({
-//            suffix: '.min'
-//        }))
-//        .pipe(gulp.dest(build.styles.destDirectory));
+        .pipe(rename({
+            suffix: '.min'
+        }))
+        .pipe(gulp.dest(build.styles.destDirectory));
 });
