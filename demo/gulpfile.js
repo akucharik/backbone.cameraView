@@ -10,20 +10,19 @@ var rename = require('gulp-rename');
 var sass = require('gulp-sass');
 var source = require('vinyl-source-stream');
 var uglify = require('gulp-uglify');
-var uglifycss = require('gulp-uglifycss');
 
-var build = {
+var config = {
     scripts: {
         destDirectory: './scripts',
-        destFileName: 'demo.js',
-        source: './src/scripts/demo.js',
+        destFileName: 'site.js',
+        source: './src/scripts/site.js',
         vendor: {
             source: [
                 './src/scripts/vendor/TweenMax.min.js', 
                 './src/scripts/vendor/Draggable.min.js',
                 './src/scripts/vendor/ScrollToPlugin.js',
                 //'../dist/oculo.js',
-                './src/scripts/vendor/prettify-min.js'
+                './src/scripts/vendor/prettify.js'
             ]
         }
     },
@@ -34,13 +33,7 @@ var build = {
             '../node_modules/foundation-sites/scss',
             '../node_modules/normalize-scss/sass'
         ],
-        source: './src/styles/demo.scss',
-        vendor: {
-            source: [
-                './src/styles/font-awesome.min.css', 
-                './src/styles/github-markdown.css'
-            ]
-        }
+        source: './src/styles/site.scss'
     }
 };
 
@@ -60,25 +53,20 @@ gulp.task('env:prod', function() {
 });
 
 gulp.task('clean:scripts', function () {
-    return del(build.scripts.destDirectory);
+    return del(config.scripts.destDirectory);
 });
 
 gulp.task('clean:styles', function () {
-    return del(build.styles.destDirectory);
+    return del(config.styles.destDirectory);
 });
 
 gulp.task('copy:vendor:scripts', ['clean:scripts'], function () {
-    return gulp.src(build.scripts.vendor.source)
-        .pipe(gulp.dest(build.scripts.destDirectory));
-});
-
-gulp.task('copy:vendor:styles', ['clean:styles'], function () {
-    return gulp.src(build.styles.vendor.source)
-        .pipe(gulp.dest(build.styles.destDirectory));
+    return gulp.src(config.scripts.vendor.source)
+        .pipe(gulp.dest(config.scripts.destDirectory));
 });
 
 gulp.task('compile:scripts', ['clean:scripts', 'copy:vendor:scripts'], function () {
-    return browserify(build.scripts.source, { 
+    return browserify(config.scripts.source, { 
             debug: true
         })
         .transform(babelify)
@@ -86,7 +74,7 @@ gulp.task('compile:scripts', ['clean:scripts', 'copy:vendor:scripts'], function 
         .on('error', function (error) { 
             console.log('Error: ' + error.message); 
         })
-        .pipe(source(build.scripts.destFileName))
+        .pipe(source(config.scripts.destFileName))
         
         // Minify
         .pipe(buffer())
@@ -94,17 +82,17 @@ gulp.task('compile:scripts', ['clean:scripts', 'copy:vendor:scripts'], function 
         .pipe(rename({
             suffix: '.min'
         }))
-        .pipe(gulp.dest(build.scripts.destDirectory));
+        .pipe(gulp.dest(config.scripts.destDirectory));
 });
 
-gulp.task('compile:styles', ['clean:styles', 'copy:vendor:styles'], function () {
-    return gulp.src(build.styles.source)
+gulp.task('compile:styles', ['clean:styles'], function () {
+    return gulp.src(config.styles.source)
         .pipe(sass({
-            includePaths: build.styles.paths,
+            includePaths: config.styles.paths,
             outputStyle: process.env.NODE_ENV === 'production' ? 'compressed' : 'expanded'
         }).on('error', sass.logError))
         .pipe(rename({
             suffix: '.min'
         }))
-        .pipe(gulp.dest(build.styles.destDirectory));
+        .pipe(gulp.dest(config.styles.destDirectory));
 });
