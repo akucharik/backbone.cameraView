@@ -93,7 +93,7 @@ class AnimationManager {
             newAnimation = animation;
         }
         else {
-            newAnimation = new Animation(this.camera);
+            newAnimation = new Animation(this.camera, animation.options);
             animation.keyframes.forEach((keyframe) => {
                 newAnimation.animate({
                     origin: keyframe.origin,
@@ -167,7 +167,7 @@ class AnimationManager {
         
         if (animation) {
             this.currentAnimation = animation;
-            this.currentAnimation.invalidate().restart(false, false);
+            this.currentAnimation.invalidate().restart(true);
         } 
         else if (name === undefined && this.currentAnimation) {
             this.currentAnimation.play(null, false);

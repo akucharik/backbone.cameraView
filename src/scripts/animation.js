@@ -88,8 +88,9 @@ class Animation extends TimelineMax {
         * Called when the animation has started.
         *
         * @private
+        * @param {boolean} isRepeating - Whether the animation is repeating or not.
         */
-        this._onStart = function () {
+        this._onStart = function (isRepeating = false) {
             this._initCoreTween(this.coreTweens[0]);
             this.camera.isAnimating = true;
 
@@ -101,7 +102,7 @@ class Animation extends TimelineMax {
                 this.camera.trackControl.disableWheel();
             }
             
-            if (this.config.onStart !== undefined) {
+            if (this.config.onStart !== undefined && !isRepeating) {
                 this.config.onStart.apply(this, this.config.onStartParams);
             }
             // TODO: Remove once dev is complete
@@ -147,10 +148,26 @@ class Animation extends TimelineMax {
             // TODO: Remove once dev is complete
             console.log('animation completed');
         },
+            
+        /**
+        * Called when the animation has repeated.
+        *
+        * @private
+        */
+        this._onRepeat = function () {
+            this._onStart(true);
+            
+            if (this.config.onRepeat !== undefined) {
+                this.config.onRepeat.apply(this, this.config.onRepeatParams);
+            }
+            // TODO: Remove once dev is complete
+            console.log('animation repeated');
+        }
         
         this.eventCallback('onStart', this._onStart);
         this.eventCallback('onUpdate', this._onUpdate);
         this.eventCallback('onComplete', this._onComplete);
+        this.eventCallback('onRepeat', this._onRepeat);
     }
     
     /**
@@ -510,6 +527,7 @@ class Animation extends TimelineMax {
     */
     _initCoreTween (tween, startProps) {
         if (tween !== undefined) {
+            tween.invalidate();
             startProps = (startProps !== undefined) ? startProps : this._getStartProps();
             
             var parsedProps = this._parseProps(tween.props.source);
