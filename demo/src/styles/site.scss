@@ -240,7 +240,7 @@ section {
     
     &-header {
         max-width: none;
-        margin-bottom: 0.4em;
+        margin-bottom: 0.6em;
         position: relative;
         left: -2px;
     }
@@ -254,7 +254,7 @@ section {
         top: 2px;
         
         @include breakpoint(medium) {
-            left: 198px;
+            left: 188px;
         }
     }
     
@@ -263,7 +263,7 @@ section {
         font-size: rem-calc(22);
         font-weight: 400;
         line-height: 1.2;
-        margin-bottom: 1.2em;
+        margin-bottom: 1.0em;
     }
     
     &-button {
