@@ -62,7 +62,7 @@ const actions = {
     setSize: function () {
         let state = store.getState();
         
-        camera.setSize(state.width, state.height);
+        camera.setSize(parseFloat(state.width), parseFloat(state.height));
     },
     shake: function () {
         let state = store.getState();

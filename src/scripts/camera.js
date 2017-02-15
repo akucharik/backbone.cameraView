@@ -9,11 +9,7 @@
 // 1) Ensure directional rotation plugin works
 
 import clamp                from 'lodash/clamp';
-import isElement            from 'lodash/isElement';
-import isFinite             from 'lodash/isFinite';
 import isFunction           from 'lodash/isFunction';
-import isNil                from 'lodash/isNil';
-import isObject             from 'lodash/isObject';
 import { zoomDirection }    from './constants';
 import { EventEmitter }     from 'fbemitter';
 import Animation            from './animation';
@@ -893,13 +889,13 @@ class Camera {
     setSize (width, height) {
         var hasChanged = false;
         
-        if (!isNil(width) && (width !== this.width)) {
+        if (Number.isFinite(width) && (width !== this.width)) {
             this.width = width;
             this.center.x = width * 0.5;
             hasChanged = true;
         }
         
-        if (!isNil(height) && (height !== this.height)) {
+        if (Number.isFinite(height) && (height !== this.height)) {
             this.height = height;
             this.center.y = height * 0.5;
             hasChanged = true;
