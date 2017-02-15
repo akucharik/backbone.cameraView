@@ -1,17 +1,28 @@
 'use strict';
 
 var babelify = require('babelify');
-var babelRegister = require('babel-register');
 var browserify = require('browserify');
 var buffer = require('vinyl-buffer');
 var del = require('del');
 var gulp = require('gulp');
+var gulpif = require('gulp-if');
 var rename = require('gulp-rename');
 var sass = require('gulp-sass');
 var source = require('vinyl-source-stream');
 var uglify = require('gulp-uglify');
 
 var config = {
+    environment: 'production',
+    development: {
+        lint: true,
+        minify: false,
+        sourcemaps: true
+    },
+    production: {
+        lint: false,
+        minify: true,
+        sourcemaps: false
+    },
     scripts: {
         destDirectory: './scripts',
         destFileName: 'site.js',
@@ -37,19 +48,15 @@ var config = {
     }
 };
 
+if (config.environment === 'production') {
+    process.env.NODE_ENV = config.environment;
+}
+
 // set up default task
 gulp.task('default', ['build']);
 
 gulp.task('build', ['compile:styles', 'compile:scripts'], function () {
     return;
-});
-
-gulp.task('build:prod', ['env:prod', 'compile:styles', 'compile:scripts'], function () {
-    return;
-});
-
-gulp.task('env:prod', function() {
-    process.env.NODE_ENV = 'production';
 });
 
 gulp.task('clean:scripts', function () {
@@ -67,9 +74,9 @@ gulp.task('copy:vendor:scripts', ['clean:scripts'], function () {
 
 gulp.task('compile:scripts', ['clean:scripts', 'copy:vendor:scripts'], function () {
     return browserify(config.scripts.source, { 
-            debug: true
+            debug: config[config.environment].sourcemaps,
+            transform: babelify
         })
-        .transform(babelify)
         .bundle()
         .on('error', function (error) { 
             console.log('Error: ' + error.message); 
@@ -78,10 +85,8 @@ gulp.task('compile:scripts', ['clean:scripts', 'copy:vendor:scripts'], function 
         
         // Minify
         .pipe(buffer())
-        .pipe(uglify())
-        .pipe(rename({
-            suffix: '.min'
-        }))
+        .pipe(gulpif(config[config.environment].minify, uglify()))
+        .pipe(gulpif(config[config.environment].minify, rename({suffix: '.min'})))
         .pipe(gulp.dest(config.scripts.destDirectory));
 });
 
@@ -89,10 +94,8 @@ gulp.task('compile:styles', ['clean:styles'], function () {
     return gulp.src(config.styles.source)
         .pipe(sass({
             includePaths: config.styles.paths,
-            outputStyle: process.env.NODE_ENV === 'production' ? 'compressed' : 'expanded'
+            outputStyle: config[config.environment].minify ? 'compressed' : 'expanded'
         }).on('error', sass.logError))
-        .pipe(rename({
-            suffix: '.min'
-        }))
+        .pipe(gulpif(config[config.environment].minify, rename({suffix: '.min'})))
         .pipe(gulp.dest(config.styles.destDirectory));
 });
