@@ -4,17 +4,28 @@ var babelify = require('babelify');
 var babelRegister = require('babel-register');
 var browserify = require('browserify');
 var buffer = require('vinyl-buffer');
+var childProcess = require('child_process');
 var del = require('del');
-var executeChildProcess = require('child_process').exec;
 var gulp = require('gulp');
+var gulpif = require('gulp-if');
 var mocha = require('gulp-mocha');
-var sass = require('gulp-sass');
 var rename = require('gulp-rename');
+var sass = require('gulp-sass');
 var source = require('vinyl-source-stream');
 var uglify = require('gulp-uglify');
-var uglifycss = require('gulp-uglifycss');
 
-var build = {
+var config = {
+    environment: 'development',
+    development: {
+        lint: true,
+        minify: false,
+        sourcemaps: true
+    },
+    production: {
+        lint: false,
+        minify: true,
+        sourcemaps: false
+    },
     scripts: {
         destDirectory: './dist',
         destFileName: 'oculo.js',
@@ -33,6 +44,10 @@ var docs = {
     destDirectory: './docs'
 };
 
+if (config.environment === 'production') {
+    process.env.NODE_ENV = config.environment;
+}
+
 // set up default task
 gulp.task('default', ['build']);
 
@@ -45,41 +60,39 @@ gulp.task('clean:docs', function () {
 });
 
 gulp.task('clean:scripts', function () {
-    return del(build.scripts.destDirectory);
+    return del(config.scripts.destDirectory);
 });
 
 gulp.task('copy:vendor', ['clean:scripts'], function () {
-    return gulp.src(build.vendor.source)
-        .pipe(gulp.dest(build.scripts.destDirectory));
+    return gulp.src(config.vendor.source)
+        .pipe(gulp.dest(config.scripts.destDirectory));
 });
 
 gulp.task('compile:scripts', ['clean:scripts', 'copy:vendor'], function () {
-    return browserify(build.scripts.source, { 
-            debug: true,
-            standalone: 'Oculo'
+    return browserify(config.scripts.source, { 
+            debug: config[config.environment].sourcemaps,
+            standalone: 'Oculo',
+            transform: babelify
         })
-        .transform(babelify)
         .bundle()
         .on('error', function (error) { 
             console.log('Error: ' + error.message); 
         })
-        .pipe(source(build.scripts.destFileName))
-        .pipe(gulp.dest(build.scripts.destDirectory))
+        .pipe(source(config.scripts.destFileName))
+    
         // Minify
-//        .pipe(buffer())
-//        .pipe(uglify())
-//        .pipe(rename({
-//            suffix: '.min'
-//        }))
-//        .pipe(gulp.dest(build.scripts.destDirectory));
+        .pipe(buffer())
+        .pipe(gulpif(config[config.environment].minify, uglify()))
+        .pipe(gulpif(config[config.environment].minify, rename({suffix: '.min'})))
+        .pipe(gulp.dest(config.scripts.destDirectory));
 });
 
 gulp.task('generate:docs', ['clean:docs'], function () {
-	executeChildProcess('./node_modules/jsdoc/jsdoc.js -c jsdocconfig.json');
+	childProcess.exec('./node_modules/jsdoc/jsdoc.js -c jsdocconfig.json');
 });
 
 gulp.task('test:scripts', function () {
-	return gulp.src(build.tests.source)
+	return gulp.src(config.tests.source)
 		.pipe(mocha({
             compilers: {
                 js: babelRegister
