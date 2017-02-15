@@ -6,8 +6,7 @@
 */
 
 // TODO:
-// 1) Import Animation to avoid using Oculo namespace
-// 2) Ensure directional rotation plugin works
+// 1) Ensure directional rotation plugin works
 
 import clamp                from 'lodash/clamp';
 import isElement            from 'lodash/isElement';
@@ -17,6 +16,7 @@ import isNil                from 'lodash/isNil';
 import isObject             from 'lodash/isObject';
 import { zoomDirection }    from './constants';
 import { EventEmitter }     from 'fbemitter';
+import Animation            from './animation';
 import AnimationManager     from './animationManager';
 import CSSRenderer          from './cssRenderer';
 import _Math                from './math/math';
@@ -286,7 +286,7 @@ class Camera {
             if (this.view !== null) {
                 this.renderer.renderSize();
                 
-                new Oculo.Animation(this, { 
+                new Animation(this, { 
                     destroyOnComplete: true, 
                     paused: false, 
                     onComplete: function (wasPaused) {
@@ -1059,7 +1059,7 @@ class Camera {
     * @returns {this} self
     */
     animate (props, duration, options) {
-        this.animations.add(animationName.ANONYMOUS, new Oculo.Animation(this).animate(props, duration, options));
+        this.animations.add(animationName.ANONYMOUS, new Animation(this).animate(props, duration, options));
         this.animations.play(animationName.ANONYMOUS);
         
         return this;
@@ -1072,7 +1072,7 @@ class Camera {
     * @returns {this} self
     */
     moveTo (position, duration, options) {
-        this.animations.add(animationName.ANONYMOUS, new Oculo.Animation(this).moveTo(position, duration, options));
+        this.animations.add(animationName.ANONYMOUS, new Animation(this).moveTo(position, duration, options));
         this.animations.play(animationName.ANONYMOUS);
         
         return this;
@@ -1085,7 +1085,7 @@ class Camera {
     * @returns {this} self
     */
     rotateAt (origin, rotation, duration, options) {
-        this.animations.add(animationName.ANONYMOUS, new Oculo.Animation(this).rotateAt(origin, rotation, duration, options));
+        this.animations.add(animationName.ANONYMOUS, new Animation(this).rotateAt(origin, rotation, duration, options));
         this.animations.play(animationName.ANONYMOUS);
         
         return this;
@@ -1098,7 +1098,7 @@ class Camera {
     * @returns {this} self
     */
     rotateTo (rotation, duration, options) {
-        this.animations.add(animationName.ANONYMOUS, new Oculo.Animation(this).rotateTo(rotation, duration, options));
+        this.animations.add(animationName.ANONYMOUS, new Animation(this).rotateTo(rotation, duration, options));
         this.animations.play(animationName.ANONYMOUS);
         
         return this;
@@ -1111,7 +1111,7 @@ class Camera {
     * @returns {this} self
     */
     shake (intensity, duration, direction, options) {
-        this.animations.add(animationName.ANONYMOUS, new Oculo.Animation(this).shake(intensity, duration, direction, options));
+        this.animations.add(animationName.ANONYMOUS, new Animation(this).shake(intensity, duration, direction, options));
         this.animations.play(animationName.ANONYMOUS);
         
         return this;
@@ -1124,7 +1124,7 @@ class Camera {
     * @returns {this} self
     */
     zoomAt (origin, zoom, duration, options) {
-        this.animations.add(animationName.ANONYMOUS, new Oculo.Animation(this).zoomAt(origin, zoom, duration, options));
+        this.animations.add(animationName.ANONYMOUS, new Animation(this).zoomAt(origin, zoom, duration, options));
         this.animations.play(animationName.ANONYMOUS);
         
         return this;
@@ -1137,7 +1137,7 @@ class Camera {
     * @returns {this} self
     */
     zoomTo (zoom, duration, options) {
-        this.animations.add(animationName.ANONYMOUS, new Oculo.Animation(this).zoomTo(zoom, duration, options));
+        this.animations.add(animationName.ANONYMOUS, new Animation(this).zoomTo(zoom, duration, options));
         this.animations.play(animationName.ANONYMOUS);
 
         return this;
