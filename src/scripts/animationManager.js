@@ -5,7 +5,7 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
-import Animation from './Animation';
+import Animation from './animation';
 import { Type }  from './constants';
 
 /**
