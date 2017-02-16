@@ -27,6 +27,7 @@ import Scene         from './scene';
 import SceneManager  from './sceneManager';
 import Utils         from './utils';
 import Vector2       from './math/vector2';
+import version       from './version';
 
 
 /**
@@ -41,7 +42,8 @@ const Oculo = {
     Scene: Scene,
     SceneManager: SceneManager,
     Utils: Utils,
-    Vector2: Vector2
+    Vector2: Vector2,
+    version: version
 };
 
 module.exports = Oculo;
