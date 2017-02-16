@@ -5,9 +5,13 @@
 * @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
 */
 
+// TODO: Move animation properties from config into data object on animation
+// TODO: Move core tween properties into data object on tween
+
 import isElement            from 'lodash/isElement';
 import isFinite             from 'lodash/isFinite';
 import isFunction           from 'lodash/isFunction';
+import pick                 from 'lodash/pick';
 import isNil                from 'lodash/isNil';
 import isObject             from 'lodash/isObject';
 import { zoomDirection }    from './constants';
@@ -23,6 +27,54 @@ const animation = {
         CORE: 1
     }
 };
+const animationCustomOptions = [
+    'destroyOnComplete',
+    'disableDrag', 
+    'disableWheel'
+];
+const animationTimelineOptions = [
+    'paused', 
+    'useFrames', 
+    'repeat', 
+    'repeatDelay', 
+    'yoyo',
+    'onComplete', 
+    'onCompleteParams',
+    'onStart', 
+    'onStartParams',
+    'onUpdate',
+    'onUpdateParams',
+    'onRepeat',
+    'onRepeatParams',
+    'onReverseComplete',
+    'onReverseCompleteParams',
+    'callbackScope'
+];
+const animationOptions = animationCustomOptions.concat(animationTimelineOptions);
+const keyframeCustomOptions = [
+    'direction',
+    'easeIn',
+    'easeOut',
+    'enforceBounds'
+];
+const keyframeTweenOptions = [
+    'delay',
+    'ease',
+    'overwrite'
+];
+const keyframeEventCallbackOptions = [
+    'onComplete', 
+    'onCompleteParams',
+    'onStart', 
+    'onStartParams',
+    'onUpdate',
+    'onUpdateParams',
+    'onReverseComplete',
+    'onReverseCompleteParams',
+    'callbackScope'
+];
+const keyframeOptions = keyframeCustomOptions.concat(keyframeTweenOptions, keyframeEventCallbackOptions);
+const keyframeOptionsNoEventCallbacks = keyframeCustomOptions.concat(keyframeTweenOptions);
 
 /**
 * Description.
@@ -43,7 +95,7 @@ class Animation extends TimelineMax {
     constructor (camera, options) {
         options = Object.assign({
             paused: true
-        }, options);
+        }, pick(options, animationOptions));
         
         super(Object.assign({}, options));
 
@@ -80,6 +132,16 @@ class Animation extends TimelineMax {
         this.destroyOnComplete = options.destroyOnComplete ? true : false;
         
         /**
+        * @property {boolean} - Whether the animation should disable drag while playing or not.
+        */
+        this.disableDrag = options.disableDrag !== false ? true : false;
+        
+        /**
+        * @property {boolean} - Whether the animation should disable wheel while playing or not.
+        */
+        this.disableWheel = options.disableWheel !== false ? true : false;
+        
+        /**
         * @property {object} - The camera values of the previous sub-animation.
         */
         this.previousProps = {};
@@ -93,13 +155,13 @@ class Animation extends TimelineMax {
         this._onStart = function (isRepeating = false) {
             this._initCoreTween(this.coreTweens[0]);
             this.camera.isAnimating = true;
-
-            if (this.camera.isDraggable) {
-                this.camera.trackControl.disableDrag();
+            
+            if (this.disableDrag) {
+                this.camera.disableDragToMove();
             }
-
-            if (this.camera.isManualZoomable) {
-                this.camera.trackControl.disableWheel();
+            
+            if (this.disableWheel) {
+                this.camera.disableWheelToZoom();
             }
             
             if (this.config.onStart !== undefined && !isRepeating) {
@@ -129,14 +191,8 @@ class Animation extends TimelineMax {
         */
         this._onComplete = function () {
             this.camera.isAnimating = false;
-
-            if (this.camera.isDraggable) {
-                this.camera.trackControl.enableDrag();
-            }
-
-            if (this.camera.isManualZoomable) {
-                this.camera.trackControl.enableWheel();
-            }
+            this.camera.enableDragToMove();
+            this.camera.enableWheelToZoom();
 
             if (this.config.onComplete !== undefined) {
                 this.config.onComplete.apply(this, this.config.onCompleteParams);
@@ -171,6 +227,17 @@ class Animation extends TimelineMax {
     }
     
     /**
+    * Filters out event callback options for keyframes.
+    *
+    * @private
+    * @param {Object} options - The provided options.
+    * @returns {Object} - The filtered options.
+    */
+    static _filterKeyframeEventCallbackOptions (options) {
+        return pick(options, keyframeOptionsNoEventCallbacks);
+    }
+    
+    /**
     * Animate the camera.
     *
     * @private
@@ -179,8 +246,8 @@ class Animation extends TimelineMax {
     * @param {Object} [options] - An object of {@link external:TweenMax|TweenMax} options.
     * @returns {this} self
     */
-    _animate (props, duration, options) {
-        options = options || {};
+    _animate (props, duration, options = {}) {
+        options = pick(options, keyframeOptions);
         
         var mainTimeline = new TimelineLite({
             data: {
@@ -223,15 +290,10 @@ class Animation extends TimelineMax {
         var shakeTimeline = null;
         var shake = this._parseShake(props.shake);
         
-        // Delete callbacks so children don't pick them up but get other options
-        delete options.onStart;
-        delete options.onStartParams;
-        delete options.onUpdate;
-        delete options.onUpdateParams;
-        delete options.onComplete;
-        delete options.onCompleteParams;
-        delete options.onReverseComplete;
-        delete options.onReverseCompleteParams;
+        // Delete event callback options so children don't pick them up, but get other options
+        keyframeEventCallbackOptions.forEach(option => {
+            delete options[option];
+        });
         
         // Tween core camera properties
         if (props.origin || props.position || props.rotation || props.zoom) {

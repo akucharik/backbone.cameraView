@@ -961,6 +961,7 @@ class Camera {
                     var position = camera._convertOffsetToPosition(new Vector2(-this.x, -this.y), camera.center, camera.transformOrigin, camera.transformation);
 
                     camera.moveTo(position, 0, { 
+                        disableDrag: false,
                         onCompleteParams: [this],
                         onComplete: function (dragControl) {
                             dragControl.update();
@@ -991,7 +992,7 @@ class Camera {
                             origin = scenePosition;
                         }
 
-                        camera.zoomAt(origin, zoom, 0);
+                        camera.zoomAt(origin, zoom, 0, { disableWheel: false });
                     }
                 }
             });
@@ -1055,7 +1056,7 @@ class Camera {
     * @returns {this} self
     */
     animate (props, duration, options) {
-        this.animations.add(animationName.ANONYMOUS, new Animation(this).animate(props, duration, options));
+        this.animations.add(animationName.ANONYMOUS, new Animation(this, options).animate(props, duration, Animation._filterKeyframeEventCallbackOptions(options)));
         this.animations.play(animationName.ANONYMOUS);
         
         return this;
@@ -1068,7 +1069,7 @@ class Camera {
     * @returns {this} self
     */
     moveTo (position, duration, options) {
-        this.animations.add(animationName.ANONYMOUS, new Animation(this).moveTo(position, duration, options));
+        this.animations.add(animationName.ANONYMOUS, new Animation(this, options).moveTo(position, duration, Animation._filterKeyframeEventCallbackOptions(options)));
         this.animations.play(animationName.ANONYMOUS);
         
         return this;
@@ -1081,7 +1082,7 @@ class Camera {
     * @returns {this} self
     */
     rotateAt (origin, rotation, duration, options) {
-        this.animations.add(animationName.ANONYMOUS, new Animation(this).rotateAt(origin, rotation, duration, options));
+        this.animations.add(animationName.ANONYMOUS, new Animation(this, options).rotateAt(origin, rotation, duration, Animation._filterKeyframeEventCallbackOptions(options)));
         this.animations.play(animationName.ANONYMOUS);
         
         return this;
@@ -1094,7 +1095,7 @@ class Camera {
     * @returns {this} self
     */
     rotateTo (rotation, duration, options) {
-        this.animations.add(animationName.ANONYMOUS, new Animation(this).rotateTo(rotation, duration, options));
+        this.animations.add(animationName.ANONYMOUS, new Animation(this, options).rotateTo(rotation, duration, Animation._filterKeyframeEventCallbackOptions(options)));
         this.animations.play(animationName.ANONYMOUS);
         
         return this;
@@ -1107,7 +1108,7 @@ class Camera {
     * @returns {this} self
     */
     shake (intensity, duration, direction, options) {
-        this.animations.add(animationName.ANONYMOUS, new Animation(this).shake(intensity, duration, direction, options));
+        this.animations.add(animationName.ANONYMOUS, new Animation(this).shake(intensity, duration, direction, Animation._filterKeyframeEventCallbackOptions(options)));
         this.animations.play(animationName.ANONYMOUS);
         
         return this;
@@ -1120,7 +1121,7 @@ class Camera {
     * @returns {this} self
     */
     zoomAt (origin, zoom, duration, options) {
-        this.animations.add(animationName.ANONYMOUS, new Animation(this).zoomAt(origin, zoom, duration, options));
+        this.animations.add(animationName.ANONYMOUS, new Animation(this, options).zoomAt(origin, zoom, duration, Animation._filterKeyframeEventCallbackOptions(options)));
         this.animations.play(animationName.ANONYMOUS);
         
         return this;
@@ -1133,7 +1134,7 @@ class Camera {
     * @returns {this} self
     */
     zoomTo (zoom, duration, options) {
-        this.animations.add(animationName.ANONYMOUS, new Animation(this).zoomTo(zoom, duration, options));
+        this.animations.add(animationName.ANONYMOUS, new Animation(this, options).zoomTo(zoom, duration, Animation._filterKeyframeEventCallbackOptions(options)));
         this.animations.play(animationName.ANONYMOUS);
 
         return this;
