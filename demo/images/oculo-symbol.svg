@@ -2,10 +2,10 @@
 <defs>
   <style>.cls-1{fill:#692969;}</style>
   <filter id="dropShadow">
-    <feGaussianBlur in="SourceAlpha" stdDeviation="3"></feGaussianBlur>
+    <feGaussianBlur in="SourceAlpha" stdDeviation="2"></feGaussianBlur>
     <feOffset dx="0" dy="0"></feOffset>
     <feComponentTransfer>
-      <feFuncA type="linear" slope="0.2"/>
+      <feFuncA type="linear" slope="0.15"/>
     </feComponentTransfer>
     <feMerge>
       <feMergeNode></feMergeNode>
