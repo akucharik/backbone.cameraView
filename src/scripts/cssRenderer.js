@@ -1,9 +1,10 @@
-'use strict';
 /**
-* @author       Adam Kucharik <akucharik@gmail.com>
-* @copyright    Adam Kucharik
-* @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
+* @author       Adam Kucharik
+* @copyright    2016-present, Adam Kucharik, All rights reserved.
+* @license      https://github.com/akucharik/oculo/blob/master/LICENSE.md
 */
+
+'use strict';
 
 import { zoomDirection }    from './constants';
 
@@ -61,9 +62,10 @@ class CSSRenderer {
         TweenLite.set(this.camera.scenes.view, { 
             css: {
                 transformOrigin: this.camera.transformOrigin.x + 'px ' + this.camera.transformOrigin.y + 'px',
+                opacity: this.camera.opacity,
+                rotation: -this.camera.rotation,
                 scaleX: this.camera.zoom,
                 scaleY: this.camera.zoom,
-                rotation: -this.camera.rotation,
                 x: -offset.x,
                 y: -offset.y
             }

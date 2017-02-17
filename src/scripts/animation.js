@@ -1,9 +1,10 @@
-'use strict';
 /**
-* @author       Adam Kucharik <akucharik@gmail.com>
-* @copyright    Adam Kucharik
-* @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
+* @author       Adam Kucharik
+* @copyright    2016-present, Adam Kucharik, All rights reserved.
+* @license      https://github.com/akucharik/oculo/blob/master/LICENSE.md
 */
+
+'use strict';
 
 // TODO: Move animation properties from config into data object on animation
 // TODO: Move core tween properties into data object on tween
@@ -33,6 +34,7 @@ const animationCustomOptions = [
     'disableWheel'
 ];
 const animationTimelineOptions = [
+    'delay',
     'paused', 
     'useFrames', 
     'repeat', 
@@ -52,6 +54,9 @@ const animationTimelineOptions = [
 ];
 const animationOptions = animationCustomOptions.concat(animationTimelineOptions);
 const keyframeCustomOptions = [
+    'fadeDelay',
+    'fadeDuration',
+    'fadeEase',
     'direction',
     'easeIn',
     'easeOut',
@@ -287,6 +292,7 @@ class Animation extends TimelineMax {
                 }
             }
         });
+        var fade = this._parseFade(props, duration, options);
         var shakeTimeline = null;
         var shake = this._parseShake(props.shake);
         
@@ -296,8 +302,8 @@ class Animation extends TimelineMax {
         });
         
         // Tween core camera properties
-        if (props.origin || props.position || props.rotation || props.zoom) {
-            var coreTween = TweenMax.to(this.camera, duration !== 0 ? duration : 0.016, Object.assign({}, options, {
+        if (props.origin || props.position || props.rotation || props.rotation === 0 || props.zoom) {
+            var coreTween = TweenMax.to(this.camera, duration === 0 ? 0.016 : duration, Object.assign({}, options, {
                 data: {
                     enforceBounds: (options.enforceBounds === false) ? false : true
                 },
@@ -372,6 +378,15 @@ class Animation extends TimelineMax {
             coreTween.index = this.coreTweens.length;
             this.coreTweens.push(coreTween);
             mainTimeline.add(coreTween, 0);
+        }
+        
+        // Fade effect
+        if (fade.opacity) {
+            mainTimeline.to(this.camera, fade.duration === 0 ? 0.016 : fade.duration, Object.assign({}, options, {
+                opacity: fade.opacity,
+                ease: fade.ease,
+                delay: fade.delay
+            }, 0));
         }
         
         // Tween shake effect
@@ -643,7 +658,7 @@ class Animation extends TimelineMax {
             rotation = this.previousProps.rotation;
         }
         
-        if (zoom === 'previous' && !isNil(this.previousProps.zoom)) {
+        if (zoom === 'previous' && Number.isFinite(this.previousProps.zoom)) {
             zoom = this.previousProps.zoom;
         }
         
@@ -652,6 +667,24 @@ class Animation extends TimelineMax {
             position: Utils.parsePosition(position, this.camera.scene, this.camera.transformation),
             rotation: isFunction(rotation) ? rotation() : rotation,
             zoom: isFunction(zoom) ? zoom() : zoom
+        };
+    }
+    
+    /**
+    * Parses the fade properties.
+    *
+    * @private
+    * @param {Object} props - The properties.
+    * @param {number} duration - The duration.
+    * @param {Object} options - The options.
+    * @returns {Object} - The parsed fade effect.
+    */
+    _parseFade (props = {}, duration, options = {}) {
+        return {
+            opacity: Number.isFinite(props.opacity) ? props.opacity : null,
+            delay: Number.isFinite(options.fadeDelay) ? options.fadeDelay : options.delay || 0,
+            duration: Number.isFinite(options.fadeDuration) ? options.fadeDuration : duration,
+            ease: options.fadeEase ? options.fadeEase : options.ease || null
         };
     }
     
@@ -721,11 +754,31 @@ class Animation extends TimelineMax {
     */
     animate (props, duration, options) {
         this._animate({
-            position: props.position,
+            opacity: props.opacity,
             origin: props.origin,
+            position: props.position,
             rotation: props.rotation,
             shake: props.shake,
             zoom: props.zoom
+        }, duration, options);
+
+        return this;
+    }
+    
+    /**
+    * Fades the camera.
+    *
+    * @param {number} opacity - An opacity value.
+    * @param {number} duration - A duration.
+    * @param {Object} [options] - An object of {@link external:TimelineMax|TimelineMax} options.
+    * @returns {this} self
+    *
+    * @example
+    * myAnimation.fadeTo(0, 2);
+    */
+    fadeTo (opacity, duration, options) {
+        this._animate({
+            opacity: opacity
         }, duration, options);
 
         return this;
@@ -818,7 +871,7 @@ class Animation extends TimelineMax {
     shake (intensity, duration, direction, options) {
         options = options || {};
         
-        this.animate({
+        this._animate({
             shake: {
                 intensity: intensity,
                 direction: direction,

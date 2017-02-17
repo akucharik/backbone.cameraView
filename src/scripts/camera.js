@@ -1,9 +1,10 @@
-'use strict';
 /**
-* @author       Adam Kucharik <akucharik@gmail.com>
-* @copyright    Adam Kucharik
-* @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
+* @author       Adam Kucharik
+* @copyright    2016-present, Adam Kucharik, All rights reserved.
+* @license      https://github.com/akucharik/oculo/blob/master/LICENSE.md
 */
+
+'use strict';
 
 // TODO:
 // 1) Ensure directional rotation plugin works
@@ -148,6 +149,11 @@ class Camera {
         * @default 3
         */
         this.maxZoom = maxZoom;
+        
+        /**
+        * @property {number} - The opacity of the camera.
+        */
+        this.opacity = 1;
         
         /**
         * @property {number} - The position of the camera on the scene.
@@ -1062,6 +1068,19 @@ class Camera {
         return this;
     }
 
+    /**
+    * Immediately fade to an opacity.
+    *
+    * @see {@link Camera.Animation#fadeTo|Animation.fadeTo}
+    * @returns {this} self
+    */
+    fadeTo (opacity, duration, options) {
+        this.animations.add(animationName.ANONYMOUS, new Animation(this, options).fadeTo(opacity, duration, Animation._filterKeyframeEventCallbackOptions(options)));
+        this.animations.play(animationName.ANONYMOUS);
+        
+        return this;
+    }
+    
     /**
     * Immediately move to a specific position.
     *

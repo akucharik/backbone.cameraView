@@ -1,9 +1,10 @@
-'use strict';
 /**
-* @author       Adam Kucharik <akucharik@gmail.com>
-* @copyright    Adam Kucharik
-* @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
+* @author       Adam Kucharik
+* @copyright    2016-present, Adam Kucharik, All rights reserved.
+* @license      https://github.com/akucharik/oculo/blob/master/LICENSE.md
 */
+
+'use strict';
 
 import Animation from './animation';
 import { Type }  from './constants';
@@ -96,6 +97,7 @@ class AnimationManager {
             newAnimation = new Animation(this.camera, animation.options);
             animation.keyframes.forEach((keyframe) => {
                 newAnimation.animate({
+                    opacity: keyframe.opacity,
                     origin: keyframe.origin,
                     position: keyframe.position,
                     rotation: keyframe.rotation,
