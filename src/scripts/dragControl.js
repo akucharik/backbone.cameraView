@@ -1,9 +1,10 @@
-'use strict';
 /**
-* @author       Adam Kucharik <akucharik@gmail.com>
-* @copyright    Adam Kucharik
-* @license      {@link https://github.com/akucharik/backbone.cameraView/license.txt|MIT License}
+* @author       Adam Kucharik
+* @copyright    2016-present, Adam Kucharik, All rights reserved.
+* @license      https://github.com/akucharik/oculo/blob/master/LICENSE.md
 */
+
+'use strict';
 
 /**
 * GSAP's Draggable.
