@@ -967,12 +967,17 @@ class Camera {
                     var position = camera._convertOffsetToPosition(new Vector2(-this.x, -this.y), camera.center, camera.transformOrigin, camera.transformation);
 
                     camera.moveTo(position, 0, { 
-                        disableDrag: false,
                         onCompleteParams: [this],
                         onComplete: function (dragControl) {
                             dragControl.update();
                         }
                     });
+                },
+                onPress: function (camera) { 
+                    // Must cancel drag to disable dragging during animation to avoid frame rate issues caused when drag control is re-enabled
+                    if (camera.isAnimating) { 
+                        this._endDrag(this.pointerEvent);
+                    };
                 },
                 wheelable: this.wheelToZoom,
                 onWheel: function (camera) {
@@ -1126,8 +1131,8 @@ class Camera {
     * @see {@link Camera.Animation#shake|Animation.shake}
     * @returns {this} self
     */
-    shake (intensity, duration, direction, options) {
-        this.animations.add(animationName.ANONYMOUS, new Animation(this).shake(intensity, duration, direction, Animation._filterKeyframeEventCallbackOptions(options)));
+    shake (intensity, duration, options) {
+        this.animations.add(animationName.ANONYMOUS, new Animation(this).shake(intensity, duration, Animation._filterKeyframeEventCallbackOptions(options)));
         this.animations.play(animationName.ANONYMOUS);
         
         return this;

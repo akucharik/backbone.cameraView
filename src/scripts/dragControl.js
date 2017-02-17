@@ -39,12 +39,14 @@ class DragControl {
         dragProxy = target,
         onDrag = function () {},
         onDragParams = [],
-        onDragScope = this
+        onDragScope = this,
+        onPress = function () {},
+        onPressParams = []
     } = {}) {
         /**
         * @property {object} - The configuration.
         */
-        this.config = { dragProxy, onDrag, onDragParams, onDragScope };
+        this.config = { dragProxy, onDrag, onDragParams, onDragScope, onPress, onPressParams };
         
         /**
         * @property {Draggable} - The object that handles the drag behavior.
@@ -54,6 +56,8 @@ class DragControl {
             callbackScope: onDragScope,
             onDrag: onDrag,
             onDragParams: onDragParams,
+            onPress: onPress,
+            onPressParams: onPressParams,
             zIndexBoost: false
         });
         
@@ -113,16 +117,14 @@ class DragControl {
         * @private
         */
         this._endDrag = (event) => {
-            if (this.isDragging) {
-                this.control.endDrag(event);
-                this.dragProxy.removeEventListener('mouseup', this._onDragRelease);
-                this.dragProxy.removeEventListener('mouseleave', this._onDragLeave);
-                this.dragProxy.removeEventListener('mousemove', this._onDragMove);
-                this.dragProxy.removeEventListener('touchend', this._onDragRelease);
-                this.dragProxy.removeEventListener('touchcancel', this._onDragRelease);
-                this.dragProxy.removeEventListener('touchmove', this._onDragMove);
-                this.isDragging = false;
-            }
+            this.control.endDrag(event);
+            this.dragProxy.removeEventListener('mouseup', this._onDragRelease);
+            this.dragProxy.removeEventListener('mouseleave', this._onDragLeave);
+            this.dragProxy.removeEventListener('mousemove', this._onDragMove);
+            this.dragProxy.removeEventListener('touchend', this._onDragRelease);
+            this.dragProxy.removeEventListener('touchcancel', this._onDragRelease);
+            this.dragProxy.removeEventListener('touchmove', this._onDragMove);
+            this.isDragging = false;
         };
         
         /*
@@ -136,6 +138,7 @@ class DragControl {
             this.dragProxy.addEventListener('touchcancel', this._onDragRelease);
             this.dragProxy.addEventListener('touchmove', this._onDragMove);
             this.isPressed = true;
+            this.config.onPress.apply(this, this.config.onPressParams);
         };
 
         /*

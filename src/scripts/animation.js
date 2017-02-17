@@ -54,13 +54,16 @@ const animationTimelineOptions = [
 ];
 const animationOptions = animationCustomOptions.concat(animationTimelineOptions);
 const keyframeCustomOptions = [
+    'enforceBounds',
     'fadeDelay',
     'fadeDuration',
     'fadeEase',
-    'direction',
-    'easeIn',
-    'easeOut',
-    'enforceBounds'
+    'shakeDelay',
+    'shakeDirection',
+    'shakeDuration',
+    'shakeEase',
+    'shakeEaseIn',
+    'shakeEaseOut'
 ];
 const keyframeTweenOptions = [
     'delay',
@@ -137,11 +140,6 @@ class Animation extends TimelineMax {
         this.destroyOnComplete = options.destroyOnComplete ? true : false;
         
         /**
-        * @property {boolean} - Whether the animation should disable drag while playing or not.
-        */
-        this.disableDrag = options.disableDrag !== false ? true : false;
-        
-        /**
         * @property {boolean} - Whether the animation should disable wheel while playing or not.
         */
         this.disableWheel = options.disableWheel !== false ? true : false;
@@ -160,10 +158,6 @@ class Animation extends TimelineMax {
         this._onStart = function (isRepeating = false) {
             this._initCoreTween(this.coreTweens[0]);
             this.camera.isAnimating = true;
-            
-            if (this.disableDrag) {
-                this.camera.disableDragToMove();
-            }
             
             if (this.disableWheel) {
                 this.camera.disableWheelToZoom();
@@ -196,7 +190,6 @@ class Animation extends TimelineMax {
         */
         this._onComplete = function () {
             this.camera.isAnimating = false;
-            this.camera.enableDragToMove();
             this.camera.enableWheelToZoom();
 
             if (this.config.onComplete !== undefined) {
@@ -294,7 +287,7 @@ class Animation extends TimelineMax {
         });
         var fade = this._parseFade(props, duration, options);
         var shakeTimeline = null;
-        var shake = this._parseShake(props.shake);
+        var shake = this._parseShake(props, duration, options);
         
         // Delete event callback options so children don't pick them up, but get other options
         keyframeEventCallbackOptions.forEach(option => {
@@ -390,13 +383,14 @@ class Animation extends TimelineMax {
         }
         
         // Tween shake effect
-        if (duration > 0 && shake && shake.intensity > 0) {
+        if (shake.duration > 0 && shake.intensity > 0) {
             shakeTimeline = new TimelineLite(Object.assign({}, options, {
                 data: {
                     intensity: 0,
                     direction: shake.direction,
                     enforceBounds: (options.enforceBounds === false) ? false : true
                 },
+                delay: shake.delay,
                 callbackScope: this,
                 onStartParams: ['{self}'],
                 onStart: function (self) {
@@ -411,6 +405,7 @@ class Animation extends TimelineMax {
                     var position = this.camera._clampPosition(this.camera._convertOffsetToPosition(this.camera._rawOffset, this.camera.center, this.camera.transformOrigin, this.camera.transformation));
                     
                     if (self.data.direction === Animation.shake.direction.HORIZONTAL || self.data.direction === Animation.shake.direction.BOTH) {
+                        // Ensure shake position starts/ends at the original position even when reversed
                         if (!isFirstFrame && !isFinalFrame) {
                             offsetX = Math.random() * self.data.intensity * this.camera.width * 2 - self.data.intensity * this.camera.width;
                             position.x += offsetX;
@@ -418,6 +413,7 @@ class Animation extends TimelineMax {
                     }
 
                     if (self.data.direction === Animation.shake.direction.VERTICAL || self.data.direction === Animation.shake.direction.BOTH) {
+                        // Ensure shake position starts/ends at the original position even when reversed
                         if (!isFirstFrame && !isFinalFrame) {
                             offsetY = Math.random() * self.data.intensity * this.camera.height * 2 - self.data.intensity * this.camera.height;
                             position.y += offsetY;
@@ -431,49 +427,49 @@ class Animation extends TimelineMax {
             
             // Ease in/out
             if (shake.easeIn && shake.easeOut) {
-                shakeTimeline.fromTo(shakeTimeline.data, duration * 0.5, {
+                shakeTimeline.fromTo(shakeTimeline.data, shake.duration * 0.5, {
                     intensity: 0
                 }, {
                     intensity: shake.intensity,
-                    ease: shake.easeIn || Power0.easeNone
+                    ease: shake.easeIn
                 }, 0);
 
-                shakeTimeline.to(shakeTimeline.data, duration * 0.5, { 
+                shakeTimeline.to(shakeTimeline.data, shake.duration * 0.5, { 
                     intensity: 0,
-                    ease: shake.easeOut || Power0.easeNone
-                }, duration * 0.5);
+                    ease: shake.easeOut
+                }, shake.duration * 0.5);
             }
-            // Ease in or ease
+            // Ease in
             else if (shake.easeIn && !shake.easeOut) {
-                shakeTimeline.fromTo(shakeTimeline.data, duration, {
+                shakeTimeline.fromTo(shakeTimeline.data, shake.duration, {
                     intensity: 0
                 }, {
                     intensity: shake.intensity,
-                    ease: shake.easeIn || Power0.easeNone
+                    ease: shake.easeIn
                 }, 0);
             }
             // Ease out
             else if (!shake.easeIn && shake.easeOut) {
-                shakeTimeline.fromTo(shakeTimeline.data, duration, {
+                shakeTimeline.fromTo(shakeTimeline.data, shake.duration, {
                     intensity: shake.intensity
                 }, {
                     intensity: 0,
-                    ease: shake.easeOut || Power0.easeNone
+                    ease: shake.easeOut
                 }, 0);
             }
             // Ease
-            else if (options.ease) {
-                shakeTimeline.fromTo(shakeTimeline.data, duration, {
+            else if (shake.ease) {
+                shakeTimeline.fromTo(shakeTimeline.data, shake.duration, {
                     intensity: 0
                 }, {
                     intensity: shake.intensity,
-                    ease: options.ease || Power0.easeNone
+                    ease: shake.ease
                 }, 0);
             }
             // No ease
             else {
                 shakeTimeline.data.intensity = shake.intensity;
-                shakeTimeline.to(shakeTimeline.data, duration, {}, 0);
+                shakeTimeline.to(shakeTimeline.data, shake.duration, {}, 0);
             }
             
             mainTimeline.add(shakeTimeline, 0);
@@ -692,22 +688,21 @@ class Animation extends TimelineMax {
     * Parses the shake properties.
     *
     * @private
-    * @param {Object} shake - The shake properties.
-    * @returns {Object} - The parsed properties.
+    * @param {Object} props - The properties.
+    * @param {number} duration - The duration.
+    * @param {Object} options - The options.
+    * @returns {Object} - The parsed shake effect.
     */
-    _parseShake (shake) {
-        var parsedShake = null;
-        
-        if (shake) {
-            parsedShake = {
-                intensity: isNil(shake.intensity) ? 0 : shake.intensity,
-                direction: isNil(shake.direction) ? Animation.shake.direction.BOTH : shake.direction,
-                easeIn: shake.easeIn,
-                easeOut: shake.easeOut
-            };
-        }
-        
-        return parsedShake;
+    _parseShake (props = {}, duration, options = {}) {
+        return {
+            intensity: Number.isFinite(props.shakeIntensity) ? props.shakeIntensity : null,
+            delay: Number.isFinite(options.shakeDelay) ? options.shakeDelay : options.delay || 0,
+            direction: options.shakeDirection ? options.shakeDirection : Animation.shake.direction.BOTH,
+            duration: Number.isFinite(options.shakeDuration) ? options.shakeDuration : duration,
+            ease: options.shakeEase ? options.shakeEase : options.ease || null,
+            easeIn: options.shakeEaseIn,
+            easeOut: options.shakeEaseOut
+        };
     }
     
     /**
@@ -758,7 +753,7 @@ class Animation extends TimelineMax {
             origin: props.origin,
             position: props.position,
             rotation: props.rotation,
-            shake: props.shake,
+            shakeIntensity: props.shakeIntensity,
             zoom: props.zoom
         }, duration, options);
 
@@ -868,17 +863,9 @@ class Animation extends TimelineMax {
     * myAnimation.shake(0.1, 4);
     * myAnimation.shake(0.1, 4, Oculo.Animation.shake.direction.HORIZONTAL, { easeIn: Power2.easeIn, easeOut: Power2.easeOut })
     */
-    shake (intensity, duration, direction, options) {
-        options = options || {};
-        
+    shake (intensity, duration, options) {
         this._animate({
-            shake: {
-                intensity: intensity,
-                direction: direction,
-                easeIn: options.easeIn,
-                easeOut: options.easeOut,
-                enforceBounds: options.enforceBounds
-            }
+            shakeIntensity: intensity
         }, duration, options);
 
         return this;

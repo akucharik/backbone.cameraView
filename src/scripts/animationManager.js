@@ -101,7 +101,7 @@ class AnimationManager {
                     origin: keyframe.origin,
                     position: keyframe.position,
                     rotation: keyframe.rotation,
-                    shake: keyframe.shake,
+                    shakeIntensity: keyframe.shakeIntensity,
                     zoom: keyframe.zoom
                 }, keyframe.duration, keyframe.options);
             });

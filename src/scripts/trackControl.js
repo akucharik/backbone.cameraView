@@ -37,6 +37,7 @@ class TrackControl {
     constructor (camera, {
         draggable = false,
         onDrag = undefined,
+        onPress = undefined,
         wheelable = false,
         onWheel = undefined
     } = {}) {
@@ -59,6 +60,8 @@ class TrackControl {
             dragProxy: this.camera.view,
             onDrag: onDrag,
             onDragParams: [this.camera],
+            onPress: onPress,
+            onPressParams: [this.camera],
             zIndexBoost: false
         });
 
