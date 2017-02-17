@@ -291,12 +291,35 @@ section {
         }
     }
     
-    &-camera,
-    &-camera-frame {
+//    &-camera,
+//    &-camera-frame {
+//        display: none;
+//        position: absolute !important;
+//        top: 70%;
+//        left: 50%;
+//        transform: translate(-50%, -50%);
+//        
+//        @include breakpoint(medium) {
+//            left: 50%;
+//        }
+//        
+//        @include breakpoint(large) {
+//            left: 40%;
+//        }
+//    }
+//    
+//    &-camera-frame {
+//        max-width: none;
+//        width: 400px;
+//    }
+    
+    &-graphic {
+        max-width: none;
         position: absolute !important;
         top: 70%;
         left: 50%;
-        transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%) translate3d(0px, 300px, 0px);
+        width: 400px;
         
         @include breakpoint(medium) {
             left: 50%;
@@ -305,11 +328,6 @@ section {
         @include breakpoint(large) {
             left: 40%;
         }
-    }
-    
-    &-camera-frame {
-        max-width: none;
-        width: 400px;
     }
 }
 
