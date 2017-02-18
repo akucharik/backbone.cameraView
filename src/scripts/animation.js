@@ -807,20 +807,20 @@ class Animation extends TimelineMax {
     /**
     * Rotate at the specified location.
     *
+    * @param {number|string} rotation - The rotation.
     * @param {string|Element|Object} origin - The location for the rotation's origin. It can be a selector, an element, or an object with x/y coordinates.
     * @param {number} [origin.x] - The x coordinate on the raw scene.
     * @param {number} [origin.y] - The y coordinate on the raw scene.
-    * @param {number|string} rotation - The rotation.
     * @param {number} duration - A duration.
     * @param {Object} [options] - An object of {@link external:TweenMax|TweenMax} options.
     * @returns {this} self
     *
     * @example
-    * myAnimation.rotateAt('#box100', 20, 1);
-    * myAnimation.rotateAt(document.getElementById('box100'), 20, 1);
-    * myAnimation.rotateAt({x: 200, y: 50}, 20, 1);
+    * myAnimation.rotateAt(20, '#box100', 1);
+    * myAnimation.rotateAt(20, document.getElementById('box100'), 1);
+    * myAnimation.rotateAt(20, {x: 200, y: 50}, 1);
     */
-    rotateAt (origin, rotation, duration, options) {
+    rotateAt (rotation, origin, duration, options) {
         this._animate({
             origin: origin,
             rotation: rotation
@@ -874,20 +874,20 @@ class Animation extends TimelineMax {
     /**
     * Zoom in/out at a specific location.
     *
+    * @param {number} zoom - A zoom value.
     * @param {string|Element|Object} origin - The location for the zoom's origin. It can be a selector, an element, or an object with x/y coordinates.
     * @param {number} [origin.x] - The x coordinate on the raw scene.
     * @param {number} [origin.y] - The y coordinate on the raw scene.
-    * @param {number} zoom - A zoom value.
     * @param {number} duration - A duration.
     * @param {Object} [options] - An object of {@link external:TweenMax|TweenMax} options.
     * @returns {this} self
     *
     * @example
-    * myAnimation.zoomAt('#box100', 2, 1);
-    * myAnimation.zoomAt(document.getElementById('box100'), 2, 1);
-    * myAnimation.zoomAt({x: 200, y: 50}, 2, 1);
+    * myAnimation.zoomAt(2, '#box100', 1);
+    * myAnimation.zoomAt(2, document.getElementById('box100'), 1);
+    * myAnimation.zoomAt(2, {x: 200, y: 50}, 1);
     */
-    zoomAt (origin, zoom, duration, options) {
+    zoomAt (zoom, origin, duration, options) {
         this._animate({
             origin: origin,
             zoom: zoom

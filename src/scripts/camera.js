@@ -1003,7 +1003,7 @@ class Camera {
                             origin = scenePosition;
                         }
 
-                        camera.zoomAt(origin, zoom, 0, { disableWheel: false });
+                        camera.zoomAt(zoom, origin, 0, { disableWheel: false });
                     }
                 }
             });
@@ -1105,8 +1105,8 @@ class Camera {
     * @see {@link Camera.Animation#rotateAt|Animation.rotateAt}
     * @returns {this} self
     */
-    rotateAt (origin, rotation, duration, options) {
-        this.animations.add(animationName.ANONYMOUS, new Animation(this, options).rotateAt(origin, rotation, duration, Animation._filterKeyframeEventCallbackOptions(options)));
+    rotateAt (rotation, origin, duration, options) {
+        this.animations.add(animationName.ANONYMOUS, new Animation(this, options).rotateAt(rotation, origin, duration, Animation._filterKeyframeEventCallbackOptions(options)));
         this.animations.play(animationName.ANONYMOUS);
         
         return this;
@@ -1144,8 +1144,8 @@ class Camera {
     * @see {@link Camera.Animation#zoomAt|Animation.zoomAt}
     * @returns {this} self
     */
-    zoomAt (origin, zoom, duration, options) {
-        this.animations.add(animationName.ANONYMOUS, new Animation(this, options).zoomAt(origin, zoom, duration, Animation._filterKeyframeEventCallbackOptions(options)));
+    zoomAt (zoom, origin, duration, options) {
+        this.animations.add(animationName.ANONYMOUS, new Animation(this, options).zoomAt(zoom, origin, duration, Animation._filterKeyframeEventCallbackOptions(options)));
         this.animations.play(animationName.ANONYMOUS);
         
         return this;
