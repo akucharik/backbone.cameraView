@@ -10,7 +10,6 @@ var gulp = require('gulp');
 var gulpif = require('gulp-if');
 var mocha = require('gulp-mocha');
 var rename = require('gulp-rename');
-var sass = require('gulp-sass');
 var source = require('vinyl-source-stream');
 var uglify = require('gulp-uglify');
 
@@ -52,7 +51,7 @@ if (config.environment === 'production') {
 // set up default task
 gulp.task('default', ['build']);
 
-gulp.task('build', ['compile:scripts', 'test:scripts'], function () {
+gulp.task('build', ['compile:scripts'], function () {
     return;
 });
 
