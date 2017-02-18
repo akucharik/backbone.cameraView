@@ -97,7 +97,7 @@ class AnimationManager {
             newAnimation = new Animation(this.camera, animation.options);
             animation.keyframes.forEach((keyframe) => {
                 newAnimation.animate({
-                    opacity: keyframe.opacity,
+                    fadeOpacity: keyframe.fadeOpacity,
                     origin: keyframe.origin,
                     position: keyframe.position,
                     rotation: keyframe.rotation,

@@ -376,7 +376,7 @@ class Animation extends TimelineMax {
         // Fade effect
         if (fade.opacity) {
             mainTimeline.to(this.camera, fade.duration === 0 ? 0.016 : fade.duration, Object.assign({}, options, {
-                opacity: fade.opacity,
+                fadeOpacity: fade.opacity,
                 ease: fade.ease,
                 delay: fade.delay
             }, 0));
@@ -677,7 +677,7 @@ class Animation extends TimelineMax {
     */
     _parseFade (props = {}, duration, options = {}) {
         return {
-            opacity: Number.isFinite(props.opacity) ? props.opacity : null,
+            opacity: Number.isFinite(props.fadeOpacity) ? props.fadeOpacity : null,
             delay: Number.isFinite(options.fadeDelay) ? options.fadeDelay : options.delay || 0,
             duration: Number.isFinite(options.fadeDuration) ? options.fadeDuration : duration,
             ease: options.fadeEase ? options.fadeEase : options.ease || null
@@ -749,7 +749,7 @@ class Animation extends TimelineMax {
     */
     animate (props, duration, options) {
         this._animate({
-            opacity: props.opacity,
+            fadeOpacity: props.fadeOpacity,
             origin: props.origin,
             position: props.position,
             rotation: props.rotation,
@@ -773,7 +773,7 @@ class Animation extends TimelineMax {
     */
     fadeTo (opacity, duration, options) {
         this._animate({
-            opacity: opacity
+            fadeOpacity: opacity
         }, duration, options);
 
         return this;

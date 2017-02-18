@@ -151,9 +151,9 @@ class Camera {
         this.maxZoom = maxZoom;
         
         /**
-        * @property {number} - The opacity of the camera.
+        * @property {number} - The fade opacity.
         */
-        this.opacity = 1;
+        this.fadeOpacity = 1;
         
         /**
         * @property {number} - The position of the camera on the scene.

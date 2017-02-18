@@ -62,7 +62,7 @@ class CSSRenderer {
         TweenLite.set(this.camera.scenes.view, { 
             css: {
                 transformOrigin: this.camera.transformOrigin.x + 'px ' + this.camera.transformOrigin.y + 'px',
-                opacity: this.camera.opacity,
+                opacity: this.camera.fadeOpacity,
                 rotation: -this.camera.rotation,
                 scaleX: this.camera.zoom,
                 scaleY: this.camera.zoom,
