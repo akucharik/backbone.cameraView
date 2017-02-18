@@ -92,6 +92,12 @@ section {
     }
 }
 
+// Misc
+.text-link
+{
+    font-weight: 600;
+}
+
 // Go to top
 .top {
     color: $button-background;
@@ -406,6 +412,47 @@ section {
         display: none;
         height: 400px;
         width: 600px;
+        
+        &-reticle {
+            pointer-events: none;
+        }
+        
+        &-crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            z-index: 1;
+        }
+            
+        .crosshair {    
+            &-horizontal-background {
+                background-color: rgba(255,255,255,0.5);
+                height: 3px;
+                transform: translate(-50%, -1px);
+                width: 42px;
+            }
+            
+            &-vertical-background {
+                background-color: rgba(255,255,255,0.5);
+                height: 42px;
+                transform: translate(-1px, -50%);
+                width: 3px;
+            }
+            
+            &-horizontal-foreground {
+                background-color: rgba(0,0,0,1);
+                height: 1px;
+                transform: translate(-50%, 0px);
+                width: 40px;
+            }
+            
+            &-vertical-foreground {
+                background-color: rgba(0,0,0,1);
+                height: 40px; 
+                transform: translate(0px, -50%);
+                width: 1px;
+            }
+        }
     }
     
     &-cpanel {

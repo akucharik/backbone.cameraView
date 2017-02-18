@@ -144,7 +144,7 @@ $code-font-weight: $global-weight-normal;
 $code-background: $light-gray;
 $code-border: 1px solid #cacaca;
 $code-padding: rem-calc(0 3);
-$anchor-color: $primary-color;
+$anchor-color: scale-color($primary-color, $lightness: 8%);
 $anchor-color-hover: scale-color($anchor-color, $lightness: -14%);
 $anchor-text-decoration: none;
 $anchor-text-decoration-hover: none;

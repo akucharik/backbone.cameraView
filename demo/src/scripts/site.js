@@ -101,56 +101,27 @@ const animations = [{
             delay: 0.5
         }
     }]
-}, {
-    name: 'invariant',
-    keyframes: [{ 
-        origin: {x: 0, y: 0},
-        position: {x: 0, y: 0},
-        rotation: 0,
-        zoom: 1, 
-        duration: 0
-    }, {
-        zoom: 2,
-        duration: 2,
-        options: {
-            ease: Power2.easeOut
-        }
-    }]
-}, {
-    name: 'two',
-    keyframes: [{ 
-        zoom: 2, 
-        duration: 2, 
-        options: { 
-            ease: Power2.easeIn 
-        }
-    }, {
-        zoom: 1,
-        duration: 2,
-        options: {
-            ease: Power2.easeOut
-        }
-    }]
 }];
 
 animations.forEach(function (item) {
     camera.addAnimation(item.name, item);
 });
 
-camera.addAnimation('moveTo2000', new Oculo.Animation(camera).animate({position: {x:2000, y:500}, zoom: 1.5}, 2));
-camera.addAnimation('rotateAt200', new Oculo.Animation(camera).rotateAt({x:200, y:200}, -50, 5));
-camera.addAnimation('rotateTo20', new Oculo.Animation(camera).rotateTo(-20, 2));
-camera.addAnimation('shakeEaseNone', new Oculo.Animation(camera).shake(0.1, 2, Oculo.Animation.shake.direction.BOTH));
-camera.addAnimation('shakeEase', new Oculo.Animation(camera).shake(0.1, 2, Oculo.Animation.shake.direction.BOTH, { ease: Power2.easeIn }));
-camera.addAnimation('shakeEaseIn', new Oculo.Animation(camera).shake(0.1, 2, Oculo.Animation.shake.direction.BOTH, { easeIn: Power2.easeIn }));
-camera.addAnimation('shakeEaseOut', new Oculo.Animation(camera).shake(0.1, 2, Oculo.Animation.shake.direction.BOTH, { easeOut: Power2.easeOut }));
-camera.addAnimation('shakeEaseInOut', new Oculo.Animation(camera).shake(0.1, 4, Oculo.Animation.shake.direction.BOTH, { easeIn: Power2.easeIn, easeOut: Power2.easeOut }));
-camera.addAnimation('shakeNoBounds', new Oculo.Animation(camera).shake(0.1, 2, Oculo.Animation.shake.direction.BOTH, { enforceBounds: false }));
-camera.addAnimation('zoomTo50', new Oculo.Animation(camera).zoomTo(0.5, 2));
-camera.addAnimation('zoomTo200', new Oculo.Animation(camera).zoomTo(2, 2));
-camera.addAnimation('instantZoom', new Oculo.Animation(camera).zoomTo(2, 0));
-camera.addAnimation('instantShake', new Oculo.Animation(camera).shake(0.1, 0));
-camera.addAnimation('backAndForth', new Oculo.Animation(camera).animate({position: '#Hydrogen', rotation:20, zoom: 1.5}, 1.5, {ease: Power4.easeOut}).animate({position: 'previous', rotation: 'previous', zoom: 'previous'}, 1.5, {ease: Power3.easeOut}));
+//camera.addAnimation('moveTo2000', new Oculo.Animation(camera).animate({position: {x:2000, y:500}, zoom: 1.5}, 2));
+//camera.addAnimation('rotateAt200', new Oculo.Animation(camera).rotateAt({x:200, y:200}, -50, 5));
+//camera.addAnimation('rotateTo20', new Oculo.Animation(camera).rotateTo(-20, 2));
+//camera.addAnimation('shakeEaseNone', new Oculo.Animation(camera).shake(0.1, 2, Oculo.Animation.shake.direction.BOTH));
+//camera.addAnimation('shakeEase', new Oculo.Animation(camera).shake(0.1, 2, Oculo.Animation.shake.direction.BOTH, { ease: Power2.easeIn }));
+//camera.addAnimation('shakeEaseIn', new Oculo.Animation(camera).shake(0.1, 2, Oculo.Animation.shake.direction.BOTH, { easeIn: Power2.easeIn }));
+//camera.addAnimation('shakeEaseOut', new Oculo.Animation(camera).shake(0.1, 2, Oculo.Animation.shake.direction.BOTH, { easeOut: Power2.easeOut }));
+//camera.addAnimation('shakeEaseInOut', new Oculo.Animation(camera).shake(0.1, 4, Oculo.Animation.shake.direction.BOTH, { easeIn: Power2.easeIn, easeOut: Power2.easeOut }));
+//camera.addAnimation('shakeNoBounds', new Oculo.Animation(camera).shake(0.1, 2, Oculo.Animation.shake.direction.BOTH, { enforceBounds: false }));
+//camera.addAnimation('zoomTo50', new Oculo.Animation(camera).zoomTo(0.5, 2));
+//camera.addAnimation('zoomTo200', new Oculo.Animation(camera).zoomTo(2, 2));
+//camera.addAnimation('instantZoom', new Oculo.Animation(camera).zoomTo(2, 0));
+//camera.addAnimation('instantShake', new Oculo.Animation(camera).shake(0.1, 0));
+//camera.addAnimation('backAndForth', new Oculo.Animation(camera).animate({position: '#Hydrogen', rotation:20, zoom: 1.5}, 1.5, {ease: Power4.easeOut}).animate({position: 'previous', rotation: 'previous', zoom: 'previous'}, 1.5, {ease: Power3.easeOut}));
+//window.camera = camera;
 
 // Manage size
 resizeCamera();
@@ -159,7 +130,6 @@ window.addEventListener('resize', debounce(resizeCamera, 200, { maxWait: 400 }))
 // Render
 camera.render();
 camera.play('intro');
-//window.camera = camera;
 
 
 // Set up React app

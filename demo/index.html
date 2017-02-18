@@ -37,7 +37,7 @@
                             <img class="home-banner-header" src="images/oculo-logo.svg" alt="Oculo logo" width="190" />
                             <span class="phase">Alpha</span>
                             <p class="home-banner-text">A simple and intuitive 2D virtual camera for animating HTML within a frame</p>
-                            <button type="button" class="home-banner-button">Download</button>
+                            <a href="https://github.com/akucharik/oculo/archive/master.zip" class="home-banner-button">Download</a>
                         </div>
                         <div class="home-banner-camera-column">
                             <img id="homeBannerGraphic" class="home-banner-graphic" src="images/oculo-symbol.svg" alt="Oculo symbol" width="400" />
@@ -74,11 +74,11 @@
                 <div class="row">
                     <div class="shrink">
                         <div id="camera" class="demo-camera">
-                            <div style="pointer-events: none;">
-                                <div style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 42px; height: 3px; background-color: rgba(255,255,255,0.5); transform: translateX(-50%) translateY(-1px); z-index: 1;"></div>
-                                <div style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 3px; height: 42px; background-color: rgba(255,255,255,0.5); transform: translateX(-1px) translateY(-50%); z-index: 1;"></div>
-                                <div style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 40px; height: 1px; background-color: rgba(0,0,0,1); transform: translateX(-50%) translateY(0%); z-index: 1;"></div>
-                                <div style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 1px; height: 40px; background-color: rgba(0,0,0,1); transform: translateX(0%) translateY(-50%); z-index: 1;"></div>
+                            <div class="demo-camera-reticle">
+                                <div class="demo-camera-crosshair crosshair-horizontal-background"></div>
+                                <div class="demo-camera-crosshair crosshair-vertical-background"></div>
+                                <div class="demo-camera-crosshair crosshair-horizontal-foreground"></div>
+                                <div class="demo-camera-crosshair crosshair-vertical-foreground"></div>
                             </div>
                         </div>
                         <div id="scene1" style="display: none; width: 1350px; height: 900px;">
@@ -97,14 +97,14 @@
             <div class="column-full">
                 <h1>Get started <a id="topGetStarted" href="#anchorTop" class="top"><i class="fa fa-arrow-circle-up"></i></a></h1>
                 <h2>1. Add Oculo and its dependencies to the page.</h2>
-                <p>After you <a href="#">download</a> Oculo, add the necessary files to the page.</p>
+                <p>After you <a class="text-link" href="https://github.com/akucharik/oculo/archive/master.zip">download</a> Oculo, add the necessary files to the page.</p>
 <pre class="prettyprint html"><code>&lt;script type="text/javascript" src="scripts/TweenMax.min.js"&gt;&lt;/script&gt;
+&lt;!-- Draggable.min.js is only needed if you want to enable "dragToMove" on the camera --&gt;
 &lt;script type="text/javascript" src="scripts/Draggable.min.js"&gt;&lt;/script&gt;
 &lt;script type="text/javascript" src="scripts/oculo.min.js"&gt;&lt;/script&gt;</code></pre>
 
                 <h2>2. Set up your HTML</h2>
-                <p>Create HTML elements that correspond to your camera and scene.
-                    If you don't, Oculo will create a <code>&lt;div&gt;</code> for each component when you activate them, and you will have to manually add the elements to the document.</p>
+                <p>Create HTML elements that correspond to your camera and scene.</p>
 <pre class="prettyprint html"><code>&lt;div id="camera"&gt;&lt;/div&gt;
 &lt;div id="scene" style="width: 800px; height: 400px; background-color: gray;"&gt;
     &lt;div&gt;My first scene...&lt;/div&gt;
@@ -121,7 +121,10 @@
 }).addScene('scene1', '#scene');
 
 camera.setScene('scene1');
-camera.render();</code></pre>
+camera.render();
+
+// You can also create a scene like this:
+camera.addScene('scene2', new Oculo.Scene('#scene2', 800, 400));</code></pre>
             
                 <h2>4. Animate your camera</h2>
                 <p>To see your new camera in action, call one of the animation methods.</p>
@@ -189,7 +192,7 @@ camera.play('zoomInOut');</code></pre>
     <script type="text/javascript" src="scripts/TweenMax.min.js"></script>
     <script type="text/javascript" src="scripts/Draggable.min.js"></script>
     <script type="text/javascript" src="scripts/ScrollToPlugin.js"></script>
-    <script type="text/javascript" src="../dist/oculo.js"></script>
+    <script type="text/javascript" src="scripts/oculo.min.js"></script>
     <script type="text/javascript" src="scripts/prettify.js"></script>
     <script type="text/javascript" src="scripts/site.min.js"></script>
 </body>

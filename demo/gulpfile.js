@@ -29,11 +29,11 @@ var config = {
         source: './src/scripts/site.js',
         vendor: {
             source: [
-                './src/scripts/vendor/TweenMax.min.js', 
+                './src/scripts/vendor/oculo.min.js',
+                './src/scripts/vendor/prettify.js',
                 './src/scripts/vendor/Draggable.min.js',
                 './src/scripts/vendor/ScrollToPlugin.js',
-                //'../dist/oculo.js',
-                './src/scripts/vendor/prettify.js'
+                './src/scripts/vendor/TweenMax.min.js'
             ]
         }
     },
