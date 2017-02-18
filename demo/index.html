@@ -72,10 +72,12 @@
                 <div class="row">
                     <div class="shrink">
                         <div id="camera" class="demo-camera">
-                            <div style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 42px; height: 3px; background-color: rgba(255,255,255,0.5); transform: translateX(-50%) translateY(-1px); z-index: 1;"></div>
-                            <div style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 3px; height: 42px; background-color: rgba(255,255,255,0.5); transform: translateX(-1px) translateY(-50%); z-index: 1;"></div>
-                            <div style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 40px; height: 1px; background-color: rgba(0,0,0,1); transform: translateX(-50%) translateY(0%); z-index: 1;"></div>
-                            <div style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 1px; height: 40px; background-color: rgba(0,0,0,1); transform: translateX(0%) translateY(-50%); z-index: 1;"></div>
+                            <div style="pointer-events: none;">
+                                <div style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 42px; height: 3px; background-color: rgba(255,255,255,0.5); transform: translateX(-50%) translateY(-1px); z-index: 1;"></div>
+                                <div style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 3px; height: 42px; background-color: rgba(255,255,255,0.5); transform: translateX(-1px) translateY(-50%); z-index: 1;"></div>
+                                <div style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 40px; height: 1px; background-color: rgba(0,0,0,1); transform: translateX(-50%) translateY(0%); z-index: 1;"></div>
+                                <div style="box-sizing: border-box; position: absolute; top: 50%; left: 50%; width: 1px; height: 40px; background-color: rgba(0,0,0,1); transform: translateX(0%) translateY(-50%); z-index: 1;"></div>
+                            </div>
                         </div>
                         <div id="scene1" style="display: none; width: 1350px; height: 900px;">
                             <div id="pt" class="periodic-table"></div>
