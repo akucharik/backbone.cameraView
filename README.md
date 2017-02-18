@@ -1,19 +1,21 @@
 # Oculo (in development)
 
-Oculo is a simple and intuitive JavaScript 2D camera that allows you to animate HTML within a frame. It's built using [GSAP](https://greensock.com/gsap) for its tweening and rendering engine.
+Oculo is a simple and intuitive JavaScript 2D virtual camera for animating HTML within a frame. It's built using [GSAP](https://greensock.com/gsap) for its tweening and rendering engine.
 
 ## Features
 - Pan
 - Zoom
 - Rotate
-- Drag
-- Wheel
+- Shake
+- Fade
+- Drag to move
+- Wheel to zoom
 - Bounds
 - Play controls
 - and more...
 
 ## Getting started
-### 1. [Download Oculo](https://github.com/akucharik/backbone.cameraView/archive/master.zip) and add it and its dependencies to your page.
+### 1. [Download Oculo](https://github.com/akucharik/oculo/archive/master.zip) and add it and its dependencies to your page.
 
 ```html
 <script type="text/javascript" src="oculo/dist/TweenMax.min.js"></script>
@@ -48,14 +50,14 @@ Create reusable animations when your page initially loads:
 ```javascript
 myCamera.addAnimation('zoomInOut', {
   keyframes: [{ 
-      zoom: 2, 
-      duration: 2, 
+      duration: 2,
+      zoom: 2,
       options: { 
           ease: Power2.easeIn 
       }
   }, {
-      zoom: 1,
       duration: 2,
+      zoom: 1,
       options: {
           ease: Power2.easeOut
       }

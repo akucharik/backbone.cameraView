@@ -15,7 +15,7 @@ var source = require('vinyl-source-stream');
 var uglify = require('gulp-uglify');
 
 var config = {
-    environment: 'development',
+    environment: 'production',
     development: {
         lint: true,
         minify: false,
@@ -36,7 +36,8 @@ var config = {
     },
     vendor: {
         dest: ['./dist/TweenMax.min.js', './dist/Draggable.min.js'],
-        source: ['./src/scripts/lib/TweenMax.min.js', './src/scripts/lib/Draggable.min.js']
+        source: ['./node_modules/gsap/src/minified/TweenMax.min.js', './node_modules/gsap/src/minified/utils/Draggable.min.js']
+        
     }
 };
 
