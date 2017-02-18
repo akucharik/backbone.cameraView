@@ -647,9 +647,6 @@ class Camera {
         this.minPositionY = bounds.minY;
         this.maxPositionX = bounds.maxX;
         this.maxPositionY = bounds.maxY;
-
-        // TODO: For dev only
-        console.log('update bounds');
         
         return this;
     }
@@ -735,8 +732,6 @@ class Camera {
         }
         
         this.setPosition(this.position);
-        
-        console.log('apply bounds');
         
         return this;
     }
@@ -988,7 +983,6 @@ class Camera {
                         cameraRect = camera.view.getBoundingClientRect();
                         cameraFOVPosition.set(this.wheelEvent.clientX - cameraRect.left, this.wheelEvent.clientY - cameraRect.top);
                         scenePosition = camera._convertFOVPositionToScenePosition(cameraFOVPosition, camera.position, camera.center, camera.transformation);
-                        console.log('s pos: ', scenePosition);
 
                         if (Math.floor(origin.x) !== Math.floor(scenePosition.x) || Math.floor(origin.y) !== Math.floor(scenePosition.y)) {
                             origin = scenePosition;

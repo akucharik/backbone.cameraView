@@ -166,8 +166,6 @@ class Animation extends TimelineMax {
             if (this.config.onStart !== undefined && !isRepeating) {
                 this.config.onStart.apply(this, this.config.onStartParams);
             }
-            // TODO: Remove once dev is complete
-            console.log('animation started');
         }
         
         /**
@@ -199,8 +197,6 @@ class Animation extends TimelineMax {
             if (this.destroyOnComplete) {
                 this.destroy();
             }
-            // TODO: Remove once dev is complete
-            console.log('animation completed');
         },
             
         /**
@@ -214,8 +210,6 @@ class Animation extends TimelineMax {
             if (this.config.onRepeat !== undefined) {
                 this.config.onRepeat.apply(this, this.config.onRepeatParams);
             }
-            // TODO: Remove once dev is complete
-            console.log('animation repeated');
         }
         
         this.eventCallback('onStart', this._onStart);
@@ -324,11 +318,6 @@ class Animation extends TimelineMax {
                     // Origin must be set in case animation was reversed (origin was reverted)
                     this.camera.setTransformOrigin(self.props.to.origin);
                     self.timeline.core = self;
-                                        
-                    // TODO: For dev only
-                    console.log('core tween started');
-                    console.log('tween vars: ', self.vars);
-                    console.log('tween props: ', self.props);
                 },
                 onUpdateParams: ['{self}'],
                 onUpdate: function (self) {
@@ -347,8 +336,6 @@ class Animation extends TimelineMax {
                 onCompleteParams: ['{self}'],
                 onComplete: function (self) {
                     this._initCoreTween(this.coreTweens[self.index + 1], self.props.end);
-                    // TODO: For dev only
-                    console.log('core tween completed');
                 },
                 onReverseCompleteParams: ['{self}'],
                 onReverseComplete: function (self) {
