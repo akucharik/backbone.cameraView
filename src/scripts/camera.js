@@ -78,7 +78,39 @@ class Camera {
         * @readonly
         */
         this.animations = new AnimationManager(this);
-
+        
+        /**
+        * @property {null|function|Object} - The camera's bounds. The minimum and maximum position values for the camera. Set to null if no bounds are desired.
+        * @readonly
+        * @default null
+        *
+        * @example <caption>As a stock bounds</caption>
+        * Oculo.Camera.bounds.WORLD
+        *
+        * @example <caption>As a bounds object</caption>
+        * { 
+        *   minX: 0, 
+        *   minY: 0, 
+        *   maxX: myCamera.scene.width, 
+        *   maxY: myCamera.scene.height
+        * }
+        *
+        * @example <caption>As a function that returns a bounds object</caption>
+        * function () { 
+        *   var transformation = this.scaleTransformation.getInverse();
+        *   var min = this.center.clone().transform(transformation);
+        *   var max = new Vector2(this.scene.width, this.scene.height).transform(this.scaleTransformation).subtract(this.center).transform(transformation);
+        * 
+        *   return {
+        *     minX: min.x,
+        *     minY: min.y,
+        *     maxX: max.x,
+        *     maxY: max.y
+        *   }
+        * }
+        */
+        this.bounds = bounds;
+        
         /**
         * @property {Vector2} - The center of the camera's FOV.
         * @readonly
@@ -227,12 +259,6 @@ class Camera {
         
         /**
         * @private
-        * @property {null|function|Object} - The internally managed bounds.
-        */
-        this._bounds = bounds;
-        
-        /**
-        * @private
         * @property {EventEmitter} - The internal event emitter.
         */
         this._events = new EventEmitter();
@@ -324,53 +350,6 @@ class Camera {
         this.setView(view);
         
         this.onInitialize(arguments[0]);
-    }
-    
-    /**
-    * @name Camera#bounds
-    * @property {null|function|Object} - The camera's bounds. The minimum and maximum position values for the camera. Set to null if no bounds are desired.
-    *
-    * @example <caption>As a stock bounds</caption>
-    * Oculo.Camera.bounds.WORLD
-    *
-    * @example <caption>As a bounds object</caption>
-    * { 
-    *   minX: 0, 
-    *   minY: 0, 
-    *   maxX: this.scene.width, 
-    *   maxY: this.scene.height
-    * }
-    *
-    * @example <caption>As a function that returns a bounds object</caption>
-    * function () { 
-    *   var transformation = this.scaleTransform.getInverse();
-    *   var min = this.center.clone().transform(transformation);
-    *   var max = new Vector2(this.scene.width, this.scene.height).transform(this.scaleTransform).subtract(this.center).transform(transformation);
-    * 
-    *   return {
-    *     minX: min.x,
-    *     minY: min.y,
-    *     maxX: max.x,
-    *     maxY: max.y
-    *   }
-    * }
-    */
-    get bounds () {
-        return this._bounds;
-    }
-
-    set bounds (value) {
-        this._bounds = !value ? null : value;
-        this._updateBounds();
-    }
-    
-    /**
-    * @name Camera#hasBounds
-    * @property {boolean} - Whether the camera has bounds or not.
-    * @readonly
-    */
-    get hasBounds () {
-        return this._bounds !== null;
     }
     
     /**
@@ -500,7 +479,7 @@ class Camera {
     * @returns {number} The clamped position.
     */
     _clampPositionX (x) {
-        if (this._bounds !== null) {
+        if (this.bounds !== null) {
             x = clamp(x, this.minPositionX, this.maxPositionX);
         }
         
@@ -515,7 +494,7 @@ class Camera {
     * @returns {number} The clamped position.
     */
     _clampPositionY (y) {
-        if (this._bounds !== null) {
+        if (this.bounds !== null) {
             y = clamp(y, this.minPositionY, this.maxPositionY);
         }
         
@@ -649,35 +628,28 @@ class Camera {
     _updateBounds () { 
         var bounds;
         
-        if (this.scene) {
-            if (this._bounds === null) {
-                bounds = {
-                    minX: null,
-                    minY: null,
-                    maxX: null,
-                    maxY: null
-                };
-            }
-            else if (isFunction(this._bounds)) {
-                bounds = this._bounds.call(this);
-            }
-            else {
-                bounds = this._bounds;
-            }
-            
-            this.minPositionX = bounds.minX;
-            this.minPositionY = bounds.minY;
-            this.maxPositionX = bounds.maxX;
-            this.maxPositionY = bounds.maxY;
-            
-            // TODO: Turn applyBounds into a separate function that calls _updateBounds, then applies them
-            if (!this.isAnimating) {
-                this.setPosition(this.position);
-            }
-
-            // TODO: For dev only
-            console.log('update bounds');
+        if (this.bounds === null) {
+            bounds = {
+                minX: null,
+                minY: null,
+                maxX: null,
+                maxY: null
+            };
         }
+        else if (isFunction(this.bounds)) {
+            bounds = this.bounds.call(this);
+        }
+        else {
+            bounds = this.bounds;
+        }
+
+        this.minPositionX = bounds.minX;
+        this.minPositionY = bounds.minY;
+        this.maxPositionX = bounds.maxX;
+        this.maxPositionY = bounds.maxY;
+
+        // TODO: For dev only
+        console.log('update bounds');
         
         return this;
     }
@@ -747,6 +719,25 @@ class Camera {
         this.scenes.setActiveScene(name);
         this._reset();
 
+        return this;
+    }
+    
+    /**
+    * Applies new bounds or the current bounds.
+    *
+    * @param {null|function|Object} [bounds] - The new bounds. The minimum and maximum position values for the camera. Set to null if no bounds are desired.
+    * returns {this} self
+    */
+    applyBounds (bounds) { 
+        if (bounds !== undefined) {
+            this.bounds = bounds;
+            this._updateBounds();
+        }
+        
+        this.setPosition(this.position);
+        
+        console.log('apply bounds');
+        
         return this;
     }
     
@@ -1168,9 +1159,9 @@ class Camera {
 Camera.bounds = {
     NONE: null,
     WORLD: function () {
-        var transformation = this.scaleTransform.getInverse();
+        var transformation = this.scaleTransformation.getInverse();
         var min = this.center.clone().transform(transformation);
-        var max = new Vector2(this.scene.width, this.scene.height).transform(this.scaleTransform).subtract(this.center).transform(transformation);
+        var max = new Vector2(this.scene.width, this.scene.height).transform(this.scaleTransformation).subtract(this.center).transform(transformation);
 
         return {
             minX: min.x,

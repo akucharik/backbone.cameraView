@@ -51,7 +51,7 @@ const actions = {
     setBounds: function () {
         let state = store.getState();
         
-        camera.bounds = data.bounds[state.bounds];
+        camera.applyBounds(data.bounds[state.bounds]);
         camera.render();
     },
     setSize: function () {
